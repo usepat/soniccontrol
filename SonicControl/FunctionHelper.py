@@ -96,7 +96,6 @@ class FunctionhelperWidget(tk.Toplevel):
         self.label_21.config(text='End the loop here')
         self.label_21.grid(column='2', row='7')
         
-        
         self.RampButton = ttk.Button(self.HelperFrame)
         self.RampButton.config(text='ramp', command = self.insertRamp)
         self.RampButton.grid(column='0', pady='5', row='8')
