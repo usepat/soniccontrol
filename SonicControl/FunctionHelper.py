@@ -1,17 +1,10 @@
-import time 
+# Tkinter libraries
 import tkinter as tk
-from tkinter import font
 import tkinter.ttk as ttk
-from tkinter import filedialog
-from tkinter import messagebox
+# PySerial libraries
 import serial
 import serial.tools.list_ports
-import datetime
-from ttkthemes import ThemedStyle
-from PIL import Image, ImageTk
-from matplotlib.figure import Figure
-from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
+# Internal libraries
 from SonicControl import root
 
 class FunctionhelperWidget(tk.Toplevel):

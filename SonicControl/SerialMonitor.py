@@ -1,11 +1,15 @@
+# genereral libraries
 import time 
+# Tkinter libraries
 import tkinter as tk
-from tkinter import *
 import tkinter.ttk as ttk
-from tkinter import messagebox
 import tkinter.scrolledtext as st
+from tkinter import messagebox
+from tkinter import *
+# PySerial Library
 import serial
 import serial.tools.list_ports
+# Internal libraries
 from SonicControl import root
 
 

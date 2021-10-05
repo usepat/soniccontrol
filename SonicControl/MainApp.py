@@ -1,23 +1,23 @@
-import enum
+# General libraries
+import datetime
 import time 
 import tkinter as tk
 from tkinter import font
 import tkinter.ttk as ttk
+import tkinter.scrolledtext as st
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import *
+from PIL import Image, ImageTk
+# PySerial Libraries
 import serial
 import serial.tools.list_ports
-import datetime
-from ttkthemes import ThemedStyle
-from PIL import Image, ImageTk
-from matplotlib.figure import Figure
-from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
+# Internal libraries
 from SonicControl import root
 from SonicControl.FunctionHelper import FunctionhelperWidget
 from SonicControl.SerialMonitor import SerialMonitorWidget
 
-class SonicControlApp:
+class WipeApp:
     def __init__(self, master=None):
         #initialize needed variables
         self.ser=serial.Serial()
@@ -32,7 +32,7 @@ class SonicControlApp:
         self.style = ttk.Style()
         # self.style.theme_use('clam')
         self.style.configure('USActive.TButton', font=('Futura Md BT', 22), foreground = '#4DAF7C')
-        self.style.configure('USInActive.TButton', font=('Futura Md BT', 18), foreground = '#ff8080')
+        self.style.configure('USInActive.TButton', font=('Futura Md BT', 22), foreground = '#ff8080')
         self.style.configure('bigger.TSpinbox', arrowsize=20)
         self._filetypes = [('Text', '*.txt'),('All files', '*'),]
         self.red = '#ED2839'
@@ -43,64 +43,75 @@ class SonicControlApp:
         self.notebook_1 = ttk.Notebook(self.SonicControl)
         self.tabManual = ttk.Frame(self.notebook_1)
         
-        #! kHz Box
-        self.kHzFrame = ttk.Labelframe(self.tabManual)
-        # Freq Label
-        self.kHzFreqLabel = ttk.Label(self.kHzFrame)
-        self.kHzFreqLabel.config(text='Frequency / Hz')
-        self.kHzFreqLabel.pack(anchor='nw', padx='10', pady = '5', side='top')
-        # Input Box
-        self.kHzFreqSpinBox = ttk.Spinbox(self.kHzFrame)
+        self.ConfigueFrame = ttk.LabelFrame(self.tabManual)
+
+        self.frqLabel = ttk.Label(self.ConfigueFrame, text='FREQUENCY:')
+        self.frqLabel.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        
+        self.kHzFreqSpinBox = ttk.Spinbox(self.ConfigueFrame)
         self.kHzFreqSpinBox.config(from_='50000', increment='100', state='normal', to='1200000',  textvariable = self.kHzFrequency)
         self.kHzFreqSpinBox.config(width='10', font=('TkDefaultFont', 14), style = 'bigger.TSpinbox')
-        self.kHzFreqSpinBox.pack(anchor='n', pady='5', padx = '10', side='left')
+        self.kHzFreqSpinBox.grid(row=0, column=1, padx=10, pady=10, sticky='w', )
         self.kHzFreqSpinBox.configure(command=self.setkHzFrequency)
+        # Scroll Digit Spin Box
+        
+        self.ScrollDigitSpinbox = ttk.Spinbox(self.ConfigueFrame)
+        self.ScrollDigitSpinbox.config(from_='1', increment='1', state='normal', to='6')
+        self.ScrollDigitSpinbox.config(validate='none', width='3', font=('TkDefaultFont', 14), style = 'bigger.TSpinbox')
+        self.ScrollDigit = tk.StringVar(value='''3''')
+        self.ScrollDigitSpinbox.insert('0', self.ScrollDigit.get())
+        self.ScrollDigitSpinbox.grid(row=0, column=1, padx=10, pady=10, sticky='e')
+        self.ScrollDigitSpinbox.configure(command=self.setScrollDigit)
+        
         # Set up Freq button
-        self.SetkHzFreqButton = ttk.Button(self.kHzFrame)
+        self.SetkHzFreqButton = ttk.Button(self.ConfigueFrame)
         self.SetkHzFreqButton.config(text='Set frequency')
-        self.SetkHzFreqButton.pack(anchor='n', pady='10', padx = '10', side='right')
+        self.SetkHzFreqButton.grid(row=0, column=2, padx=10, pady=10, sticky='e')
         self.SetkHzFreqButton.configure(command=self.setkHzFrequency)
-        self.kHzFrame.config(height='200', text='Configure frequency', width='200')
-        self.kHzFrame.pack(fill='x', padx='10', pady='10', side='top')
-        
-        #! WIPE Box
-        # Frame for the configuration of cycles
-        self.WipeModeFrame = ttk.Labelframe(self.tabManual)
-        self.WipeModeFrame.config(height='200', text='Configure cycles', width='200')
-        self.WipeModeFrame.pack(fill='x', padx='10', pady='10', side='top')
-        # Spinbox to manually set an amount of cycles
-        self.WipeRunsSpinBox = ttk.Spinbox(self.WipeModeFrame)
+  
+        self.WipeLabel = ttk.Label(self.ConfigueFrame, text='WIPING:')
+        self.WipeLabel.grid(row=1, column=0, padx=10, pady=10, sticky='w')
+  
+        self.WipeRunsSpinBox = ttk.Spinbox(self.ConfigueFrame)
         self.WipeRunsSpinBox.config(from_='10', increment='5', justify='left', to='100', textvariable=self.WipeRuns)
-        self.WipeRunsSpinBox.config(validate='none', width='10', font=('TkDefaultFont', 14), style='bigger.TSpinbox')
-        self.WipeRunsSpinBox.grid(row=0, column=0, padx=10, pady=10, sticky='w')
-        # Button to activate an indeterminate amount of cycles
-        self.EndlessWipeRunsButton = ttk.Button(self.WipeModeFrame)
-        self.EndlessWipeRunsButton.config(text='Infinite cycles')
-        self.EndlessWipeRunsButton.grid(row=0, column=1, padx=10, pady=10, sticky='w')
-        self.EndlessWipeRunsButton.configure(command=self.EndlessWipeRuns)
-        # Button to start the Wipe process
-        self.StartWipeModeButton = ttk.Button(self.WipeModeFrame)
-        self.StartWipeModeButton.config(text='Start wiping')
-        self.StartWipeModeButton.grid(row=0, column=2, padx=10, pady=10, sticky="e")
-        self.StartWipeModeButton.configure(command=self.StartWipeMode)
-        #Button to stop the Wipe process
-        self.StopWipeModeButton = ttk.Button(self.WipeModeFrame)
-        self.StopWipeModeButton.config(text='Stop wiping')
-        self.StopWipeModeButton.grid(row=0, column=3, padx=10, pady=10, sticky='e')
-        self.StopWipeModeButton.configure(command=self.StopWipeMode)
-        # Progress Bar to have feedback, that the Wipe process is running
-        self.WipeProgressBar = ttk.Progressbar(self.WipeModeFrame)
-        self.WipeProgressBar.config(orient='horizontal', length=200, mode='indeterminate')
-        self.WipeProgressBar.grid(row=1, column=2, columnspan=3, padx=10, pady=10)
+        self.WipeRunsSpinBox.config(validate='none', width='5', font=('TkDefaultFont', 14), style='bigger.TSpinbox')
+        self.WipeRunsSpinBox.grid(row=1, column=1, padx=10, pady=10, sticky='w')
         
-        self.setUSActiveButton = ttk.Button(self.tabManual)
-        self.setUSActiveButton.config(text='US on', style='USActive.TButton')
-        self.setUSActiveButton.pack(pady='40', side='top')
+        # Button to activate an indeterminate amount of cycles
+        self.EndlessWipeRunsButton = ttk.Button(self.ConfigueFrame)
+        self.EndlessWipeRunsButton.config(text='Infinite cycles')
+        self.EndlessWipeRunsButton.grid(row=1, column=1, padx=10, pady=10, sticky='e')
+        self.EndlessWipeRunsButton.configure(command=self.EndlessWipeRuns)
+        
+        # Button to start the Wipe process
+        self.StartWipeModeButton = ttk.Button(self.ConfigueFrame)
+        self.StartWipeModeButton.config(text='Start wiping')
+        self.StartWipeModeButton.grid(row=1, column=2, padx=10, pady=10, sticky='e')
+        self.StartWipeModeButton.configure(command=self.StartWipeMode)
+        
+        #Button to stop the Wipe process
+        self.WipeProgressBar = ttk.Progressbar(self.ConfigueFrame)
+        self.WipeProgressBar.config(orient='horizontal', length=200, mode='indeterminate')
+        self.WipeProgressBar.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+        
+        self.setUSActiveButton = ttk.Button(self.ConfigueFrame)
+        self.setUSActiveButton.config(text='US ON', style='USActive.TButton')
+        self.setUSActiveButton.grid(row=3, column=1, padx=10, pady=10, sticky='w')
         self.setUSActiveButton.configure(command=self.setUSActive)
-        self.SetUSInActiveButton = ttk.Button(self.tabManual)
-        self.SetUSInActiveButton.config(text='US off', style = 'USInActive.TButton')
-        self.SetUSInActiveButton.pack(pady='10', side='top')
+        
+        self.SetUSInActiveButton = ttk.Button(self.ConfigueFrame)
+        self.SetUSInActiveButton.config(text='US OFF', style = 'USInActive.TButton')
+        self.SetUSInActiveButton.grid(row=3, column=2, padx=10, pady=10, sticky='e')
         self.SetUSInActiveButton.configure(command=self.SetUSInActive)
+        
+        self.ConfigueFrame.config(text="Configure SonicWipe")
+        self.ConfigueFrame.pack(anchor='center', padx=10, pady=10, side='top')
+        
+        self.OutputFrame = ttk.Labelframe(self.tabManual, text='Feedback')
+        self.OutputText = st.ScrolledText(self.OutputFrame, wrap=tk.WORD, height=7, font=("Consolas",10), state='normal')
+        self.OutputText.pack(anchor='center', expand=True, fill='both', padx=10, pady=10,)
+        self.OutputFrame.pack(anchor='center', fill='both', padx=10, pady=10, side='top')
+        
         self.tabManual.config(height='200', width='200')
         self.tabManual.pack(side='top')
         
@@ -259,7 +270,7 @@ Allows automation of processes through the scripting editor.
         self.WaveFrame.pack(fill='both', padx='1', pady='2', side='top')
         # self.img = ImageTk.PhotoImage(Image.open(r'D:\Christoph\usePAT\technology\software\Python\SonicControl\pygubu\tkinter_wave.png'))  
         # self.img = ImageTk.PhotoImage(Image.open(r'D:\usePAT\technology\software\Python\SonicControl\pygubu\tkinter_wave.png'))
-        self.img = ImageTk.PhotoImage(Image.open('SonicControl/tkinter_wave.png'))
+        self.img = ImageTk.PhotoImage(Image.open('tkinter_wave.png'))
         self.WaveLabel = tk.Label(self.WaveFrame, image=self.img, bg = 'white')
         self.WaveLabel.pack(fill='both', side='top')
         self.SonicControl.config(borderwidth='0', height='900', width='540')
@@ -272,7 +283,7 @@ Allows automation of processes through the scripting editor.
        
        
     def setkHzFrequency(self):
-        self.sendMessage('!f='+self.kHzFrequency.get()+'\n', read = False)
+        self.sendMessage('!f='+self.kHzFrequency.get()+'\n', read = True)
         
         
     def EndlessWipeRuns(self):
@@ -293,21 +304,17 @@ Allows automation of processes through the scripting editor.
             self.sendMessage(f'!WIPE={self.WipeRunsSpinBox.get()}\n')
         else:
             self.sendMessage('!WIPE\n')
-        
-        
-    def StopWipeMode(self):
-        self.StartWipeModeButton.configure(state='normal')
-        self.WipeProgressBar.stop()
-        self.sendMessage('!OFF\n')
 
 
     def setUSActive(self):
-        self.sendMessage('!ON'+'\n', read = False)
+        self.StartWipeModeButton.configure(state='normal')
+        self.WipeProgressBar.stop()
+        self.sendMessage('!ON'+'\n', read = True)
         self.canvas.itemconfig(self.LEDUS, fill=self.green)
 
 
     def SetUSInActive(self):
-        self.sendMessage('!OFF'+'\n', read = False)
+        self.sendMessage('!OFF'+'\n', read = True)
         self.canvas.itemconfig(self.LEDUS, fill=self.red)
 
 
@@ -408,13 +415,15 @@ Allows automation of processes through the scripting editor.
             # print(line)
             if 'startloop' in line:
                 startpos = i
-                for n in range(int(line.split(' ')[1])-1):
-                    for i,line in enumerate(commandList[startpos+1:]):
-                        if 'endloop' in line:
-                           break 
-                        else:
-                            self.parseCommands(line)
-                        
+                try:
+                    for n in range(int(line.split(' ')[1])-1):
+                        for i,line in enumerate(commandList[startpos+1:]):
+                            if 'endloop' in line:
+                               break 
+                            else:
+                                self.parseCommands(line)
+                except ValueError:
+                    messagebox.showerror("The arguments you have given are incorrect!")        
             if 'endloop' in line:
                 pass
             else:
@@ -580,10 +589,11 @@ Allows automation of processes through the scripting editor.
             self.sendMessage('?info\n', flush = True, delay=0.05)
             # print(self.reply)
             FirmwareText = ''
-            for line in self.reply[1:-1]:
-                # print(line)
-                # print(line.decode())
-                FirmwareText = FirmwareText + str(line.decode())
+            # for line in self.reply[1:-1]:
+            #     # print(line)
+            #     # print(line.decode())
+            #     FirmwareText = FirmwareText + str(line.decode())
+            FirmwareText = self.DataReply
             # print(FirmwareText)
             self.FirmwareInfoText.set(FirmwareText)
             self.canvas.itemconfig(self.LEDAmp, fill=self.green)
@@ -606,19 +616,22 @@ Allows automation of processes through the scripting editor.
     def sendMessage(self, message, read = True, flush=False, delay=0.0, wait=0.0):
         if self.ser.is_open:
             # self.ser.flush()
+            messageLen = len(message)
             if flush == True:
                 self.ser.flushInput() #it works best with this flush
             # print('Command to amp: '+str(message))
             self.ser.write(message.encode())
             time.sleep(delay)
             if read == True:
-                self.reply = self.ser.readlines()
-            # for lines in self.reply:
-                # print(lines.decode('utf-8'))
+                self.reply = self.ser.read(255).rstrip().decode()
+                self.DataReply = self.reply[messageLen:]
+                self.OutputText.insert(END, f'{self.DataReply}\n\n')
+                self.OutputText.see(END)
             time.sleep(wait)
         else:
             messagebox.showerror("Error", "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.")
-        
+        # while self.ser.is_open:
+        #     self.OutputText.insert(END, f'{self.reply}')
             
     # A spellcheck for the functions we use
     def Spellcheck(self, event):
