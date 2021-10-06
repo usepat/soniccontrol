@@ -277,10 +277,10 @@ Allows automation of processes through the scripting editor.
         self.SonicControl.pack(side='top')
 
         # self.setButtonState('MHz') # This should be replaced with a check which state is active and set accordingly
-
+        
         # Main widget
         self.mainwindow = self.SonicControl
-       
+        
        
     def setkHzFrequency(self):
         self.sendMessage('!f='+self.kHzFrequency.get()+'\n', read = True)
@@ -307,13 +307,16 @@ Allows automation of processes through the scripting editor.
 
 
     def setUSActive(self):
-        self.StartWipeModeButton.configure(state='normal')
-        self.WipeProgressBar.stop()
         self.sendMessage('!ON'+'\n', read = True)
-        self.canvas.itemconfig(self.LEDUS, fill=self.green)
+        if self.reply[:len("!ON")] == "!ON":
+            self.canvas.itemconfig(self.LEDUS, fill=self.green)
+        # else:
+        #     messagebox.showerror("Error", "It seems either your device is not connected or it is not in Serial mode! To activate the Serial mode, make sure that the mechanic switch is set on \"External mode\"!")
 
 
     def SetUSInActive(self):
+        self.StartWipeModeButton.configure(state='normal')
+        self.WipeProgressBar.stop()
         self.sendMessage('!OFF'+'\n', read = True)
         self.canvas.itemconfig(self.LEDUS, fill=self.red)
 
@@ -423,7 +426,7 @@ Allows automation of processes through the scripting editor.
                             else:
                                 self.parseCommands(line)
                 except ValueError:
-                    messagebox.showerror("The arguments you have given are incorrect!")        
+                    messagebox.showerror("Value Error","The arguments you have given are incorrect!")        
             if 'endloop' in line:
                 pass
             else:
@@ -602,7 +605,7 @@ Allows automation of processes through the scripting editor.
             self.notebook_1.tab(self.tabScripting, state='normal')
             # check initial kHz/MHz state
             self.sendMessage('?\n', flush = True, delay=0.05)
-
+                
             
     def closePorts(self):
         self.ser.close()
