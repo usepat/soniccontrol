@@ -25,12 +25,14 @@ class WipeApp:
         self.logfilepath = ''
         self.reply = '' #answer from amp
         self.kHzFrequency = tk.StringVar(value = '1000000')
+        self.Protocol = StringVar(value='Chirp')
         self.WipeRuns = tk.StringVar(value='100')
         self.scriptstatus = tk.StringVar()
         self.connectionstatus = tk.StringVar()
         self.USStatus = tk.StringVar()
         self.style = ttk.Style()
         # self.style.theme_use('clam')
+        self.style.configure('WIPE.TButton', font=('Futura Md BT', 22), foreground='#0000FF')
         self.style.configure('USActive.TButton', font=('Futura Md BT', 22), foreground = '#4DAF7C')
         self.style.configure('USInActive.TButton', font=('Futura Md BT', 22), foreground = '#ff8080')
         self.style.configure('bigger.TSpinbox', arrowsize=20)
@@ -43,74 +45,84 @@ class WipeApp:
         self.notebook_1 = ttk.Notebook(self.SonicControl)
         self.tabManual = ttk.Frame(self.notebook_1)
         
-        self.ConfigueFrame = ttk.LabelFrame(self.tabManual)
-
-        self.frqLabel = ttk.Label(self.ConfigueFrame, text='FREQUENCY:')
-        self.frqLabel.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+         # Frames
+        self.TopFrame = ttk.Frame(self.tabManual)
+        self.BottomFrame = ttk.Frame(self.tabManual)
         
-        self.kHzFreqSpinBox = ttk.Spinbox(self.ConfigueFrame)
-        self.kHzFreqSpinBox.config(from_='50000', increment='100', state='normal', to='1200000',  textvariable = self.kHzFrequency)
-        self.kHzFreqSpinBox.config(width='10', font=('TkDefaultFont', 14), style = 'bigger.TSpinbox')
-        self.kHzFreqSpinBox.grid(row=0, column=1, padx=10, pady=10, sticky='w', )
-        self.kHzFreqSpinBox.configure(command=self.setkHzFrequency)
-        # Scroll Digit Spin Box
+        self.WipeFrame = ttk.LabelFrame(self.TopFrame, text='Wiping')
+        self.FrqFrame = ttk.LabelFrame(self.TopFrame, text='Frequency')
         
-        self.ScrollDigitSpinbox = ttk.Spinbox(self.ConfigueFrame)
-        self.ScrollDigitSpinbox.config(from_='1', increment='1', state='normal', to='6')
-        self.ScrollDigitSpinbox.config(validate='none', width='3', font=('TkDefaultFont', 14), style = 'bigger.TSpinbox')
-        self.ScrollDigit = tk.StringVar(value='''3''')
-        self.ScrollDigitSpinbox.insert('0', self.ScrollDigit.get())
-        self.ScrollDigitSpinbox.grid(row=0, column=1, padx=10, pady=10, sticky='e')
-        self.ScrollDigitSpinbox.configure(command=self.setScrollDigit)
+        # Wiping Frame
+        self.ProtocolMenue = ttk.OptionMenu(self.WipeFrame, self.Protocol, "Chirp", "Square", "Code", "SamyCode", "Ramp", command=self.setProtocol)
+        self.ProtocolMenue.config(style="PROT.TMenubutton")
+        self.ProtocolMenue.pack(anchor='center', padx=10, pady=10, fill='x')
         
-        # Set up Freq button
-        self.SetkHzFreqButton = ttk.Button(self.ConfigueFrame)
-        self.SetkHzFreqButton.config(text='Set frequency')
-        self.SetkHzFreqButton.grid(row=0, column=2, padx=10, pady=10, sticky='e')
-        self.SetkHzFreqButton.configure(command=self.setkHzFrequency)
-  
-        self.WipeLabel = ttk.Label(self.ConfigueFrame, text='WIPING:')
-        self.WipeLabel.grid(row=1, column=0, padx=10, pady=10, sticky='w')
-  
-        self.WipeRunsSpinBox = ttk.Spinbox(self.ConfigueFrame)
+        self.WipeRunsSpinBox = ttk.Spinbox(self.WipeFrame)
         self.WipeRunsSpinBox.config(from_='10', increment='5', justify='left', to='100', textvariable=self.WipeRuns)
         self.WipeRunsSpinBox.config(validate='none', width='5', font=('TkDefaultFont', 14), style='bigger.TSpinbox')
-        self.WipeRunsSpinBox.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+        self.WipeRunsSpinBox.pack(anchor='center', padx=10, pady=10, fill='x')
         
-        # Button to activate an indeterminate amount of cycles
-        self.EndlessWipeRunsButton = ttk.Button(self.ConfigueFrame)
+        self.EndlessWipeRunsButton = ttk.Button(self.WipeFrame)
         self.EndlessWipeRunsButton.config(text='Infinite cycles')
-        self.EndlessWipeRunsButton.grid(row=1, column=1, padx=10, pady=10, sticky='e')
+        self.EndlessWipeRunsButton.pack(anchor='center', padx=10, pady=10, fill='x')
         self.EndlessWipeRunsButton.configure(command=self.EndlessWipeRuns)
         
-        # Button to start the Wipe process
-        self.StartWipeModeButton = ttk.Button(self.ConfigueFrame)
-        self.StartWipeModeButton.config(text='Start wiping')
-        self.StartWipeModeButton.grid(row=1, column=2, padx=10, pady=10, sticky='e')
+        self.WipeProgressBar = ttk.Progressbar(self.WipeFrame)
+        self.WipeProgressBar.config(orient='horizontal', length=50, mode='indeterminate')
+        self.WipeProgressBar.pack(anchor='center', padx=10, pady=10, fill='x')
+        
+        self.StartWipeModeButton = ttk.Button(self.WipeFrame)
+        self.StartWipeModeButton.config(text='WIPE', style='WIPE.TButton')
+        self.StartWipeModeButton.pack(anchor='center', padx=10, pady=10, fill='x', side='bottom')
         self.StartWipeModeButton.configure(command=self.StartWipeMode)
         
-        #Button to stop the Wipe process
-        self.WipeProgressBar = ttk.Progressbar(self.ConfigueFrame)
-        self.WipeProgressBar.config(orient='horizontal', length=200, mode='indeterminate')
-        self.WipeProgressBar.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+        # Frequency Frame
+        self.FreqSpinBox = ttk.Spinbox(self.FrqFrame)
+        self.FreqSpinBox.config(from_='50000', increment='100', state='normal', to='1200000',  textvariable = self.kHzFrequency)
+        self.FreqSpinBox.config(width='10', font=('TkDefaultFont', 14), style = 'bigger.TSpinbox')
+        self.FreqSpinBox.pack(anchor='center', padx=10, pady=10, fill='x')
+        self.FreqSpinBox.configure(command=self.setkHzFrequency)
         
-        self.setUSActiveButton = ttk.Button(self.ConfigueFrame)
-        self.setUSActiveButton.config(text='US ON', style='USActive.TButton')
-        self.setUSActiveButton.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+        self.ScrollDigitSpinbox = ttk.Spinbox(self.FrqFrame)
+        self.ScrollDigitSpinbox.config(from_='1', increment='1', state='normal', to='6')
+        self.ScrollDigitSpinbox.config(validate='none', width=5,font=('TkDefaultFont', 14), )#style = 'bigger.TSpinbox')
+        self.ScrollDigit = tk.StringVar(value='''3''')
+        self.ScrollDigitSpinbox.insert('0', self.ScrollDigit.get())
+        self.ScrollDigitSpinbox.pack(anchor='center', padx=10, pady=10, fill='x')
+        self.ScrollDigitSpinbox.configure(command=self.setScrollDigit)
+        
+        self.SetkHzFreqButton = ttk.Button(self.FrqFrame)
+        self.SetkHzFreqButton.config(text='Set frequency')
+        self.SetkHzFreqButton.pack(anchor='center', padx=10, pady=10, fill='x')
+        self.SetkHzFreqButton.configure(command=self.setkHzFrequency)
+        
+        self.setUSActiveButton = ttk.Button(self.FrqFrame)
+        self.setUSActiveButton.config(text='ON', style='USActive.TButton')
+        self.setUSActiveButton.pack(anchor='center', padx=10, pady=10, fill='x', side='bottom')
         self.setUSActiveButton.configure(command=self.setUSActive)
         
-        self.SetUSInActiveButton = ttk.Button(self.ConfigueFrame)
-        self.SetUSInActiveButton.config(text='US OFF', style = 'USInActive.TButton')
-        self.SetUSInActiveButton.grid(row=3, column=2, padx=10, pady=10, sticky='e')
+        
+        # packing frames
+        self.WipeFrame.pack(anchor='center', padx=10, pady=10, side='left', expand=True, fill='both')
+        self.FrqFrame.pack(anchor='center', padx=10, pady=10, side='right', expand=True, fill='both')
+        
+        
+        
+        self.SetUSInActiveButton = ttk.Button(self.BottomFrame)
+        self.SetUSInActiveButton.config(text='OFF', style = 'USInActive.TButton', width=10)
+        self.SetUSInActiveButton.pack(anchor='n', padx=10, pady=10, side='top', fill='x')
         self.SetUSInActiveButton.configure(command=self.SetUSInActive)
         
-        self.ConfigueFrame.config(text="Configure SonicWipe")
-        self.ConfigueFrame.pack(anchor='center', padx=10, pady=10, side='top')
         
-        self.OutputFrame = ttk.Labelframe(self.tabManual, text='Feedback')
+        
+        self.OutputFrame = ttk.Labelframe(self.BottomFrame, text='Feedback', width=10)
         self.OutputText = st.ScrolledText(self.OutputFrame, wrap=tk.WORD, height=7, font=("Consolas",10), state='normal')
         self.OutputText.pack(anchor='center', expand=True, fill='both', padx=10, pady=10,)
-        self.OutputFrame.pack(anchor='center', fill='both', padx=10, pady=10, side='top')
+        self.tabManual.rowconfigure(2, weight=3)
+        self.OutputFrame.pack(anchor='center', padx=10, pady=10, side='top', fill='both')
+        
+        self.TopFrame.pack(anchor='n',  expand=True, side='top', fill='both')
+        self.BottomFrame.pack(anchor='s', expand=True, side='bottom', fill='both')
         
         self.tabManual.config(height='200', width='200')
         self.tabManual.pack(side='top')
@@ -285,6 +297,22 @@ Allows automation of processes through the scripting editor.
     def setkHzFrequency(self):
         self.sendMessage('!f='+self.kHzFrequency.get()+'\n', read = True)
         
+    
+    def setProtocol(self):
+        protocol = self.Protocol.get()
+        if protocol == "Chirp":
+            self.sendMessage("!prot=0")
+        elif protocol == "Square":
+            self.sendMessage("!prot=1")
+        elif protocol == "Code":
+            self.sendMessage("!prot=2")
+        elif protocol == "SamyCode":
+            self.sendMessage("!prot=3")
+        elif protocol == "Ramp":
+            self.sendMessage("!prot=4")
+        else:
+            messagebox.showerror("There is apparently and error with the values you have given")
+    
         
     def EndlessWipeRuns(self):
         state = str(self.WipeRunsSpinBox['state'])
