@@ -25,17 +25,23 @@ class WipeApp:
         self.logfilepath = ''
         self.reply = '' #answer from amp
         self.kHzFrequency = tk.StringVar(value = '1000000')
-        self.Protocol = StringVar(value='Chirp')
+        self.Protocol = StringVar()
+        self.ProtocolOptions = ("Chirp", "Square", "Code", "SamyCode", "Ramp")
         self.WipeRuns = tk.StringVar(value='100')
         self.scriptstatus = tk.StringVar()
         self.connectionstatus = tk.StringVar()
         self.USStatus = tk.StringVar()
         self.style = ttk.Style()
         # self.style.theme_use('clam')
+        
+        # Styles to configure
         self.style.configure('WIPE.TButton', font=('Futura Md BT', 22), foreground='#0000FF')
         self.style.configure('USActive.TButton', font=('Futura Md BT', 22), foreground = '#4DAF7C')
         self.style.configure('USInActive.TButton', font=('Futura Md BT', 22), foreground = '#ff8080')
         self.style.configure('bigger.TSpinbox', arrowsize=20)
+        self.style.configure('bigger.TMenubutton', arrowsize=20)
+        self.style.configure('bar.Horizontal.TProgressbar')
+        
         self._filetypes = [('Text', '*.txt'),('All files', '*'),]
         self.red = '#ED2839'
         self.green = '#00AD83'
@@ -52,9 +58,10 @@ class WipeApp:
         self.WipeFrame = ttk.LabelFrame(self.TopFrame, text='Wiping')
         self.FrqFrame = ttk.LabelFrame(self.TopFrame, text='Frequency')
         
+        
         # Wiping Frame
-        self.ProtocolMenue = ttk.OptionMenu(self.WipeFrame, self.Protocol, "Chirp", "Square", "Code", "SamyCode", "Ramp", command=self.setProtocol)
-        self.ProtocolMenue.config(style="PROT.TMenubutton")
+        self.ProtocolMenue = ttk.OptionMenu(self.WipeFrame, self.Protocol, self.ProtocolOptions[0], *self.ProtocolOptions, command=self.setProtocol)
+        self.ProtocolMenue.config(style="bigger.TMenubutton")
         self.ProtocolMenue.pack(anchor='center', padx=10, pady=10, fill='x')
         
         self.WipeRunsSpinBox = ttk.Spinbox(self.WipeFrame)
@@ -67,7 +74,7 @@ class WipeApp:
         self.EndlessWipeRunsButton.pack(anchor='center', padx=10, pady=10, fill='x')
         self.EndlessWipeRunsButton.configure(command=self.EndlessWipeRuns)
         
-        self.WipeProgressBar = ttk.Progressbar(self.WipeFrame)
+        self.WipeProgressBar = ttk.Progressbar(self.WipeFrame, style='bar.Horizontal.TProgressbar')
         self.WipeProgressBar.config(orient='horizontal', length=50, mode='indeterminate')
         self.WipeProgressBar.pack(anchor='center', padx=10, pady=10, fill='x')
         
@@ -116,7 +123,7 @@ class WipeApp:
         
         
         self.OutputFrame = ttk.Labelframe(self.BottomFrame, text='Feedback', width=10)
-        self.OutputText = st.ScrolledText(self.OutputFrame, wrap=tk.WORD, height=7, font=("Consolas",10), state='normal')
+        self.OutputText = st.ScrolledText(self.OutputFrame, wrap=tk.WORD, height=10, font=("Consolas",10), state='normal')
         self.OutputText.pack(anchor='center', expand=True, fill='both', padx=10, pady=10,)
         self.tabManual.rowconfigure(2, weight=3)
         self.OutputFrame.pack(anchor='center', padx=10, pady=10, side='top', fill='both')
@@ -298,8 +305,7 @@ Allows automation of processes through the scripting editor.
         self.sendMessage('!f='+self.kHzFrequency.get()+'\n', read = True)
         
     
-    def setProtocol(self):
-        protocol = self.Protocol.get()
+    def setProtocol(self, protocol):
         if protocol == "Chirp":
             self.sendMessage("!prot=0")
         elif protocol == "Square":
@@ -350,7 +356,7 @@ Allows automation of processes through the scripting editor.
 
 
     def setScrollDigit(self):
-        self.kHzFreqSpinBox.config(increment=str(10**(int(self.ScrollDigitSpinbox.get())-1)))
+        self.FreqSpinBox.config(increment=str(10**(int(self.ScrollDigitSpinbox.get())-1)))
 
 ### Here the functions for the Script part are starting                                   
  
@@ -658,6 +664,13 @@ Allows automation of processes through the scripting editor.
                 self.DataReply = self.reply[messageLen:]
                 self.OutputText.insert(END, f'{self.DataReply}\n\n')
                 self.OutputText.see(END)
+                
+                if "Wipe ended!" in self.DataReply:
+                    self.StartWipeModeButton.configure(state='normal')
+                    self.WipeProgressBar.stop()
+                    self.sendMessage('!OFF'+'\n', read = True)
+                    self.canvas.itemconfig(self.LEDUS, fill=self.red)
+                    
             time.sleep(wait)
         else:
             messagebox.showerror("Error", "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.")
