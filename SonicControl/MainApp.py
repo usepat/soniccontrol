@@ -26,7 +26,7 @@ class WipeApp:
         self.reply = '' #answer from amp
         self.kHzFrequency = tk.StringVar(value = '1000000')
         self.Protocol = StringVar()
-        self.ProtocolOptions = ("Chirp", "Square", "Code", "SamyCode", "Ramp")
+        self.ProtocolOptions = ("Chirp", "Square", "Ramp", "Multi frequency", "Custom")
         self.WipeRuns = tk.StringVar(value='100')
         self.scriptstatus = tk.StringVar()
         self.connectionstatus = tk.StringVar()
@@ -249,9 +249,9 @@ class WipeApp:
         self.DisclaimerFrame = ttk.Labelframe(self.tabInfo)
         self.DisclaimerLabel = ttk.Label(self.DisclaimerFrame)
         self.DisclaimerLabel.config(borderwidth='5', font='TkDefaultFont', justify='left', padding='20')
-        self.DisclaimerLabel.config(text='''SonicControl v1.1
+        self.DisclaimerLabel.config(text='''SonicWipeControl v1.1
 
-A lightweight GUI for remote control of soniccatch and sonicwipe over
+A lightweight GUI for remote control of sonicwipe over
 the serial interface.
 Allows automation of processes through the scripting editor.
 
@@ -310,9 +310,9 @@ Allows automation of processes through the scripting editor.
             self.sendMessage("!prot=0")
         elif protocol == "Square":
             self.sendMessage("!prot=1")
-        elif protocol == "Code":
+        elif protocol == "Custom":
             self.sendMessage("!prot=2")
-        elif protocol == "SamyCode":
+        elif protocol == "Multi frequency":
             self.sendMessage("!prot=3")
         elif protocol == "Ramp":
             self.sendMessage("!prot=4")
@@ -338,6 +338,7 @@ Allows automation of processes through the scripting editor.
             self.sendMessage(f'!WIPE={self.WipeRunsSpinBox.get()}\n')
         else:
             self.sendMessage('!WIPE\n')
+        self.canvas.itemconfig(self.LEDUS, fill=self.green)
 
 
     def setUSActive(self):
