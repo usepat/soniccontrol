@@ -310,9 +310,9 @@ Allows automation of processes through the scripting editor.
             self.sendMessage("!prot=0")
         elif protocol == "Square":
             self.sendMessage("!prot=1")
-        elif protocol == "Custom":
-            self.sendMessage("!prot=2")
         elif protocol == "Multi frequency":
+            self.sendMessage("!prot=2")
+        elif protocol == "Custom":
             self.sendMessage("!prot=3")
         elif protocol == "Ramp":
             self.sendMessage("!prot=4")
