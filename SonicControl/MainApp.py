@@ -444,45 +444,51 @@ Allows automation of processes through the scripting editor.
             # print(self.logfilepath)
         
     def startSequence(self):
-        # get all commands from the text editor and put them into lists
         self.Commands = []
         self.Arguments = []
+        self.Durations = []
+        self.loops = []
+        self.loopindex = 0
         commandList = self.scriptText.get('1.0', 'end-1c').splitlines()
         
-        for i,line in enumerate(commandList):
-            # print(line)
-            if 'startloop' in line:
-                startpos = i
-                try:
-                    for n in range(int(line.split(' ')[1])-1):
-                        for i,line in enumerate(commandList[startpos+1:]):
-                            if 'endloop' in line:
-                               break 
-                            else:
-                                self.parseCommands(line)
-                except ValueError:
-                    messagebox.showerror("Value Error","The arguments you have given are incorrect!")        
-            if 'endloop' in line:
-                pass
-            else:
-                self.parseCommands(line)
+        self.parseCommands(commandList)
 
-
-        self.Durations = []
-        for i,command in enumerate(self.Commands):
-            if command == 'hold':
+        for i, command in enumerate(self.Commands):
+            
+            if command == "startloop":
+                loopdata = [i, int(self.Arguments[i][0])]
+                self.loops.insert(i, loopdata)
+                
+            elif command == "endloop":
+                self.loops.insert(i, [])
+                for loop in reversed(self.loops):
+                    if len(loop) == 2:
+                        loop.insert(2, i)
+                        break
+                    else:
+                        continue 
+            
+            elif command == 'hold':
+                self.loops.insert(i, [])
                 self.Durations.append(float(self.Arguments[i][0]))
+            
             elif command == 'ramp':
+                self.loops.insert(i, [])
+                
                 start = int(self.Arguments[i][0])
                 stop = int(self.Arguments[i][1])
                 step = int(self.Arguments[i][2])
                 delay = int(self.Arguments[i][3])
+                
                 if start > stop:
                     freq_list = list(range(stop, start+step, step))
                 else:
                     freq_list = list(range(start, stop+step, step))
-                self.Durations.append(len(freq_list)*float(delay))
-            else:
+                
+                self.Durations.append(len(freq_list)*float(delay))                
+            
+            else: 
+                self.loops.insert(i, [])
                 self.Durations.append(0.5)
 
         MSGBox = messagebox.askokcancel("Info", "The script you are about to run will take "
@@ -491,62 +497,87 @@ Allows automation of processes through the scripting editor.
         if MSGBox == False:
             self.closeFile()
         else:
-            self.run = 1
-            self.counter = 0
-            self.ScriptProgressbar['value'] = 0
-            self.ScriptProgressbar['maximum'] = sum(self.Durations)
-            while(self.run):
-                # print(self.counter)
-                if self.counter == len(self.Commands)-1:
-                    self.readit()
-                    self.ScriptProgressbar['value'] = sum(self.Durations)
-                    self.run = 0
-                    self.ScriptProgressbar['value'] = 0
-                    # print('Im in break loop')
+            i = 0
+            while i < len(self.Commands):
+                #TODO Durations und Progressbar
+                #TODO In allen Controls verbreiten, pushen und kompilieren
+                #TODO Kommentieren und schöner machen
+                #TODO Install.sh machen
+                #TODO Mit Magda über protokoll reden
+                if self.Commands[i] == 'startloop': 
+
+                    if self.loops[i][1] != 0:
+                        self.loops[i][1] = self.loops[i][1] - 1
+                        i = i + 1
+                    else:
+                        i = self.loops[i][2] + 1   
+
+                elif self.Commands[i] == 'endloop':
+
+                    for j, loop in enumerate(self.loops):
+
+                        if bool(loop):
+
+                            if loop[2] == i:
+                                for k in range(loop[0]+1,loop[2]):
+                                    if bool(self.loops[k]):
+                                        self.loops[k][1] = int(self.Arguments[k][0])
+                                i = loop[0]
+
+                            else:
+                                continue
+                        else:
+                            continue    
+
                 else:
-                    self.readit()
-                    self.ScriptProgressbar['value'] = sum(self.Durations[:self.counter])
-                    self.counter = self.counter + 1
-            self.closeFile()
+                    self.readit(i)
+                    i = i + 1
+                    
+        self.closeFile()
+            
+            
 
-    def parseCommands(self, line):
-        # This takes care of lines with an argument. If there are non, just an empty string is passed
-        if ' ' in line:
-            self.Commands.append(line.split(' ')[0])
-            self.Arguments.append(line.split(' ')[1].split(','))
-            # print(line.split(' ')[1].split(','))
-        else:
-            self.Commands.append(line.split(' ')[0])
-            self.Arguments.append('')
+    def parseCommands(self, commandList):
+        # Check if an argument was given, if so append the command to one list, the argument to another with the same index
+        for line in commandList:
+            if ' ' in line:
+                self.Commands.append(line.split(' ')[0])
+                self.Arguments.append(line.split(' ')[1].split(','))
+            else:
+                self.Commands.append(line)
+                self.Arguments.append('')
+        
+        
+        
 
-    def readit(self):
-        self.CurrentTask.set(str(self.Commands[self.counter])+' '+str(self.Arguments[self.counter]))
+    def readit(self, counter):
+        self.CurrentTask.set(str(self.Commands[counter])+' '+str(self.Arguments[counter]))
         root.update()
         
-        if self.counter > 0:
-            self.PreviousTask.set(str(self.Commands[self.counter-1])+' '+str(self.Arguments[self.counter-1]))
+        if counter > 0:
+            self.PreviousTask.set(str(self.Commands[counter-1])+' '+str(self.Arguments[counter-1]))
             
         self.logfilehandle=open(self.logfilepath, 'a')
         self.logfilehandle.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
-                                 +str(self.Commands[self.counter])+' '+str(self.Arguments[self.counter])+'\n')
+                                 +str(self.Commands[counter])+' '+str(self.Arguments[counter])+'\n')
         self.logfilehandle.close()
         
-        if self.Commands[self.counter] == 'frequency':
-            self.setFrequency(self.Arguments[self.counter])
+        if self.Commands[counter] == 'frequency':
+            self.setFrequency(self.Arguments[counter])
             
-        elif self.Commands[self.counter] == 'ramp':
-            self.startRamp(self.Arguments[self.counter])
+        elif self.Commands[counter] == 'ramp':
+            self.startRamp(self.Arguments[counter])
             
-        elif self.Commands[self.counter] == 'hold':
+        elif self.Commands[counter] == 'hold':
             self.now = datetime.datetime.now()
-            self.target = self.now+datetime.timedelta(seconds=int(self.Arguments[self.counter][0]))
+            self.target = self.now+datetime.timedelta(seconds=int(self.Arguments[counter][0]))
             
             while(self.now < self.target):
                 time.sleep(0.02)
                 self.now = datetime.datetime.now()
                 root.update()
 
-        elif self.Commands[self.counter] == 'on':
+        elif self.Commands[counter] == 'on':
             if self.ser.is_open:
                 self.sendMessage('!ON\n', delay=0.0)
                 self.canvas.itemconfig(self.LEDUS, fill=self.green)
@@ -554,7 +585,7 @@ Allows automation of processes through the scripting editor.
             else:
                 messagebox.showerror("Error", "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.")
         
-        elif self.Commands[self.counter] == 'off':
+        elif self.Commands[counter] == 'off':
             if self.ser.is_open:
                 self.sendMessage('!OFF\n', delay=0.0)
                 self.canvas.itemconfig(self.LEDUS, fill=self.red)
@@ -562,7 +593,7 @@ Allows automation of processes through the scripting editor.
             else:
                 messagebox.showerror("Error", "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.")
        
-        elif self.Commands[self.counter] == 'autotune':
+        elif self.Commands[counter] == 'autotune':
             self.sendMessage('!AUTO\n', read = True, wait=0.1)
             
 ###### Functions needed for scripts
