@@ -499,7 +499,8 @@ Allows automation of processes through the scripting editor.
             else: 
                 self.loops.insert(i, [])
                 self.Durations.append(0.5)
-
+        
+        #print(self.loops)
         MSGBox = messagebox.askokcancel("Info", "The script you are about to run will take "
                                            +str(datetime.timedelta(seconds=sum(self.Durations)))+
                                            '\n'+'Do you want to continue?')
@@ -513,11 +514,13 @@ Allows automation of processes through the scripting editor.
                 if self.Commands[i] == 'startloop': 
                     # If the Arguments are not 0, go trough the content of the loop and edit the Arguments to remember 
                     if self.loops[i][1] != 0:
+                        #print(f"found a startloop now only {self.loops[i][1]}-1 cycles")
                         self.loops[i][1] = self.loops[i][1] - 1
                         i = i + 1
                     # If it's 0, then there is nothing more to run in that loop, jump to the end and go on with the other commands
                     else:
                         # Jump to the end +1 of course
+                        #print(f"Found startloop with 0 arguments, jumping to {self.loops[i][2]}+1")
                         i = self.loops[i][2] + 1   
 
                 elif self.Commands[i] == 'endloop':
@@ -525,9 +528,11 @@ Allows automation of processes through the scripting editor.
                     for loop in self.loops:
                         if bool(loop):
                             if loop[2] == i:
+                                #print(f"Endloop! Found corresponding start at {loop[0]}, now checking for nested loops...")
                                 # Check if there are nested loops in between, if yes -> set Argument to the original Argument
                                 for k in range(loop[0]+1,loop[2]):
                                     if bool(self.loops[k]):     # Ignoring empty lists
+                                        #print(f"Found nested loop at {self.loops[k][0]}, reseting arguments...")
                                         self.loops[k][1] = int(self.Arguments[k][0])
                                 # Jump to the Beginning, If loop found
                                 i = loop[0]
@@ -538,6 +543,7 @@ Allows automation of processes through the scripting editor.
                             continue    
                 # if nothing else, it must be a command. Proceed with command specific processes
                 else:
+                    #print(f"Command: {self.Commands[i]}")
                     self.readit(i)
                     i = i + 1
         # Close file if everything ends.            
