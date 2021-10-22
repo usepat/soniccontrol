@@ -360,6 +360,7 @@ Allows automation of processes through the scripting editor.
         self.FreqSpinBox.config(increment=str(10**(int(self.ScrollDigitSpinbox.get())-1)))
 
 ### Here the functions for the Script part are starting                                   
+
  
     def loadFile(self):
         self.filepath = filedialog.askopenfilename(defaultextension='.txt', filetypes=self._filetypes)
@@ -371,6 +372,7 @@ Allows automation of processes through the scripting editor.
                 self.scriptText.delete('1.0', tk.END)
                 self.scriptText.insert(tk.INSERT, f.read())
 
+
     def saveFile(self):
         self.filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
         if not self.filename:
@@ -380,9 +382,11 @@ Allows automation of processes through the scripting editor.
             f.write(self.scriptText.get('1.0', 'end'))
             f.close()
 
+
     def openLogFile(self):
         self.logfilepath = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=self._filetypes)
         # print(self.logfilepath)
+
 
     def closeFile(self):
         self.run = 0
@@ -400,6 +404,7 @@ Allows automation of processes through the scripting editor.
         self.ScriptProgressbar['value'] = 0
         self.sendMessage('!OFF'+'\n', read = False)
         self.StopScriptButton['state'] = 'disabled'
+
 
     def readFile(self):
         '''
@@ -443,6 +448,7 @@ Allows automation of processes through the scripting editor.
                 self.startSequence()
             # print(self.logfilepath)
         
+        
     def startSequence(self):
         self.Commands = []
         self.Arguments = []
@@ -451,14 +457,16 @@ Allows automation of processes through the scripting editor.
         self.loopindex = 0
         commandList = self.scriptText.get('1.0', 'end-1c').splitlines()
         
-        self.parseCommands(commandList)
-
+        #Putting the commands and arguments into seperate lists with the same index.
+        self.parseCommands(commandList)   
+        # Loop through commands and register every loop, find its beginning and ending index, put those into a nested list
         for i, command in enumerate(self.Commands):
-            
+            # the index of the start and argument of the loop - list looks: [[start index, argument] [start index, argument] [...]...]            
             if command == "startloop":
-                loopdata = [i, int(self.Arguments[i][0])]
+                loopdata = [i, int(self.Arguments[i][0])]   
                 self.loops.insert(i, loopdata)
-                
+            # If end found, insert the index into a nested list, that indicates the nearest possible start index (Find the correspodent beginning of the loop)
+            # list looks: [[start index, argument, end index] [start index, argument, end index] [...] ...]    
             elif command == "endloop":
                 self.loops.insert(i, [])
                 for loop in reversed(self.loops):
@@ -469,6 +477,7 @@ Allows automation of processes through the scripting editor.
                         continue 
             
             elif command == 'hold':
+                # insert an empty list every time its not a startloop, to keep the original index
                 self.loops.insert(i, [])
                 self.Durations.append(float(self.Arguments[i][0]))
             
@@ -494,47 +503,45 @@ Allows automation of processes through the scripting editor.
         MSGBox = messagebox.askokcancel("Info", "The script you are about to run will take "
                                            +str(datetime.timedelta(seconds=sum(self.Durations)))+
                                            '\n'+'Do you want to continue?')
+        
         if MSGBox == False:
             self.closeFile()
         else:
+            
             i = 0
             while i < len(self.Commands):
-                #TODO Durations und Progressbar
-                #TODO In allen Controls verbreiten, pushen und kompilieren
-                #TODO Kommentieren und schöner machen
-                #TODO Install.sh machen
-                #TODO Mit Magda über protokoll reden
                 if self.Commands[i] == 'startloop': 
-
+                    # If the Arguments are not 0, go trough the content of the loop and edit the Arguments to remember 
                     if self.loops[i][1] != 0:
                         self.loops[i][1] = self.loops[i][1] - 1
                         i = i + 1
+                    # If it's 0, then there is nothing more to run in that loop, jump to the end and go on with the other commands
                     else:
+                        # Jump to the end +1 of course
                         i = self.loops[i][2] + 1   
 
                 elif self.Commands[i] == 'endloop':
-
-                    for j, loop in enumerate(self.loops):
-
+                    # Go through the Loop list, if you find the current index in the end index field, search for the beginning of that loop
+                    for loop in self.loops:
                         if bool(loop):
-
                             if loop[2] == i:
+                                # Check if there are nested loops in between, if yes -> set Argument to the original Argument
                                 for k in range(loop[0]+1,loop[2]):
-                                    if bool(self.loops[k]):
+                                    if bool(self.loops[k]):     # Ignoring empty lists
                                         self.loops[k][1] = int(self.Arguments[k][0])
+                                # Jump to the Beginning, If loop found
                                 i = loop[0]
 
                             else:
                                 continue
                         else:
                             continue    
-
+                # if nothing else, it must be a command. Proceed with command specific processes
                 else:
                     self.readit(i)
                     i = i + 1
-                    
+        # Close file if everything ends.            
         self.closeFile()
-            
             
 
     def parseCommands(self, commandList):
@@ -546,9 +553,7 @@ Allows automation of processes through the scripting editor.
             else:
                 self.Commands.append(line)
                 self.Arguments.append('')
-        
-        
-        
+                
 
     def readit(self, counter):
         self.CurrentTask.set(str(self.Commands[counter])+' '+str(self.Arguments[counter]))
@@ -595,6 +600,7 @@ Allows automation of processes through the scripting editor.
        
         elif self.Commands[counter] == 'autotune':
             self.sendMessage('!AUTO\n', read = True, wait=0.1)
+
             
 ###### Functions needed for scripts
     def setFrequency(self, frequency):
@@ -602,6 +608,7 @@ Allows automation of processes through the scripting editor.
             self.sendMessage('!f='+str(frequency[0])+'\n', read=True)
         else:
             messagebox.showerror("Error", "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.")
+
 
     def startRamp(self, arglist):
         start = int(arglist[0])
@@ -637,8 +644,10 @@ Allows automation of processes through the scripting editor.
             else:
                 pass
 
+
     def callback(self, event=None):
         pass
+
 
     def getPorts(self):
         self.listdev=[]
@@ -646,6 +655,7 @@ Allows automation of processes through the scripting editor.
             self.listdev.append(self.port.device)
         # print(self.listdev)
         self.comboB1.config(values=self.listdev)
+
 
     def connectPort(self):
         if self.varPort.get()=="":
@@ -708,6 +718,7 @@ Allows automation of processes through the scripting editor.
             messagebox.showerror("Error", "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.")
         # while self.ser.is_open:
         #     self.OutputText.insert(END, f'{self.reply}')
+
             
     # A spellcheck for the functions we use
     def Spellcheck(self, event):
@@ -724,6 +735,7 @@ Allows automation of processes through the scripting editor.
         else:
             self.scriptText.tag_add("misspelled", index, "%s+%dc" % (index, len(word)))
         # print('\n')
+
 
     def run(self):
         self.mainwindow.mainloop()
