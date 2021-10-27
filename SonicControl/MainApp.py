@@ -20,6 +20,7 @@ from SonicControl.SerialMonitor import SerialMonitorWidget
 class WipeApp:
     def __init__(self, master=None):
         #initialize needed variables
+        self.tmp = True
         self.ser=serial.Serial()
         self.listdev=[]
         self.logfilepath = ''
@@ -201,7 +202,7 @@ class WipeApp:
         self.TaskLabel.config(font='{Futura Md BT} 12 {}', textvariable=self.CurrentTask)
         self.TaskLabel.pack(side='top')
         self.ScriptProgressbar = ttk.Progressbar(self.tabScripting)
-        self.ScriptProgressbar.config(orient='horizontal')
+        self.ScriptProgressbar.config(orient='horizontal', mode='indeterminate')
         self.ScriptProgressbar.pack(anchor='s', fill='x', side='bottom')
         self.tabScripting.config(height='200', width='200')
         self.tabScripting.pack(side='top')
@@ -308,13 +309,13 @@ Allows automation of processes through the scripting editor.
     def setProtocol(self, protocol):
         if protocol == "Chirp":
             self.sendMessage("!prot=0")
-        elif protocol == "Square":
-            self.sendMessage("!prot=1")
-        elif protocol == "Multi frequency":
-            self.sendMessage("!prot=2")
-        elif protocol == "Custom":
-            self.sendMessage("!prot=3")
         elif protocol == "Ramp":
+            self.sendMessage("!prot=1")
+        elif protocol == "Square":
+            self.sendMessage("!prot=2")
+        elif protocol == "Multi frequency":
+            self.sendMessage("!prot=3")
+        elif protocol == "Custom":
             self.sendMessage("!prot=4")
         else:
             messagebox.showerror("There is apparently and error with the values you have given")
@@ -500,53 +501,53 @@ Allows automation of processes through the scripting editor.
                 self.loops.insert(i, [])
                 self.Durations.append(0.5)
         
-        #print(self.loops)
-        MSGBox = messagebox.askokcancel("Info", "The script you are about to run will take "
-                                           +str(datetime.timedelta(seconds=sum(self.Durations)))+
-                                           '\n'+'Do you want to continue?')
+        # #print(self.loops)
+        # MSGBox = messagebox.askokcancel("Info", "The script you are about to run will take "
+        #                                    +str(datetime.timedelta(seconds=sum(self.Durations)))+
+        #                                    '\n'+'Do you want to continue?')
         
-        if MSGBox == False:
-            self.closeFile()
-        else:
+        # if MSGBox == False:
+        #     self.closeFile()
+        # else:
             
-            i = 0
-            while i < len(self.Commands):
-                if self.Commands[i] == 'startloop': 
-                    # If the Arguments are not 0, go trough the content of the loop and edit the Arguments to remember 
-                    if self.loops[i][1] != 0:
-                        #print(f"found a startloop now only {self.loops[i][1]}-1 cycles")
-                        self.loops[i][1] = self.loops[i][1] - 1
-                        i = i + 1
-                    # If it's 0, then there is nothing more to run in that loop, jump to the end and go on with the other commands
-                    else:
-                        # Jump to the end +1 of course
-                        #print(f"Found startloop with 0 arguments, jumping to {self.loops[i][2]}+1")
-                        i = self.loops[i][2] + 1   
-
-                elif self.Commands[i] == 'endloop':
-                    # Go through the Loop list, if you find the current index in the end index field, search for the beginning of that loop
-                    for loop in self.loops:
-                        if bool(loop):
-                            if loop[2] == i:
-                                #print(f"Endloop! Found corresponding start at {loop[0]}, now checking for nested loops...")
-                                # Check if there are nested loops in between, if yes -> set Argument to the original Argument
-                                for k in range(loop[0]+1,loop[2]):
-                                    if bool(self.loops[k]):     # Ignoring empty lists
-                                        #print(f"Found nested loop at {self.loops[k][0]}, reseting arguments...")
-                                        self.loops[k][1] = int(self.Arguments[k][0])
-                                # Jump to the Beginning, If loop found
-                                i = loop[0]
-
-                            else:
-                                continue
-                        else:
-                            continue    
-                # if nothing else, it must be a command. Proceed with command specific processes
-                else:
-                    #print(f"Command: {self.Commands[i]}")
-                    self.readit(i)
+        i = 0
+        while i < len(self.Commands):
+            self.ScriptProgressbar.start()
+            if self.Commands[i] == 'startloop': 
+                # If the Arguments are not 0, go trough the content of the loop and edit the Arguments to remember 
+                if self.loops[i][1] != 0:
+                    #print(f"found a startloop now only {self.loops[i][1]}-1 cycles")
+                    self.loops[i][1] = self.loops[i][1] - 1
                     i = i + 1
-        # Close file if everything ends.            
+                # If it's 0, then there is nothing more to run in that loop, jump to the end and go on with the other commands
+                else:
+                    # Jump to the end +1 of course
+                    #print(f"Found startloop with 0 arguments, jumping to {self.loops[i][2]}+1")
+                    i = self.loops[i][2] + 1   
+            elif self.Commands[i] == 'endloop':
+                # Go through the Loop list, if you find the current index in the end index field, search for the beginning of that loop
+                for loop in self.loops:
+                    if bool(loop):
+                        if loop[2] == i:
+                            #print(f"Endloop! Found corresponding start at {loop[0]}, now checking for nested loops...")
+                            # Check if there are nested loops in between, if yes -> set Argument to the original Argument
+                            for k in range(loop[0]+1,loop[2]):
+                                if bool(self.loops[k]):     # Ignoring empty lists
+                                    #print(f"Found nested loop at {self.loops[k][0]}, reseting arguments...")
+                                    self.loops[k][1] = int(self.Arguments[k][0])
+                            # Jump to the Beginning, If loop found
+                            i = loop[0]
+                        else:
+                            continue
+                    else:
+                        continue    
+            # if nothing else, it must be a command. Proceed with command specific processes
+            else:
+                #print(f"Command: {self.Commands[i]}")
+                self.readit(i)
+                i = i + 1
+        # Close file if everything ends.
+        self.ScriptProgressbar.stop()            
         self.closeFile()
             
 
