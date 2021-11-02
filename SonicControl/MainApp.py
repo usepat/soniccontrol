@@ -528,7 +528,7 @@ Allows automation of processes through the scripting editor.
                     self.loops[i][1] = self.loops[i][1] - 1
                     i = i + 1
                 # If it's 0, then there is nothing more to run in that loop, jump to the end and go on with the other commands
-                if self.loops[i][1] == 'inf':
+                elif self.loops[i][1] == 'inf':
                     i = i + 1
                 else:
                     # Jump to the end +1 of course
