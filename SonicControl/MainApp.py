@@ -246,6 +246,9 @@ class WipeApp:
         self.tabConnection.config(height='200', width='200')
         self.tabConnection.pack(side='top')
         self.notebook_1.add(self.tabConnection, text='Connection')
+        
+        self.getPorts()
+        
         self.tabInfo = ttk.Frame(self.notebook_1)
         self.DisclaimerFrame = ttk.Labelframe(self.tabInfo)
         self.DisclaimerLabel = ttk.Label(self.DisclaimerFrame)
@@ -390,7 +393,7 @@ Allows automation of processes through the scripting editor.
 
 
     def closeFile(self):
-        self.run = 0
+        self.run = False
         self.CurrentTask.set('Idle')
         self.PreviousTask.set('Idle')
         self.scriptText.config(state='normal', background='white')
@@ -402,7 +405,7 @@ Allows automation of processes through the scripting editor.
         self.notebook_1.tab(self.tabManual, state='normal')
         self.notebook_1.tab(self.tabConnection, state='normal')
         self.canvas.itemconfig(self.LEDSeq, fill=self.red)
-        self.ScriptProgressbar['value'] = 0
+        self.ScriptProgressbar.stop()
         self.sendMessage('!OFF'+'\n', read = False)
         self.StopScriptButton['state'] = 'disabled'
 
@@ -430,6 +433,8 @@ Allows automation of processes through the scripting editor.
         self.notebook_1.tab(self.tabConnection, state='disabled')
         self.canvas.itemconfig(self.LEDSeq, fill=self.green)
         self.StopScriptButton['state'] = 'normal'
+        
+        self.run = True
         
         # Check if the user has created a logfile
         try:
@@ -464,7 +469,10 @@ Allows automation of processes through the scripting editor.
         for i, command in enumerate(self.Commands):
             # the index of the start and argument of the loop - list looks: [[start index, argument] [start index, argument] [...]...]            
             if command == "startloop":
-                loopdata = [i, int(self.Arguments[i][0])]   
+                if self.Arguments[i][0] == 'inf':
+                    loopdata = [i, 'inf']
+                else:
+                    loopdata = [i, int(self.Arguments[i][0])]                       
                 self.loops.insert(i, loopdata)
             # If end found, insert the index into a nested list, that indicates the nearest possible start index (Find the correspodent beginning of the loop)
             # list looks: [[start index, argument, end index] [start index, argument, end index] [...] ...]    
@@ -501,7 +509,7 @@ Allows automation of processes through the scripting editor.
                 self.loops.insert(i, [])
                 self.Durations.append(0.5)
         
-        # #print(self.loops)
+        #print(self.loops)
         # MSGBox = messagebox.askokcancel("Info", "The script you are about to run will take "
         #                                    +str(datetime.timedelta(seconds=sum(self.Durations)))+
         #                                    '\n'+'Do you want to continue?')
@@ -511,19 +519,22 @@ Allows automation of processes through the scripting editor.
         # else:
             
         i = 0
-        while i < len(self.Commands):
+        while i < len(self.Commands) and self.run is True:
             self.ScriptProgressbar.start()
             if self.Commands[i] == 'startloop': 
                 # If the Arguments are not 0, go trough the content of the loop and edit the Arguments to remember 
-                if self.loops[i][1] != 0:
+                if self.loops[i][1] != 0 and isinstance(self.loops[i][1], int) :
                     #print(f"found a startloop now only {self.loops[i][1]}-1 cycles")
                     self.loops[i][1] = self.loops[i][1] - 1
                     i = i + 1
                 # If it's 0, then there is nothing more to run in that loop, jump to the end and go on with the other commands
+                if self.loops[i][1] == 'inf':
+                    i = i + 1
                 else:
                     # Jump to the end +1 of course
                     #print(f"Found startloop with 0 arguments, jumping to {self.loops[i][2]}+1")
-                    i = self.loops[i][2] + 1   
+                    i = self.loops[i][2] + 1
+                       
             elif self.Commands[i] == 'endloop':
                 # Go through the Loop list, if you find the current index in the end index field, search for the beginning of that loop
                 for loop in self.loops:
@@ -662,6 +673,7 @@ Allows automation of processes through the scripting editor.
             self.listdev.append(self.port.device)
         # print(self.listdev)
         self.comboB1.config(values=self.listdev)
+        
 
 
     def connectPort(self):
