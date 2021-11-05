@@ -8,6 +8,7 @@ import tkinter.scrolledtext as st
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import *
+from typing import Protocol
 from PIL import Image, ImageTk
 # PySerial Libraries
 import serial
@@ -27,7 +28,7 @@ class WipeApp:
         self.reply = '' #answer from amp
         self.kHzFrequency = tk.StringVar(value = '1000000')
         self.Protocol = StringVar()
-        self.ProtocolOptions = ("Chirp", "Square", "Ramp", "Multi frequency", "Custom")
+        self.ProtocolOptions = []
         self.WipeRuns = tk.StringVar(value='100')
         self.scriptstatus = tk.StringVar()
         self.connectionstatus = tk.StringVar()
@@ -61,9 +62,7 @@ class WipeApp:
         
         
         # Wiping Frame
-        self.ProtocolMenue = ttk.OptionMenu(self.WipeFrame, self.Protocol, self.ProtocolOptions[0], *self.ProtocolOptions, command=self.setProtocol)
-        self.ProtocolMenue.config(style="bigger.TMenubutton")
-        self.ProtocolMenue.pack(anchor='center', padx=10, pady=10, fill='x')
+        
         
         self.WipeRunsSpinBox = ttk.Spinbox(self.WipeFrame)
         self.WipeRunsSpinBox.config(from_='10', increment='5', justify='left', to='100', textvariable=self.WipeRuns)
@@ -310,16 +309,16 @@ Allows automation of processes through the scripting editor.
         
     
     def setProtocol(self, protocol):
-        if protocol == "Chirp":
-            self.sendMessage("!prot=0")
-        elif protocol == "Ramp":
-            self.sendMessage("!prot=1")
-        elif protocol == "Square":
-            self.sendMessage("!prot=2")
-        elif protocol == "Multi frequency":
-            self.sendMessage("!prot=3")
-        elif protocol == "Custom":
-            self.sendMessage("!prot=4")
+        if protocol == self.ProtocolOptions[0]:
+            self.sendMessage(f"!prot={self.ProtocolNum[0]}")
+        elif protocol == self.ProtocolOptions[1]:
+            self.sendMessage(f"!prot={self.ProtocolNum[1]}")
+        elif protocol == self.ProtocolOptions[2]:
+            self.sendMessage(f"!prot={self.ProtocolNum[2]}")
+        elif protocol == self.ProtocolOptions[3]:
+            self.sendMessage(f"!prot={self.ProtocolNum[3]}")
+        elif protocol == self.ProtocolOptions[4]:
+            self.sendMessage(f"!prot={self.ProtocolNum[4]}")
         else:
             messagebox.showerror("There is apparently and error with the values you have given")
     
@@ -700,6 +699,21 @@ Allows automation of processes through the scripting editor.
             self.notebook_1.tab(self.tabScripting, state='normal')
             # check initial kHz/MHz state
             self.sendMessage('?\n', flush = True, delay=0.05)
+            self.sendMessage('?list\n', flush=True, delay=0.05)
+            linelist = self.reply.split('\n')
+            linelist = linelist[2:]
+            Protocollist = []
+            self.ProtocolNum = []
+            for line in linelist:
+                self.ProtocolNum.append(int(line[4]))
+                Protocollist.append(line[6:].rstrip())
+                
+            self.ProtocolOptions = Protocollist
+            
+            self.ProtocolMenue = ttk.OptionMenu(self.WipeFrame, self.Protocol, self.ProtocolOptions[0], *self.ProtocolOptions, command=self.setProtocol)
+            self.ProtocolMenue.config(style="bigger.TMenubutton")
+            self.ProtocolMenue.pack(anchor='center', padx=10, pady=10, fill='x')
+            
                 
             
     def closePorts(self):
@@ -726,7 +740,7 @@ Allows automation of processes through the scripting editor.
                 self.OutputText.insert(END, f'{self.DataReply}\n\n')
                 self.OutputText.see(END)
                 
-                if "Wipe ended!" in self.DataReply:
+                if "Wipe ended." in self.DataReply:
                     self.StartWipeModeButton.configure(state='normal')
                     self.WipeProgressBar.stop()
                     self.sendMessage('!OFF'+'\n', read = True)
