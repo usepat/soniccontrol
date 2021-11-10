@@ -19,9 +19,11 @@ from SonicControl.FunctionHelper import FunctionhelperWidget
 from SonicControl.SerialMonitor import SerialMonitorWidget
 
 class WipeApp:
+        
     def __init__(self, master=None):
         #initialize needed variables
         self.tmp = True
+        self.signal = False        
         self.ser=serial.Serial()
         self.listdev=[]
         self.logfilepath = ''
@@ -347,6 +349,7 @@ Allows automation of processes through the scripting editor.
     def setUSActive(self):
         self.sendMessage('!ON'+'\n', read = True)
         if self.reply[:len("!ON")] == "!ON":
+            self.signal = True
             self.canvas.itemconfig(self.LEDUS, fill=self.green)
         # else:
         #     messagebox.showerror("Error", "It seems either your device is not connected or it is not in Serial mode! To activate the Serial mode, make sure that the mechanic switch is set on \"External mode\"!")
@@ -356,6 +359,7 @@ Allows automation of processes through the scripting editor.
         self.StartWipeModeButton.configure(state='normal')
         self.WipeProgressBar.stop()
         self.sendMessage('!OFF'+'\n', read = True)
+        self.signal = False
         self.canvas.itemconfig(self.LEDUS, fill=self.red)
 
 
@@ -388,6 +392,7 @@ Allows automation of processes through the scripting editor.
 
     def openLogFile(self):
         self.logfilepath = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=self._filetypes)
+        self.logfilepath_frq = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=self._filetypes)
         # print(self.logfilepath)
 
 
@@ -406,6 +411,7 @@ Allows automation of processes through the scripting editor.
         self.canvas.itemconfig(self.LEDSeq, fill=self.red)
         self.ScriptProgressbar.stop()
         self.sendMessage('!OFF'+'\n', read = False)
+        self.signal = False
         self.StopScriptButton['state'] = 'disabled'
 
 
@@ -438,17 +444,24 @@ Allows automation of processes through the scripting editor.
         # Check if the user has created a logfile
         try:
             self.logfilehandle=open(self.logfilepath, 'w')
+            self.logfilehandle_frq = open(self.logfilepath_frq, 'w')
             self.logfilehandle.write("Timestamp"+"\t"+"Datetime"+"\t"+"Action"+"\n")
+            self.logfilehandle_frq.write("Timestamp" + "\t" + "Datetime" + "\t" + "Frequency" + "\n")
+            self.logfilehandle_frq.close()
             self.logfilehandle.close()
             self.startSequence()
         except:
             messagebox.showerror("Error", "No logfile is specified. Please specify a file.")
             self.logfilepath = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=(("Text file", "*.txt"),))
-            if not self.logfilepath:
+            self.logfilepath_frq = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=(("Text file", "*.txt"),))
+            if not self.logfilepath and self.logfilepath_frq:
                 self.closeFile()
             else:
                 self.logfilehandle=open(self.logfilepath, 'w')
+                self.logfilehandle_frq = open(self.logfilepath_frq, 'w')
                 self.logfilehandle.write("Timestamp"+"\t"+"Datetime"+"\t"+"Action"+"\n")
+                self.logfilehandle_frq.write("Timestamp" + "\t" + "Datetime" + "\t" + "Frequency" + "\n")
+                self.logfilehandle_frq.close()
                 self.logfilehandle.close()
                 self.startSequence()
             # print(self.logfilepath)
@@ -570,6 +583,17 @@ Allows automation of processes through the scripting editor.
             else:
                 self.Commands.append(line)
                 self.Arguments.append('')
+    
+    
+    def whatfrequency(self, command, argument):
+        if command == 'frequency' and self.signal == True:
+            string = str(command) + "\t" + str(argument)
+            return string
+        elif command == 'frequency' and self.signal == False:
+            string = str(command + '\t' + '0')
+            return string
+        else:
+            return "\t"     
                 
 
     def readit(self, counter):
@@ -580,8 +604,14 @@ Allows automation of processes through the scripting editor.
             self.PreviousTask.set(str(self.Commands[counter-1])+' '+str(self.Arguments[counter-1]))
             
         self.logfilehandle=open(self.logfilepath, 'a')
+        self.logfilehandle_frq=open(self.logfilepath_frq, 'a')
         self.logfilehandle.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
                                  +str(self.Commands[counter])+' '+str(self.Arguments[counter])+'\n')
+        if bool(self.Arguments[counter]):
+            self.logfilehandle_frq.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
+                                     + self.whatfrequency(self.Commands[counter], self.Arguments[counter][0]) + '\n')
+            
+        self.logfilehandle_frq.close()
         self.logfilehandle.close()
         
         if self.Commands[counter] == 'frequency':
@@ -602,6 +632,7 @@ Allows automation of processes through the scripting editor.
         elif self.Commands[counter] == 'on':
             if self.ser.is_open:
                 self.sendMessage('!ON\n', delay=0.0)
+                self.signal = True
                 self.canvas.itemconfig(self.LEDUS, fill=self.green)
                 root.update()
             else:
@@ -610,6 +641,7 @@ Allows automation of processes through the scripting editor.
         elif self.Commands[counter] == 'off':
             if self.ser.is_open:
                 self.sendMessage('!OFF\n', delay=0.0)
+                self.signal = False
                 self.canvas.itemconfig(self.LEDUS, fill=self.red)
                 root.update()
             else:
@@ -645,8 +677,17 @@ Allows automation of processes through the scripting editor.
                     self.sendMessage('!f='+str(frequency)+'\n', read=True)
                     self.CurrentTask.set('ramp is now @ '+str(frequency)+' Hz')
                     self.logfilehandle=open(self.logfilepath, 'a')
+                    self.logfilehandle_frq=open(self.logfilepath_frq, 'a')
+                    if self.signal == True:
+                        self.logfilehandle_frq.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
+                                         +'ramp is now @' + '\t' +str(frequency) + '\n')
+                    elif self.signal == False:
+                        self.logfilehandle_frq.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
+                                         +'ramp is now @' + '\t' + '0' + '\n')
                     self.logfilehandle.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
                                      +'ramp is now @ '+' '+str(frequency)+'Hz\n')
+                        
+                    self.logfilehandle_frq.close()
                     self.logfilehandle.close()
                     self.now = datetime.datetime.now()
                     print(self.now)
