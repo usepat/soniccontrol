@@ -23,7 +23,8 @@ class WipeApp:
     def __init__(self, master=None):
         #initialize needed variables
         self.tmp = True
-        self.signal = False        
+        self.signal = False
+        self.frequency = 0        
         self.ser=serial.Serial()
         self.listdev=[]
         self.logfilepath = ''
@@ -585,11 +586,11 @@ Allows automation of processes through the scripting editor.
                 self.Arguments.append('')
     
     
-    def whatfrequency(self, command, argument):
-        if command == 'frequency' and self.signal == True:
-            string = str(command) + "\t" + str(argument)
+    def whatfrequency(self, command):
+        if self.signal == True:
+            string = str(command) + "\t" + str(self.frequency)
             return string
-        elif command == 'frequency' and self.signal == False:
+        elif self.signal == False:
             string = str(command + '\t' + '0')
             return string
         else:
@@ -607,14 +608,14 @@ Allows automation of processes through the scripting editor.
         self.logfilehandle_frq=open(self.logfilepath_frq, 'a')
         self.logfilehandle.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
                                  +str(self.Commands[counter])+' '+str(self.Arguments[counter])+'\n')
-        if bool(self.Arguments[counter]):
-            self.logfilehandle_frq.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
-                                     + self.whatfrequency(self.Commands[counter], self.Arguments[counter][0]) + '\n')
+        self.logfilehandle_frq.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
+                                 + self.whatfrequency(self.Commands[counter]) + '\n')
             
         self.logfilehandle_frq.close()
         self.logfilehandle.close()
         
         if self.Commands[counter] == 'frequency':
+            self.frequency = int(self.Arguments[counter][0])
             self.setFrequency(self.Arguments[counter])
             
         elif self.Commands[counter] == 'ramp':
@@ -680,10 +681,10 @@ Allows automation of processes through the scripting editor.
                     self.logfilehandle_frq=open(self.logfilepath_frq, 'a')
                     if self.signal == True:
                         self.logfilehandle_frq.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
-                                         +'ramp is now @' + '\t' +str(frequency) + '\n')
+                                         + '\t' +str(frequency) + '\n')
                     elif self.signal == False:
                         self.logfilehandle_frq.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
-                                         +'ramp is now @' + '\t' + '0' + '\n')
+                                         + '\t' + '0' + '\n')
                     self.logfilehandle.write(str(time.time())+"\t"+time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())+"\t"
                                      +'ramp is now @ '+' '+str(frequency)+'Hz\n')
                         
