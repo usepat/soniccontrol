@@ -295,9 +295,11 @@ Allows automation of processes through the scripting editor.
         self.WaveFrame.pack(fill='both', padx='1', pady='2', side='top')
         # self.img = ImageTk.PhotoImage(Image.open(r'D:\Christoph\usePAT\technology\software\Python\SonicControl\pygubu\tkinter_wave.png'))  
         # self.img = ImageTk.PhotoImage(Image.open(r'D:\usePAT\technology\software\Python\SonicControl\pygubu\tkinter_wave.png'))
-        self.img = ImageTk.PhotoImage(Image.open('tkinter_wave.png'))
-        self.WaveLabel = tk.Label(self.WaveFrame, image=self.img, bg = 'white')
-        self.WaveLabel.pack(fill='both', side='top')
+        
+        # self.img = ImageTk.PhotoImage(Image.open('tkinter_wave.png'))
+        # self.WaveLabel = tk.Label(self.WaveFrame, image=self.img, bg = 'white')
+        # self.WaveLabel.pack(fill='both', side='top')
+        
         self.SonicControl.config(borderwidth='0', height='900', width='540')
         self.SonicControl.pack(side='top')
 
@@ -692,7 +694,7 @@ Allows automation of processes through the scripting editor.
                     self.logfilehandle.close()
                     self.now = datetime.datetime.now()
                     print(self.now)
-                    self.target = self.now+datetime.timedelta(seconds=int(delay))
+                    self.target = self.now+datetime.timedelta(milliseconds=int(delay))
                     while(self.now < self.target):
                         time.sleep(0.02)
                         self.now = datetime.datetime.now()

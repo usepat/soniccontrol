@@ -93,7 +93,7 @@ class FunctionhelperWidget(tk.Toplevel):
         self.RampButton.config(text='ramp', command = self.insertRamp)
         self.RampButton.grid(column='0', pady='5', row='8')
         self.label_24 = ttk.Label(self.HelperFrame)
-        self.label_24.config(text='start f [Hz], stop f [Hz], step size [Hz], delay [s]')
+        self.label_24.config(text='start f [Hz], stop f [Hz], step size [Hz], delay [ms]')
         self.label_24.grid(column='1', row='8')
         self.label_23 = ttk.Label(self.HelperFrame)
         self.label_23.config(text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps')
