@@ -7,21 +7,22 @@ from tkinter import font
 from tkinter import *
 import threading
 
-from sonicpackage.gui import ConnectionTab, HomeTab, InfoTab, NotebookMenu, ScriptingTab
+from sonicpackage.gui import ConnectionTab, NotebookMenu#, HomeTab, InfoTab, NotebookMenu, ScriptingTab
 from sonicpackage.connection import SonicAmp
 
 
-class GuiManager():
+class Root(tk.Tk):
 
-    def __init__(self):
-        self.root = tk.Tk()
-        self.root.geometry("540x900")
-        self.root.wm_title('SonicControl')
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+        
+        self.geometry("540x900")
+        self.wm_title('SonicControl')
         style = Style(theme='sandstone')
-
+        
         default_font = font.nametofont("TkDefaultFont")
         default_font.configure(family='Arial', size=12) 
-        self.root.option_add("*Font", default_font)
+        self.option_add("*Font", default_font)
 
         self.arial12 = font.Font(family='Arial', size=12, weight=font.BOLD)
         self.qtype12 = font.Font(family='QTypeOT-CondMedium', size=12, weight=font.BOLD)
@@ -36,6 +37,8 @@ class GuiManager():
             self.buildwindow()
 
         self.port = tk.StringVar(value=f"{self.sonicamp.info['port']}")
+        self.wiperuns = tk.StringVar()
+        self.frequency = tk.StringVar()
 
         self.status_thread = threading.Thread(target=self.sonicamp.connection_worker)
         self.status_thread.daemon = True
@@ -51,7 +54,7 @@ class GuiManager():
             import sys
             self.status_thread.daemon = False
             sys.exit(1)
-        self.root.after(50, self.checkout_amp)
+        self.after(50, self.checkout_amp)
 
 
     def process_incoming(self):
@@ -75,15 +78,11 @@ class GuiManager():
     
 
     def build_window(self):
-        self.notebook = NotebookMenu(self.root)
-        self.home_tab = HomeTab(self.root, self.notebook)
-        self.scripting_tab = ScriptingTab(self.root)
-        self.connection_tab = ConnectionTab(self.root)
-        self.info_tab = InfoTab(self.root)
+        self.notebook = NotebookMenu(self)
 
 
 
-class GuiBuilder(GuiManager):
+class GuiBuilder(Root):
 
     def __init__(self):
         super().__init__()

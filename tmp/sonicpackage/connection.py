@@ -79,6 +79,10 @@ class SerialConnection():
             status = [int(statuspart) for statuspart in self.send_message('-').split('-')]
             if len(status) > 1:
                 self.queue.put(status)
+    
+    
+    def disconnect(self):
+        pass
 
 
         
