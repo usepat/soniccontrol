@@ -6,7 +6,9 @@ import time
 from PIL import Image, ImageTk
 # Tkinter
 import tkinter as tk
-import ttkbootstrap as ttk
+# import ttkbootstrap as ttk
+import tkinter.ttk as ttk
+import ttkbootstrap as ttkb
 import tkinter.scrolledtext as st
 from serial.win32 import CE_FRAME
 from ttkbootstrap import Style
@@ -21,7 +23,7 @@ import serial.tools.list_ports
 #
 import queue
 import pyglet
-import sonicfont
+from sonicfont.connection_thread import Concur
 
 
 root = tk.Tk()
@@ -35,7 +37,7 @@ root.minsize(540, 900)
 root.wm_title('SonicControl')
 
 default_font = tk.font.nametofont("TkDefaultFont")
-default_font.configure(family='Arial', size=15) 
+default_font.configure(family='Arial', size=12) 
 root.option_add("*Font", default_font)
 
 pyglet.font.add_file('.//sonicfont//QTypeOT-CondExtraLight.otf')
@@ -51,34 +53,43 @@ class App:
         
         self.master = master
         
+        self.arial12 = font.Font(family='Arial', size=12, weight=font.BOLD)
+        self.qtype12 = font.Font(family='QTypeOT-CondMedium', size=12, weight=font.BOLD)
+
         self.var_port = tk.StringVar()
         self.device_list = []
-        self.firmware_text = ""
+        self.firmware_text = tk.StringVar()
         self.connection_status = ""
+        self.sonicamp = ""
         
+        self.serial_running = False
         self.queue = queue.Queue()
         self.status_thread = threading.Thread(target=self.statusworker_thread)
-        # self.connection_thread = threading.Thread(target=self.connectionworker_thread)
-        self.serial_running = False
+        self.serial_state = threading.Condition()
+        self.connection_lock = self.serial_state.acquire()
+        self.serial_state.wait()
+        self.status_thread.start()
         
         self.modules = []
+        self.signal = False
         self.frequency = 0
         self.gain = 0
         self.protocol = ""
         self.protocol_options = ""
         
         self.get_ports()
+        self.auto_connect(True)
         
         self.sonic_control = ttk.Frame(self.master)
-        self.notebook = ttk.Notebook(self.sonic_control)
-        
+        self.notebook = ttkb.Notebook(self.sonic_control, bootstyle="primary")
+        self.statusframe = ttk.Frame(self.sonic_control)
+
         self.home_tab_builder()
         self.script_tab_builder()
         self.connection_tab_builder()
         self.info_tab_builder()
-        
-        self.auto_connect(True)
-        
+        self.status_builder()
+                
         self.notebook.select(self.tab_connection)
         
         self.sonic_control.config(borderwidth=0, height=900, width=540)
@@ -106,28 +117,42 @@ class App:
         
         topframe = ttk.Frame(self.tab_connection)
         headframe = ttk.Frame(topframe)
-        connectionframe = ttk.Frame(topframe)
-        comportsframe = ttk.Frame(connectionframe)
-        controlframe = ttk.Frame(connectionframe)
+        connectionframe = ttk.Frame(topframe, style="secondary.TFrame", border=5)
         
-        botframe = ttk.Frame()
+        botframe = ttk.Frame(self.tab_connection)
                 
-        self.connection_label = ttk.Label(headframe, text='Not Connected', font="QTypeOT-CondBook 30 bold", padding=10, anchor=W)
+        self.connection_label = ttk.Label(headframe, text=self.connection_status, font="QTypeOT-CondBook 30 bold", padding=10, anchor=W)
         
-        self.comports_box = ttk.Combobox(comportsframe, textvariable=self.var_port, values=self.device_list, width=10)
-        self.refresh_button = ttk.Button(comportsframe, text='Refresh', command=self.get_ports)
-        self.connect_button = ttk.Button(controlframe, text='Connect', command=self.auto_connect)
-        
-        self.connection_label.pack(anchor=CENTER, side=LEFT, padx=15, pady=15)
-        self.comports_box.pack(anchor=CENTER, side=LEFT, padx=5, pady=5)
-        self.refresh_button.pack(anchor=CENTER, side=LEFT, padx=5, pady=5)
-        self.connect_button.pack(anchor=CENTER, side=TOP, padx=5, pady=5)
-        
-        topframe.pack(anchor=N, side=TOP, expand=True, fill=X)
-        headframe.pack(anchor=CENTER, side=TOP, expand=True, fill=BOTH)
-        connectionframe.pack(anchor=CENTER, side=BOTTOM, expand=True, fill=BOTH)
-        comportsframe.pack(anchor=CENTER, side=TOP, expand=True)
-        controlframe.pack(anchor=CENTER, side=BOTTOM, expand=True, fill=X)
+        self.comports_box = ttk.OptionMenu(connectionframe, self.var_port, self.device_list[0], *self.device_list, style="primary.TOption")
+        self.connect_button = ttk.Button(connectionframe, text='Connect', command=self.auto_connect, style="success.TButton" ,width=10)
+        self.refresh_button = ttk.Button(connectionframe, text='Refresh', command=self.get_ports, style="outline.TButton")
+        self.disconnect_button = ttk.Button(connectionframe, text='Disconnect', command=self.disconnect, style="danger.TButton", width=10)
+
+        self.firmwareframe = ttkb.Labelframe(botframe, height='200', text=f'Firmware Info', width='200', style="primary.TLabelframe")#, font="QTypeOT-CondBook 10 bold")
+        self.firmwarelabel = ttk.Label(self.firmwareframe, text='No SonicAmp connected', textvariable=self.firmware_text, font="Consolas")
+
+        self.connection_label.pack(anchor=CENTER, side=TOP, padx=15, pady=15)
+
+        self.comports_box.grid(sticky=NSEW, column=0, row=0, padx=5, pady=5)
+        self.connect_button.grid(sticky=tk.N, column=1, row=0, padx=5, pady=5)
+        self.refresh_button.grid(sticky=tk.W, column=0, row=1, padx=5, pady=5)
+        self.disconnect_button.grid(sticky=tk.E, column=1, row=1, padx=5, pady=5)
+
+        self.firmwarelabel.pack(padx='10', pady='10', side='top')
+        self.firmwareframe.pack(pady='30', side='top')
+        self.firmwareframe.pack_propagate(0)
+
+        # self.comports_box.pack(anchor=CENTER, side=LEFT, padx=5, pady=5)
+        # self.connect_button.pack(anchor=tk.N, side=LEFT, padx=5, pady=10)
+        # self.refresh_button.pack(anchor=tk.W, side=LEFT, padx=40, pady=5)
+        # self.disconnect_button.pack(anchor=tk.E, side=tk.RIGHT, padx=40, pady=5)
+
+        topframe.pack(anchor=N, side=TOP)
+        headframe.pack(anchor=CENTER, side=TOP)
+        connectionframe.pack(anchor=CENTER, side=BOTTOM, expand=True)
+        botframe.pack(anchor=CENTER, side=TOP)
+        # primary_frame.pack(anchor=CENTER, side=TOP, expand=True)
+        # secondary_frame.pack(anchor=CENTER, side=BOTTOM, expand=True)
         
         self.tab_connection.pack(side=TOP)
         self.notebook.add(self.tab_connection, text='Connection')
@@ -141,6 +166,12 @@ class App:
         self.notebook.add(self.tab_info, text='Info')
         self.notebook.config(height=680, width=530)
         self.notebook.pack(expand=True, fill=BOTH, side=TOP)
+
+
+    def status_builder(self):
+        # self.frequency_meter = ttk.Meter(self.statusframe, style="primary.", subtextstyle="info")
+        # self.frequency_meter.pack()
+        self.statusframe.pack(side=BOTTOM)
 
 
 #*********************** METHODS FOR SERIAL INTERFACE ***************************************************
@@ -198,14 +229,17 @@ class App:
         try:
             self.serial_connection = serial.Serial(port, 115200, timeout=0.3)
             time.sleep(5)
-            # self.connection_status = "Connected"
+            self.connection_status = "connected"
             # self.connect_button.configure(text='Disconnect', command=self.disconnect)
-            self.send_message('!SERIAL', read_line=False, flush = True)
-            self.firmware_text_widget = self.send_message('?info', read_line=False, flush = True)
+            self.send_message('!SERIAL', read_line=False, flush = True, delay=0.5)
+            # time.sleep(1)
+            self.firmware_text.set(self.send_message('?info', read_line=False, flush = True))
+            self.sonicamp = self.send_message("?type")
+            print(self.sonicamp)
             self.modules = self.send_message('=')#.split('=')
             self.get_modules(self.modules)
             self.serial_running = True
-            self.status_thread.start()
+            self.serial_state.notify()
             self.periodic_call()
             
         except SerialException:
@@ -213,10 +247,16 @@ class App:
     
     
     def disconnect(self):
-        pass
+        self.connection_status = 'not connected'
+        self.serial_running = False
+        self.firmware_text.set('')
+        self.serial_connection.close()
+        # self.canvas.itemconfig(self.LEDAmp, fill=self.red)
+        # self.notebook_1.tab(self.tabManual, state='disabled')
+        # self.notebook_1.tab(self.tabScripting, state='disabled')
     
     
-    def send_message(self, message, read_line=True, flush=False, delay=0.05):
+    def send_message(self, message, read_line=True, flush=False, delay=0.05, wait=0.1):
         """Takes a string, decodes it and finally sends said string to a sonicamp system.
         Further, receives the answer from the sonicamp, decodes it and returns the data as
         a string.
@@ -243,7 +283,9 @@ class App:
             
             elif read_line == False:
                 return self.serial_connection.read(255).rstrip().decode('cp1252')
-                
+            
+            time.sleep(wait)
+
         else:
             self.error_message('connection')
             return False
@@ -257,24 +299,25 @@ class App:
         self.process_incoming()
         
         if self.serial_running:
-            self.connection_label.config(text='CONNECTED')
-            self.connect_button.config(text='Disconnect', command=self.disconnect, bootstyle="danger")
+            self.connection_status = "connected"
+            # self.connect_button.config(text='Disconnect', command=self.disconnect)#, style="danger")
         else:
             self.disconnect()
-            
             
         self.master.after(200, self.periodic_call)
         
     
     def statusworker_thread(self):
-        
+
         while self.serial_running:
-            
             time.sleep(0.1)
             status = self.send_message('-')
             self.queue.put(status)
+        
+        with self.serial_state:
+            self.serial_state.wait()
     
-    
+
     def process_incoming(self):
         
         while self.queue.qsize():
@@ -307,4 +350,5 @@ class App:
 if __name__ == '__main__':
     app = App(root)
     root.mainloop()
+    app.disconnect()
     app.serial_running = False
