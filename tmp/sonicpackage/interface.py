@@ -7,7 +7,10 @@ from tkinter import font
 from tkinter import *
 import threading
 
-from sonicpackage.gui import NotebookMenu#, HomeTab, InfoTab, NotebookMenu, ScriptingTab
+from sonicpackage.gui_parts.home import HomeTab
+from sonicpackage.gui_parts.scripting import ScriptingTab
+from sonicpackage.gui_parts.connection import ConnectionTab
+from sonicpackage.gui_parts.info import InfoTab
 from sonicpackage.connection import SonicAmp
 
 
@@ -18,7 +21,7 @@ class Root(tk.Tk):
         
         self.geometry("540x900")
         self.wm_title('SonicControl')
-        style = Style(theme='sandstone')
+        style = Style(theme='sandstone')        
         
         default_font = font.nametofont("TkDefaultFont")
         default_font.configure(family='Arial', size=12) 
@@ -78,7 +81,7 @@ class Root(tk.Tk):
     
 
     def build_window(self):
-        self.notebook = NotebookMenu(self)
+        self.notebook = NotebookMenu(self, self.sonicamp)
 
 
 
@@ -89,6 +92,41 @@ class GuiBuilder(Root):
 
 
 
+class NotebookMenu(ttk.Notebook):
+    
+    @property
+    def root(self):
+        return self._root
+    
+    @property
+    def sonicamp(self):
+        return self._sonicamp
+    
+    def __init__(self, root, sonicamp, *args, **kwargs):
+        ttk.Notebook.__init__(self, root, *args, **kwargs)
+        self._root = root
+        self._sonicamp = sonicamp
+        
+        self.config(height=680, width=530)
+        
+        self.home_tab = HomeTab(self, self.sonicamp)
+        self.script_tab = ScriptingTab(self, self.sonicamp)
+        self.connection_tab = ConnectionTab(self, self.sonicamp)
+        
+        for child in self.children.values():
+            if child != self.connection_tab:
+                self.tab(child, state=tk.DISABLED)
+                
+        self.select(self.connection_tab)
+        
+        self.publish()
+
+
+    def publish(self):
+        self.grid(row=0, column=0)
+
+
+
 if __name__ == "__main__":
     gui = GuiBuilder()
     gui.mainloop()
@@ -96,4 +134,4 @@ if __name__ == "__main__":
 
         
 
-        
+    

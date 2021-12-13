@@ -2,11 +2,11 @@
 import pyglet
 import sonicpackage.interface
 
-pyglet.font.add_file('sonicpackage//QTypeOT-CondExtraLight.otf')
-pyglet.font.add_file('sonicpackage//QTypeOT-CondLight.otf')
-pyglet.font.add_file('sonicpackage//QTypeOT-CondMedium.otf')
-pyglet.font.add_file('sonicpackage//QTypeOT-CondBook.otf')
-pyglet.font.add_file('sonicpackage//QTypeOT-CondBold.otf')
+pyglet.font.add_file('sonicpackage//fonts//QTypeOT-CondExtraLight.otf')
+pyglet.font.add_file('sonicpackage//fonts//QTypeOT-CondLight.otf')
+pyglet.font.add_file('sonicpackage//fonts//QTypeOT-CondMedium.otf')
+pyglet.font.add_file('sonicpackage//fonts//QTypeOT-CondBook.otf')
+pyglet.font.add_file('sonicpackage//fonts//QTypeOT-CondBold.otf')
 
 
 
