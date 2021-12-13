@@ -17,6 +17,8 @@ class NotebookMenu(ttk.Notebook):
         ttk.Notebook.__init__(self, root, *args, **kwargs)
         self._root = root
         
+        self.home_tab = HomeTab(self)
+        self.script_tab = ScriptingTab(self)
         self.connection_tab = ConnectionTab(self)
         self.publish()
 
@@ -106,6 +108,17 @@ class HomeTab(ttk.Frame):
             command=self.turn_us_on
         )
         
+        self.us_off_button = ttk.Button(
+            self.botframe,
+            text='OFF',
+            style='danger.TButton',
+            width=10,
+            command=self.turn_us_off
+        )
+        
+        self.config(height=200, width=200)
+        parent.add(self, text='Home')
+        
         
     def start_wiping(self):
         pass
@@ -121,8 +134,144 @@ class HomeTab(ttk.Frame):
     
     def set_scrolldigit(self):
         pass
+    
+    
+    def turn_us_on(self):
+        pass
+    
+    def turn_us_off(self):
+        pass
         
 
+
+class ScriptingTab(ttk.Frame):
+    
+    def __init__(self, parent, *args, **kwargs):
+        ttk.Frame.__init__(self, parent, *args, **kwargs)
+        
+        self.prev_task = tk.StringVar().set('Idle')
+        self.current_task = tk.StringVar().set('Idle')
+        
+        self.button_frame = ttk.Frame(self)
+        self.load_script_btn = ttk.Button(
+            self.button_frame,
+            text='Load script file',
+            style='',
+            command=self.load_file,
+        )
+        
+        self.save_script_btn = ttk.Button(
+            self.button_frame,
+            text='Save script file',
+            style='',
+            command=self.save_file
+        )
+        
+        self.save_log_btn = ttk.Button(
+            self.button_frame,
+            text='Save log file to',
+            style='',
+            command=self.open_logfile
+        )
+        
+        self.script_guide_btn = ttk.Button(
+            self.button_frame,
+            text='Scripting Guide',
+            style='',
+            command=lambda e: ScriptingGuide(parent.root, self.scripttext)
+        )
+
+        self.stop_script_btn = ttk.Button(
+            self.button_frame,
+            text='Stop Script',
+            style='',
+            command=self.close_file
+        )
+        
+        self.start_script_btn = ttk.Button(
+            self.button_frame,
+            text='Start Script',
+            style='',
+            command=self.read_file
+        )
+        
+        self.scripting_frame = ttk.Labelframe(
+            self,
+            height=200,
+            width=200,
+            text='Script Editor'
+        )
+        
+        self.scripttext = tk.Text(
+            self.scripting_frame,
+            autoseparators=False,
+            background='white',
+            setgrid=False,
+            width=30,
+        )
+        _text = '''Enter Tasks here...'''
+        self.scripttext.insert(0.0, _text)
+        
+        self.scrollbar = ttk.Scrollbar(
+            self.scripting_frame,
+            orient='vertical',
+            command=self.scripttext.yview
+        )
+        
+        self.scripttext.configure(yscrollcommand=self.scrollbar.set)
+        
+        self.task_frame = ttk.Frame(self)
+        self.static_prevtask_label = ttk.Label(
+            self.task_frame,
+            font=parent.root.arial12,
+            text='Previous Task:'
+        )
+        
+        self.prev_task_label = ttk.Label(
+            self.task_frame,
+            font=parent.root.arial12,
+            textvariable=self.prev_task,
+        )
+        
+        
+        self.static_curtask_label = ttk.Label(
+            self.task_frame,
+            font=parent.root.arial12,
+            text='Current Task:'
+        )
+        
+        self.cur_task_label = ttk.Label(
+            self.task_frame,
+            font=parent.root.arial12,
+            textvariable=self.current_task
+        )
+        
+        
+        self.script_progressbar = ttk.Progressbar(
+            self,
+            orient='horizontal',
+            mode='indeterminate'
+        )
+        
+        self.config(height=200, width=200)
+        parent.add(self, text='Scripting')
+        
+    
+    def load_file(self):
+        pass
+    
+    def save_file(self):
+        pass
+    
+    def open_logfile(self):
+        pass
+    
+    def close_file(self):
+        pass
+    
+    def read_file(self):
+        pass
+    
 
 class ConnectionTab(ttk.Frame):
     

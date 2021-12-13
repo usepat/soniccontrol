@@ -7,7 +7,7 @@ from tkinter import font
 from tkinter import *
 import threading
 
-from sonicpackage.gui import ConnectionTab, NotebookMenu#, HomeTab, InfoTab, NotebookMenu, ScriptingTab
+from sonicpackage.gui import NotebookMenu#, HomeTab, InfoTab, NotebookMenu, ScriptingTab
 from sonicpackage.connection import SonicAmp
 
 
