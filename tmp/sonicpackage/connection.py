@@ -82,7 +82,7 @@ class SerialConnection():
     
     
     def disconnect(self):
-        pass
+        self.ser.close()
 
 
         

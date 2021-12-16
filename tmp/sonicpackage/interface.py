@@ -4,13 +4,14 @@ import ttkbootstrap as ttkb
 from ttkbootstrap import Style
 from ttkbootstrap.constants import *
 from tkinter import font
-from tkinter import *
+from PIL import ImageTk, Image
 import threading
 
 from sonicpackage.gui_parts.home import HomeTab
 from sonicpackage.gui_parts.scripting import ScriptingTab
 from sonicpackage.gui_parts.connection import ConnectionTab
 from sonicpackage.gui_parts.info import InfoTab
+from sonicpackage.utils.img import resize_img
 from sonicpackage.connection import SonicAmp
 
 
@@ -30,6 +31,10 @@ class Root(tk.Tk):
         self.arial12 = font.Font(family='Arial', size=12, weight=font.BOLD)
         self.qtype12 = font.Font(family='QTypeOT-CondMedium', size=12, weight=font.BOLD)
         
+        self.refresh_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//refresh_icon.png', (20, 20))
+        )
+
         self.sonicamp = SonicAmp()
         
         self.sonicamp.connect_to_port(auto=True)
@@ -111,7 +116,7 @@ class NotebookMenu(ttk.Notebook):
         
         self.home_tab = HomeTab(self, self.sonicamp)
         self.script_tab = ScriptingTab(self, self.sonicamp)
-        self.connection_tab = ConnectionTab(self, self.sonicamp)
+        self.connection_tab = ConnectionTab(self, self.root, self.sonicamp)
         
         for child in self.children.values():
             if child != self.connection_tab:
