@@ -32,8 +32,15 @@ class Root(tk.Tk):
         self.qtype12 = font.Font(family='QTypeOT-CondMedium', size=12, weight=font.BOLD)
         
         self.refresh_img = ImageTk.PhotoImage(
-            resize_img('sonicpackage//pictures//refresh_icon.png', (20, 20))
-        )
+            resize_img('sonicpackage//pictures//refresh_icon.png', (20, 20)))
+        self.home_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//home_icon.png', (30, 30)))
+        self.script_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//script_icon.png', (30, 30)))
+        self.connection_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//connection_icon.png', (30, 30)))
+        self.info_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//info_icon.png', (30, 30)))
 
         self.sonicamp = SonicAmp()
         
@@ -42,7 +49,7 @@ class Root(tk.Tk):
             self.sonicamp.get_info()
             print(self.sonicamp.info)
         else:
-            self.buildwindow()
+            self.build_window()
 
         self.port = tk.StringVar(value=f"{self.sonicamp.info['port']}")
         self.wiperuns = tk.StringVar()
@@ -114,13 +121,15 @@ class NotebookMenu(ttk.Notebook):
         
         self.config(height=680, width=530)
         
-        self.home_tab = HomeTab(self, self.sonicamp)
+        self.home_tab = HomeTab(self, self.root, self.sonicamp)
         self.script_tab = ScriptingTab(self, self.sonicamp)
         self.connection_tab = ConnectionTab(self, self.root, self.sonicamp)
+        self.info_tab = InfoTab(self)
         
-        for child in self.children.values():
-            if child != self.connection_tab:
-                self.tab(child, state=tk.DISABLED)
+        if not sonicamp.is_connected:
+            for child in self.children.values():
+                if child != self.connection_tab:
+                    self.tab(child, state=tk.DISABLED)
                 
         self.select(self.connection_tab)
         
@@ -128,7 +137,7 @@ class NotebookMenu(ttk.Notebook):
 
 
     def publish(self):
-        self.grid(row=0, column=0)
+        self.grid(row=0, column=0, padx=2.5, pady=2.5)
 
 
 

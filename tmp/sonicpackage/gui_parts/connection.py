@@ -34,7 +34,7 @@ class ConnectionTab(ttk.Frame):
         else:
             self.not_connected()
             
-        parent.add(self, state=tk.NORMAL, text='Connection')
+        parent.add(self, state=tk.NORMAL, text='Connection', image=parent.root.connection_img, compound=tk.TOP)
         
 
 

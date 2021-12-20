@@ -124,7 +124,7 @@ class ScriptingTab(ttk.Frame):
         )
         
         self.config(height=200, width=200)
-        parent.add(self, text='Scripting')
+        parent.add(self, text='Scripting', image=parent.root.script_img, compound=tk.TOP)
         
     
     def load_file(self):

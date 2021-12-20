@@ -6,4 +6,4 @@ class InfoTab(ttk.Frame):
     
     def __init__(self, parent, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
-        pass
+        parent.add(self, text='Info', image=parent.root.info_img, compound=tk.TOP)

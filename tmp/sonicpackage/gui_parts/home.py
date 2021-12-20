@@ -9,13 +9,18 @@ class HomeTab(ttk.Frame):
         return self._parent
     
     @property
+    def root(self):
+        return self._root
+    
+    @property
     def sonicamp(self):
         return self._sonicamp    
     
-    def __init__(self, parent, sonicamp, *args, **kwargs):
+    def __init__(self, parent, root, sonicamp, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         
         self._parent = parent
+        self._root = root
         self._sonicamp = sonicamp
         
         self.control_header_frame = ttk.Frame(self)
@@ -117,7 +122,7 @@ class HomeTab(ttk.Frame):
         )
         
         self.config(height=200, width=200)
-        parent.add(self, text='Home')
+        parent.add(self, text='Home', image=parent.root.home_img, compound=tk.TOP)
         
     def set_frq_mode(self):
         pass
