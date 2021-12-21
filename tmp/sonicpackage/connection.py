@@ -92,6 +92,7 @@ class SonicAmp(SerialConnection):
         super().__init__()
  
         self.info = {}
+        self.modules = {}
 
 
     def get_info(self):
@@ -105,7 +106,7 @@ class SonicAmp(SerialConnection):
 
     
     def get_modules(self, module_list):
-        modules = { 
+        self.modules = { 
             'buffer':       module_list[0],
             'DISPLAY':      module_list[1],
             'EEPROM':       module_list[2],
@@ -129,7 +130,7 @@ class SonicAmp(SerialConnection):
             'SWITCH2':      module_list[20],
         }
 
-        return modules
+        return self.modules
 
     
     def get_status(self, status):

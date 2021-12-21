@@ -23,6 +23,13 @@ class HomeTab(ttk.Frame):
         self._root = root
         self._sonicamp = sonicamp
         
+        if sonicamp.info['type'] == 'soniccatch':
+            self.build4catch()
+        elif sonicamp.info['type'] == 'sonicwipe':
+            self.build4wipe()
+        else:
+            pass
+        
         self.control_header_frame = ttk.Frame(self)
         self.topframe = ttk.Frame(self)
         self.botframe = ttk.Frame(self)
@@ -31,7 +38,7 @@ class HomeTab(ttk.Frame):
         
         self.frq_mode_button = ttk.Button(
             self.control_header_frame,
-            text='',
+            text=root.frq_mode,
             style='',
             command=self.set_frq_mode
         )
@@ -123,7 +130,13 @@ class HomeTab(ttk.Frame):
         
         self.config(height=200, width=200)
         parent.add(self, text='Home', image=parent.root.home_img, compound=tk.TOP)
-        
+    
+    def build4catch(self):
+        pass
+    
+    def build4wipe(self):
+        pass
+    
     def set_frq_mode(self):
         pass
     

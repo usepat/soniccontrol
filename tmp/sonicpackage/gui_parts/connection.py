@@ -124,6 +124,8 @@ class TopFrame(ttk.Frame):
         self.refresh_button.grid(row=0, column=3 ,columnspan=1,  pady=10, padx=5, sticky=tk.NSEW)
         
         self.control_frame.pack(padx=10, pady=10)
+        
+        #TODO: Eine Tabelle für genaue information
 
     
     def connect(self):

@@ -21,6 +21,8 @@ class Root(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         
         self.geometry("540x900")
+        self.minsize(540, 900)
+        self.maxsize(1080,900)
         self.wm_title('SonicControl')
         style = Style(theme='sandstone')        
         
@@ -41,6 +43,10 @@ class Root(tk.Tk):
             resize_img('sonicpackage//pictures//connection_icon.png', (30, 30)))
         self.info_img = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//info_icon.png', (30, 30)))
+        self.play_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//play_icon.png', (30, 30)))
+        self.pause_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//pause_icon.png', (30, 30)))
 
         self.sonicamp = SonicAmp()
         
@@ -54,6 +60,11 @@ class Root(tk.Tk):
         self.port = tk.StringVar(value=f"{self.sonicamp.info['port']}")
         self.wiperuns = tk.StringVar()
         self.frequency = tk.StringVar()
+        
+        #TODO: KHZ und MHZ synchronisation
+        self.frq_mode = 'KHZ'
+        # if self.sonicamp.modules['RELAIS'] is True:
+        #     self.frq_mode = self.sonicamp.send_message()
 
         self.status_thread = threading.Thread(target=self.sonicamp.connection_worker)
         self.status_thread.daemon = True
