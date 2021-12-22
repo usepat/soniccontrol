@@ -96,13 +96,22 @@ class SonicAmp(SerialConnection):
 
 
     def get_info(self):
-        self.info = {
-            'port': self.port,
-            'type': self.send_message('?type', flush=True, delay=0),
-            'firmware': self.send_message('?info', read_mode='block', flush=True, delay=0.5),
-            'modules' : self.get_modules([bool(int(module)) for module in self.send_message('=', delay=0.35).split('=')]),
-            'status': {}
-        }
+        if self.is_connected:
+            self.info = {
+                'port':     self.port,
+                'type':     self.send_message('?type', flush=True, delay=0),
+                'firmware': self.send_message('?info', read_mode='block', flush=True, delay=0.5),
+                'modules' : self.get_modules([bool(int(module)) for module in self.send_message('=', delay=0.35).split('=')]),
+                'status':   {}
+            }
+        else:
+            self.info = {
+                'port':     self.port,
+                'type':     'not connected',
+                'firmware': False,
+                'modules':  False,
+                'status':   False
+            }
 
     
     def get_modules(self, module_list):

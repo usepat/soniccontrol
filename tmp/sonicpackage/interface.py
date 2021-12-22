@@ -51,11 +51,11 @@ class Root(tk.Tk):
         self.sonicamp = SonicAmp()
         
         self.sonicamp.connect_to_port(auto=True)
-        if self.sonicamp.is_connected:  
-            self.sonicamp.get_info()
-            print(self.sonicamp.info)
-        else:
-            self.build_window()
+        # if self.sonicamp.is_connected:  
+        self.sonicamp.get_info()
+        print(self.sonicamp.info)
+        # else:
+        # self.build_window()
 
         self.port = tk.StringVar(value=f"{self.sonicamp.info['port']}")
         self.wiperuns = tk.StringVar()
@@ -77,9 +77,10 @@ class Root(tk.Tk):
     def checkout_amp(self):
         self.process_incoming()
         if not self.sonicamp.is_connected:
-            import sys
-            self.status_thread.daemon = False
-            sys.exit(1)
+            self.after(50, self.checkout_amp)
+            # import sys
+            # self.status_thread.setDaemon(False)
+            # sys.exit(1)
         self.after(50, self.checkout_amp)
 
 

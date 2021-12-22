@@ -127,6 +127,11 @@ class TopFrame(ttk.Frame):
         
         #TODO: Eine Tabelle für genaue information
 
+    def build4connected(self):
+        pass
+
+    def build4notconnected(self):
+        pass
     
     def connect(self):
         self.connect_button.configure(
