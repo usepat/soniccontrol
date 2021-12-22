@@ -15,16 +15,17 @@ class SerialConnection():
     BLOCK = 'block'
 
     def __init__(self):
-        self.device_list = self.get_ports()
         self.port = ''
         self.baudrate = 115200
         self.is_connected = False
         self.queue = queue.Queue()
+        self.device_list = self.get_ports()
+        
 
-
-    def get_ports(self):
-        return [port.device for index, port in enumerate(serial.tools.list_ports.comports(), start=0) if port.device != 'COM1']
-
+    def get_ports(self):      
+        port_list = [port.device for index, port in enumerate(serial.tools.list_ports.comports(), start=0) if port.device != 'COM1']
+        port_list.insert(0, '-')
+        return port_list
 
     def connect_to_port(self, auto=False, port=None):
         try:
@@ -38,6 +39,7 @@ class SerialConnection():
                 raise Exception
 
             self.is_connected = True
+            
             time.sleep(5)
             self.initialize()
         
@@ -73,7 +75,9 @@ class SerialConnection():
             pass
 
 
-    def connection_worker(self):
+    def connection_worker(self, event):
+        if not self.is_connected:
+            event.wait()
         while self.is_connected:
             time.sleep(0.1)
             status = [int(statuspart) for statuspart in self.send_message('-').split('-')]
@@ -83,6 +87,7 @@ class SerialConnection():
     
     def disconnect(self):
         self.ser.close()
+        
 
 
         

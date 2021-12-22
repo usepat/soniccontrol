@@ -66,7 +66,10 @@ class Root(tk.Tk):
         # if self.sonicamp.modules['RELAIS'] is True:
         #     self.frq_mode = self.sonicamp.send_message()
 
-        self.status_thread = threading.Thread(target=self.sonicamp.connection_worker)
+        self.disconnected_event = threading.Event()
+        self.status_thread = threading.Thread(
+            target=self.sonicamp.connection_worker, 
+            args=(self.disconnected_event))
         self.status_thread.daemon = True
         self.status_thread.start()
         
@@ -77,10 +80,7 @@ class Root(tk.Tk):
     def checkout_amp(self):
         self.process_incoming()
         if not self.sonicamp.is_connected:
-            self.after(50, self.checkout_amp)
-            # import sys
-            # self.status_thread.setDaemon(False)
-            # sys.exit(1)
+            self.disconnected_event.clear()
         self.after(50, self.checkout_amp)
 
 
