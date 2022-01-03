@@ -36,6 +36,7 @@ class HomeTab(ttk.Frame):
         
         self.utilframe = ttk.Labelframe(self.topframe)
         
+       
         self.frq_mode_button = ttk.Button(
             self.control_header_frame,
             text=root.frq_mode,

@@ -21,12 +21,14 @@ class Root(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
+        # setting up root window
         self.geometry("540x900")
         self.minsize(540, 900)
         self.maxsize(1080,900)
         self.wm_title('SonicControl')
         style = Style(theme='sandstone')        
         
+        # Defining and setting font
         default_font = font.nametofont("TkDefaultFont")
         default_font.configure(family='Arial', size=12) 
         self.option_add("*Font", default_font)
@@ -34,6 +36,8 @@ class Root(tk.Tk):
         self.arial12 = font.Font(family='Arial', size=12, weight=font.BOLD)
         self.qtype12 = font.Font(family='QTypeOT-CondMedium', size=12, weight=font.BOLD)
         
+        # Defining images
+        # Uses custom resize funtion in utils file
         self.refresh_img = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//refresh_icon.png', (20, 20)))
         self.home_img = ImageTk.PhotoImage(
@@ -49,17 +53,18 @@ class Root(tk.Tk):
         self.pause_img = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//pause_icon.png', (30, 30)))
 
+        # Declaring the sonicamp object for communication and data
+        # To be found in connection
         self.sonicamp = SonicAmp()
-        
+        # try to auto connect
         self.sonicamp.connect_to_port(auto=True)
-        # if self.sonicamp.is_connected:  
+        # Getting data into a dictionary 
         self.sonicamp.get_info()
         
         print(self.sonicamp.device_list)
         print(self.sonicamp.info)
-        # else:
-        # self.build_window()
 
+        # root variables for gui
         self.port = tk.StringVar(value=f"{self.sonicamp.info['port']}")
         self.wiperuns = tk.StringVar()
         self.frequency = tk.StringVar()
@@ -69,8 +74,8 @@ class Root(tk.Tk):
         # if self.sonicamp.modules['RELAIS'] is True:
         #     self.frq_mode = self.sonicamp.send_message()
 
-        
-        self.status_thread = SonicAgent( self.sonicamp, target=SonicAgent.run)
+        # Declaring Agent for automatic status data exchange
+        self.status_thread = SonicAgent(self.sonicamp, target=SonicAgent.run)
         self.status_thread.daemon = True
         self.status_thread.start()
         
