@@ -13,6 +13,7 @@ from sonicpackage.gui_parts.connection import ConnectionTab
 from sonicpackage.gui_parts.info import InfoTab
 from sonicpackage.utils.img import resize_img
 from sonicpackage.connection import SonicAmp
+from sonicpackage.sonicthread import SonicAgent
 
 
 class Root(tk.Tk):
@@ -53,6 +54,8 @@ class Root(tk.Tk):
         self.sonicamp.connect_to_port(auto=True)
         # if self.sonicamp.is_connected:  
         self.sonicamp.get_info()
+        
+        print(self.sonicamp.device_list)
         print(self.sonicamp.info)
         # else:
         # self.build_window()
@@ -66,12 +69,13 @@ class Root(tk.Tk):
         # if self.sonicamp.modules['RELAIS'] is True:
         #     self.frq_mode = self.sonicamp.send_message()
 
-        self.disconnected_event = threading.Event()
-        self.status_thread = threading.Thread(
-            target=self.sonicamp.connection_worker, 
-            args=(self.disconnected_event))
+        
+        self.status_thread = SonicAgent( self.sonicamp, target=SonicAgent.run)
         self.status_thread.daemon = True
         self.status_thread.start()
+        
+        if not self.sonicamp.is_connected:
+            self.status_thread.pause()
         
         self.checkout_amp()
         self.build_window()
@@ -80,7 +84,9 @@ class Root(tk.Tk):
     def checkout_amp(self):
         self.process_incoming()
         if not self.sonicamp.is_connected:
-            self.disconnected_event.clear()
+            self.status_thread.pause()
+        else:
+            pass
         self.after(50, self.checkout_amp)
 
 
@@ -94,7 +100,6 @@ class Root(tk.Tk):
                     self.window_updater(self.sonicamp.info['status'])
                 else:
                     self.sonicamp.is_connected = False
-                    self.status_thread.daemon = False
 
             except:
                 pass

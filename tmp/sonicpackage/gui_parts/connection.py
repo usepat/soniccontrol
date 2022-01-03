@@ -28,21 +28,9 @@ class ConnectionTab(ttk.Frame):
         self._root = root
         self.topframe =TopFrame(self)
         self.botframe = BotFrame(self)
-
-        if sonicamp.is_connected:
-            self.connected()
-        else:
-            self.not_connected()
             
         parent.add(self, state=tk.NORMAL, text='Connection', image=parent.root.connection_img, compound=tk.TOP)
         
-
-
-    def not_connected(self):
-        pass
-
-
-    def connected(self):
         for child in self.children.values():
             child.pack()
                     
@@ -78,7 +66,8 @@ class TopFrame(ttk.Frame):
             self.control_frame,
             self.parent.root.port,
             self.parent.sonicamp.device_list[0],
-            self.parent.sonicamp.device_list,
+            *self.parent.sonicamp.device_list,
+            command=self.tmp,
             style = "primary.TOption")
         self.refresh_button = ttkb.Button(
             self.control_frame, 
@@ -103,7 +92,9 @@ class TopFrame(ttk.Frame):
 
         #TODO: Eine Tabelle für genaue information
 
-
+    def tmp(self, event):
+        print(self.parent.root.port.get())
+    
     def build4connected(self):        
         self.subtitle.configure(text="You are connected to:")
         self.heading1.configure(text = self.parent.sonicamp.info['type'][:5])
@@ -126,10 +117,17 @@ class TopFrame(ttk.Frame):
     
     def connect(self):
         self.build4connected()
-        self.parent.sonicamp.connect_to_port()
-
+        print("disconnected")
+        if self.parent.root.port.get() == '-':
+            self.parent.sonicamp.connect_to_port(auto=True)
+        else:
+            self.parent.sonicamp.connect_to_port(port=self.parent.root.port.get())
+        self.parent.root.status_thread.resume()
+        
     def disconnect(self):
         self.build4notconnected()
+        print("connected")
+        self.parent.root.status_thread.pause()
         self.parent.sonicamp.disconnect()
 
 class BotFrame(ttk.Frame):

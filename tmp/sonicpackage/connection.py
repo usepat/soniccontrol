@@ -24,28 +24,26 @@ class SerialConnection():
 
     def get_ports(self):      
         port_list = [port.device for index, port in enumerate(serial.tools.list_ports.comports(), start=0) if port.device != 'COM1']
+        print(port_list)
         port_list.insert(0, '-')
+        print(port_list)
         return port_list
 
     def connect_to_port(self, auto=False, port=None):
-        try:
-            if len(self.device_list) == 1 and auto == True:
-                self.port = self.device_list[0]
-                self.ser = serial.Serial(self.port, self.baudrate, timeout=0.3)    
-            elif port:
-                self.ser = serial.Serial(port, self.baudrate, timeout=0.3)
-            else:
-                print("error")
-                raise Exception
-
-            self.is_connected = True
-            
-            time.sleep(5)
-            self.initialize()
         
-        except:
+        if len(self.device_list) == 2 and auto == True:
+            self.port = self.device_list[1]
+            self.ser = serial.Serial(self.port, self.baudrate, timeout=0.3)    
+            self.is_connected = True
+        elif port:
+            self.ser = serial.Serial(port, self.baudrate, timeout=0.3)
+            self.is_connected = True
+        else:
+            print("error")
             self.is_connected = False
-            return False
+        
+        time.sleep(5)
+        self.initialize()
     
 
     def initialize(self):
@@ -74,16 +72,6 @@ class SerialConnection():
         except:
             pass
 
-
-    def connection_worker(self, event):
-        if not self.is_connected:
-            event.wait()
-        while self.is_connected:
-            time.sleep(0.1)
-            status = [int(statuspart) for statuspart in self.send_message('-').split('-')]
-            if len(status) > 1:
-                self.queue.put(status)
-    
     
     def disconnect(self):
         self.ser.close()
