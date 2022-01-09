@@ -19,10 +19,15 @@ class SonicAgent(threading.Thread):
                 
                 #thread should not try to do something if paused
                 #not paused
-                raw_data = self.sonicamp.send_message('-').split('-')
-                status = [int(statuspart) for statuspart in raw_data]
-                if len(status) > 1:
-                    self.sonicamp.queue.put(status)
+                if self.sonicamp.is_connected:
+                    raw_data = self.sonicamp.send_message('-')
+                    list_data = raw_data.split('-')
+                    status = [int(statuspart) for statuspart in raw_data]
+                    if len(status) > 1:
+                        self.sonicamp.queue.put(status)
+                
+                else:
+                    self.pause_cond.wait()
     
     
     def pause(self):

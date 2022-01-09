@@ -53,6 +53,7 @@ class SerialConnection():
 
     def send_message(self, message, read_mode='line', flush=False, delay=0.1):
         try:
+            print(f'Sende nachricht: {message}')
             if self.ser.is_open:
                 if flush:
                     self.ser.flushInput()
@@ -68,9 +69,18 @@ class SerialConnection():
             
             else:
                 return False
-        
+
         except:
-            pass
+            # if message == '=':
+                # print(21*'=')
+                # return 21 * '='
+            
+            # elif message == '-':
+                # print(5*'-')
+                # return 5 * '-'
+
+            # else:
+            return False
 
     
     def disconnect(self):
@@ -153,7 +163,7 @@ class SonicAmp(SerialConnection):
         elif protocol_string == 101:
             return None
         else:
-            return int(protocol_string)
+            return protocol_string 
 
 
     def get_protocols(self, protocols):

@@ -63,6 +63,7 @@ class Root(tk.Tk):
         
         print(self.sonicamp.device_list)
         print(self.sonicamp.info)
+        print('jooo')
 
         # root variables for gui
         self.port = tk.StringVar(value=f"{self.sonicamp.info['port']}")
