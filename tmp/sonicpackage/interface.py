@@ -26,7 +26,7 @@ class Root(tk.Tk):
         self.minsize(540, 900)
         self.maxsize(1080,900)
         self.wm_title('SonicControl')
-        style = Style(theme='sandstone')        
+        style = Style(theme="sandstone")        
         
         # Defining and setting font
         default_font = font.nametofont("TkDefaultFont")
@@ -136,6 +136,7 @@ class NotebookMenu(ttk.Notebook):
         self._serial = serial
         
         self.config(height=680, width=530)
+        self['style'] = 'light.TNotebook'
         
         self.home_tab = HomeTab(self, self.root, self.serial, self.sonicamp)
         self.script_tab = ScriptingTab(self, self.serial, self.sonicamp)

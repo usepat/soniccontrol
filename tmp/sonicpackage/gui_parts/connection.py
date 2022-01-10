@@ -31,10 +31,11 @@ class ConnectionTab(ttk.Frame):
         self._root = root
         self._serial = serial
         self._sonicamp = sonicamp
+        
         self.topframe =TopFrame(self)
         self.botframe = BotFrame(self)
             
-        parent.add(self, state=tk.NORMAL, text='Connection', image=self.parent.root.connection_img, compound=tk.TOP)
+        self.parent.add(self, state=tk.NORMAL, text='Connection', image=self.parent.root.connection_img, compound=tk.TOP)
         
         for child in self.children.values():
             child.pack()
@@ -123,7 +124,6 @@ class TopFrame(ttk.Frame):
     
     def connect(self):
         self.build4connected()
-        print("disconnected")
         if self.parent.root.port.get() == '-':
             self.parent.serial.connect_to_port(auto=True)
         else:
@@ -132,12 +132,28 @@ class TopFrame(ttk.Frame):
         
     def disconnect(self):
         self.build4notconnected()
-        print("connected")
         self.parent.root.status_thread.pause()
         self.parent.serial.disconnect()
 
 class BotFrame(ttk.Frame):
     
+    @property
+    def parent(self):
+        return self._parent
+    
     def __init__(self, parent, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
+        
+        self._parent = parent
+        
+        label_border = ttk.Labelframe(self, text='Firmware' ,style='primary.TLabelframe')
+        self.fw_label = ttk.Label(
+            label_border, 
+            text=self.parent.sonicamp.info['firmware'],
+            font=('Consolas', 12),
+            padding=10,
+            style='primary.TLabel')
+        self.fw_label.pack()
+        label_border.pack(side=tk.BOTTOM)
+        
         
