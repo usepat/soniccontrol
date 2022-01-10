@@ -62,18 +62,17 @@ class TopFrame(ttk.Frame):
         
         self.control_frame = ttk.Frame(self)
         self.connect_button = ttk.Button(self.control_frame, width = 10)
-        self.ports_menue = ttk.OptionMenu(
-            self.control_frame,
-            self.parent.root.port,
-            self.parent.sonicamp.device_list[0],
-            *self.parent.sonicamp.device_list,
-            command=self.tmp,
-            style = "primary.TOption")
+        self.ports_menue = ttk.Combobox(
+            master=self.control_frame,
+            textvariable=self.parent.root.port,
+            values=self.parent.sonicamp.device_list,
+            width=7,
+            style = "primary.TCombobox")
         self.refresh_button = ttkb.Button(
             self.control_frame, 
             bootstyle="secondary-outline",
             image=self.parent.root.refresh_img, 
-            command = self.parent.sonicamp.get_ports)
+            command = self.refresh)
         
         self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
         self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
@@ -92,8 +91,11 @@ class TopFrame(ttk.Frame):
 
         #TODO: Eine Tabelle für genaue information
 
-    def tmp(self, event):
-        print(self.parent.root.port.get())
+
+    def refresh(self):
+        self.parent.root.sonicamp.get_ports()
+        self.ports_menue['values'] = self.parent.sonicamp.device_list
+    
     
     def build4connected(self):        
         self.subtitle.configure(text="You are connected to:")

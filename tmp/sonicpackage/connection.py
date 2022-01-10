@@ -24,10 +24,10 @@ class SerialConnection():
 
     def get_ports(self):      
         port_list = [port.device for index, port in enumerate(serial.tools.list_ports.comports(), start=0) if port.device != 'COM1']
-        print(port_list)
         port_list.insert(0, '-')
-        print(port_list)
+        self.device_list = port_list
         return port_list
+
 
     def connect_to_port(self, auto=False, port=None):
         
@@ -62,10 +62,14 @@ class SerialConnection():
                 time.sleep(delay)
                 
                 if read_mode == SerialConnection.LINE:
-                    return self.ser.readline().rstrip().decode()
+                    answer = self.ser.readline().rstrip().decode()
+                    print(answer)
+                    return answer
                 
                 else:
-                    return self.ser.read(255).rstrip().decode()
+                    answer = self.ser.read(255).rstrip().decode()
+                    print(answer)
+                    return answer
             
             else:
                 return False

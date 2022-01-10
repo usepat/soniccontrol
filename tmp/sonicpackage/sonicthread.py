@@ -1,8 +1,14 @@
+import re
 import threading, time
 
 class SonicAgent(threading.Thread):
+    
+    @property
+    def _run(self):
+        return self.run
+    
     def __init__(self, sonicamp, *args, **kwargs):
-        threading.Thread.__init__(self, *args, **kwargs)
+        threading.Thread.__init__(self, target=self._run, *args, **kwargs)
         self.sonicamp = sonicamp
         
         #flag to pause thread
@@ -15,6 +21,7 @@ class SonicAgent(threading.Thread):
         while True:
             with self.pause_cond:
                 while self.paused:
+                    print('Ich bin hier')
                     self.pause_cond.wait()
                 
                 #thread should not try to do something if paused
@@ -22,7 +29,7 @@ class SonicAgent(threading.Thread):
                 if self.sonicamp.is_connected:
                     raw_data = self.sonicamp.send_message('-')
                     list_data = raw_data.split('-')
-                    status = [int(statuspart) for statuspart in raw_data]
+                    status = [int(statuspart) for statuspart in list_data]
                     if len(status) > 1:
                         self.sonicamp.queue.put(status)
                 

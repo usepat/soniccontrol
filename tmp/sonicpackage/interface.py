@@ -63,7 +63,6 @@ class Root(tk.Tk):
         
         print(self.sonicamp.device_list)
         print(self.sonicamp.info)
-        print('jooo')
 
         # root variables for gui
         self.port = tk.StringVar(value=f"{self.sonicamp.info['port']}")
@@ -76,23 +75,20 @@ class Root(tk.Tk):
         #     self.frq_mode = self.sonicamp.send_message()
 
         # Declaring Agent for automatic status data exchange
-        self.status_thread = SonicAgent(self.sonicamp, target=SonicAgent.run)
+        self.status_thread = SonicAgent(self.sonicamp)
         self.status_thread.daemon = True
         self.status_thread.start()
-        
-        if not self.sonicamp.is_connected:
-            self.status_thread.pause()
         
         self.checkout_amp()
         self.build_window()
     
-    
     def checkout_amp(self):
         self.process_incoming()
-        if not self.sonicamp.is_connected:
+        if not self.sonicamp.is_connected and self.status_thread.pause == False:
+            print("pausing thread")
             self.status_thread.pause()
-        else:
-            pass
+        elif not self.sonicamp.is_connected and self.status_thread.pause == True:
+            self.status_thread.pause_cond.wait()
         self.after(50, self.checkout_amp)
 
 
