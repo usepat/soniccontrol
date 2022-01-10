@@ -12,11 +12,17 @@ class ScriptingTab(ttk.Frame):
     @property
     def sonicamp(self):
         return self._sonicamp
+    
+    @property
+    def serial(self):
+        return self._serial    
+    
     #TODO: Eh klar, was hier das problem ist
-    def __init__(self, parent, sonicamp, *args, **kwargs):
+    def __init__(self, parent, serial, sonicamp, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         
         self._parent = parent
+        self._serial = serial
         self._sonicamp = sonicamp
         
         self.prev_task = tk.StringVar().set('Idle')
@@ -29,7 +35,7 @@ class ScriptingTab(ttk.Frame):
             text='Run',
             style='success.TButton',
             width=11,
-            image=parent.root.play_img,
+            image=self.parent.root.play_img,
             compound=tk.RIGHT,
             command=self.read_file
         )
@@ -103,7 +109,7 @@ class ScriptingTab(ttk.Frame):
             self.scripting_frame,
             text='Scripting Guide',
             style='',
-            command=lambda e: ScriptingGuide(parent.root, self.scripttext)
+            command=lambda e: ScriptingGuide(self.parent.root, self.scripttext)
         )
         self.script_guide_btn.grid(row=1, column=1, padx=5, pady=5)
         
@@ -112,14 +118,14 @@ class ScriptingTab(ttk.Frame):
         self.task_frame = ttk.Frame(self)
         self.static_prevtask_label = ttk.Label(
             self.task_frame,
-            font=parent.root.arial12,
+            font=self.parent.root.arial12,
             text='Previous Task:'
         )
         self.static_prevtask_label.grid(row=0, column=0)
         
         self.prev_task_label = ttk.Label(
             self.task_frame,
-            font=parent.root.arial12,
+            font=self.parent.root.arial12,
             textvariable=self.prev_task,
         )
         self.prev_task_label.grid(row=1, column=0)
@@ -127,14 +133,14 @@ class ScriptingTab(ttk.Frame):
         
         self.static_curtask_label = ttk.Label(
             self.task_frame,
-            font=parent.root.arial12,
+            font=self.parent.root.arial12,
             text='Current Task:'
         )
         self.static_curtask_label.grid(row=0, column=1)
         
         self.cur_task_label = ttk.Label(
             self.task_frame,
-            font=parent.root.arial12,
+            font=self.parent.root.arial12,
             textvariable=self.current_task
         )
         self.cur_task_label.grid(row=1, column=1)
@@ -150,7 +156,7 @@ class ScriptingTab(ttk.Frame):
         
         
         self.config(height=200, width=200)
-        parent.add(self, text='Scripting', image=parent.root.script_img, compound=tk.TOP)
+        self.parent.add(self, text='Scripting', image=self.parent.root.script_img, compound=tk.TOP)
         
     def show_console(self):
         pass

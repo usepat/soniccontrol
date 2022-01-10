@@ -16,11 +16,16 @@ class HomeTab(ttk.Frame):
     def sonicamp(self):
         return self._sonicamp    
     
-    def __init__(self, parent, root, sonicamp, *args, **kwargs):
+    @property
+    def serial(self):
+        return self._serial    
+    
+    def __init__(self, parent, root, serial, sonicamp, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         
         self._parent = parent
         self._root = root
+        self._serial = serial
         self._sonicamp = sonicamp
         
         if sonicamp.info['type'] == 'soniccatch':
@@ -39,7 +44,7 @@ class HomeTab(ttk.Frame):
        
         self.frq_mode_button = ttk.Button(
             self.control_header_frame,
-            text=root.frq_mode,
+            text=self.root.frq_mode,
             style='',
             command=self.set_frq_mode
         )
@@ -48,7 +53,7 @@ class HomeTab(ttk.Frame):
             self.control_header_frame,
             text='Sonic measure',
             style='',
-            command=lambda e: SonicMeasure(parent.root)
+            command=lambda e: SonicMeasure(self.parent.root)
         )
         
         self.wipe_runs_spinbox = ttk.Spinbox(
@@ -57,7 +62,7 @@ class HomeTab(ttk.Frame):
             increment = 5,
             justify = tk.LEFT,
             to = 100,
-            textvariable = parent.root.wiperuns,
+            textvariable = self.parent.root.wiperuns,
             validate = None,
             width = 5,
             style = 'primary.TButton'   
@@ -90,7 +95,7 @@ class HomeTab(ttk.Frame):
             from_=50000,
             increment=100,
             to=1200000,
-            textvariable=parent.root.frequency,
+            textvariable=self.root.frequency,
             width=10,
             style='primary.TSpinbox',
             command=self.set_frequency
@@ -130,7 +135,7 @@ class HomeTab(ttk.Frame):
         )
         
         self.config(height=200, width=200)
-        parent.add(self, text='Home', image=parent.root.home_img, compound=tk.TOP)
+        self.parent.add(self, text='Home', image=self.parent.root.home_img, compound=tk.TOP)
     
     def build4catch(self):
         pass

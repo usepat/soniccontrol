@@ -7,9 +7,14 @@ class SonicAgent(threading.Thread):
     def _run(self):
         return self.run
     
-    def __init__(self, sonicamp, *args, **kwargs):
+    @property
+    def serial(self):
+        return self._serial
+    
+    def __init__(self, serial, *args, **kwargs):
         threading.Thread.__init__(self, target=self._run, *args, **kwargs)
-        self.sonicamp = sonicamp
+        
+        self._serial = serial
         
         #flag to pause thread
         self.paused = False
@@ -26,12 +31,12 @@ class SonicAgent(threading.Thread):
                 
                 #thread should not try to do something if paused
                 #not paused
-                if self.sonicamp.is_connected:
-                    raw_data = self.sonicamp.send_message('-')
+                if self.serial.is_connected:
+                    raw_data = self.serial.send_message('-')
                     list_data = raw_data.split('-')
                     status = [int(statuspart) for statuspart in list_data]
                     if len(status) > 1:
-                        self.sonicamp.queue.put(status)
+                        self.serial.queue.put(status)
                 
                 else:
                     self.pause_cond.wait()

@@ -12,7 +12,7 @@ from sonicpackage.gui_parts.scripting import ScriptingTab
 from sonicpackage.gui_parts.connection import ConnectionTab
 from sonicpackage.gui_parts.info import InfoTab
 from sonicpackage.utils.img import resize_img
-from sonicpackage.connection import SonicAmp
+from sonicpackage.connection import SonicAmp, SerialConnection
 from sonicpackage.sonicthread import SonicAgent
 
 
@@ -53,15 +53,16 @@ class Root(tk.Tk):
         self.pause_img = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//pause_icon.png', (30, 30)))
 
-        # Declaring the sonicamp object for communication and data
+        # Declaring the sonicamp and serial object for communication and data storage
         # To be found in connection
-        self.sonicamp = SonicAmp()
+        self.serial = SerialConnection()
+        self.sonicamp = SonicAmp(self.serial)
         # try to auto connect
-        self.sonicamp.connect_to_port(auto=True)
+        self.serial.connect_to_port(auto=True)
         # Getting data into a dictionary 
         self.sonicamp.get_info()
         
-        print(self.sonicamp.device_list)
+        print(self.serial.device_list)
         print(self.sonicamp.info)
 
         # root variables for gui
@@ -71,11 +72,9 @@ class Root(tk.Tk):
         
         #TODO: KHZ und MHZ synchronisation
         self.frq_mode = 'KHZ'
-        # if self.sonicamp.modules['RELAIS'] is True:
-        #     self.frq_mode = self.sonicamp.send_message()
 
         # Declaring Agent for automatic status data exchange
-        self.status_thread = SonicAgent(self.sonicamp)
+        self.status_thread = SonicAgent(self.serial)
         self.status_thread.daemon = True
         self.status_thread.start()
         
@@ -84,24 +83,24 @@ class Root(tk.Tk):
     
     def checkout_amp(self):
         self.process_incoming()
-        if not self.sonicamp.is_connected and self.status_thread.pause == False:
+        if not self.serial.is_connected and self.status_thread.pause == False:
             print("pausing thread")
             self.status_thread.pause()
-        elif not self.sonicamp.is_connected and self.status_thread.pause == True:
+        elif not self.serial.is_connected and self.status_thread.pause == True:
             self.status_thread.pause_cond.wait()
         self.after(50, self.checkout_amp)
 
 
     def process_incoming(self):
-        while self.sonicamp.queue.qsize():
+        while self.serial.queue.qsize():
             try:
-                status = self.sonicamp.queue.get(0)
+                status = self.serial.queue.get(0)
                 print(self.sonicamp.get_status(status))
                 
                 if self.sonicamp.info['status']['error'] == 0:
                     self.window_updater(self.sonicamp.info['status'])
                 else:
-                    self.sonicamp.is_connected = False
+                    self.serial.is_connected = False
 
             except:
                 pass
@@ -112,14 +111,7 @@ class Root(tk.Tk):
     
 
     def build_window(self):
-        self.notebook = NotebookMenu(self, self.sonicamp)
-
-
-
-class GuiBuilder(Root):
-
-    def __init__(self):
-        super().__init__()
+        self.notebook = NotebookMenu(self, self.serial, self.sonicamp)
 
 
 
@@ -133,19 +125,24 @@ class NotebookMenu(ttk.Notebook):
     def sonicamp(self):
         return self._sonicamp
     
-    def __init__(self, root, sonicamp, *args, **kwargs):
+    @property
+    def serial(self):
+        return self._serial
+    
+    def __init__(self, root, serial, sonicamp, *args, **kwargs):
         ttk.Notebook.__init__(self, root, *args, **kwargs)
         self._root = root
         self._sonicamp = sonicamp
+        self._serial = serial
         
         self.config(height=680, width=530)
         
-        self.home_tab = HomeTab(self, self.root, self.sonicamp)
-        self.script_tab = ScriptingTab(self, self.sonicamp)
-        self.connection_tab = ConnectionTab(self, self.root, self.sonicamp)
+        self.home_tab = HomeTab(self, self.root, self.serial, self.sonicamp)
+        self.script_tab = ScriptingTab(self, self.serial, self.sonicamp)
+        self.connection_tab = ConnectionTab(self, self.root, self.serial, self.sonicamp)
         self.info_tab = InfoTab(self)
         
-        if not sonicamp.is_connected:
+        if not serial.is_connected:
             for child in self.children.values():
                 if child != self.connection_tab:
                     self.tab(child, state=tk.DISABLED)
@@ -161,7 +158,7 @@ class NotebookMenu(ttk.Notebook):
 
 
 if __name__ == "__main__":
-    gui = GuiBuilder()
+    gui = Root()
     gui.mainloop()
     gui.sonicamp.is_connected = False
 

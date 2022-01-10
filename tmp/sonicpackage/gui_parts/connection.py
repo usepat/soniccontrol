@@ -20,16 +20,21 @@ class ConnectionTab(ttk.Frame):
     def sonicamp(self):
         return self._sonicamp
     
-    def __init__(self, parent, root, sonicamp, *args, **kwargs):
+    @property
+    def serial(self):
+        return self._serial
+    
+    def __init__(self, parent, root, serial, sonicamp, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         
-        self._sonicamp = sonicamp
         self._parent = parent
         self._root = root
+        self._serial = serial
+        self._sonicamp = sonicamp
         self.topframe =TopFrame(self)
         self.botframe = BotFrame(self)
             
-        parent.add(self, state=tk.NORMAL, text='Connection', image=parent.root.connection_img, compound=tk.TOP)
+        parent.add(self, state=tk.NORMAL, text='Connection', image=self.parent.root.connection_img, compound=tk.TOP)
         
         for child in self.children.values():
             child.pack()
@@ -65,7 +70,7 @@ class TopFrame(ttk.Frame):
         self.ports_menue = ttk.Combobox(
             master=self.control_frame,
             textvariable=self.parent.root.port,
-            values=self.parent.sonicamp.device_list,
+            values=self.parent.serial.device_list,
             width=7,
             style = "primary.TCombobox")
         self.refresh_button = ttkb.Button(
@@ -84,7 +89,7 @@ class TopFrame(ttk.Frame):
         self.refresh_button.grid(row=0, column=3 ,columnspan=1,  pady=10, padx=5, sticky=tk.NSEW)
         self.control_frame.pack(padx=10, pady=10)
         
-        if self.parent.sonicamp.is_connected:
+        if self.parent.serial.is_connected:
             self.build4connected()
         else:
             self.build4notconnected()
@@ -93,8 +98,7 @@ class TopFrame(ttk.Frame):
 
 
     def refresh(self):
-        self.parent.root.sonicamp.get_ports()
-        self.ports_menue['values'] = self.parent.sonicamp.device_list
+        self.ports_menue['values'] = self.parent.root.serial.get_ports()
     
     
     def build4connected(self):        
@@ -121,16 +125,16 @@ class TopFrame(ttk.Frame):
         self.build4connected()
         print("disconnected")
         if self.parent.root.port.get() == '-':
-            self.parent.sonicamp.connect_to_port(auto=True)
+            self.parent.serial.connect_to_port(auto=True)
         else:
-            self.parent.sonicamp.connect_to_port(port=self.parent.root.port.get())
+            self.parent.serial.connect_to_port(port=self.parent.root.port.get())
         self.parent.root.status_thread.resume()
         
     def disconnect(self):
         self.build4notconnected()
         print("connected")
         self.parent.root.status_thread.pause()
-        self.parent.sonicamp.disconnect()
+        self.parent.serial.disconnect()
 
 class BotFrame(ttk.Frame):
     

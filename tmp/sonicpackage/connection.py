@@ -75,15 +75,6 @@ class SerialConnection():
                 return False
 
         except:
-            # if message == '=':
-                # print(21*'=')
-                # return 21 * '='
-            
-            # elif message == '-':
-                # print(5*'-')
-                # return 5 * '-'
-
-            # else:
             return False
 
     
@@ -93,27 +84,27 @@ class SerialConnection():
 
 
         
-class SonicAmp(SerialConnection):
+class SonicAmp():
 
-    def __init__(self):
-        super().__init__()
- 
+    def __init__(self, serial):
+        
+        self.serial = serial
         self.info = {}
         self.modules = {}
 
 
     def get_info(self):
-        if self.is_connected:
+        if self.serial.is_connected:
             self.info = {
-                'port':     self.port,
-                'type':     self.send_message('?type', flush=True, delay=0),
-                'firmware': self.send_message('?info', read_mode='block', flush=True, delay=0.5),
-                'modules' : self.get_modules([bool(int(module)) for module in self.send_message('=', delay=0.35).split('=')]),
+                'port':     self.serial.port,
+                'type':     self.serial.send_message('?type', flush=True, delay=0),
+                'firmware': self.serial.send_message('?info', read_mode='block', flush=True, delay=0.5),
+                'modules' : self.get_modules([bool(int(module)) for module in self.serial.send_message('=', delay=0.35).split('=')]),
                 'status':   {}
             }
         else:
             self.info = {
-                'port':     self.port,
+                'port':     self.serial.port,
                 'type':     'not connected',
                 'firmware': False,
                 'modules':  False,

@@ -27,7 +27,7 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo_frame = ttk.Frame(self)
         self.soniccontrol_logo1 = ttk.Label(
             self.soniccontrol_logo_frame,
-            text = parent.sonicamp.info['type'][:5],
+            text = self.parent.sonicamp.info['type'][:5],
             padding=(10,0,0,10),
             font = "QTypeOT-CondLight 30")
         self.soniccontrol_logo1.grid(row=0, column=0)
@@ -124,7 +124,7 @@ class SerialMonitor(ttk.Frame):
             padx=10, 
             pady=10
         )
-        self.inittext = f"{self.root.sonicamp.send_message('?', 'block')}"                                                                                # For the initialazation text from the microcontroller
+        self.inittext = f"{self.root.serial.send_message('?', 'block')}"                                                                                # For the initialazation text from the microcontroller
         self.text_array.append(self.inittext)
         
         self.output_text['text'] = '\n'.join(self.text_array)
@@ -171,7 +171,7 @@ class SerialMonitor(ttk.Frame):
            self.output_text.insert(tk.END, f'>>> {self.command}')
            self.help()
         else: # External Commands (Sent to the microcontroller)
-           reply = self.root.sonicamp.send_message(self.command, 'block')
+           reply = self.root.serial.send_message(self.command, 'block')
            self.text_array.append(reply)
            self.output_text['text'] = '\n'.join(self.text_array)
     
