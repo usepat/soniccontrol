@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
+from ttkbootstrap.constants import INDETERMINATE
 
 
 class ScriptingTab(ttk.Frame):
@@ -39,7 +40,7 @@ class ScriptingTab(ttk.Frame):
             compound=tk.RIGHT,
             command=self.read_file
         )
-        self.start_script_btn.grid(row=0, column=0, padx=5, pady=5)
+        self.start_script_btn.pack(side=tk.TOP, padx=5, pady=5)#grid(row=0, column=0, padx=5, pady=5)
         
         self.load_script_btn = ttk.Button(
             self.button_frame,
@@ -48,7 +49,7 @@ class ScriptingTab(ttk.Frame):
             width=15,
             command=self.load_file,
         )
-        self.load_script_btn.grid(row=1, column=0, padx=5, pady=5)
+        self.load_script_btn.pack(side=tk.TOP, padx=5, pady=5)#grid(row=1, column=0, padx=5, pady=5)
         
         self.save_script_btn = ttk.Button(
             self.button_frame,
@@ -57,7 +58,7 @@ class ScriptingTab(ttk.Frame):
             width=15,
             command=self.save_file
         )
-        self.save_script_btn.grid(row=2, column=0, padx=5, pady=5)
+        self.save_script_btn.pack(side=tk.TOP, padx=5, pady=5)#grid(row=2, column=0, padx=5, pady=5)
         
         self.save_log_btn = ttk.Button(
             self.button_frame,
@@ -66,9 +67,20 @@ class ScriptingTab(ttk.Frame):
             width=15,
             command=self.open_logfile
         )
-        self.save_log_btn.grid(row=3, column=0, padx=5, pady=5)
+        self.save_log_btn.pack(side=tk.TOP, padx=5, pady=5)#grid(row=3, column=0, padx=5, pady=5)
         
-        self.button_frame.pack(side=tk.LEFT, padx=5, pady=5)
+        self.sequence_status = ttkb.Floodgauge(
+            self.button_frame,
+            font=self.parent.root.qtype12,
+            length=160,
+            mode=ttkb.INDETERMINATE,
+            orient=ttkb.HORIZONTAL,
+            bootstyle=ttkb.PRIMARY,
+            text=self.current_task
+        )
+        self.sequence_status.pack(side=tk.LEFT, padx=5, pady=30)
+        
+        self.button_frame.pack(anchor=tk.N, side=tk.LEFT, padx=5, pady=5)
         
         self.scripting_frame = ttk.Labelframe(
             self,
@@ -113,7 +125,9 @@ class ScriptingTab(ttk.Frame):
         )
         self.script_guide_btn.grid(row=1, column=1, padx=5, pady=5)
         
-        self.scripting_frame.pack(side=tk.RIGHT ,padx=5, pady=5, expand=True, fill=tk.X)
+        self.scripting_frame.pack(anchor=tk.N ,side=tk.RIGHT ,padx=5, pady=5, expand=True, fill=tk.X)
+        
+        
         
         self.task_frame = ttk.Frame(self)
         self.static_prevtask_label = ttk.Label(

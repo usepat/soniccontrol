@@ -4,8 +4,10 @@ import ttkbootstrap as ttkb
 from ttkbootstrap import Style
 from ttkbootstrap.constants import *
 from tkinter import font
-from PIL import ImageTk, Image
-import threading
+from PIL import ImageTk
+import time
+
+from ttkbootstrap.style import Bootstyle
 
 from sonicpackage.gui_parts.home import HomeTab
 from sonicpackage.gui_parts.scripting import ScriptingTab
@@ -52,6 +54,8 @@ class Root(tk.Tk):
             resize_img('sonicpackage//pictures//play_icon.png', (30, 30)))
         self.pause_img = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//pause_icon.png', (30, 30)))
+        self.wave_bg = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//wave_bg.png', (540,440)))
 
         # Declaring the sonicamp and serial object for communication and data storage
         # To be found in connection
@@ -78,6 +82,11 @@ class Root(tk.Tk):
         self.status_thread.daemon = True
         self.status_thread.start()
         
+        while self.sonicamp.info == None:
+            time.sleep(1)
+            if self.sonicamp.info:
+                break
+        
         self.checkout_amp()
         self.build_window()
     
@@ -95,8 +104,9 @@ class Root(tk.Tk):
         while self.serial.queue.qsize():
             try:
                 status = self.serial.queue.get(0)
-                print(self.sonicamp.get_status(status))
-                
+                self.sonicamp.get_status(status)
+                # print(self.sonicamp.info['status']['frequency'])
+                print(self.sonicamp.info.get('status').get('frequency'))
                 if self.sonicamp.info['status']['error'] == 0:
                     self.window_updater(self.sonicamp.info['status'])
                 else:
@@ -112,6 +122,7 @@ class Root(tk.Tk):
 
     def build_window(self):
         self.notebook = NotebookMenu(self, self.serial, self.sonicamp)
+        self.status_frame = StatusFrame(self, self.serial, self.sonicamp)
 
 
 
@@ -135,7 +146,7 @@ class NotebookMenu(ttk.Notebook):
         self._sonicamp = sonicamp
         self._serial = serial
         
-        self.config(height=680, width=530)
+        self.config(height=560, width=540)
         self['style'] = 'light.TNotebook'
         
         self.home_tab = HomeTab(self, self.root, self.serial, self.sonicamp)
@@ -147,16 +158,88 @@ class NotebookMenu(ttk.Notebook):
             for child in self.children.values():
                 if child != self.connection_tab:
                     self.tab(child, state=tk.DISABLED)
-                
+        
         self.select(self.connection_tab)
         
         self.publish()
 
 
     def publish(self):
-        self.grid(row=0, column=0, padx=2.5, pady=2.5)
+        self.pack()#grid(row=0, column=0, padx=2.5, pady=2.5)
 
 
+class StatusFrame(ttk.Frame):
+    
+    @property
+    def root(self):
+        return self._root
+    
+    @property
+    def sonicamp(self):
+        return self._sonicamp
+    
+    @property
+    def serial(self):
+        return self._serial
+    
+    def __init__(self, root, serial, sonicamp, *args, **kwargs):
+        ttk.Frame.__init__(self, root, *args, **kwargs)
+        
+        self._root = root
+        self._serial = serial
+        self._sonicamp = sonicamp
+        
+        self.canvas = tk.Canvas(self, width=540, height=440)
+        self.canvas.pack()
+        
+        self.bg = self.canvas.create_image(0, 0, image=self.root.wave_bg)
+        
+        self.frq_meter = self.add(ttkb.Meter(
+            self,
+            bootstyle='primary',
+            amounttotal=1200000,
+            amountused=self.sonicamp.info.get('status').get('frequency'),
+            textright='Hz',
+            subtext='Current Frequency',
+            metersize=150,
+        ), 10, 10)
+        self.frq_meter.pack(side=tk.LEFT)
+        
+        self.gain_meter = self.add(ttkb.Meter(
+            self,
+            bootstyle='success',
+            amounttotal=150,
+            amountused=self.sonicamp.info.get('status').get('gain'),
+            textright='%',
+            subtext='Current Gain',
+            metersize=150
+        ), 50, 10)
+        #self.gain_meter.pack(side=tk.LEFT)
+        
+        self.temp_meter = self.add(ttkb.Meter(
+            self,
+            bootstyle='warning',
+            amounttotal=150,
+            amountused=self.sonicamp.info.get('status').get('gain'),
+            textright='°C',
+            subtext='Inner Temperature',
+            metersize=150
+        ), 100, 10)
+        #self.temp_meter.pack(side=tk.LEFT)
+        
+        self.sep = self.add(ttkb.Separator(
+            master=self,
+            orient=ttkb.VERTICAL,
+            style='primary',
+        ), 150, 10)
+        self.sep.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+        
+        self.pack(padx=10, pady=10, fill=tk.BOTH)
+
+    
+    def add(self, widget, x, y):
+        canvas_window = self.canvas.create_window(x, y, anchor=tk.NW, window=widget)
+        return widget
 
 if __name__ == "__main__":
     gui = Root()

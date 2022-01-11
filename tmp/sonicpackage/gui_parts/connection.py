@@ -73,7 +73,8 @@ class TopFrame(ttk.Frame):
             textvariable=self.parent.root.port,
             values=self.parent.serial.device_list,
             width=7,
-            style = "primary.TCombobox")
+            style = "primary.TCombobox",
+            state=tk.READABLE)
         self.refresh_button = ttkb.Button(
             self.control_frame, 
             bootstyle="secondary-outline",
@@ -83,12 +84,12 @@ class TopFrame(ttk.Frame):
         self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
         self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
         self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
-        self.heading_frame.pack(pady=10, padx=10)
+        self.heading_frame.pack(padx=10, pady=20, expand=True)
 
         self.ports_menue.grid(row=0, column=0, columnspan=2, pady=10, padx=5, sticky=tk.NSEW)        
         self.connect_button.grid(row=0, column=2,columnspan=1, pady=10, padx=5, sticky=tk.NSEW)
         self.refresh_button.grid(row=0, column=3 ,columnspan=1,  pady=10, padx=5, sticky=tk.NSEW)
-        self.control_frame.pack(padx=10, pady=10)
+        self.control_frame.pack(padx=10, pady=20, expand=True)
         
         if self.parent.serial.is_connected:
             self.build4connected()
@@ -154,6 +155,6 @@ class BotFrame(ttk.Frame):
             padding=10,
             style='primary.TLabel')
         self.fw_label.pack()
-        label_border.pack(side=tk.BOTTOM)
+        label_border.pack(side=tk.BOTTOM, padx=10, pady=20, expand=True)
         
         
