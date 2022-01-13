@@ -42,7 +42,7 @@ class SerialConnection():
             print("error")
             self.is_connected = False
         
-        time.sleep(5)
+        time.sleep(6)
         self.initialize()
     
 
@@ -70,7 +70,7 @@ class SerialConnection():
                     answer = self.ser.read(255).rstrip().decode()
                     print(answer)
                     return answer
-            
+                
             else:
                 return False
 
@@ -108,7 +108,13 @@ class SonicAmp():
                 'type':     'not connected',
                 'firmware': False,
                 'modules':  False,
-                'status':   False
+                'status':   {
+                    'error':            False,
+                    'frequency':        False,
+                    'gain':             False,
+                    'current_protocol': False,
+                    'wipe_mode':        False
+                }
             }
 
     

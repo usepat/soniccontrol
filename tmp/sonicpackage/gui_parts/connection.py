@@ -32,7 +32,7 @@ class ConnectionTab(ttk.Frame):
         self._serial = serial
         self._sonicamp = sonicamp
         
-        self.topframe =TopFrame(self)
+        self.topframe = TopFrame(self)
         self.botframe = BotFrame(self)
             
         self.parent.add(self, state=tk.NORMAL, text='Connection', image=self.parent.root.connection_img, compound=tk.TOP)
@@ -67,7 +67,7 @@ class TopFrame(ttk.Frame):
             font= "QTypeOT-CondBook 30 bold")
         
         self.control_frame = ttk.Frame(self)
-        self.connect_button = ttk.Button(self.control_frame, width = 10)
+        self.connect_button = ttkb.Button(self.control_frame, width = 10)
         self.ports_menue = ttk.Combobox(
             master=self.control_frame,
             textvariable=self.parent.root.port,
@@ -124,17 +124,23 @@ class TopFrame(ttk.Frame):
         
     
     def connect(self):
-        self.build4connected()
         if self.parent.root.port.get() == '-':
             self.parent.serial.connect_to_port(auto=True)
+        
         else:
             self.parent.serial.connect_to_port(port=self.parent.root.port.get())
+        
+        self.parent.root.sonicamp.get_info()
         self.parent.root.status_thread.resume()
+        self.build4connected()
+        
         
     def disconnect(self):
-        self.build4notconnected()
         self.parent.root.status_thread.pause()
         self.parent.serial.disconnect()
+        self.build4notconnected()
+
+
 
 class BotFrame(ttk.Frame):
     

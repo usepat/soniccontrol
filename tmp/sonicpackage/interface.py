@@ -82,6 +82,9 @@ class Root(tk.Tk):
         self.status_thread.daemon = True
         self.status_thread.start()
         
+        if not self.serial.is_connected and self.status_thread.paused == False:
+            self.status_thread.pause()
+        
         while self.sonicamp.info == None:
             time.sleep(1)
             if self.sonicamp.info:
@@ -90,13 +93,14 @@ class Root(tk.Tk):
         self.checkout_amp()
         self.build_window()
     
+    
     def checkout_amp(self):
+        
         self.process_incoming()
-        if not self.serial.is_connected and self.status_thread.pause == False:
-            print("pausing thread")
-            self.status_thread.pause()
-        elif not self.serial.is_connected and self.status_thread.pause == True:
+        
+        if not self.serial.is_connected and self.status_thread.pause == True:
             self.status_thread.pause_cond.wait()
+        
         self.after(50, self.checkout_amp)
 
 
@@ -105,8 +109,7 @@ class Root(tk.Tk):
             try:
                 status = self.serial.queue.get(0)
                 self.sonicamp.get_status(status)
-                # print(self.sonicamp.info['status']['frequency'])
-                print(self.sonicamp.info.get('status').get('frequency'))
+                print(self.sonicamp.info)                
                 if self.sonicamp.info['status']['error'] == 0:
                     self.window_updater(self.sonicamp.info['status'])
                 else:
@@ -122,7 +125,7 @@ class Root(tk.Tk):
 
     def build_window(self):
         self.notebook = NotebookMenu(self, self.serial, self.sonicamp)
-        self.status_frame = StatusFrame(self, self.serial, self.sonicamp)
+        self.status_frame = StatusFrame(self, self.serial, self.sonicamp, style='primary.TFrame')
 
 
 
@@ -168,7 +171,15 @@ class NotebookMenu(ttk.Notebook):
         self.pack()#grid(row=0, column=0, padx=2.5, pady=2.5)
 
 
-class StatusFrame(ttk.Frame):
+class MyMeter(ttkb.Meter):
+    
+    def __init__(self, *args, **kwargs):
+        ttkb.Meter.__init__(self, *args, **kwargs)
+        self.meterframe['style'] = 'secondary.TFrame'
+        self._meterbackground = '#eb4034'
+
+
+class StatusFrame(ttkb.Frame):
     
     @property
     def root(self):
@@ -189,57 +200,96 @@ class StatusFrame(ttk.Frame):
         self._serial = serial
         self._sonicamp = sonicamp
         
-        self.canvas = tk.Canvas(self, width=540, height=440)
-        self.canvas.pack()
+        self.meter_frame = ttk.Frame(self, style='info.TFrame')
+        self.stati_frame = ttk.Frame(self, style='info.TFrame')
         
-        self.bg = self.canvas.create_image(0, 0, image=self.root.wave_bg)
-        
-        self.frq_meter = self.add(ttkb.Meter(
-            self,
+        self.frq_meter = MyMeter(
+            self.meter_frame,
             bootstyle='primary',
             amounttotal=1200000,
             amountused=self.sonicamp.info.get('status').get('frequency'),
             textright='Hz',
             subtext='Current Frequency',
             metersize=150,
-        ), 10, 10)
-        self.frq_meter.pack(side=tk.LEFT)
+        )
         
-        self.gain_meter = self.add(ttkb.Meter(
-            self,
+        self.gain_meter = ttkb.Meter(
+            self.meter_frame,
             bootstyle='success',
             amounttotal=150,
             amountused=self.sonicamp.info.get('status').get('gain'),
             textright='%',
             subtext='Current Gain',
             metersize=150
-        ), 50, 10)
-        #self.gain_meter.pack(side=tk.LEFT)
+        )
         
-        self.temp_meter = self.add(ttkb.Meter(
-            self,
+        self.temp_meter = ttkb.Meter(
+            self.meter_frame,
             bootstyle='warning',
-            amounttotal=150,
+            amounttotal=100,
             amountused=self.sonicamp.info.get('status').get('gain'),
             textright='°C',
-            subtext='Inner Temperature',
+            subtext='Liquid Temperature',
             metersize=150
-        ), 100, 10)
-        #self.temp_meter.pack(side=tk.LEFT)
+        )
         
-        self.sep = self.add(ttkb.Separator(
+        self.con_status_label = ttk.Label(
+            self.stati_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,5,5,5),
+            justify=tk.CENTER,
+            compound=tk.CENTER,
+            width=10,
+            style="inverse.success.TLabel",
+            text="CONNECTED",
+        )
+        
+        self.sig_status_label = ttk.Label(
+            self.stati_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,5,5,5),
+            justify=tk.CENTER,
+            compound=tk.CENTER,
+            width=10,
+            style="inverse.danger.TLabel",
+            text="SIGNAL OFF",
+        )
+        
+        self.err_status_label = ttk.Label(
+            self.stati_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,5,5,5),
+            justify=tk.CENTER,
+            compound=tk.CENTER,
+            width=10,
+            style="inverse.success.TLabel",
+            text="NO ERROR",
+        )
+        
+        self.sep = ttkb.Separator(
             master=self,
             orient=ttkb.VERTICAL,
             style='primary',
-        ), 150, 10)
-        self.sep.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+        )
         
+        self.build4catch()
         self.pack(padx=10, pady=10, fill=tk.BOTH)
 
+    def build4catch(self):
+        self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_meter.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.temp_meter.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        
+        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.err_status_label.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        
+        self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10)
+        self.stati_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
     
-    def add(self, widget, x, y):
-        canvas_window = self.canvas.create_window(x, y, anchor=tk.NW, window=widget)
-        return widget
+    def build4wipe(self):
+        pass
+
 
 if __name__ == "__main__":
     gui = Root()
