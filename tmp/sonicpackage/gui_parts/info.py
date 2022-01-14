@@ -100,7 +100,7 @@ class SerialMonitor(ttk.Frame):
         self.configure(
             height=10,
             width=10,
-            # style='primary.TFrame'
+            # style='dark.TFrame'
         )
         
         self.text_array = [
@@ -115,7 +115,7 @@ class SerialMonitor(ttk.Frame):
             self.output_frame,
             font=("Consolas",12), 
             state='normal',
-            style="primary.TLabel"
+            style="dark.TLabel"
         )
         self.output_text.pack(
             anchor='center',
@@ -141,7 +141,7 @@ class SerialMonitor(ttk.Frame):
             self, 
             text='INPUT', 
             # font=("QTypeOT-CondMedium", 12),
-            style="primary.TLabelframe")
+            style="dark.TLabelframe")
         
         self.command_field = ttk.Entry(self.input_field, font=("Consolas", 12))
         self.command_field.pack(anchor='s', padx=10, pady=10, fill='x', expand=True, side='left')

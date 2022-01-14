@@ -98,16 +98,22 @@ class SonicAmp():
             self.info = {
                 'port':     self.serial.port,
                 'type':     self.serial.send_message('?type', flush=True, delay=0),
+                'connection':   'Connected',
+                'signal':       'Off',
+                'error':        'No Error',
                 'firmware': self.serial.send_message('?info', read_mode='block', flush=True, delay=0.5),
                 'modules' : self.get_modules([bool(int(module)) for module in self.serial.send_message('=', delay=0.35).split('=')]),
                 'status':   {}
             }
         else:
             self.info = {
-                'port':     self.serial.port,
-                'type':     'not connected',
-                'firmware': False,
-                'modules':  False,
+                'port':         self.serial.port,
+                'type':         False,
+                'connection':   'No Connection',
+                'signal':       '',
+                'error':        '',
+                'firmware':     False,
+                'modules':      False,
                 'status':   {
                     'error':            False,
                     'frequency':        False,
@@ -116,6 +122,19 @@ class SonicAmp():
                     'wipe_mode':        False
                 }
             }
+        
+        if self.info['type'] == 'soniccatch':
+            self.info['frq rng start'] = 600000
+            self.info['frq rng stop'] = 6000000
+            
+        elif self.info['type'] == 'sonicwipe':
+            self.info['frq rng start'] = 50000
+            self.info['frq rng stop'] = 1200000
+        
+        else:
+            pass
+        
+        
 
     
     def get_modules(self, module_list):

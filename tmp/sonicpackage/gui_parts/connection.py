@@ -57,10 +57,12 @@ class TopFrame(ttk.Frame):
         #Heading Frame
         self.heading_frame = ttk.Frame(self)
         self.subtitle = ttk.Label(self.heading_frame, padding=(0,10,0,0))
+        
         self.heading1 = ttk.Label(
             self.heading_frame, 
             padding=(10,0,0,10),
             font = "QTypeOT-CondLight 30")
+        
         self.heading2 = ttk.Label(
             self.heading_frame,
             padding=(0,0,10,10),
@@ -73,7 +75,7 @@ class TopFrame(ttk.Frame):
             textvariable=self.parent.root.port,
             values=self.parent.serial.device_list,
             width=7,
-            style = "primary.TCombobox",
+            style = "dark.TCombobox",
             state=tk.READABLE)
         self.refresh_button = ttkb.Button(
             self.control_frame, 
@@ -153,13 +155,13 @@ class BotFrame(ttk.Frame):
         
         self._parent = parent
         
-        label_border = ttk.Labelframe(self, text='Firmware' ,style='primary.TLabelframe')
+        label_border = ttk.Labelframe(self, text='Firmware' ,style='dark.TLabelframe')
         self.fw_label = ttk.Label(
             label_border, 
             text=self.parent.sonicamp.info['firmware'],
             font=('Consolas', 12),
             padding=10,
-            style='primary.TLabel')
+            style='dark.TLabel')
         self.fw_label.pack()
         label_border.pack(side=tk.BOTTOM, padx=10, pady=20, expand=True)
         

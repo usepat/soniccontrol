@@ -56,6 +56,8 @@ class Root(tk.Tk):
             resize_img('sonicpackage//pictures//pause_icon.png', (30, 30)))
         self.wave_bg = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//wave_bg.png', (540,440)))
+        self.graph_img = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//graph.png', (100,100)))
 
         # Declaring the sonicamp and serial object for communication and data storage
         # To be found in connection
@@ -101,7 +103,7 @@ class Root(tk.Tk):
         if not self.serial.is_connected and self.status_thread.pause == True:
             self.status_thread.pause_cond.wait()
         
-        self.after(50, self.checkout_amp)
+        self.after(100, self.checkout_amp)
 
 
     def process_incoming(self):
@@ -110,22 +112,31 @@ class Root(tk.Tk):
                 status = self.serial.queue.get(0)
                 self.sonicamp.get_status(status)
                 print(self.sonicamp.info)                
+                
                 if self.sonicamp.info['status']['error'] == 0:
-                    self.window_updater(self.sonicamp.info['status'])
+                    self.sonicamp.info['error'] = 'No Error'
+                
+                elif self.sonicamp.info['status']['frequency'] > 0:
+                    self.sonicamp.info['signal'] = 'On'
+                
                 else:
                     self.serial.is_connected = False
+
+                self.children.update()
+                self.window_updater()
 
             except:
                 pass
     
     
     def window_updater(self, update_dict):
-        pass
+        self.status_frame.update()
+        self.status_frame.update_idletasks()
     
 
     def build_window(self):
         self.notebook = NotebookMenu(self, self.serial, self.sonicamp)
-        self.status_frame = StatusFrame(self, self.serial, self.sonicamp, style='primary.TFrame')
+        self.status_frame = StatusFrame(self, self.serial, self.sonicamp, style='dark.TFrame')
 
 
 
@@ -200,13 +211,13 @@ class StatusFrame(ttkb.Frame):
         self._serial = serial
         self._sonicamp = sonicamp
         
-        self.meter_frame = ttk.Frame(self, style='info.TFrame')
-        self.stati_frame = ttk.Frame(self, style='info.TFrame')
+        self.meter_frame = ttk.Frame(self)
+        self.stati_frame = ttk.Frame(self, style='secondary.TFrame')
         
         self.frq_meter = MyMeter(
             self.meter_frame,
-            bootstyle='primary',
-            amounttotal=1200000,
+            bootstyle='dark',
+            amounttotal=self.sonicamp.info['frq rng stop'],
             amountused=self.sonicamp.info.get('status').get('frequency'),
             textright='Hz',
             subtext='Current Frequency',
@@ -238,10 +249,12 @@ class StatusFrame(ttkb.Frame):
             font="QTypeOT-CondBook 15",
             padding=(5,5,5,5),
             justify=tk.CENTER,
+            anchor=tk.CENTER,
             compound=tk.CENTER,
+            relief=tk.RIDGE,
             width=10,
             style="inverse.success.TLabel",
-            text="CONNECTED",
+            text=self.sonicamp.info.get('connection'),
         )
         
         self.sig_status_label = ttk.Label(
@@ -249,10 +262,12 @@ class StatusFrame(ttkb.Frame):
             font="QTypeOT-CondBook 15",
             padding=(5,5,5,5),
             justify=tk.CENTER,
+            anchor=tk.CENTER,
             compound=tk.CENTER,
+            relief=tk.RIDGE,
             width=10,
             style="inverse.danger.TLabel",
-            text="SIGNAL OFF",
+            text=self.sonicamp.info.get('signal'),
         )
         
         self.err_status_label = ttk.Label(
@@ -260,16 +275,18 @@ class StatusFrame(ttkb.Frame):
             font="QTypeOT-CondBook 15",
             padding=(5,5,5,5),
             justify=tk.CENTER,
+            anchor=tk.CENTER,
             compound=tk.CENTER,
+            relief=tk.RIDGE,
             width=10,
             style="inverse.success.TLabel",
-            text="NO ERROR",
+            text=self.sonicamp.info.get('error'),
         )
         
         self.sep = ttkb.Separator(
             master=self,
             orient=ttkb.VERTICAL,
-            style='primary',
+            style='dark',
         )
         
         self.build4catch()

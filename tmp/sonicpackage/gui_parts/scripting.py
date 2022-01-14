@@ -75,7 +75,7 @@ class ScriptingTab(ttk.Frame):
             length=160,
             mode=ttkb.INDETERMINATE,
             orient=ttkb.HORIZONTAL,
-            bootstyle=ttkb.PRIMARY,
+            bootstyle=ttkb.DARK,
             text=self.current_task
         )
         self.sequence_status.pack(side=tk.LEFT, padx=5, pady=30)

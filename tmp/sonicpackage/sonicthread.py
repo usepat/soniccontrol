@@ -32,7 +32,7 @@ class SonicAgent(threading.Thread):
                 #thread should not try to do something if paused
                 #not paused
                 if self.serial.is_connected:
-                    raw_data = self.serial.send_message('-')
+                    raw_data = self.serial.send_message('-', flush=True)
                     list_data = raw_data.split('-')
                     status = [int(statuspart) for statuspart in list_data]
                     if len(status) > 1:
