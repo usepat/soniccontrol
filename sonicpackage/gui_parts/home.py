@@ -2,60 +2,35 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 
-from sonicpackage.gui_parts.skeleton import Tab
+from data import Command
+from gui_parts.skeleton import SonicFrame
 
-class HomeTab(Tab):
+class HomeTab(SonicFrame, ttk.Frame):
     
-    @property
-    def parent(self):
-        return self._parent
-    
-    @property
-    def root(self):
-        return self._root
-    
-    @property
-    def sonicamp(self):
-        return self._sonicamp    
-    
-    @property
-    def serial(self):
-        return self._serial    
-    
-    def __init__(self, parent, root, serial, sonicamp, *args, **kwargs):
+    def __init__(self, parent: object, root: object, serial: object, sonicamp: object, *args, **kwargs):
+        SonicFrame.__init__(self, parent, root, serial, sonicamp)
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         
-        self._parent = parent
-        self._root = root
-        self._serial = serial
-        self._sonicamp = sonicamp
+        self.input_frequency: object = tk.IntVar(value=self.sonicamp.status.frequency)
         
-        # if sonicamp.info['type'] == 'soniccatch':
-        #     self.build4catch()
-        # elif sonicamp.info['type'] == 'sonicwipe':
-        #     self.build4wipe()
-        # else:
-        #     pass
+        self.topframe: object = ttk.LabelFrame(self, text='Manual control')
+        self.botframe: object = ttk.Frame(self)
         
-        self.topframe = ttk.LabelFrame(self, text='Manual control')
-        self.botframe = ttk.Frame(self)
+        self.control_frame: object = ttk.Frame(self.topframe) 
+        self.freq_frame: object = ttk.Label(self.control_frame)
+        self.frq_rng_frame: object = ttk.Label(self.control_frame)
         
-        self.control_frame = ttk.Frame(self.topframe) 
-        self.freq_frame = ttk.Label(self.control_frame)
-        self.frq_rng_frame = ttk.Label(self.control_frame)
-        
-        self.frq_spinbox = ttk.Spinbox(
+        self.frq_spinbox: object = ttk.Spinbox(
             self.freq_frame,
             from_=self.sonicamp.frq_range_start,
             increment=100,
             to=self.sonicamp.frq_range_stop,
-            textvariable=self.root.input_frequency,
+            textvariable=self.input_frequency,
             width=16,
             style='dark.TSpinbox',
-            command=self.set_frequency
-        )
+            command=self.set_frequency)
         
-        self.scroll_digit = ttk.Spinbox(
+        self.scroll_digit: object = ttk.Spinbox(
             self.freq_frame,
             from_=1,
             increment=1,
@@ -63,65 +38,83 @@ class HomeTab(Tab):
             validate=None,
             width=5,
             style='secondary.TSpinbox',
-            command=self.set_scrolldigit
-        )
+            command=self.set_scrolldigit)
         
-        self.khz_button = ttkb.Radiobutton(
+        self.khz_button: object = ttkb.Radiobutton(
             self.frq_rng_frame,
             text='KHz',
             bootstyle='dark-outline-toolbutton',
             width=12,
-            command=self.set_khz_mode
-        )
+            command=self.set_khz_mode)
         
-        self.mhz_button = ttkb.Radiobutton(
+        self.mhz_button: object = ttkb.Radiobutton(
             self.frq_rng_frame,
             text='MHz',
             bootstyle='dark-outline-toolbutton',
             width=12,
-            command=self.set_mhz_mode
-        )
+            command=self.set_mhz_mode)
         
-        self.set_frq_button = ttk.Button(
+        self.set_frq_button: object = ttk.Button(
             self.control_frame,
             text='Set Frequency',
             command=self.set_frequency,
-            bootstyle='dark.TButton',
-        )
+            bootstyle='dark.TButton',)
         
-        
-        self.sonic_measure_button = ttk.Button(
+        self.sonic_measure_button: object = ttk.Button(
             self.topframe,
             text='Sonic measure',
             style='dark.TButton',
             image=self.root.graph_img,
             compound=tk.TOP,
-            command=lambda e: SonicMeasure(self.parent.root)
-        )
+            command=lambda e: SonicMeasure(self.parent.root))
         
-        
-        self.us_on_button = ttk.Button(
+        self.us_on_button: object = ttk.Button(
             self.botframe,
             text='ON',
             style='success.TButton',
             width=10,
-            command=self.turn_us_on
-        )
+            command=self.turn_us_on)
         
-        self.us_off_button = ttk.Button(
+        self.us_off_button: object = ttk.Button(
             self.botframe,
             text='OFF',
             style='danger.TButton',
             width=10,
-            command=self.turn_us_off
-        )
+            command=self.turn_us_off)
         
-        self.build4catch()
+        self.build_for_catch()
         self.config(height=200, width=200)
         self.parent.add(self, text='Home', image=self.parent.root.home_img, compound=tk.TOP)
     
+    def set_khz_mode(self):
+        pass
+
+    def set_mhz_mode(self):
+        pass
     
-    def build4catch(self):
+    def start_wiping(self):
+        pass
+    
+    
+    def set_wipemode(self):
+        pass
+    
+    
+    def set_frequency(self):
+        self.serial.send_and_get(Command.SET_FRQ + self.input_frequency.get())
+    
+    
+    def set_scrolldigit(self):
+        pass
+    
+    
+    def turn_us_on(self):
+        self.serial.send_message(f"!ON")
+    
+    def turn_us_off(self):
+        pass
+    
+    def build_for_catch(self) -> None:
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
@@ -141,35 +134,7 @@ class HomeTab(Tab):
         self.topframe.pack(side=tk.TOP, padx=20, pady=20)
         self.botframe.pack(side=tk.TOP)
     
-    def build4wipe(self):
-        pass
-    
-    def set_khz_mode(self):
-        pass
-
-    def set_mhz_mode(self):
-        pass
-    
-    def start_wiping(self):
-        pass
-    
-    
-    def set_wipemode(self):
-        pass
-    
-    
-    def set_frequency(self):
-        self.serial.send_message(f"!f={self.root.frequency}")
-    
-    
-    def set_scrolldigit(self):
-        pass
-    
-    
-    def turn_us_on(self):
-        self.serial.send_message(f"!ON")
-    
-    def turn_us_off(self):
+    def build_for_wipe(self) -> None:
         pass
     
 

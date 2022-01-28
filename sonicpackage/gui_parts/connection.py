@@ -3,50 +3,40 @@ import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 
 from PIL import Image, ImageTk
-from sonicpackage.gui_parts.skeleton import Tab
+from gui_parts.skeleton import SonicFrame
+from data import Command
 
 
-
-class ConnectionTab(Tab):
-
-    # @property
-    # def parent(self):
-    #     return self._parent
+class ConnectionTab(SonicFrame, ttk.Frame):
     
-    # @property
-    # def root(self):
-    #     return self._root
-    
-    # @property
-    # def sonicamp(self):
-    #     return self._sonicamp
-    
-    # @property
-    # def serial(self):
-    #     return self._serial
-    
-    def __init__(self, parent, root, serial, sonicamp, *args, **kwargs):
-        super().__init__(self, parent, root, serial, sonicamp, *args, **kwargs)
+    def __init__(self, parent: object, root: object, serial: object, sonicamp: object, *args, **kwargs) -> None:
+        SonicFrame.__init__(self, parent, root, serial, sonicamp)
+        ttk.Frame.__init__(self, parent, *args, **kwargs)
         
-        self.topframe = TopFrame(self)
-        self.botframe = BotFrame(self)
+        self.topframe: object = TopFrame(self, root, serial, sonicamp)
+        self.botframe: object = BotFrame(self, root, serial, sonicamp)
             
-        self.parent.add(self, state=tk.NORMAL, text='Connection', image=self.parent.root.connection_img, compound=tk.TOP)
+        self.parent.add(self, 
+                        state=tk.NORMAL, 
+                        text='Connection', 
+                        image=self.parent.root.connection_img, 
+                        compound=tk.TOP)
         
         for child in self.children.values():
             child.pack()
-                    
-print(help(ConnectionTab))
-
-class TopFrame(ttk.Frame):
-
-    @property
-    def parent(self):
-        return self._parent
     
-    def __init__(self, parent, *args, **kwargs):
+    def build_for_catch(self) -> None:
+        pass
+    
+    def build_for_wipe(self) -> None:
+        pass
+                    
+
+class TopFrame(SonicFrame, ttk.Frame):
+    
+    def __init__(self, parent: object, root: object, serial: object, sonicamp: object, *args, **kwargs) -> None:
+        SonicFrame.__init__(self, parent, root, serial, sonicamp)
         ttk.Frame.__init__(self, parent, *args, **kwargs)
-        self._parent = parent
 
         self['padding'] = (10,10,10,10)
 
@@ -100,13 +90,13 @@ class TopFrame(ttk.Frame):
 
 
     def refresh(self):
-        self.ports_menue['values'] = self.parent.root.serial.get_ports()
+        self.ports_menue['values'] = self.root.serial.get_ports()
     
     
     def build4connected(self):        
         self.subtitle.configure(text="You are connected to:")
-        self.heading1.configure(text = self.parent.sonicamp.amp_type[:5])
-        self.heading2.configure(text=self.parent.sonicamp.amp_type[5:])
+        self.heading1.configure(text = self.sonicamp.amp_type[:5])
+        self.heading2.configure(text=self.sonicamp.amp_type[5:])
         self.connect_button.configure( 
             text = 'Disconnect', 
             command = self.disconnect, 
@@ -124,34 +114,37 @@ class TopFrame(ttk.Frame):
         
     
     def connect(self):
-        if self.parent.root.port.get() == '-':
+        if self.parent.root.port.get() == '-' or self.parent.root.port.get() == '':
             self.parent.serial.auto_connect()
         
         else:
-            self.parent.serial.connect_to_port(port=self.parent.root.port.get())
+            self.parent.serial.connect_to_port(port=self.root.port.get())
         
-        self.parent.root.initialize_amp()
-        self.parent.root.status_thread.resume()
+        self.root.initialize_amp()
+        self.root.status_thread.resume()
+        self.root.window_updater()
         self.build4connected()
         
         
     def disconnect(self):
-        self.parent.root.status_thread.pause()
-        self.parent.serial.disconnect()
+        self.root.status_thread.pause()
+        self.serial.disconnect()
+        self.root.window_updater()
         self.build4notconnected()
-
-
-
-class BotFrame(ttk.Frame):
-    
-    @property
-    def parent(self):
-        return self._parent
-    
-    def __init__(self, parent, *args, **kwargs):
-        ttk.Frame.__init__(self, parent, *args, **kwargs)
         
-        self._parent = parent
+    def build_for_catch(self) -> None:
+        pass
+    
+    def build_for_wipe(self) -> None:
+        pass
+
+
+
+class BotFrame(SonicFrame, ttk.Frame):
+    
+    def __init__(self, parent: object, root: object, serial: object, sonicamp: object, *args, **kwargs) -> None:
+        SonicFrame.__init__(self, parent, root, serial, sonicamp)
+        ttk.Frame.__init__(self, parent, *args, **kwargs)
         
         label_border = ttk.Labelframe(self, text='Firmware' ,style='dark.TLabelframe')
         self.fw_label = ttk.Label(
@@ -162,5 +155,11 @@ class BotFrame(ttk.Frame):
             style='dark.TLabel')
         self.fw_label.pack()
         label_border.pack(side=tk.BOTTOM, padx=10, pady=20, expand=True)
+
+    def build_for_catch(self) -> None:
+        pass
+    
+    def build_for_wipe(self) -> None:
+        pass
         
         

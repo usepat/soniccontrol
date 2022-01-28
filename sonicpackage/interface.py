@@ -1,27 +1,30 @@
+import re
+import sys
 import tkinter as tk
 import tkinter.ttk as ttk
+from matplotlib import image
+from matplotlib.pyplot import text
 import ttkbootstrap as ttkb
-from ttkbootstrap import Style
-from ttkbootstrap.constants import *
 from tkinter import font
 from PIL import ImageTk
-import time
+from ttkbootstrap import Style
+from ttkbootstrap.constants import *
 
-from ttkbootstrap.style import Bootstyle
+sys.path.append('C://Users//Ilja Golovanov//Documents//dev//SonicWipeControl//sonicpackage')
 
-from sonicpackage.gui_parts.home import HomeTab
-from sonicpackage.gui_parts.scripting import ScriptingTab
-from sonicpackage.gui_parts.connection import ConnectionTab
-from sonicpackage.gui_parts.info import InfoTab
-from sonicpackage.utils.img import resize_img
-from sonicpackage.connection import SonicAmp, SerialConnection
-from sonicpackage.sonicthread import SonicAgent
-from sonicpackage.connection import Command, Modules, Status
+from gui_parts.home import HomeTab
+from gui_parts.scripting import ScriptingTab
+from gui_parts.connection import ConnectionTab
+from gui_parts.info import InfoTab
+from gui_parts.skeleton import SonicFrame
+from utils.img import resize_img
+from connection import SerialConnection, SonicAgent
+from data import SonicAmp, Modules, Status, Command
 
 
 class Root(tk.Tk):
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         tk.Tk.__init__(self, *args, **kwargs)
         
         self.status_thread: object
@@ -31,8 +34,8 @@ class Root(tk.Tk):
         # root variables for gui
         self.port: str = tk.StringVar()
         self.wiperuns: str  = tk.StringVar()
-        self.input_frequency: object = tk.IntVar()
-        self.output_frequency: object = tk.IntVar()
+        # self.input_frequency: object = tk.IntVar()
+        # self.output_frequency: object = tk.IntVar()
         self.input_gain: object = tk.IntVar()
         self.output_gain: object = tk.IntVar()
         self.mode: str = "kHz"
@@ -69,6 +72,10 @@ class Root(tk.Tk):
             resize_img('sonicpackage//pictures//wave_bg.png', (540,440)))
         self.graph_img: object = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//graph.png', (100,100)))
+        self.led_green_img: object = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//led_green.png', (35,35)))
+        self.led_red_img: object = ImageTk.PhotoImage(
+            resize_img('sonicpackage//pictures//led_red.png', (35,35)))
         
         # setting up root window, configurations
         self.geometry("540x900")
@@ -82,7 +89,7 @@ class Root(tk.Tk):
         self.option_add("*Font", default_font)
 
         # Declaring the sonicamp and serial object for communication and data storage
-        self.serial = SerialConnection()
+        self.serial: object = SerialConnection()
         self.serial.auto_connect()
         self.initialize_amp()
         
@@ -95,7 +102,7 @@ class Root(tk.Tk):
         self.status_thread.start()
         
         if self.sonicamp.amp_type == 'soniccatch':
-            self.sonicamp.frq_range_start = 600000 
+            self.sonicamp.frq_range_start = 600000
             self.sonicamp.frq_range_stop = 6000000
         
         elif self.sonicamp.amp_type == 'sonicwipe':
@@ -106,23 +113,22 @@ class Root(tk.Tk):
         self.build_window()
     
     
-    def initialize_amp(self):
+    def initialize_amp(self) -> None:
         """Sets values to SonicAmp Object if connection exists"""
         
         if self.serial.is_connected:
-            self.sonicamp = SonicAmp(
+            self.sonicamp: object = SonicAmp(
                 port=self.serial.port,
                 amp_type=self.serial.send_and_get(Command.GET_TYPE),
                 connection=self.serial.is_connected,
                 firmware=self.serial.send_and_get_block(Command.GET_INFO),
-                modules=Modules.construct_from_str(
-                    self.serial.send_and_get(Command.GET_MODULES)),
+                modules=Modules.construct_from_str(self.serial.send_and_get(Command.GET_MODULES)),
                 status=Status())
         else:
-            self.sonicamp = SonicAmp()
+            self.sonicamp: object = SonicAmp()
     
     
-    def checkout_amp(self):
+    def checkout_amp(self) -> None:
         """Checks out Amp every 100 milliseconds and makes sure that the thread is working correctly"""
         
         self.process_incoming()
@@ -131,70 +137,91 @@ class Root(tk.Tk):
         self.after(100, self.checkout_amp)
 
 
-    def process_incoming(self):
+    def process_incoming(self) -> None:
         """Reads the Queue object provided by the thread and configures the sonicamp object accordingly"""
         
         while self.status_thread.queue.qsize():
             status_str = self.status_thread.queue.get(0)
-            
-            if status_str == self.prev_status:
+            tmp_status = Status.construct_from_str(status_str)
+            print(tmp_status)
+            print(self.sonicamp.status)
+            if tmp_status == self.sonicamp.status:
                 continue
             else:
-                self.sonicamp.status = Status.construct_from_str(status_str)
-                print(self.sonicamp.status)                
-
-                if self.sonicamp.status.error == False:
-                    self.sonicamp.error = "No error"
-
-                elif self.sonicamp.status.frequency > 0:
-                    self.sonicamp.signal = True
-
-                else:
-                    self.serial.is_connected = False
-
+                self.sonicamp.status = tmp_status
                 self.children.update()
                 self.window_updater()
-                self.prev_status = status_str
     
     
-    def window_updater(self):
-        self.status_frame.updater()
-    
+    def window_updater(self) -> None:
+        """Looks into the sonicamp dataclass and updates the gui objects accordingly"""
+        
+        if self.serial.is_connected:
+            print("window updater connected")
+            print(self.sonicamp.status)
+            self.sonicamp.connection = "connected"
+            self.status_frame.con_status_label.configure(text=self.sonicamp.connection,
+                                                         image=self.led_green_img)
+            self.status_frame.frq_meter["amountused"] = self.sonicamp.status.frequency / 1000000
+            self.status_frame.gain_meter["amountused"] = self.sonicamp.status.gain
+            
+            if self.sonicamp.status.frequency:
+                self.sonicamp.signal = "signal on"
+                self.notebook.home_tab.input_frequency.set(self.sonicamp.status.frequency)
+                self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
+                                                             image=self.led_green_img)
+            else:
+                self.sonicamp.signal = "signal off"
+                self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
+                                                             image=self.led_red_img)
+            if self.sonicamp.status.error:
+                self.sonicamp.error = "critical error"
+                self.status_frame.con_status_label.grid_forget()
+                self.status_frame.sig_status_label.grid_forget()
+                self.status_frame.configure(style="inverse.danger.TFrame")
+                self.status_frame.err_status_label.grid(row=0, column=0, columnspan=3, 
+                                                        padx=10, pady=10, sticky=tk.NSEW)
+                
+            else:
+                self.sonicamp.error = "everything fine"
+            
+        else:
+            print("window updater not connected")
+            # setting all values to None
+            self.sonicamp.connection = "not connected"
+            self.sonicamp.signal = "signal off"
+            self.sonicamp.status = Status(0, 0, 0, 0, 0)
+            
+            self.status_frame.con_status_label.configure(text=self.sonicamp.connection,
+                                                         image=self.led_red_img)
+            self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
+                                                         image=self.led_red_img)
+            self.status_frame.frq_meter["amountused"] = self.sonicamp.status.frequency / 1000000
+            self.status_frame.gain_meter["amountused"] = self.sonicamp.status.gain
+            
 
-    def build_window(self):
-        self.notebook = NotebookMenu(self, self.serial, self.sonicamp)
-        self.status_frame = StatusFrame(self, self.serial, self.sonicamp, style='dark.TFrame')
+    def build_window(self) -> None:
+        """Function to build other frames when starting the programm"""
+        
+        self.notebook: object = NotebookMenu(self, self.serial, self.sonicamp)
+        self.status_frame: object = StatusFrame(self, self.serial, self.sonicamp, style='dark.TFrame')
 
 
 
-class NotebookMenu(ttk.Notebook):
+class NotebookMenu(SonicFrame, ttk.Notebook):
     
-    @property
-    def root(self):
-        return self._root
-    
-    @property
-    def sonicamp(self):
-        return self._sonicamp
-    
-    @property
-    def serial(self):
-        return self._serial
-    
-    def __init__(self, root, serial, sonicamp, *args, **kwargs):
+    def __init__(self, root: object, serial: object, sonicamp: object, *args, **kwargs) -> None:
+        SonicFrame.__init__(self, root, root, serial, sonicamp)
         ttk.Notebook.__init__(self, root, *args, **kwargs)
-        self._root = root
-        self._sonicamp = sonicamp
-        self._serial = serial
         
         self.config(height=560, width=540)
         self['style'] = 'light.TNotebook'
         
-        self.home_tab = HomeTab(self, self.root, self.serial, self.sonicamp)
-        self.script_tab = ScriptingTab(self, self.serial, self.sonicamp)
-        self.connection_tab = ConnectionTab(self, self.root, self.serial, self.sonicamp)
-        self.info_tab = InfoTab(self)
-        
+        self.home_tab: object = HomeTab(self, self.root, self.serial, self.sonicamp)
+        self.script_tab: object = ScriptingTab(self, self.serial, self.sonicamp)
+        self.connection_tab: object = ConnectionTab(self, self.root, self.serial, self.sonicamp)
+        self.info_tab: object = InfoTab(self, self.root, self.serial, self.sonicamp)
+         
         if not serial.is_connected:
             for child in self.children.values():
                 if child != self.connection_tab:
@@ -205,44 +232,35 @@ class NotebookMenu(ttk.Notebook):
         self.publish()
 
 
-    def publish(self):
+    def publish(self) -> None:
         self.pack()#grid(row=0, column=0, padx=2.5, pady=2.5)
+    
+    def build_for_catch(self) -> None:
+        pass
+    
+    def build_for_wipe(self) -> None:
+        pass
 
 
-class StatusFrame(ttkb.Frame):
+class StatusFrame(SonicFrame, ttkb.Frame):
     
-    @property
-    def root(self):
-        return self._root
-    
-    @property
-    def sonicamp(self):
-        return self._sonicamp
-    
-    @property
-    def serial(self):
-        return self._serial
-    
-    def __init__(self, root, serial, sonicamp, *args, **kwargs):
-        ttk.Frame.__init__(self, root, *args, **kwargs)
+    def __init__(self, root: object, serial: object, sonicamp: object, *args, **kwargs) -> None:
+        SonicFrame.__init__(self, root, root, serial, sonicamp)
+        ttkb.Frame.__init__(self, root, *args, **kwargs)
         
-        self._root = root
-        self._serial = serial
-        self._sonicamp = sonicamp
+        self.meter_frame: object = ttk.Frame(self)
+        self.stati_frame: object = ttk.Frame(self, style='secondary.TFrame')
         
-        self.meter_frame = ttk.Frame(self)
-        self.stati_frame = ttk.Frame(self, style='secondary.TFrame')
-        
-        self.frq_meter = ttkb.Meter(
+        self.frq_meter: object = ttkb.Meter(
             self.meter_frame,
             bootstyle='dark',
-            amounttotal=self.sonicamp.frq_range_stop,
+            amounttotal=self.sonicamp.frq_range_stop / 1000000,
             amountused=0,
-            textright='Hz',
+            textright='MHz',
             subtext='Current Frequency',
             metersize=150)
         
-        self.gain_meter = ttkb.Meter(
+        self.gain_meter: object = ttkb.Meter(
             self.meter_frame,
             bootstyle='success',
             amounttotal=150,
@@ -251,7 +269,7 @@ class StatusFrame(ttkb.Frame):
             subtext='Current Gain',
             metersize=150)
         
-        self.temp_meter = ttkb.Meter(
+        self.temp_meter: object = ttkb.Meter(
             self.meter_frame,
             bootstyle='warning',
             amounttotal=100,
@@ -260,7 +278,31 @@ class StatusFrame(ttkb.Frame):
             subtext='Liquid Temperature',
             metersize=150)
         
-        self.con_status_label = ttk.Label(
+        self.con_status_label: object = ttkb.Label(
+            self.stati_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,0,5,0),
+            justify=tk.CENTER,
+            anchor=tk.CENTER,
+            compound=tk.LEFT,
+            width=15,
+            image=self.root.led_green_img,
+            bootstyle="inverse-secondary",
+            text="not connected")
+        
+        self.sig_status_label: object = ttkb.Label(
+            self.stati_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,0,5,0),
+            justify=tk.CENTER,
+            anchor=tk.CENTER,
+            compound=tk.LEFT,
+            width=10,
+            image=self.root.led_red_img,
+            bootstyle="inverse-secondary",
+            text=self.sonicamp.signal)
+        
+        self.err_status_label: object = ttkb.Label(
             self.stati_frame,
             font="QTypeOT-CondBook 15",
             padding=(5,5,5,5),
@@ -269,41 +311,12 @@ class StatusFrame(ttkb.Frame):
             compound=tk.CENTER,
             relief=tk.RIDGE,
             width=10,
-            style="inverse.success.TLabel",
-            text=self.sonicamp.connection,
-        )
+            text=self.sonicamp.error)
         
-        self.sig_status_label = ttk.Label(
-            self.stati_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,5,5,5),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.CENTER,
-            relief=tk.RIDGE,
-            width=10,
-            style="inverse.danger.TLabel",
-            text=self.sonicamp.signal,
-        )
-        
-        self.err_status_label = ttk.Label(
-            self.stati_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,5,5,5),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.CENTER,
-            relief=tk.RIDGE,
-            width=10,
-            style="inverse.success.TLabel",
-            text=self.sonicamp.error,
-        )
-        
-        self.sep = ttkb.Separator(
+        self.sep: object = ttkb.Separator(
             master=self,
             orient=ttkb.VERTICAL,
-            style='dark',
-        )
+            style='dark')
         
         self.build4catch()
         self.pack(padx=10, pady=10, fill=tk.BOTH)
@@ -315,18 +328,19 @@ class StatusFrame(ttkb.Frame):
         
         self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.err_status_label.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
         
         self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10)
         self.stati_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
     
     def build4wipe(self):
         pass
+        
+    def build_for_catch(self) -> None:
+        pass
     
-    def updater(self) -> None:
-        self.frq_meter["amountused"] = self.sonicamp.status.frequency
-        self.gain_meter["amountused"] = self.sonicamp.status.gain
-    
+    def build_for_wipe(self) -> None:
+        pass
+        
 
 
 if __name__ == "__main__":

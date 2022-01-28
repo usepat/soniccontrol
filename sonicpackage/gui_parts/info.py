@@ -4,8 +4,10 @@ import ttkbootstrap as ttkb
 
 import tkinter.scrolledtext as st
 import time 
+from data import Command
+from gui_parts.skeleton import SonicFrame
 
-class InfoTab(ttk.Frame):
+class InfoTab(SonicFrame, ttk.Frame):
     
     INFOTEXT = (
         "Welcome to soniccontrol, a light-weight application to\n" 
@@ -15,14 +17,9 @@ class InfoTab(ttk.Frame):
         "(c) usePAT G.m.b.H\n"
     )
     
-    @property
-    def parent(self):
-        return self._parent
-    
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent: object, root: object, serial: object, sonicamp: object, *args, **kwargs) -> None:
+        SonicFrame.__init__(self, parent, root, serial, sonicamp)
         ttk.Frame.__init__(self, parent, *args, **kwargs)
-        
-        self._parent = parent
         
         self.soniccontrol_logo_frame = ttk.Frame(self)
         self.soniccontrol_logo1 = ttk.Label(
@@ -41,31 +38,26 @@ class InfoTab(ttk.Frame):
         
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
         
-        self.info_label = ttk.Label(
-            self,
-            text=InfoTab.INFOTEXT
-        )
+        self.info_label = ttk.Label(self, text=InfoTab.INFOTEXT)
         self.info_label.pack()
         
         self.controlframe = ttk.Frame(self)
         self.manual_btn = ttk.Button(
             self.controlframe,
             text='Manual',
-            command=self.open_manual,
-        )
+            command=self.open_manual)
         self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
         
         self.dev_btn = ttk.Button(
             self.controlframe,
             text='I\'m a developer...',
             command=self.serial_monitor,
-            style='outline.TButton'
-        )
+            style='outline.TButton')
         self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
         
         self.controlframe.pack()
         
-        parent.add(self, text='Info', image=parent.root.info_img, compound=tk.TOP)
+        self.parent.add(self, text='Info', image=self.root.info_img, compound=tk.TOP)
         
     
     def open_manual(self):
@@ -73,39 +65,36 @@ class InfoTab(ttk.Frame):
     
     
     def serial_monitor(self):
-        if self.parent.root.winfo_width() == 540:
-            self.parent.root.geometry("1080x900")
-            self.serial_monitor = SerialMonitor(self.parent.root)
+        if self.root.winfo_width() == 540:
+            self.root.geometry("1080x900")
+            self.serial_monitor = SerialMonitor(self.root, self.serial, self.sonicamp)
             self.serial_monitor.grid(row=0, column=1, padx=5, pady=5)
             
         else:
-            self.parent.root.geometry("540x900")
+            self.root.geometry("540x900")
             self.serial_monitor.grid_forget()
+    
+    def build_for_catch(self) -> None:
+        pass
+    
+    def build_for_wipe(self) -> None:
+        pass
+        
             
 
-class SerialMonitor(ttk.Frame):
-    #TODO: Das funktioniert noch immer nicht, schaus da an
-    @property
-    def root(self):
-        return self._root
+class SerialMonitor(SonicFrame, ttk.Frame):
     
-    def __init__(self, root, *args, **kwargs):
+    def __init__(self, root: object, serial: object, sonicamp: object, *args, **kwargs) -> None:
+        SonicFrame.__init__(self, root, root, serial, sonicamp)
         ttk.Frame.__init__(self, root, *args, **kwargs)
-        
-        self._root = root
         
         self.grid_propagate(0)
         self.root.grid_propagate(0)
         
-        self.configure(
-            height=10,
-            width=10,
-            # style='dark.TFrame'
-        )
+        self.configure(height=10, width=10)
         
-        self.text_array = [
-            "Type <help> to output the command-cheatsheet!",
-            "Type <help> to output the command-cheatsheet!"]
+        self.text_array = ["Type <help> to output the command-cheatsheet!",
+                           "Type <help> to output the command-cheatsheet!"]
         
         self.command_history = []
         self.index_history = -1
@@ -115,15 +104,15 @@ class SerialMonitor(ttk.Frame):
             self.output_frame,
             font=("Consolas",12), 
             state='normal',
-            style="dark.TLabel"
-        )
+            style="dark.TLabel")
+        
         self.output_text.pack(
             anchor='center',
             expand=True,
             fill=tk.BOTH, 
             padx=10, 
-            pady=10
-        )
+            pady=10)
+        
         self.inittext = f"{self.root.serial.send_and_get(b'?')}"                                                                                # For the initialazation text from the microcontroller
         self.text_array.append(self.inittext)
         
@@ -158,7 +147,7 @@ class SerialMonitor(ttk.Frame):
 
     
     def send_command(self, event):
-        self.command, self.commandlen = self.command_field.get(), len(self.command_field.get())  # Getting the Command, and the Legnth of it
+        self.command, self.commandlen = self.command_field.get().encode(), len(self.command_field.get())  # Getting the Command, and the Legnth of it
         self.command_history.insert(0, self.command)                                            # Storing the Command in the History List
         self.index_history = -1                                                                 # Reseting the History Index, because a command was just sent
         
@@ -171,7 +160,7 @@ class SerialMonitor(ttk.Frame):
            self.output_text.insert(tk.END, f'>>> {self.command}')
            self.help()
         else: # External Commands (Sent to the microcontroller)
-           reply = self.root.serial.send_message(self.command, 'block')
+           reply = self.serial.send_and_get(self.command)
            self.text_array.append(reply)
            self.output_text['text'] = '\n'.join(self.text_array)
     
@@ -253,3 +242,10 @@ Here is a list for all commands:
    ?atf3             Prints the frequency of the 3rd protocol
    ?pval             Prints values used for the protocol\n\n'''
         self.output_text.insert(tk.END, self.helptext)
+    
+    def build_for_catch(self) -> None:
+        pass
+    
+    def build_for_wipe(self) -> None:
+        pass
+        
