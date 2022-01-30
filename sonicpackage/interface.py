@@ -1,9 +1,6 @@
-import re
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
-from matplotlib import image
-from matplotlib.pyplot import text
 import ttkbootstrap as ttkb
 from tkinter import font
 from PIL import ImageTk
@@ -11,6 +8,7 @@ from ttkbootstrap import Style
 from ttkbootstrap.constants import *
 
 sys.path.append('C://Users//Ilja Golovanov//Documents//dev//SonicWipeControl//sonicpackage')
+sys.path.append('C://Users//iljag//Documents//sh_doc//WfH//python_gui//new_gui//sonicpackage')
 
 from gui_parts.home import HomeTab
 from gui_parts.scripting import ScriptingTab
@@ -18,8 +16,9 @@ from gui_parts.connection import ConnectionTab
 from gui_parts.info import InfoTab
 from gui_parts.skeleton import SonicFrame
 from utils.img import resize_img
-from connection import SerialConnection, SonicAgent
+from connection import SerialConnection
 from data import SonicAmp, Modules, Status, Command
+from threads import GuiBuilder, SonicAgent
 
 
 class Root(tk.Tk):
@@ -34,8 +33,6 @@ class Root(tk.Tk):
         # root variables for gui
         self.port: str = tk.StringVar()
         self.wiperuns: str  = tk.StringVar()
-        # self.input_frequency: object = tk.IntVar()
-        # self.output_frequency: object = tk.IntVar()
         self.input_gain: object = tk.IntVar()
         self.output_gain: object = tk.IntVar()
         self.mode: str = "kHz"
@@ -88,19 +85,23 @@ class Root(tk.Tk):
         default_font.configure(family='Arial', size=12) 
         self.option_add("*Font", default_font)
 
-        # Declaring the sonicamp and serial object for communication and data storage
-        self.serial: object = SerialConnection()
+        # Defining the sonicamp and serial object for communication and data storage
+        self.serial = SerialConnection()
         self.serial.auto_connect()
         self.initialize_amp()
         
         print(self.serial.device_list)
         print(self.sonicamp)
 
-        # Declaring Agent for automatic status data exchange
+        # Defining Agent for automatic status data exchange
         self.status_thread = SonicAgent(self.serial)
         self.status_thread.daemon = True
         self.status_thread.start()
         
+        self.gui_builder = GuiBuilder(self)
+        self.gui_builder.daemon = True
+        self.gui_builder.start()
+
         if self.sonicamp.amp_type == 'soniccatch':
             self.sonicamp.frq_range_start = 600000
             self.sonicamp.frq_range_stop = 6000000
@@ -132,8 +133,9 @@ class Root(tk.Tk):
         """Checks out Amp every 100 milliseconds and makes sure that the thread is working correctly"""
         
         self.process_incoming()
-        if not self.serial.is_connected and self.status_thread.pause == True:
+        if not self.serial.is_connected and self.status_thread.paused == True:
             self.status_thread.pause_cond.wait()
+            self.gui_builder.pause_cond.wait()
         self.after(100, self.checkout_amp)
 
 
@@ -146,58 +148,59 @@ class Root(tk.Tk):
             print(tmp_status)
             print(self.sonicamp.status)
             if tmp_status == self.sonicamp.status:
+                print("nichts neues zu ändern")
                 continue
             else:
                 self.sonicamp.status = tmp_status
                 self.children.update()
-                self.window_updater()
+                # self.window_updater()
     
     
-    def window_updater(self) -> None:
-        """Looks into the sonicamp dataclass and updates the gui objects accordingly"""
+    # def window_updater(self) -> None:
+    #     """Looks into the sonicamp dataclass and updates the gui objects accordingly"""
         
-        if self.serial.is_connected:
-            print("window updater connected")
-            print(self.sonicamp.status)
-            self.sonicamp.connection = "connected"
-            self.status_frame.con_status_label.configure(text=self.sonicamp.connection,
-                                                         image=self.led_green_img)
-            self.status_frame.frq_meter["amountused"] = self.sonicamp.status.frequency / 1000000
-            self.status_frame.gain_meter["amountused"] = self.sonicamp.status.gain
+    #     if self.serial.is_connected:
+    #         print("window updater connected")
+    #         print(self.sonicamp.status)
+    #         self.sonicamp.connection = "connected"
+    #         self.status_frame.con_status_label.configure(text=self.sonicamp.connection,
+    #                                                      image=self.led_green_img)
+    #         self.status_frame.frq_meter["amountused"] = self.sonicamp.status.frequency / 1000000
+    #         self.status_frame.gain_meter["amountused"] = self.sonicamp.status.gain
             
-            if self.sonicamp.status.frequency:
-                self.sonicamp.signal = "signal on"
-                self.notebook.home_tab.input_frequency.set(self.sonicamp.status.frequency)
-                self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
-                                                             image=self.led_green_img)
-            else:
-                self.sonicamp.signal = "signal off"
-                self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
-                                                             image=self.led_red_img)
-            if self.sonicamp.status.error:
-                self.sonicamp.error = "critical error"
-                self.status_frame.con_status_label.grid_forget()
-                self.status_frame.sig_status_label.grid_forget()
-                self.status_frame.configure(style="inverse.danger.TFrame")
-                self.status_frame.err_status_label.grid(row=0, column=0, columnspan=3, 
-                                                        padx=10, pady=10, sticky=tk.NSEW)
+    #         if self.sonicamp.status.frequency:
+    #             self.sonicamp.signal = "signal on"
+    #             self.notebook.home_tab.input_frequency.set(self.sonicamp.status.frequency)
+    #             self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
+    #                                                          image=self.led_green_img)
+    #         else:
+    #             self.sonicamp.signal = "signal off"
+    #             self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
+    #                                                          image=self.led_red_img)
+    #         if self.sonicamp.status.error:
+    #             self.sonicamp.error = "critical error"
+    #             self.status_frame.con_status_label.grid_forget()
+    #             self.status_frame.sig_status_label.grid_forget()
+    #             self.status_frame.configure(style="inverse.danger.TFrame")
+    #             self.status_frame.err_status_label.grid(row=0, column=0, columnspan=3, 
+    #                                                     padx=10, pady=10, sticky=tk.NSEW)
                 
-            else:
-                self.sonicamp.error = "everything fine"
+    #         else:
+    #             self.sonicamp.error = "everything fine"
             
-        else:
-            print("window updater not connected")
-            # setting all values to None
-            self.sonicamp.connection = "not connected"
-            self.sonicamp.signal = "signal off"
-            self.sonicamp.status = Status(0, 0, 0, 0, 0)
+    #     else:
+    #         print("window updater not connected")
+    #         # setting all values to None
+    #         self.sonicamp.connection = "not connected"
+    #         self.sonicamp.signal = "signal off"
+    #         self.sonicamp.status = Status(0, 0, 0, 0, 0)
             
-            self.status_frame.con_status_label.configure(text=self.sonicamp.connection,
-                                                         image=self.led_red_img)
-            self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
-                                                         image=self.led_red_img)
-            self.status_frame.frq_meter["amountused"] = self.sonicamp.status.frequency / 1000000
-            self.status_frame.gain_meter["amountused"] = self.sonicamp.status.gain
+    #         self.status_frame.con_status_label.configure(text=self.sonicamp.connection,
+    #                                                      image=self.led_red_img)
+    #         self.status_frame.sig_status_label.configure(text=self.sonicamp.signal,
+    #                                                      image=self.led_red_img)
+    #         self.status_frame.frq_meter["amountused"] = self.sonicamp.status.frequency / 1000000
+    #         self.status_frame.gain_meter["amountused"] = self.sonicamp.status.gain
             
 
     def build_window(self) -> None:

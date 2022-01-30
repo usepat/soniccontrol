@@ -122,12 +122,14 @@ class TopFrame(SonicFrame, ttk.Frame):
         
         self.root.initialize_amp()
         self.root.status_thread.resume()
+        self.root.gui_builder.resume()
         self.root.window_updater()
         self.build4connected()
         
         
     def disconnect(self):
         self.root.status_thread.pause()
+        self.gui_builder.pause()
         self.serial.disconnect()
         self.root.window_updater()
         self.build4notconnected()

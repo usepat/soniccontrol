@@ -112,54 +112,7 @@ class SerialConnection():
         
 
 
-class SonicAgent(threading.Thread):
-    
-    @property
-    def _run(self):
-        return self.run
-    
-    @property
-    def serial(self):
-        return self._serial
-    
-    def __init__(self, serial, *args, **kwargs):
-        threading.Thread.__init__(self, target=self._run, *args, **kwargs)
-        
-        self._serial: object = serial
-        self.paused: bool = False
-        self.pause_cond: object = threading.Condition(threading.Lock())
-        self.queue = queue.Queue()
-        
-    
-    def run(self):
-        while True:
-            with self.pause_cond:
-                while self.paused:
-                    self.pause_cond.wait()
-                
-                #thread should not try to do something if paused
-                #not paused
-                if self.serial.is_connected:
-                    try:
-                        data_str = self.serial.send_and_get(Command.GET_STATUS)
-                        if len(data_str) > 1:
-                            self.queue.put(data_str)
-                    except:
-                        print("Not the value I was looking for")
-                
-                else:
-                    self.pause_cond.wait()
-    
-    
-    def pause(self):
-        self.paused = True
-        self.pause_cond.acquire()
-        
-        
-    def resume(self):
-        self.paused = False
-        self.pause_cond.notify()
-        self.pause_cond.release()
+
 
 
 
