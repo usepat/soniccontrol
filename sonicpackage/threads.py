@@ -42,6 +42,7 @@ class SonicAgent(SonicThread):
         return self._serial
     
     def __init__(self, serial: object) -> None:
+        SonicThread.__init__(self)
         self._serial: object = serial
         
     
@@ -72,6 +73,7 @@ class GuiBuilder(SonicThread):
         return self._root
     
     def __init__(self, root: object):
+        SonicThread.__init__(self)
         self._root: object = root
         
     def run(self):

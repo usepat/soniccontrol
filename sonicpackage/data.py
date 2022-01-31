@@ -59,6 +59,8 @@ class SonicAmp:
     amp_type: str = field(default=None)
     connection: str = field(default=False)
     signal: str = field(default=False)
+    frq_range_start: int = field(default=None)
+    frq_range_stop: int = field(default=None)
     error: str = field(default=None)
     firmware: str = field(default=None)
     modules: object = field(default=None)

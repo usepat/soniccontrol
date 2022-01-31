@@ -26,7 +26,7 @@ class Root(tk.Tk):
     def __init__(self, *args, **kwargs) -> None:
         tk.Tk.__init__(self, *args, **kwargs)
         
-        self.status_thread: object
+        self.sonic_agent: object
         self.sonicamp: object
         self.serial: object
         
@@ -73,7 +73,9 @@ class Root(tk.Tk):
             resize_img('sonicpackage//pictures//led_green.png', (35,35)))
         self.led_red_img: object = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//led_red.png', (35,35)))
-        
+        #! Variabeln werden nicht der richtigen reihe nach deklariert,
+        #! Python weiß nicht wo man diese werte finden kann
+        #! Objekte sollen so angeordnet werden dass variabeln definiert sind
         # setting up root window, configurations
         self.geometry("540x900")
         self.minsize(540, 900)
@@ -86,21 +88,15 @@ class Root(tk.Tk):
         self.option_add("*Font", default_font)
 
         # Defining the sonicamp and serial object for communication and data storage
+        
         self.serial = SerialConnection()
         self.serial.auto_connect()
         self.initialize_amp()
         
+        self.build_window()
+        
         print(self.serial.device_list)
         print(self.sonicamp)
-
-        # Defining Agent for automatic status data exchange
-        self.status_thread = SonicAgent(self.serial)
-        self.status_thread.daemon = True
-        self.status_thread.start()
-        
-        self.gui_builder = GuiBuilder(self)
-        self.gui_builder.daemon = True
-        self.gui_builder.start()
 
         if self.sonicamp.amp_type == 'soniccatch':
             self.sonicamp.frq_range_start = 600000
@@ -110,8 +106,15 @@ class Root(tk.Tk):
             self.sonicamp.frq_range_start = 50000
             self.sonicamp.frq_range_stop = 1200000
         
+        # Defining Agent for automatic status data exchange
+        self.sonic_agent = SonicAgent(self.serial)
+        self.sonic_agent.thread.daemon = True
+        self.sonic_agent.thread.start()
+        
+        self.gui_builder = GuiBuilder(self)
+        self.gui_builder.thread.daemon = True
+        self.gui_builder.thread.start()
         self.checkout_amp()
-        self.build_window()
     
     
     def initialize_amp(self) -> None:
@@ -133,8 +136,8 @@ class Root(tk.Tk):
         """Checks out Amp every 100 milliseconds and makes sure that the thread is working correctly"""
         
         self.process_incoming()
-        if not self.serial.is_connected and self.status_thread.paused == True:
-            self.status_thread.pause_cond.wait()
+        if not self.serial.is_connected and self.sonic_agent.paused == True:
+            self.sonic_agent.pause_cond.wait()
             self.gui_builder.pause_cond.wait()
         self.after(100, self.checkout_amp)
 
@@ -142,8 +145,8 @@ class Root(tk.Tk):
     def process_incoming(self) -> None:
         """Reads the Queue object provided by the thread and configures the sonicamp object accordingly"""
         
-        while self.status_thread.queue.qsize():
-            status_str = self.status_thread.queue.get(0)
+        while self.sonic_agent.queue.qsize():
+            status_str = self.sonic_agent.queue.get(0)
             tmp_status = Status.construct_from_str(status_str)
             print(tmp_status)
             print(self.sonicamp.status)
