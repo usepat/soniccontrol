@@ -87,17 +87,17 @@ class HomeTab(SonicFrame, ttk.Frame):
         self.parent.add(self, text='Home', image=self.parent.root.home_img, compound=tk.TOP)
     
     def set_khz_mode(self):
-        pass
+        self.serial.threaded_sendget(Command.SET_KHZ, self.root.sonic_agent)
 
     def set_mhz_mode(self):
-        pass
+        self.serial.threaded_sendget(Command.SET_MHZ, self.root.sonic_agent)
     
     def start_wiping(self):
-        pass
+        self.serial.threaded_sendget(Command.SET_WIPE_INF, self.root.sonic_agent)
     
     
     def set_wipemode(self):
-        pass
+        self.serial.threaded_sendget(Command.SET_FRQ + self.input_frequency.get(), self.root.sonic_agent)
     
     
     def set_frequency(self):
@@ -109,11 +109,11 @@ class HomeTab(SonicFrame, ttk.Frame):
     
     
     def turn_us_on(self):
-        self.serial.send_message(f"!ON")
+        self.serial.threaded_sendget(Command.SET_SIGNAL_ON, self.root.sonic_agent)
     
     
     def turn_us_off(self):
-        pass
+        self.serial.threaded_sendget(Command.SET_SIGNAL_OFF, self.root.sonic_agent)
     
     
     def build_for_catch(self) -> None:

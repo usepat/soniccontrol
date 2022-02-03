@@ -6,14 +6,14 @@ import tkinter as tk
 from data import Status, Command
 
 
-class SonicThread(ABC):
+class SonicThread(ABC, threading.Thread):
     
     @property
     def _run(self):
         return self.run
     
     def __init__(self) -> None:
-        self.thread = threading.Thread(target=self._run)
+        threading.Thread.__init__(self, target=self._run)
 
         self.paused: bool = False
         self.pause_cond: object = threading.Condition(threading.Lock())
@@ -23,15 +23,17 @@ class SonicThread(ABC):
     def run(self) -> None:
         pass
     
-    def pause(self):
+    def pause(self) -> None:
         self.paused = True
         self.pause_cond.acquire()
+        print(f"im pausing myself {self.getName()}")
         
         
-    def resume(self):
+    def resume(self) -> None:
         self.paused = False
         self.pause_cond.notify()
         self.pause_cond.release()
+        print(f"im resuming myself {self.getName()}")
 
 
 
@@ -116,15 +118,4 @@ class GuiBuilder(SonicThread):
                         self.root.sonicamp.error = "everything fine"
 
                 else:
-                    print("window updater not connected")
-                    # setting all values to None
-                    self.root.sonicamp.connection = "not connected"
-                    self.root.sonicamp.signal = "signal off"
-                    self.root.sonicamp.status = Status(0, 0, 0, 0, 0)
-
-                    self.root.status_frame.con_status_label.configure(text=self.root.sonicamp.connection,
-                                                                 image=self.root.led_red_img)
-                    self.root.status_frame.sig_status_label.configure(text=self.root.sonicamp.signal,
-                                                                 image=self.root.led_red_img)
-                    self.root.status_frame.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000000
-                    self.root.status_frame.gain_meter["amountused"] = self.root.sonicamp.status.gain
+                    self.pause()

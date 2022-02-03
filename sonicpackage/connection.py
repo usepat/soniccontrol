@@ -5,7 +5,7 @@ import time
 import queue
 import threading
 
-from data import Command
+from data import Command, SonicAmp, Modules, Status
 from sonicpackage.threads import SonicThread
 
 class SerialConnection():
@@ -34,6 +34,7 @@ class SerialConnection():
     def baudrate(self, baudrate: int):
         self._baudrate = baudrate
 
+
     def __init__(self):
         self._port: str
         self._baudrate: int = 115200
@@ -41,6 +42,21 @@ class SerialConnection():
         self.ser: object
         self.device_list: list = self.get_ports()
 
+
+    def initialize_amp(self) -> SonicAmp:
+        """Sets values to SonicAmp Object if connection exists"""
+        
+        if self.is_connected:
+            self.send_and_get(Command.SET_SERIAL)
+            return SonicAmp(
+                port=self.ser.port,
+                amp_type=self.send_and_get(Command.GET_TYPE),
+                connection=self.is_connected,
+                firmware=self.send_and_get_block(Command.GET_INFO),
+                modules=Modules.construct_from_str(self.send_and_get(Command.GET_MODULES)),
+                status=Status())
+        else:
+            return SonicAmp()
     
     def get_ports(self) -> list:              
         port_list = [port.device for index, port in enumerate(serial.tools.list_ports.comports(), start=0) if port.device != 'COM1']
@@ -83,7 +99,6 @@ class SerialConnection():
             time.sleep(delay)
             
 
-    
     def get_answerline(self) -> str:
         answer = self.ser.readline().rstrip().decode()
         print(answer)
@@ -114,8 +129,10 @@ class SerialConnection():
     
     
     def disconnect(self) -> None:
+        print("now about to disconnect")
         self.ser.close()
         self.is_connected = False
+        print("disconnected")
         
 
 
