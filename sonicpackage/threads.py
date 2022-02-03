@@ -84,29 +84,33 @@ class GuiBuilder(SonicThread):
                 
                 #thread should not try to do something if paused
                 #not paused
+                print("Going through run...")
                 if self.root.serial.is_connected:
+                    print("connected...changing values")
                     self.root.sonicamp.connection = "connected"
-                    self.root.status_frame.con_status_label.configure(text=self.sonicamp.connection,
-                                                         image=self.led_green_img)
+                    self.root.status_frame.con_status_label.configure(text=self.root.sonicamp.connection,
+                                                                      image=self.root.led_green_img)
                     self.root.status_frame.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000000
                     self.root.status_frame.gain_meter["amountused"] = self.root.sonicamp.status.gain
             
                     if self.root.sonicamp.status.frequency:
+                        print("detected signal, changing values...")
                         self.root.sonicamp.signal = "signal on"
                         self.root.notebook.home_tab.input_frequency.set(self.root.sonicamp.status.frequency)
                         self.root.status_frame.sig_status_label.configure(text=self.root.sonicamp.signal,
-                                                                     image=self.root.led_green_img)
+                                                                          image=self.root.led_green_img)
                     else:
                         self.root.sonicamp.signal = "signal off"
                         self.root.status_frame.sig_status_label.configure(text=self.root.sonicamp.signal,
-                                                                     image=self.root.led_red_img)
+                                                                          image=self.root.led_red_img)
                     if self.root.sonicamp.status.error:
+                        print("detected error")
                         self.root.sonicamp.error = "critical error"
                         self.root.status_frame.con_status_label.grid_forget()
                         self.root.status_frame.sig_status_label.grid_forget()
                         self.root.status_frame.configure(style="inverse.danger.TFrame")
                         self.root.status_frame.err_status_label.grid(row=0, column=0, columnspan=3, 
-                                                                padx=10, pady=10, sticky=tk.NSEW)
+                                                                     padx=10, pady=10, sticky=tk.NSEW)
 
                     else:
                         self.root.sonicamp.error = "everything fine"

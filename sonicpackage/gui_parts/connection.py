@@ -121,17 +121,15 @@ class TopFrame(SonicFrame, ttk.Frame):
             self.parent.serial.connect_to_port(port=self.root.port.get())
         
         self.root.initialize_amp()
-        self.root.status_thread.resume()
-        self.root.gui_builder.resume()
-        self.root.window_updater()
+        self.root.sonic_agent.resume()
+        # self.root.gui_builder.resume()
         self.build4connected()
         
         
     def disconnect(self):
-        self.root.status_thread.pause()
-        self.gui_builder.pause()
+        self.root.sonic_agent.pause()
         self.serial.disconnect()
-        self.root.window_updater()
+        # self.root.gui_builder.pause()
         self.build4notconnected()
         
     def build_for_catch(self) -> None:

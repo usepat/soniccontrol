@@ -73,9 +73,7 @@ class Root(tk.Tk):
             resize_img('sonicpackage//pictures//led_green.png', (35,35)))
         self.led_red_img: object = ImageTk.PhotoImage(
             resize_img('sonicpackage//pictures//led_red.png', (35,35)))
-        #! Variabeln werden nicht der richtigen reihe nach deklariert,
-        #! Python weiß nicht wo man diese werte finden kann
-        #! Objekte sollen so angeordnet werden dass variabeln definiert sind
+
         # setting up root window, configurations
         self.geometry("540x900")
         self.minsize(540, 900)
@@ -93,11 +91,9 @@ class Root(tk.Tk):
         self.serial.auto_connect()
         self.initialize_amp()
         
-        self.build_window()
-        
         print(self.serial.device_list)
         print(self.sonicamp)
-
+        
         if self.sonicamp.amp_type == 'soniccatch':
             self.sonicamp.frq_range_start = 600000
             self.sonicamp.frq_range_stop = 6000000
@@ -105,6 +101,8 @@ class Root(tk.Tk):
         elif self.sonicamp.amp_type == 'sonicwipe':
             self.sonicamp.frq_range_start = 50000
             self.sonicamp.frq_range_stop = 1200000
+        
+        self.build_window()
         
         # Defining Agent for automatic status data exchange
         self.sonic_agent = SonicAgent(self.serial)
@@ -114,6 +112,7 @@ class Root(tk.Tk):
         self.gui_builder = GuiBuilder(self)
         self.gui_builder.thread.daemon = True
         self.gui_builder.thread.start()
+        
         self.checkout_amp()
     
     
@@ -239,7 +238,7 @@ class NotebookMenu(SonicFrame, ttk.Notebook):
 
 
     def publish(self) -> None:
-        self.pack()#grid(row=0, column=0, padx=2.5, pady=2.5)
+        self.pack(padx=5, pady=5)#grid(row=0, column=0, padx=2.5, pady=2.5)
     
     def build_for_catch(self) -> None:
         pass

@@ -101,7 +101,7 @@ class HomeTab(SonicFrame, ttk.Frame):
     
     
     def set_frequency(self):
-        self.serial.send_and_get(Command.SET_FRQ + self.input_frequency.get())
+        self.serial.threaded_sendget(Command.SET_FRQ + self.input_frequency.get(), self.root.sonic_agent)
     
     
     def set_scrolldigit(self):
@@ -111,8 +111,10 @@ class HomeTab(SonicFrame, ttk.Frame):
     def turn_us_on(self):
         self.serial.send_message(f"!ON")
     
+    
     def turn_us_off(self):
         pass
+    
     
     def build_for_catch(self) -> None:
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)

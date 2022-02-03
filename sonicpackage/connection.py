@@ -6,6 +6,7 @@ import queue
 import threading
 
 from data import Command
+from sonicpackage.threads import SonicThread
 
 class SerialConnection():
 
@@ -92,7 +93,6 @@ class SerialConnection():
     def get_answerblock(self) -> str:
         answer = self.ser.read(255).rstrip().decode()
         print(answer)
-
         return answer
 
 
@@ -104,6 +104,13 @@ class SerialConnection():
     def send_and_get_block(self, command: Command) -> str:
         self.send_command(command)
         return self.get_answerblock()
+    
+    
+    def threaded_sendget(self, command: Command, thread: SonicThread):
+        thread.pause()
+        answer = self.send_and_get(command)
+        thread.resume()
+        return answer
     
     
     def disconnect(self) -> None:

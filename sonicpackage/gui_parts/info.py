@@ -68,11 +68,11 @@ class InfoTab(SonicFrame, ttk.Frame):
         if self.root.winfo_width() == 540:
             self.root.geometry("1080x900")
             self.serial_monitor = SerialMonitor(self.root, self.serial, self.sonicamp)
-            self.serial_monitor.grid(row=0, column=1, padx=5, pady=5)
+            self.serial_monitor.pack(padx=5, pady=5, side=tk.RIGHT)
             
         else:
             self.root.geometry("540x900")
-            self.serial_monitor.grid_forget()
+            self.serial_monitor.pack_forget()
     
     def build_for_catch(self) -> None:
         pass
@@ -88,8 +88,8 @@ class SerialMonitor(SonicFrame, ttk.Frame):
         SonicFrame.__init__(self, root, root, serial, sonicamp)
         ttk.Frame.__init__(self, root, *args, **kwargs)
         
-        self.grid_propagate(0)
-        self.root.grid_propagate(0)
+        self.pack_propagate()
+        self.root.pack_propagate()
         
         self.configure(height=10, width=10)
         
