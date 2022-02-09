@@ -127,9 +127,9 @@ class TopFrame(SonicFrame, ttk.Frame):
         
         
     def disconnect(self):
-        self.serial.disconnect()
         self.root.sonic_agent.pause()
-        self.root.gui_builder.pause()
+        self.serial.disconnect()
+        # self.root.gui_builder.pause()
         self.build4notconnected()
         
     def build_for_catch(self) -> None:

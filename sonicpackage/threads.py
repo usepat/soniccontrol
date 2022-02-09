@@ -1,9 +1,8 @@
 import threading
 import queue
-import enum
 from abc import ABC, abstractclassmethod
 import tkinter as tk
-from data import Status, Command
+from data import Command
 
 
 class SonicThread(ABC, threading.Thread):

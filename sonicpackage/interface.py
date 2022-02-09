@@ -10,15 +10,15 @@ from ttkbootstrap.constants import *
 sys.path.append('C://Users//Ilja Golovanov//Documents//dev//SonicWipeControl//sonicpackage')
 sys.path.append('C://Users//iljag//Documents//sh_doc//WfH//python_gui//new_gui//sonicpackage')
 
-from gui_parts.home import HomeTab
-from gui_parts.scripting import ScriptingTab
-from gui_parts.connection import ConnectionTab
-from gui_parts.info import InfoTab
-from gui_parts.skeleton import SonicFrame
-from utils.img import resize_img
-from connection import SerialConnection
-from data import SonicAmp, Modules, Status, Command
-from threads import GuiBuilder, SonicAgent
+from sonicpackage.gui_parts.home import HomeTab
+from sonicpackage.gui_parts.scripting import ScriptingTab
+from sonicpackage.gui_parts.connection import ConnectionTab
+from sonicpackage.gui_parts.info import InfoTab
+from sonicpackage.gui_parts.skeleton import SonicFrame
+from sonicpackage.utils.img import resize_img
+from sonicpackage.connection import SerialConnection
+from sonicpackage.data import SonicAmp, Modules, Status, Command
+from sonicpackage.threads import GuiBuilder, SonicAgent
 
 
 class Root(tk.Tk):
@@ -120,9 +120,9 @@ class Root(tk.Tk):
         """Checks out Amp every 100 milliseconds and makes sure that the thread is working correctly"""
         
         self.process_incoming()
-        if not self.serial.is_connected and self.sonic_agent.paused == True:
+        if not self.serial.is_connected and self.sonic_agent.paused == False:
             self.sonic_agent.pause()
-            self.gui_builder.pause()
+            # self.gui_builder.pause()
         if not self.serial.is_connected:
             self.build_for_not_connected()
         self.after(100, self.checkout_amp)
