@@ -1,2 +1,2 @@
-from sonicpackage import *
+from soniccontrol.sonicpackage import *
 from soniccontrol.core import *

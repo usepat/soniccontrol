@@ -64,6 +64,14 @@ class Command(enum.Enum):
         return self.value + f"{str(value)}\n".encode()
 
 
+# class CatchConfig(enum.Enum):
+#     """
+#     The CatchConfig class is a solution against hardcoded values.
+#     In case something changes in the SonicCatch, those values are
+#     hardcoded here and therefore can be changed much more easily    
+#     """
+#     FRQ_RANGE_START
+
 
 @dataclass
 class Modules:
