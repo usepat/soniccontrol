@@ -23,7 +23,7 @@ class Root(tk.Tk):
         style = Style(theme="sandstone") 
 
         # default font in GUI and custom Fonts
-        default_font = font.nametofont("TkDefaultFont")
+        default_font: font.Font = font.nametofont("TkDefaultFont")
         default_font.configure(family='Arial', size=12) 
         self.option_add("*Font", default_font)
 
@@ -50,5 +50,22 @@ class Root(tk.Tk):
         self.graph_img: object = ImageTk.PhotoImage(resize_img('sonicpackage//pictures//graph.png', (100,100)))
         self.led_green_img: object = ImageTk.PhotoImage(resize_img('sonicpackage//pictures//led_green.png', (35,35)))
         self.led_red_img: object = ImageTk.PhotoImage(resize_img('sonicpackage//pictures//led_red.png', (35,35)))
+
+        # Children of Root
+        self.notebook: object = NotebookMenu(self, self.serial, self.sonicamp)
+        self.status_frame: object = StatusFrame(self, self.serial, self.sonicamp, style='dark.TFrame')
+
+
+
+
+class NotebookMenu():
+
+    def __init__(self) -> None:
+        pass
+
+class StatusFrameCatch():
+
+    def __init__(self) -> None:
+        pass
         
         
