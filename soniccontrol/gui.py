@@ -3,11 +3,14 @@ import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 from abc import ABC, abstractmethod
 
-import pictures as pics
 
 class HomeTabCatch(ttk.Frame):
     
-    def __init__(self, *args, **kwargs) -> None:
+    @property
+    def root(self) -> tk.Tk:
+        return self._root
+    
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
         """
         The Hometab is a child tab of the Notebook menu and is resonsible
         for handling and updating its children
@@ -15,8 +18,8 @@ class HomeTabCatch(ttk.Frame):
         The frame is, again, splittet up into two main frames that organize
         its children
         """
-        super().__init__(*args, **kwargs)
-        
+        super().__init__(parent, *args, **kwargs)
+        self._root: tk.Tk = root
         self.config(height=200, width=200)
         
         # Here follows the code regarding the TOPFRAME
@@ -26,7 +29,7 @@ class HomeTabCatch(ttk.Frame):
         # Frq frame
         self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
         self.frq_spinbox: ttk.Spinbox = ttk.Spinbox(
-            self.freq_frame,
+            self.frq_frame,
             from_=0, #!Here
             increment=100,
             to=0, #! Here
@@ -72,11 +75,10 @@ class HomeTabCatch(ttk.Frame):
             self.topframe,
             text='Sonic measure',
             style='dark.TButton',
-            image=None, #!Here
+            image=self.root.graph_img, #!Here
             compound=tk.TOP,
             command=None) #!Here
     
-        
         
         self.botframe: ttk.Frame = ttk.Frame(self)
         
@@ -102,7 +104,7 @@ class HomeTabCatch(ttk.Frame):
         self.khz_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.mhz_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
-        self.freq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.frq_rng_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.set_frq_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
         
@@ -125,9 +127,15 @@ class HomeTabCatch(ttk.Frame):
 
 class ScriptingTab(ttk.Frame):
     """ Scripting tab of the GUI """
-    def __init__(self, *args, **kwargs) -> None:
+    
+    @property
+    def root(self) -> tk.Tk:
+        return self._root
+    
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
         """ Declare all children """
-        super().__init__(*args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
+        self._root = root
         self.config(height=200, width=200)
         
         self.button_frame: ttk.Frame = ttk.Frame(self)
@@ -136,7 +144,7 @@ class ScriptingTab(ttk.Frame):
             text='Run',
             style='success.TButton',
             width=11,
-            image=pics.play_img,
+            image=self.root.play_img,
             compound=tk.RIGHT,
             command=self.read_file,)
         
@@ -168,11 +176,12 @@ class ScriptingTab(ttk.Frame):
             mode=ttkb.INDETERMINATE,
             orient=ttkb.HORIZONTAL,
             bootstyle=ttkb.DARK,
-            text=self.current_task)
+            text=None) #!here
         
         self.scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self,
-            text='Script Editor',
+            text="Script Editor",
+            style="dark.TLabelframe",
             padding=(5,5,5,5),)
         
         self.scripttext: tk.Text = tk.Text(
@@ -193,6 +202,7 @@ class ScriptingTab(ttk.Frame):
         self.show_log_console: ttk.Button = ttk.Button(
             self.scripting_frame,
             text='Show log console',
+            style="secondary.TButton",
             command=self.show_console)
         
         self.script_guide_btn = ttk.Button(
@@ -210,7 +220,7 @@ class ScriptingTab(ttk.Frame):
         self.prev_task_label = ttk.Label(
             self.task_frame,
             font=None, #!here
-            textvariable=self.prev_task,)
+            textvariable=None,) #!here
         
         self.static_curtask_label = ttk.Label(
             self.task_frame,
@@ -220,7 +230,7 @@ class ScriptingTab(ttk.Frame):
         self.cur_task_label = ttk.Label(
             self.task_frame,
             font=None, #!here
-            textvariable=self.current_task)
+            textvariable=None) #!heres
 
     def publish(self):
         # Button Frame
@@ -257,21 +267,21 @@ class ScriptingTab(ttk.Frame):
         self.start_script_btn.configure(
             text='Run',
             style='success.TButton',
-            image=pics.play_img,
+            image=self.root.play_img,
             command=self.read_file)
     
     def read_file(self):
         self.start_script_btn.configure(
             text='Stop',
             style='danger.TButton',
-            image=pics.pause_img,
+            image=self.root.pause_img,
             command=self.close_file)
 
 
 
 class ScriptingGuide(tk.Toplevel):
     
-    def __init__(self, root, *args, **kwargs):
+    def __init__(self, root: tk.Tk, *args, **kwargs):
         super().__init__(*args, **kwargs)
         pass
     
@@ -279,8 +289,13 @@ class ScriptingGuide(tk.Toplevel):
 
 class ConnectionTab(ttk.Frame):
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @property
+    def root(self) -> tk.Tk:
+        return self._root
+    
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self._root = root
         
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
         self.heading_frame: ttk.Frame = ttk.Frame(self.topframe)
@@ -300,7 +315,10 @@ class ConnectionTab(ttk.Frame):
         
         self.control_frame = ttk.Frame(self.topframe)
         
-        self.connect_button = ttkb.Button(self.control_frame, width = 10)
+        self.connect_button = ttkb.Button(
+            self.control_frame, 
+            width = 10,
+            style="success.TButton")
         
         self.ports_menue = ttk.Combobox(
             master=self.control_frame,
@@ -313,7 +331,7 @@ class ConnectionTab(ttk.Frame):
         self.refresh_button = ttkb.Button(
             self.control_frame, 
             bootstyle="secondary-outline",
-            image=pics.refresh_img, 
+            image=self.root.refresh_img, 
             command = self.refresh)
         
         self.botframe: ttk.Frame = ttk.Frame(self)
@@ -347,9 +365,13 @@ class InfoTab(ttk.Frame):
         "\n"
         "(c) usePAT G.m.b.H\n")
     
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        
+    @property
+    def root(self) -> tk.Tk:
+        return self._root
+    
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
+        super().__init__(parent, *args, **kwargs)
+        self._root = root
         self.soniccontrol_logo_frame: ttk.Frame = ttk.Frame(self)
         self.soniccontrol_logo1 = ttk.Label(
             self.soniccontrol_logo_frame,
