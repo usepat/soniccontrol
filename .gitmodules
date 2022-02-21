@@ -1,0 +1,3 @@
+[submodule "soniccontrol/sonicpackage"]
+	path = soniccontrol/sonicpackage
+	url = https://bitbucket.org/stefangroup/sonicpackage/src/main/sonicpackage/
