@@ -6,7 +6,7 @@ from ttkbootstrap import Style
 
 from fonts import *
 from pictures import *
-from gui import HomeTabCatch
+from gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab
 
 class Root(tk.Tk):
     """
@@ -46,7 +46,7 @@ class Root(tk.Tk):
 
 
 
-class NotebookMenu():
+class NotebookMenu(ttk.Notebook):
 
     def __init__(self) -> None:
         """ Notebook object """
@@ -54,8 +54,30 @@ class NotebookMenu():
         self['style'] = 'light.TNotebook'
         
         self.hometab: HomeTabCatch = HomeTabCatch(self)
+        self.scriptingtab: ScriptingTab = ScriptingTab(self)
+        self.connectiontab: ConnectionTab = ConnectionTab(self)
+        self.infotab: InfoTab = InfoTab(self)
         
-
+    def publish_for_catch(self) -> None:
+        """ Builds children and displayes menue for a soniccatch """
+        self.add(self.hometab, text="Home")
+        self.add(self.scriptingtab, text="Scripting")
+        self.add(self.connectiontab, "Connection")
+        self.add(self.infotab, "Info")
+        self.select(self.connectiontab)
+        self.pack(padx=5, pady=5)
+        
+    def disable_children(self) -> None:
+        """ Disables childen and selects connection tab (case: not connected)"""
+        for child in self.children.values():
+            if child != self.connectiontab:
+                self.tab(child, state=tk.DISABLED)
+        self.select(self.connectiontab)
+    
+    def enable_children(self) -> None:
+        """ Enables all children """
+        for child in self.children.values():
+            self.tab(child, state=tk.NORMAL)
 
 
 class StatusFrameCatch(ttk.Frame):

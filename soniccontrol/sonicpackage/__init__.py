@@ -1,1 +1,0 @@
-from sonicpackage.amp import *
