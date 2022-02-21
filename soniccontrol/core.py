@@ -293,9 +293,14 @@ class StatusFrameWipe(ttk.Frame):
 
 class SerialMonitor(ttk.Frame):
     
+    @property
+    def root(self) -> Root:
+        return self._root
+    
     def __init__(self, root: Root, *args, **kwargs) -> None:
-        pass
-
+        super().__init__(root, *args, **kwargs)
+        self._root: Root = root
+        
 
 
 class SonicMeasure(ttk.Frame):

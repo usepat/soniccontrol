@@ -77,7 +77,7 @@ class HomeTabCatch(ttk.Frame):
             style='dark.TButton',
             image=self.root.graph_img, #!Here
             compound=tk.TOP,
-            command=None) #!Here
+            command=self.root.publish_sonicmeasure)
     
         
         self.botframe: ttk.Frame = ttk.Frame(self)
@@ -396,8 +396,8 @@ class InfoTab(ttk.Frame):
         self.dev_btn = ttk.Button(
             self.controlframe,
             text='I\'m a developer...',
-            command=self.serial_monitor,
-            style='outline.TButton')
+            command=self.root.publish_serial_monitor,
+            style='outline.dark.TButton')
         
     def publish(self) -> None:
         self.soniccontrol_logo1.grid(row=0, column=0)
@@ -405,10 +405,8 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
         self.info_label.pack()
         self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
+        self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
         self.controlframe.pack()
     
     def open_manual(self) -> None:
-        pass
-    
-    def serial_monitor(self) -> None:
         pass
