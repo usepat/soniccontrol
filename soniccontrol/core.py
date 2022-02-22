@@ -63,7 +63,7 @@ class Root(tk.Tk):
         self.mainframe: ttk.Frame = ttk.Frame(self)
         self.notebook: NotebookMenu = NotebookMenu(self.mainframe, self)
         self.status_frame: StatusFrameCatch = StatusFrameCatch(self.mainframe, self, style='dark.TFrame')
-    
+        
         self.notebook.publish_for_catch()
         self.status_frame.publish()
         self.mainframe.grid(row=0, column=0)

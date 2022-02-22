@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 from abc import ABC, abstractmethod
@@ -50,9 +51,12 @@ class HomeTabCatch(ttk.Frame):
         
         # kHz MHz Frame
         self.frq_rng_frame: ttk.Label = ttk.Label(self.control_frame)
+        self.radiobtn_val: tk.IntVar = tk.IntVar()
         self.khz_button: ttkb.Radiobutton = ttkb.Radiobutton(
             self.frq_rng_frame,
             text='KHz',
+            value='khz',
+            variable=self.radiobtn_val,
             bootstyle='dark-outline-toolbutton',
             width=12,
             command=None) #! Here
@@ -60,6 +64,8 @@ class HomeTabCatch(ttk.Frame):
         self.mhz_button: ttkb.Radiobutton = ttkb.Radiobutton(
             self.frq_rng_frame,
             text='MHz',
+            value='mhz',
+            variable=self.radiobtn_val,
             bootstyle='dark-outline-toolbutton',
             width=12,
             command=None) #! Here
@@ -136,6 +142,12 @@ class ScriptingTab(ttk.Frame):
         """ Declare all children """
         super().__init__(parent, *args, **kwargs)
         self._root = root
+        self.script_filepath: str
+        self.save_filename: str
+        self.logfilename: str
+        self.logfilepath: str
+        self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
+        
         self.config(height=200, width=200)
         
         self.button_frame: ttk.Frame = ttk.Frame(self)
@@ -254,14 +266,20 @@ class ScriptingTab(ttk.Frame):
     def show_console(self):
         pass
     
-    def load_file(self):
-        pass
+    def load_file(self) -> None:
+        self.script_filepath = filedialog.askopenfilename(defaultextension='.txt', filetypes=self._filetypes)
+        with open(self.script_filepath, 'r') as f:
+            self.scripttext.delete(1, tk.END)
+            self.scripttext.insert(tk.INSERT, f.read())
     
-    def save_file(self):
-        pass
+    def save_file(self) -> None:
+        self.save_filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
+        with open(self.save_filename, 'w') as f:
+            f.write(self.scripttext.get(1, tk.END))
     
-    def open_logfile(self):
-        pass
+    def open_logfile(self) -> None:
+        self.logfilepath = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
+        
     
     def close_file(self):
         self.start_script_btn.configure(
