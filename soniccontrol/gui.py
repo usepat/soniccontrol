@@ -21,6 +21,8 @@ class HomeTabCatch(ttk.Frame):
         """
         super().__init__(parent, *args, **kwargs)
         self._root: tk.Tk = root
+        self._input_frq: tk.StringVar = tk.IntVar()
+        
         self.config(height=200, width=200)
         
         # Here follows the code regarding the TOPFRAME
@@ -330,7 +332,6 @@ class ConnectionTab(ttk.Frame):
             padding=(0,0,10,10),
             font= "QTypeOT-CondBook 30 bold")
         
-        
         self.control_frame = ttk.Frame(self.topframe)
         
         self.connect_button = ttkb.Button(
@@ -350,9 +351,35 @@ class ConnectionTab(ttk.Frame):
             self.control_frame, 
             bootstyle="secondary-outline",
             image=self.root.refresh_img, 
-            command = self.refresh)
+            command = self.root.serial.get_ports)
         
         self.botframe: ttk.Frame = ttk.Frame(self)
+    
+    def attach_data(self) -> None:
+        self.heading1["text"] = self.root.sonicamp.data.amp_type[:4]
+        self.heading2["text"] = self.root.sonicamp.data.amp_type[5:]
+        self.connect_button.config(
+            bootstyle="danger",
+            text="Disconnect",
+            command=self.disconnect,)
+        self.ports_menue.config(
+            textvariable=self.root.port,
+            values=self.root.serial.device_list,)
+        
+    def abolish_data(self) -> None:
+        self.heading1["text"] = "not"
+        self.heading2["text"] = "connected"
+        self.connect_button.config(
+            bootstyle="success",
+            text="Connect",
+            command=self.root.__reinit__,)
+        self.ports_menue.config(
+            textvariable=self.root.port,
+            values=self.root.serial.device_list,)
+        
+        
+    def disconnect(self) -> None:
+        pass
     
     def publish(self) -> None:
         for child in self.children.values():
@@ -367,9 +394,6 @@ class ConnectionTab(ttk.Frame):
         self.connect_button.grid(row=0, column=2,columnspan=1, pady=10, padx=5, sticky=tk.NSEW)
         self.refresh_button.grid(row=0, column=3 ,columnspan=1,  pady=10, padx=5, sticky=tk.NSEW)
         self.control_frame.pack(padx=10, pady=20, expand=True)
-    
-    def refresh(self) -> None:
-        pass
     
 
 

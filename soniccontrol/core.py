@@ -5,9 +5,11 @@ from tkinter import font
 from ttkbootstrap import Style
 from PIL.ImageTk import PhotoImage
 
+import sonicpackage as sp
 from soniccontrol.fonts import *
 import soniccontrol.pictures as pics
 from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab
+from soniccontrol.helpers import logger
 
 class Root(tk.Tk):
     """
@@ -23,7 +25,11 @@ class Root(tk.Tk):
     
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-
+        
+        self.serial: sp.SerialConnection = sp.SerialConnection()
+        self.sonicamp: sp.SonicAmp
+        self.port: tk.StringVar = tk.StringVar()
+        
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
         self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
@@ -62,21 +68,56 @@ class Root(tk.Tk):
         # Children of Root
         self.mainframe: ttk.Frame = ttk.Frame(self)
         self.notebook: NotebookMenu = NotebookMenu(self.mainframe, self)
-        self.status_frame: StatusFrameCatch = StatusFrameCatch(self.mainframe, self, style='dark.TFrame')
-        
+        self.status_frame_catch: StatusFrameCatch = StatusFrameCatch(self.mainframe, self, style='dark.TFrame')
+        self.status_frame_wipe: StatusFrameWipe = StatusFrameWipe(self.mainframe, self, style='dark.TFrame')
+
+        self.__reinit__()
+    
+    def __reinit__(self) -> None:
+        if self.serial.auto_connect():
+            type_ = self.serial.send_and_get(sp.Command.GET_TYPE)
+            if type_ == "soniccatch":
+                self.sonicamp = sp.SonicCatch(self.serial)
+                self.publish_for_catch()
+            elif type_ == "sonicwipe":
+                self.sonicamp = sp.SonicWipe(self.serial)
+                self.publish_for_wipe()
+                
+        else:
+            self.publish_disconnected()
+            
+    def publish_disconnected(self) -> None:
+        """ Publishes children in case there is no connection """
+        self.notebook.publish_disconnected()
+        self.mainframe.grid(row=0, column=0)
+    
+    def publish_for_catch(self) -> None:
+        """ Publishes children in case there is a connection to a soniccatch """
         self.notebook.publish_for_catch()
-        self.status_frame.publish()
+        self.status_frame_catch.publish()
+        self.mainframe.grid(row=0, column=0)
+    
+    def publish_for_wipe(self) -> None:
+        """ Publishes children in case there is a connection to a sonicwipe """
+        self.notebook.publish_for_wipe()
+        self.status_frame_wipe.publish()
         self.mainframe.grid(row=0, column=0)
     
     def publish_sonicmeasure(self) -> None:
+        """ Publishes the sonicmeasure frame """
         if self.adjust_dimensions():
             self.sonicmeasure: SonicMeasure = SonicMeasure(self)
     
     def publish_serial_monitor(self) -> None:
+        """ Publishes the serial monitor """
         if self.adjust_dimensions():
             self.serial_monitor: SerialMonitor = SerialMonitor(self)
     
     def adjust_dimensions(self) -> bool:
+        """ 
+        Adjust heights and widths for the window 
+        Returns true, if the window is in smaller width usage mode
+        """
         if self.winfo_width() == Root.MIN_WIDTH:
             self.geometry(f"{Root.MAX_WIDTH}x{Root.MIN_HEIGHT}")
             return True
@@ -111,7 +152,22 @@ class NotebookMenu(ttk.Notebook):
         self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
         self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
         self.select(self.connectiontab)
+        self.connectiontab.attach_data()
         self.publish_children()
+        self.pack(padx=5, pady=5)
+        
+    def publish_for_wipe(self) -> None:
+        pass
+    
+    def publish_disconnected(self) -> None:
+        self.add(self.hometab, text="Home", image=self.root.home_img, compound=tk.TOP)
+        self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
+        self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
+        self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
+        self.select(self.connectiontab)
+        self.connectiontab.abolish_data()
+        self.publish_children()
+        self.disable_children()
         self.pack(padx=5, pady=5)
         
     def publish_children(self) -> None:
@@ -266,12 +322,12 @@ class StatusFrameCatch(ttk.Frame):
 
 class StatusFrameWipe(ttk.Frame):
     
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
         """
         Statusframe object, that is used in case the GUI is
         connected to a SonicWipe
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
         
         # Is being splittet into two main frames
         self.meter_frame: ttk.Frame = ttk.Frame(self)

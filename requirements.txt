@@ -1,0 +1,4 @@
+Pillow==9.0.1
+pyglet==1.5.21
+ttkbootstrap==1.7.2
+git+https://iljag00:YQT2ftAf6b2Serrd9aR5@bitbucket.org/stefangroup/sonicpackage.git#egg=sonicpackage
