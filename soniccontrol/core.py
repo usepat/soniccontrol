@@ -1,3 +1,4 @@
+from cgitb import lookup
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
@@ -5,7 +6,8 @@ from tkinter import font
 from ttkbootstrap import Style
 from PIL.ImageTk import PhotoImage
 
-import sonicpackage as sp
+from sonicpackage import Command, Status, Modules, SonicCatch, SonicWipe, SerialConnection, SonicAmp
+from sonicpackage.threads import SonicThread
 from soniccontrol.fonts import *
 import soniccontrol.pictures as pics
 from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab
@@ -26,9 +28,10 @@ class Root(tk.Tk):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         
-        self.serial: sp.SerialConnection = sp.SerialConnection()
-        self.sonicamp: sp.SonicAmp
+        self.serial: SerialConnection = SerialConnection()
+        self.sonicamp: SonicAmp
         self.port: tk.StringVar = tk.StringVar()
+        self.frq: tk.IntVar = tk.IntVar()
         
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -70,35 +73,51 @@ class Root(tk.Tk):
         self.notebook: NotebookMenu = NotebookMenu(self.mainframe, self)
         self.status_frame_catch: StatusFrameCatch = StatusFrameCatch(self.mainframe, self, style='dark.TFrame')
         self.status_frame_wipe: StatusFrameWipe = StatusFrameWipe(self.mainframe, self, style='dark.TFrame')
-
+        logger.info("initialized children and root")
         self.__reinit__()
     
     def __reinit__(self) -> None:
         if self.serial.auto_connect():
-            type_ = self.serial.send_and_get(sp.Command.GET_TYPE)
-            if type_ == "soniccatch":
-                self.sonicamp = sp.SonicCatch(self.serial)
-                self.publish_for_catch()
-            elif type_ == "sonicwipe":
-                self.sonicamp = sp.SonicWipe(self.serial)
-                self.publish_for_wipe()
-                
+            logger.info("autoconnected")
+            self.decide_action()
+        elif self.port.get()[:3] == ('COM' or '/de'):
+            logger.info("manually connected")
+            self.decide_action()
         else:
+            logger.info("Did not detect connection")
             self.publish_disconnected()
             
+    def attach_data(self) -> None:
+        for child in self.children.values():
+            child.attach_data()
+    
+    def decide_action(self) -> None:
+        type_ = self.serial.send_and_get(Command.GET_TYPE)
+        if type_ == "soniccatch":
+            logger.info("Found soniccatch")
+            self.sonicamp = SonicCatch(self.serial)
+            self.publish_for_catch()
+        elif type_ == "sonicwipe":
+            logger.info("Found sonicwipe")
+            self.sonicamp = SonicWipe(self.serial)
+            self.publish_for_wipe()
+    
     def publish_disconnected(self) -> None:
         """ Publishes children in case there is no connection """
+        logger.info("publishing for disconnected")
         self.notebook.publish_disconnected()
         self.mainframe.grid(row=0, column=0)
     
     def publish_for_catch(self) -> None:
         """ Publishes children in case there is a connection to a soniccatch """
+        logger.info("publishing for catch")
         self.notebook.publish_for_catch()
         self.status_frame_catch.publish()
         self.mainframe.grid(row=0, column=0)
     
     def publish_for_wipe(self) -> None:
         """ Publishes children in case there is a connection to a sonicwipe """
+        logger.info("publishing for wipe")
         self.notebook.publish_for_wipe()
         self.status_frame_wipe.publish()
         self.mainframe.grid(row=0, column=0)
@@ -144,6 +163,11 @@ class NotebookMenu(ttk.Notebook):
         self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
         self.connectiontab: ConnectionTab = ConnectionTab(self, self.root)
         self.infotab: InfoTab = InfoTab(self, self.root)
+        logger.info("initialized children and object")
+        
+    def attach_data(self) -> None:
+        for child in self.children.values():
+            child.attach_data()
         
     def publish_for_catch(self) -> None:
         """ Builds children and displayes menue for a soniccatch """
@@ -305,17 +329,22 @@ class StatusFrameCatch(ttk.Frame):
         self.sig_status_label["text"] = "Signal OFF"
         
     
-    def attach_data(self, sonicamp: object) -> None:
+    def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
-        self.frq_meter["amountused"] = 0
-        self.gain_meter["amountused"] = 0
-        self.temp_meter["amountused"] = 0
+        logger.info("attaching data")
+        self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000
+        self.gain_meter["amountused"] = self.root.sonicamp.status.gain
+        self.temp_meter["amountused"] = 36 #!Here
         
         self.con_status_label["image"] = self.root.led_red_img
-        self.con_status_label["text"] = "Not Connected"
+        self.con_status_label["text"] = "connected"
         
         self.sig_status_label["image"] = self.root.led_red_img
-        self.sig_status_label["text"] = "Signal OFF"
+        if self.root.sonicamp.status.frequency:
+            self.sig_status_label["text"] = "Signal ON"
+        else:
+            self.sig_status_label["text"] = "Signal OFF"
+            
     
 
 
@@ -363,3 +392,42 @@ class SonicMeasure(ttk.Frame):
     
     def __init__(self, root: Root, *args, **kwargs) -> None:
         pass
+
+
+
+class SonicAgent(SonicThread):
+    """
+    The SonicAgent sends the Command.GET_STATUS command to get the status data
+    from a SonicAmp. It puts that data into the inhereted queue.
+    Furthermore it has access to the serial connection through it's parameters
+    """
+    @property
+    def root(self):
+        """ The serial communication object """
+        return self._root
+    
+    def __init__(self, root: Root) -> None:
+        super().__init__(self)
+        self._root: Root = root
+        
+    
+    def run(self) -> None:
+        while True:
+            # in case the thread is paused
+            with self.pause_cond:
+                while self.paused:
+                    self.pause_cond.wait()
+                
+                # thread should not try to do something if paused
+                # in case not paused
+                if self.root.serial.is_open:
+                    try:
+                        data_str = self.serial.send_and_get(Command.GET_STATUS)
+                        if len(data_str) > 1:
+                            status = Status.construct_from_str(data_str)
+                            if status != self.root.sonicamp.status:
+                                self.root.update_idletasks()
+                    except:
+                        print("Not the value I was looking for")
+                else:
+                    self.pause_cond.wait()

@@ -1,9 +1,11 @@
+from cmath import log
 import tkinter as tk
 from tkinter import filedialog
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 from abc import ABC, abstractmethod
-
+from sonicpackage import Command
+from .helpers import logger
 
 class HomeTabCatch(ttk.Frame):
     
@@ -33,13 +35,13 @@ class HomeTabCatch(ttk.Frame):
         self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
         self.frq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self.frq_frame,
-            from_=0, #!Here
+            from_=600000,
             increment=100,
-            to=0, #! Here
-            textvariable=None, #!Here
+            to=6000000,
+            textvariable=self.root.frq, 
             width=16,
             style='dark.TSpinbox',
-            command=None) #!here
+            command=lambda: self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
         
         self.scroll_digit: ttk.Spinbox = ttk.Spinbox(
             self.frq_frame,
@@ -61,7 +63,7 @@ class HomeTabCatch(ttk.Frame):
             variable=self.radiobtn_val,
             bootstyle='dark-outline-toolbutton',
             width=12,
-            command=None) #! Here
+            command=lambda: self.root.serial.sc_sendget(Command.SET_KHZ, self.root.thread))
         
         self.mhz_button: ttkb.Radiobutton = ttkb.Radiobutton(
             self.frq_rng_frame,
@@ -70,42 +72,51 @@ class HomeTabCatch(ttk.Frame):
             variable=self.radiobtn_val,
             bootstyle='dark-outline-toolbutton',
             width=12,
-            command=None) #! Here
+            command=lambda: self.root.serial.sc_sendget(Command.SET_MHZ, self.root.thread)) 
         
         # Other children of the control frame
         self.set_frq_button: ttk.Button = ttk.Button(
             self.control_frame,
             text='Set Frequency',
-            command=None, #!Here
+            command=lambda: self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread),
             bootstyle='dark.TButton',)
         
         self.sonic_measure_button: ttk.Button = ttk.Button(
             self.topframe,
             text='Sonic measure',
             style='dark.TButton',
-            image=self.root.graph_img, #!Here
+            image=self.root.graph_img,
             compound=tk.TOP,
             command=self.root.publish_sonicmeasure)
     
         
         self.botframe: ttk.Frame = ttk.Frame(self)
         
-        self.us_on_button: object = ttk.Button(
+        self.us_on_button: ttk.Button = ttk.Button(
             self.botframe,
             text='ON',
             style='success.TButton',
             width=10,
-            command=None) #!Here
+            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread))
         
         self.us_off_button: object = ttk.Button(
             self.botframe,
             text='OFF',
             style='danger.TButton',
             width=10,
-            command=None) #! Here
+            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread))
+        
+        logger.info("Initialized children and object")
+        
+    def attach_data(self) -> None:
+        logger.info("Attaching data to Hometab")
+        self.frq_spinbox.config(from_=self.root.sonicamp.frq_range_start,
+                                to=self.root.sonicamp.frq_range_stop)
+        
             
     def publish(self) -> None:
         """ Function to build children of this frame """
+        logger.ingo("Publishing hometab")
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
@@ -245,9 +256,12 @@ class ScriptingTab(ttk.Frame):
             self.task_frame,
             font=None, #!here
             textvariable=None) #!heres
+        
+        logger.info("Initialized scripting tab")
 
     def publish(self):
         # Button Frame
+        logger.info("Publishing scripting tab")
         self.button_frame.pack(anchor=tk.N, side=tk.LEFT, padx=5, pady=5)
         for child in self.button_frame.winfo_children():
             child.pack(side=tk.TOP, padx=5, pady=5)
@@ -273,6 +287,7 @@ class ScriptingTab(ttk.Frame):
         with open(self.script_filepath, 'r') as f:
             self.scripttext.delete(1, tk.END)
             self.scripttext.insert(tk.INSERT, f.read())
+        logger.info("Loaded file")
     
     def save_file(self) -> None:
         self.save_filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
@@ -341,8 +356,8 @@ class ConnectionTab(ttk.Frame):
         
         self.ports_menue = ttk.Combobox(
             master=self.control_frame,
-            textvariable=None, #!Here
-            values=None, #!Here
+            textvariable=self.root.port,
+            values=None,
             width=7,
             style = "dark.TCombobox",
             state=tk.READABLE)
@@ -351,13 +366,16 @@ class ConnectionTab(ttk.Frame):
             self.control_frame, 
             bootstyle="secondary-outline",
             image=self.root.refresh_img, 
-            command = self.root.serial.get_ports)
+            command = self.refresh)
         
         self.botframe: ttk.Frame = ttk.Frame(self)
+        
+        logger.info("Initialized children and object connectiontab")
     
     def attach_data(self) -> None:
-        self.heading1["text"] = self.root.sonicamp.data.amp_type[:4]
-        self.heading2["text"] = self.root.sonicamp.data.amp_type[5:]
+        logger.info("attaching data")
+        self.heading1["text"] = self.root.sonicamp.amp_type[:4]
+        self.heading2["text"] = self.root.sonicamp.amp_type[5:]
         self.connect_button.config(
             bootstyle="danger",
             text="Disconnect",
@@ -367,6 +385,7 @@ class ConnectionTab(ttk.Frame):
             values=self.root.serial.device_list,)
         
     def abolish_data(self) -> None:
+        logger.info("abolishing data")
         self.heading1["text"] = "not"
         self.heading2["text"] = "connected"
         self.connect_button.config(
@@ -376,12 +395,15 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue.config(
             textvariable=self.root.port,
             values=self.root.serial.device_list,)
-        
-        
+
+    def refresh(self) -> None:
+        self.ports_menue['values'] = self.root.serial.get_ports()
+    
     def disconnect(self) -> None:
         pass
     
     def publish(self) -> None:
+        logger.info("Publishing connectiontab")
         for child in self.children.values():
             child.pack()
         
@@ -441,7 +463,10 @@ class InfoTab(ttk.Frame):
             command=self.root.publish_serial_monitor,
             style='outline.dark.TButton')
         
+        logger.info("Initialized children and object infotab")
+        
     def publish(self) -> None:
+        logger.info("publishing infotab")
         self.soniccontrol_logo1.grid(row=0, column=0)
         self.soniccontrol_logo2.grid(row=0, column=1)
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)

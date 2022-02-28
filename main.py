@@ -6,7 +6,5 @@ from sonicpackage import SonicCatch
 # sc.set_gain(40)
 # sc.ramp(1000000, 6000000, 10000, 0.2)
 
-
-
 gui = sc.Root()
 gui.mainloop()
