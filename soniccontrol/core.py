@@ -54,6 +54,15 @@ class Root(tk.Tk):
             family="QTypeOT-CondMedium", 
             size=12, 
             weight=tk.font.BOLD)
+        
+        self.qtype30: font.Font = font.Font(
+            family="QTypeOT-CondLight",
+            size=30,)
+        
+        self.qtype30b: font.Font = font.Font(
+            family="QTypeOT-CondBook",
+            size=30,
+            weight=tk.font.BOLD)        
 
         #Defining images
         self.refresh_img: PhotoImage = PhotoImage(pics.refresh_img)
@@ -74,6 +83,11 @@ class Root(tk.Tk):
         self.status_frame_catch: StatusFrameCatch = StatusFrameCatch(self.mainframe, self, style='dark.TFrame')
         self.status_frame_wipe: StatusFrameWipe = StatusFrameWipe(self.mainframe, self, style='dark.TFrame')
         logger.info("initialized children and root")
+        
+        self.thread: SonicThread = SonicAgent(self)
+        self.thread.setDaemon(True)
+        self.thread.start()
+        
         self.__reinit__()
     
     def __reinit__(self) -> None:
@@ -88,11 +102,14 @@ class Root(tk.Tk):
             self.publish_disconnected()
             
     def attach_data(self) -> None:
-        for child in self.children.values():
-            child.attach_data()
+        if self.sonicamp.amp_type == 'soniccatch':
+            self.notebook.attach_data()
+            self.status_frame_catch.attach_data()
+        elif self.sonicamp.amp_type == 'sonicwipe':
+            pass
     
     def decide_action(self) -> None:
-        type_ = self.serial.send_and_get(Command.GET_TYPE)
+        type_: str = self.serial.send_and_get(Command.GET_TYPE)
         if type_ == "soniccatch":
             logger.info("Found soniccatch")
             self.sonicamp = SonicCatch(self.serial)
@@ -111,6 +128,7 @@ class Root(tk.Tk):
     def publish_for_catch(self) -> None:
         """ Publishes children in case there is a connection to a soniccatch """
         logger.info("publishing for catch")
+        self.attach_data()
         self.notebook.publish_for_catch()
         self.status_frame_catch.publish()
         self.mainframe.grid(row=0, column=0)
@@ -332,19 +350,21 @@ class StatusFrameCatch(ttk.Frame):
     def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
         logger.info("attaching data")
+        print("geht los")
         self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000
         self.gain_meter["amountused"] = self.root.sonicamp.status.gain
         self.temp_meter["amountused"] = 36 #!Here
         
-        self.con_status_label["image"] = self.root.led_red_img
+        self.con_status_label["image"] = self.root.led_green_img
         self.con_status_label["text"] = "connected"
         
-        self.sig_status_label["image"] = self.root.led_red_img
         if self.root.sonicamp.status.frequency:
             self.sig_status_label["text"] = "Signal ON"
+            self.sig_status_label["image"] = self.root.led_green_img
         else:
             self.sig_status_label["text"] = "Signal OFF"
-            
+            self.sig_status_label["image"] = self.root.led_red_img
+        print("geschafft")
     
 
 
@@ -407,7 +427,7 @@ class SonicAgent(SonicThread):
         return self._root
     
     def __init__(self, root: Root) -> None:
-        super().__init__(self)
+        super().__init__()
         self._root: Root = root
         
     
@@ -420,14 +440,14 @@ class SonicAgent(SonicThread):
                 
                 # thread should not try to do something if paused
                 # in case not paused
-                if self.root.serial.is_open:
-                    try:
-                        data_str = self.serial.send_and_get(Command.GET_STATUS)
-                        if len(data_str) > 1:
-                            status = Status.construct_from_str(data_str)
-                            if status != self.root.sonicamp.status:
-                                self.root.update_idletasks()
-                    except:
-                        print("Not the value I was looking for")
+                if self.root.serial.is_connected:
+                    data_str = self.root.serial.send_and_get(Command.GET_STATUS)
+                    if len(data_str) > 1:
+                        status: Status = Status.construct_from_str(data_str)
+                        if status != self.root.sonicamp.status:
+                            self.root.sonicamp.status = status
+                            self.root.update_idletasks()
+                            self.root.attach_data()
+                                
                 else:
                     self.pause_cond.wait()

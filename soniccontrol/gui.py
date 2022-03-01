@@ -116,7 +116,7 @@ class HomeTabCatch(ttk.Frame):
             
     def publish(self) -> None:
         """ Function to build children of this frame """
-        logger.ingo("Publishing hometab")
+        logger.info("Publishing hometab")
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
@@ -311,6 +311,9 @@ class ScriptingTab(ttk.Frame):
             style='danger.TButton',
             image=self.root.pause_img,
             command=self.close_file)
+    
+    def attach_data(self) -> None:
+        pass
 
 
 
@@ -340,12 +343,12 @@ class ConnectionTab(ttk.Frame):
         self.heading1 = ttk.Label(
             self.heading_frame, 
             padding=(10,0,0,10),
-            font = "QTypeOT-CondLight 30")
+            font = self.root.qtype30)
         
         self.heading2 = ttk.Label(
             self.heading_frame,
             padding=(0,0,10,10),
-            font= "QTypeOT-CondBook 30 bold")
+            font = self.root.qtype30b)
         
         self.control_frame = ttk.Frame(self.topframe)
         
@@ -374,7 +377,8 @@ class ConnectionTab(ttk.Frame):
     
     def attach_data(self) -> None:
         logger.info("attaching data")
-        self.heading1["text"] = self.root.sonicamp.amp_type[:4]
+        self.subtitle["text"] = "You are connected to"
+        self.heading1["text"] = self.root.sonicamp.amp_type[:5]
         self.heading2["text"] = self.root.sonicamp.amp_type[5:]
         self.connect_button.config(
             bootstyle="danger",
@@ -386,6 +390,7 @@ class ConnectionTab(ttk.Frame):
         
     def abolish_data(self) -> None:
         logger.info("abolishing data")
+        self.subtitle["text"] = "Please connect to a SonicAmp system"
         self.heading1["text"] = "not"
         self.heading2["text"] = "connected"
         self.connect_button.config(
@@ -476,4 +481,7 @@ class InfoTab(ttk.Frame):
         self.controlframe.pack()
     
     def open_manual(self) -> None:
+        pass
+    
+    def attach_data(self) -> None:
         pass
