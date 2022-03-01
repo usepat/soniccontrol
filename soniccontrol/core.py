@@ -1,6 +1,7 @@
-from cgitb import lookup
+import time
 import tkinter as tk
 import tkinter.ttk as ttk
+from turtle import width
 import ttkbootstrap as ttkb
 from tkinter import font
 from ttkbootstrap import Style
@@ -10,7 +11,7 @@ from sonicpackage import Command, Status, Modules, SonicCatch, SonicWipe, Serial
 from sonicpackage.threads import SonicThread
 from soniccontrol.fonts import *
 import soniccontrol.pictures as pics
-from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab
+from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab, ScrollableFrame
 from soniccontrol.helpers import logger
 
 class Root(tk.Tk):
@@ -32,6 +33,7 @@ class Root(tk.Tk):
         self.sonicamp: SonicAmp
         self.port: tk.StringVar = tk.StringVar()
         self.frq: tk.IntVar = tk.IntVar()
+        self.gain: tk.IntVar = tk.IntVar()
         
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -93,9 +95,11 @@ class Root(tk.Tk):
     def __reinit__(self) -> None:
         if self.serial.auto_connect():
             logger.info("autoconnected")
+            self.engine()
             self.decide_action()
         elif self.port.get()[:3] == ('COM' or '/de'):
             logger.info("manually connected")
+            self.engine()
             self.decide_action()
         else:
             logger.info("Did not detect connection")
@@ -108,7 +112,17 @@ class Root(tk.Tk):
         elif self.sonicamp.amp_type == 'sonicwipe':
             pass
     
+    def engine(self) -> None:
+        while self.thread.queue.qsize():
+            self.sonicamp.status = self.thread.queue.get(0)
+            self.update_idletasks()
+            self.attach_data()
+        self.after(100, self.engine)
+    
     def decide_action(self) -> None:
+        init_status: Status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
+        self.frq: int = init_status.frequency
+        self.gain: int = init_status.gain
         type_: str = self.serial.send_and_get(Command.GET_TYPE)
         if type_ == "soniccatch":
             logger.info("Found soniccatch")
@@ -149,6 +163,7 @@ class Root(tk.Tk):
         """ Publishes the serial monitor """
         if self.adjust_dimensions():
             self.serial_monitor: SerialMonitor = SerialMonitor(self)
+            self.serial_monitor.grid(row=0, column=1, rowspan=2, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
     
     def adjust_dimensions(self) -> bool:
         """ 
@@ -194,6 +209,7 @@ class NotebookMenu(ttk.Notebook):
         self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
         self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
         self.select(self.connectiontab)
+        self.enable_children()
         self.connectiontab.attach_data()
         self.publish_children()
         self.pack(padx=5, pady=5)
@@ -350,7 +366,6 @@ class StatusFrameCatch(ttk.Frame):
     def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
         logger.info("attaching data")
-        print("geht los")
         self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000
         self.gain_meter["amountused"] = self.root.sonicamp.status.gain
         self.temp_meter["amountused"] = 36 #!Here
@@ -364,7 +379,6 @@ class StatusFrameCatch(ttk.Frame):
         else:
             self.sig_status_label["text"] = "Signal OFF"
             self.sig_status_label["image"] = self.root.led_red_img
-        print("geschafft")
     
 
 
@@ -396,7 +410,67 @@ class StatusFrameWipe(ttk.Frame):
         
 
 
-class SerialMonitor(ttk.Frame):
+class SerialMonitor(ttkb.Frame):
+    
+    HELPTEXT: str = '''
+Welcome to the Help Page for SonicAmp Systems!
+There are a variety  of commands to control your SonicAmp
+under you liking.  Typically, a  command that sets up the 
+SonicAmp System starts with an <!>, whereas commands that
+start  with a  <?> ask  the  System  about  something and 
+outputs this data.
+
+Here is a list for all commands:
+
+   COMMAND:          DESCRIPTION:
+   !SERIAL           Set your SonicAmp to the serial mode
+   !f=<Frequency>    Sets the frequency you want to operate on
+   !g=<Gain>         Sets the Gain to your liking
+   !cur1=<mAmpere>   Sets the current of the 1st Interface
+   !cur2=<mAmpere>   Sets the current of the 2nd Interface
+   !KHZ              Sets the Frequency range to KHz
+   !MHZ              Sets the Frequency range to MHz
+   !ON               Starts the output of the signal
+   !OFF              Ends the Output of the Signal, Auto 
+                     and Wipe
+   !WIPE             [WIPE ONLY] Starts the wiping process 
+                     with indefinite cycles
+   !WIPE=<Cycles>    [WIPE ONLY] Starts the wiping process 
+                     with definite cycles
+   !prot=<Protocol>  Sets the protocol of your liking
+   !rang=<Frequency> Sets the frequency range for protocols
+   !step=<Range>     Sets the step range for protocols
+   !sing=<Seconds>   Sets the time, the Signal should be 
+                     turned
+                     on during protocols
+   !paus=<Seconds>   Sets the time, the Signal shoudl be 
+                     turned off during protocols
+   !AUTO             Starts the Auto mode
+   !atf1=<Frequency> Sets the Frequency for the 1st protocol
+   !atf2=<Frequency> Sets the Frequency for the 2nd protocol
+   !atf3=<Frequency> Sets the Frequency for the 3rd protocol
+   !tust=<Hertz>     Sets the tuning steps in Hz
+   !tutm=<mseconds>  Sets the tuning pause in milliseconds
+   !scst=<Hertz>     Sets the scaning steps in Hz    
+   
+   ?                 Prints information on the progress State
+   ?info             Prints information on the software
+   ?type             Prints the type of the SonicAmp System
+   ?freq             Prints the current frequency
+   ?gain             Prints the current gain
+   ?temp             Prints the current temperature of the 
+                     PT100 element
+   ?tpcb             Prints the current temperature in the 
+                     case
+   ?cur1             Prints the Current of the 1st Interface                     
+   ?cur2             Prints the Current of the 2nd Interface
+   ?sens             Prints the values of the measurement chip
+   ?prot             Lists the current protocol
+   ?list             Lists all available protocols
+   ?atf1             Prints the frequency of the 1st protocol                     
+   ?atf2             Prints the frequency of the 2nd protocol                     
+   ?atf3             Prints the frequency of the 3rd protocol
+   ?pval             Prints values used for the protocol\n\n'''
     
     @property
     def root(self) -> Root:
@@ -406,6 +480,78 @@ class SerialMonitor(ttk.Frame):
         super().__init__(root, *args, **kwargs)
         self._root: Root = root
         
+        self.command_history: list[str] = []
+        self.index_history: int = -1
+        
+        self.output_frame: ttk.Frame = ttk.LabelFrame(self, text='OUTPUT')
+        self.text_frame: ttk.Frame = ScrollableFrame(self.output_frame)
+        self.input_frame: ttk.Frame = ttk.LabelFrame(self, text='INPUT')
+        self.init_text: str = self.root.serial.serial.read(255).decode('ASCII')
+        
+        self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style='dark.TEntry')
+        self.command_field.bind('<Return>', self.send_command)
+        self.command_field.bind('<Up>', self.history_up)
+        self.command_field.bind('<Down>', self.history_down)
+        
+        self.send_button: ttk.Button = ttk.Button(self.input_frame, text='Send', command=self.send_command, style='success.TButton')
+        self.send_button.bind('<Button-1>', self.send_command)
+        
+        self.command_field.pack(anchor=tk.S, padx=10, pady=10, fill=tk.X, expand=True, side=tk.LEFT)
+        self.send_button.pack(anchor=tk.S, padx=10, pady=10, side=tk.RIGHT)
+        self.text_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
+        
+        self.input_frame.pack(anchor=tk.S, fill=tk.X, side=tk.BOTTOM)
+        self.output_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP)
+        
+        # self.text_frame.pack_propagate(False)
+
+        self.insert_text('Type <help> to output the command-cheatsheet!')
+        self.insert_text('Type <clear> to clear the screen!')
+        self.insert_text(SerialMonitor.HELPTEXT)
+        
+        self.output_frame.pack_propagate(False)
+        
+    
+    def send_command(self, event) -> None:
+        command: str = self.command_field.get()
+        self.command_history.insert(0, command)
+        self.insert_text(f">>> {command}")
+        
+        if command == 'clear':
+            for child in self.text_frame.children.values():
+                child.destroy()
+        elif command == 'help':
+            self.insert_text(SerialMonitor.HELPTEXT)
+        elif command == 'exit':
+            self.destroy()
+        else:
+            self.root.thread.pause()
+            self.root.serial.serial.write(command.encode())
+            time.sleep(0.3)
+            answer: str = self.root.serial.serial.read(255)
+            self.insert_text(answer)
+            self.root.thread.resume()
+        
+        self.command_field.delete(0, tk.END)
+    
+    def insert_text(self, text: str) -> None:
+        ttk.Label(self.output_frame, text=text, font=("Consolas", 12)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
+    
+    def history_up(self) -> None:
+        if self.index_history != len(self.command_history) - 1:
+            self.index_history += 1
+            self.command_field.delete(0, tk.END)
+            self.command_field.insert(0, self.command_history[self.index_history])
+            
+    def history_down(self) -> None:
+        if self.index_history !=  -1:
+            self.index_history -= 1
+            self.command_field.delete(0, tk.END)
+            self.command_field.insert(0, self.command_history[self.index_history])
+        else:
+            self.command_field.delete(0, tk.END)
+            
+            
 
 
 class SonicMeasure(ttk.Frame):
@@ -445,9 +591,6 @@ class SonicAgent(SonicThread):
                     if len(data_str) > 1:
                         status: Status = Status.construct_from_str(data_str)
                         if status != self.root.sonicamp.status:
-                            self.root.sonicamp.status = status
-                            self.root.update_idletasks()
-                            self.root.attach_data()
-                                
+                            self.queue.put(status)
                 else:
                     self.pause_cond.wait()

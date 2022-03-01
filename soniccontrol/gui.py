@@ -53,6 +53,29 @@ class HomeTabCatch(ttk.Frame):
             style='secondary.TSpinbox',
             command=self.set_scrolldigit)
         
+        # Gain Frame
+        self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
+        self.gain_spinbox: ttk.Spinbox = ttk.Spinbox(
+            self.gain_frame,
+            from_=0,
+            increment=10,
+            to=150,
+            textvariable=self.root.gain,
+            width=5,
+            style='dark.TSpinbox',
+            command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+        
+        self.gain_scale: ttk.Scale = ttk.Scale(
+            self.gain_frame,
+            from_=0,
+            to=150,
+            name='gainscale',
+            length=180,
+            orient=tk.HORIZONTAL,
+            style="primary.TScale",
+            variable=self.root.gain,)
+            #command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+        
         # kHz MHz Frame
         self.frq_rng_frame: ttk.Label = ttk.Label(self.control_frame)
         self.radiobtn_val: tk.IntVar = tk.IntVar()
@@ -75,20 +98,27 @@ class HomeTabCatch(ttk.Frame):
             command=lambda: self.root.serial.sc_sendget(Command.SET_MHZ, self.root.thread)) 
         
         # Other children of the control frame
-        self.set_frq_button: ttk.Button = ttk.Button(
+        self.set_val_btn: ttk.Button = ttk.Button(
             self.control_frame,
-            text='Set Frequency',
-            command=lambda: self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread),
+            text='Set Frequency and Gain',
+            command=self.set_val,
             bootstyle='dark.TButton',)
         
+        self.sonic_measure_frame: ttk.Frame = ttk.Frame(self.topframe)
         self.sonic_measure_button: ttk.Button = ttk.Button(
-            self.topframe,
+            self.sonic_measure_frame,
             text='Sonic measure',
             style='dark.TButton',
             image=self.root.graph_img,
             compound=tk.TOP,
             command=self.root.publish_sonicmeasure)
-    
+        
+        self.serial_monitor_btn: ttk.Button = ttk.Button(
+            self.sonic_measure_frame,
+            text='Serial Monitor',
+            style='secondary.TButton',
+            width=12,
+            command=self.root.publish_serial_monitor,)
         
         self.botframe: ttk.Frame = ttk.Frame(self)
         
@@ -107,12 +137,18 @@ class HomeTabCatch(ttk.Frame):
             command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread))
         
         logger.info("Initialized children and object")
-        
+
+    def set_val(self) -> None:
+        self.root.serial.sc_sendget(
+            [Command.SET_GAIN + int(self.root.gain.get()),
+            Command.SET_FRQ + self.root.frq.get(),], 
+            self.root.thread)
+            
     def attach_data(self) -> None:
         logger.info("Attaching data to Hometab")
-        self.frq_spinbox.config(from_=self.root.sonicamp.frq_range_start,
-                                to=self.root.sonicamp.frq_range_stop)
-        
+        self.frq_spinbox.config(
+            from_=self.root.sonicamp.frq_range_start,
+            to=self.root.sonicamp.frq_range_stop)
             
     def publish(self) -> None:
         """ Function to build children of this frame """
@@ -120,15 +156,21 @@ class HomeTabCatch(ttk.Frame):
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
+        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        
         self.khz_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.mhz_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
         self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.frq_rng_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.set_frq_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
+        self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5)
         
         self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sonic_measure_button.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
+        self.sonic_measure_frame.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
 
         self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
@@ -485,3 +527,25 @@ class InfoTab(ttk.Frame):
     
     def attach_data(self) -> None:
         pass
+
+
+class ScrollableFrame(ttk.Frame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+        canvas = tk.Canvas(self)
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = ttk.Frame(canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
