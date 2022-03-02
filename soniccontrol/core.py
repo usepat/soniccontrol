@@ -1,9 +1,12 @@
+from cmath import exp
 import time
 import tkinter as tk
 import tkinter.ttk as ttk
-from turtle import width
+from matplotlib.figure import Figure
+from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import ttkbootstrap as ttkb
 from tkinter import font
+from tkinter import filedialog
 from ttkbootstrap import Style
 from PIL.ImageTk import PhotoImage
 
@@ -34,6 +37,7 @@ class Root(tk.Tk):
         self.port: tk.StringVar = tk.StringVar()
         self.frq: tk.IntVar = tk.IntVar()
         self.gain: tk.IntVar = tk.IntVar()
+        self.frq_range: tk.StringVar = tk.StringVar()
         
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -84,6 +88,8 @@ class Root(tk.Tk):
         self.notebook: NotebookMenu = NotebookMenu(self.mainframe, self)
         self.status_frame_catch: StatusFrameCatch = StatusFrameCatch(self.mainframe, self, style='dark.TFrame')
         self.status_frame_wipe: StatusFrameWipe = StatusFrameWipe(self.mainframe, self, style='dark.TFrame')
+        self.serial_monitor: SerialMonitor = SerialMonitor(self)
+        
         logger.info("initialized children and root")
         
         self.thread: SonicThread = SonicAgent(self)
@@ -121,11 +127,13 @@ class Root(tk.Tk):
     
     def decide_action(self) -> None:
         init_status: Status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
-        self.frq: int = init_status.frequency
-        self.gain: int = init_status.gain
+        self.frq.set(init_status.frequency)
+        self.gain.set(init_status.gain)
         type_: str = self.serial.send_and_get(Command.GET_TYPE)
         if type_ == "soniccatch":
             logger.info("Found soniccatch")
+            self.serial.send_and_get(Command.SET_MHZ)
+            self.frq_range.set('mhz')
             self.sonicamp = SonicCatch(self.serial)
             self.publish_for_catch()
         elif type_ == "sonicwipe":
@@ -137,7 +145,7 @@ class Root(tk.Tk):
         """ Publishes children in case there is no connection """
         logger.info("publishing for disconnected")
         self.notebook.publish_disconnected()
-        self.mainframe.grid(row=0, column=0)
+        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
     def publish_for_catch(self) -> None:
         """ Publishes children in case there is a connection to a soniccatch """
@@ -145,25 +153,24 @@ class Root(tk.Tk):
         self.attach_data()
         self.notebook.publish_for_catch()
         self.status_frame_catch.publish()
-        self.mainframe.grid(row=0, column=0)
+        # self.mainframe.grid(row=0, column=0, sticky=tk.NSEW)
+        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
     def publish_for_wipe(self) -> None:
         """ Publishes children in case there is a connection to a sonicwipe """
         logger.info("publishing for wipe")
         self.notebook.publish_for_wipe()
         self.status_frame_wipe.publish()
-        self.mainframe.grid(row=0, column=0)
+        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
     def publish_sonicmeasure(self) -> None:
         """ Publishes the sonicmeasure frame """
-        if self.adjust_dimensions():
-            self.sonicmeasure: SonicMeasure = SonicMeasure(self)
+        self.sonic_measure: SonicMeasure = SonicMeasure(self)
     
     def publish_serial_monitor(self) -> None:
         """ Publishes the serial monitor """
         if self.adjust_dimensions():
-            self.serial_monitor: SerialMonitor = SerialMonitor(self)
-            self.serial_monitor.grid(row=0, column=1, rowspan=2, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+            self.serial_monitor.pack(anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH)
     
     def adjust_dimensions(self) -> bool:
         """ 
@@ -225,7 +232,7 @@ class NotebookMenu(ttk.Notebook):
         self.select(self.connectiontab)
         self.connectiontab.abolish_data()
         self.publish_children()
-        self.disable_children()
+        self.disable_children(self.connectiontab)
         self.pack(padx=5, pady=5)
         
     def publish_children(self) -> None:
@@ -233,12 +240,12 @@ class NotebookMenu(ttk.Notebook):
         for child in self.children.values():
             child.publish()
                 
-    def disable_children(self) -> None:
+    def disable_children(self, focused_child: ttk.Frame) -> None:
         """ Disables childen and selects connection tab (case: not connected)"""
         for child in self.children.values():
-            if child != self.connectiontab:
+            if child != focused_child:
                 self.tab(child, state=tk.DISABLED)
-        self.select(self.connectiontab)
+        self.select(focused_child)
     
     def enable_children(self) -> None:
         """ Enables all children for use """
@@ -362,7 +369,6 @@ class StatusFrameCatch(ttk.Frame):
         self.sig_status_label["image"] = self.root.led_red_img
         self.sig_status_label["text"] = "Signal OFF"
         
-    
     def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
         logger.info("attaching data")
@@ -484,9 +490,24 @@ Here is a list for all commands:
         self.index_history: int = -1
         
         self.output_frame: ttk.Frame = ttk.LabelFrame(self, text='OUTPUT')
-        self.text_frame: ttk.Frame = ScrollableFrame(self.output_frame)
+        
+        container: ttk.Frame = ttk.Frame(self.output_frame)
+        self.canvas: tk.Canvas = tk.Canvas(container)
+        scrollbar: ttk.Scrollbar = ttk.Scrollbar(container, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollable_frame: ttk.Frame = ttk.Frame(self.canvas)
+        
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda x: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
+        
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor=tk.NW)
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        
+        container.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
         self.input_frame: ttk.Frame = ttk.LabelFrame(self, text='INPUT')
-        self.init_text: str = self.root.serial.serial.read(255).decode('ASCII')
         
         self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style='dark.TEntry')
         self.command_field.bind('<Return>', self.send_command)
@@ -498,7 +519,6 @@ Here is a list for all commands:
         
         self.command_field.pack(anchor=tk.S, padx=10, pady=10, fill=tk.X, expand=True, side=tk.LEFT)
         self.send_button.pack(anchor=tk.S, padx=10, pady=10, side=tk.RIGHT)
-        self.text_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
         
         self.input_frame.pack(anchor=tk.S, fill=tk.X, side=tk.BOTTOM)
         self.output_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP)
@@ -510,7 +530,6 @@ Here is a list for all commands:
         self.insert_text(SerialMonitor.HELPTEXT)
         
         self.output_frame.pack_propagate(False)
-        
     
     def send_command(self, event) -> None:
         command: str = self.command_field.get()
@@ -526,24 +545,25 @@ Here is a list for all commands:
             self.destroy()
         else:
             self.root.thread.pause()
-            self.root.serial.serial.write(command.encode())
+            self.root.serial.serial.write(f"{command}\n".encode())
             time.sleep(0.3)
             answer: str = self.root.serial.serial.read(255)
             self.insert_text(answer)
             self.root.thread.resume()
         
+        self.canvas.yview_moveto(2)
         self.command_field.delete(0, tk.END)
     
     def insert_text(self, text: str) -> None:
-        ttk.Label(self.output_frame, text=text, font=("Consolas", 12)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
+        ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
     
-    def history_up(self) -> None:
+    def history_up(self, event) -> None:
         if self.index_history != len(self.command_history) - 1:
             self.index_history += 1
             self.command_field.delete(0, tk.END)
             self.command_field.insert(0, self.command_history[self.index_history])
             
-    def history_down(self) -> None:
+    def history_down(self, event) -> None:
         if self.index_history !=  -1:
             self.index_history -= 1
             self.command_field.delete(0, tk.END)
@@ -554,11 +574,174 @@ Here is a list for all commands:
             
 
 
-class SonicMeasure(ttk.Frame):
+class SonicMeasure(tk.Toplevel):
+    
+    @property
+    def root(self) -> Root:
+        return self._root
+    
+    @property
+    def serial(self) -> SerialConnection:
+        return self._serial
     
     def __init__(self, root: Root, *args, **kwargs) -> None:
-        pass
+        super().__init__(root, *args, **kwargs)
+        self._root: Root = root
+        self._serial: SerialConnection = root.serial
+        self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
+        
+        self.title('SonicMeasure')
+        
+        self.start_frq: tk.IntVar = tk.IntVar(value=1900000)
+        self.stop_frq: tk.IntVar = tk.IntVar(value=2100000)
+        self.resolution: tk.IntVar = tk.IntVar(value=100)
+        self.gain: tk.IntVar = tk.IntVar(value=10)
+        
+        self.mainframe: ttk.Frame = ttk.Frame(self)
+        self.fig_frame: ttk.Frame = ttk.Frame(self.mainframe, height=450, width=700)
+        self.fig_frame.pack(anchor=tk.N, expand=True, fill=tk.X, padx=3, pady=3, side=tk.TOP)
+        
+        self.fig = Figure()
+        self.ax = self.fig.add_subplot(111)
+        self.fig.subplots_adjust(right=0.8)
+        
+        self.twin1 = self.ax.twinx()
+        self.twin2 = self.ax.twinx()
+        
+        self.twin2.spines['right'].set_position(("axes", 1.15))
+        
+        self.p1, = self.ax.plot([], [], "bo-", label="U$_{RMS}$ / mV")
+        self.p2, = self.twin1.plot([], [], "ro-", label="I$_{RMS}$ / mA")
+        self.p3, = self.twin2.plot([], [], "go-", label="Phase / °")
+        
+        self.ax.set_xlim(int(self.start_frq.get()), int(self.stop_frq.get()))
+        
+        self.ax.set_xlabel("Frequency / Hz")
+        self.ax.set_ylabel("U$_{RMS}$ / mV")
+        self.twin1.set_ylabel("I$_{RMS}$ / mA")
+        self.twin2.set_ylabel("Phase / °")
+        
+        self.ax.yaxis.label.set_color(self.p1.get_color())
+        self.twin1.yaxis.label.set_color(self.p2.get_color())
+        self.twin2.yaxis.label.set_color(self.p3.get_color())
+        
+        tkw = dict(size=4, width=1.5)
+        self.ax.tick_params(axis='y', colors=self.p1.get_color(), **tkw)
+        self.twin1.tick_params(axis='y', colors=self.p2.get_color(), **tkw)
+        self.twin2.tick_params(axis='y', colors=self.p3.get_color(), **tkw)
+        self.ax.tick_params(axis='x', **tkw)
+        
+        self.ax.legend(handles=[self.p1, self.p2, self.p3])
 
+
+        self.canvas = FigureCanvasTkAgg(self.fig, self.fig_frame)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self.fig_frame)
+
+        self.canvas._tkcanvas.pack(fill=tk.BOTH, expand=1)
+        
+        self.button_frame = ttk.Frame(self.mainframe)
+        
+        self.start_frq_label = ttk.Label(self.button_frame, text='Start Freq. [Hz]')
+        self.start_frq_label.pack(side=tk.LEFT)
+        
+        self.start_frq_entry = ttk.Entry(self.button_frame, 
+                                         width=8, 
+                                         textvariable=self.start_frq)
+        self.start_frq_entry.pack(padx=10, side=tk.LEFT)
+        
+        self.stop_frq_label = ttk.Label(self.button_frame, text='Stop Freq. [Hz]')
+        self.stop_frq_label.pack(ipadx=2, side=tk.LEFT)
+        
+        self.stop_frq_entry = ttk.Entry(self.button_frame, width=8, textvariable=self.stop_frq)
+        self.stop_frq_entry.pack(padx=10, side=tk.LEFT)
+        
+        self.res_label = ttk.Label(self.button_frame, text='Res. [Hz]')
+        self.res_label.pack(ipadx=2, side=tk.LEFT)
+        
+        self.res_entry = ttk.Entry(self.button_frame, width=5, textvariable=self.resolution)
+        self.res_entry.pack(padx=10, side=tk.LEFT)
+        
+        self.gain_label = ttk.Label(self.button_frame, text='Gain [%]')
+        self.gain_label.pack(ipadx=2, side=tk.LEFT)
+        
+        self.gain_entry = ttk.Entry(self.button_frame, width=3, textvariable = self.gain)
+        self.gain_entry.pack(padx=10, side=tk.LEFT)
+        
+        self.logging = ttk.Button(self.button_frame, text='Save', command=self.save_spectrum)
+        self.logging.pack(side=tk.RIGHT)
+        
+        self.stop_measure_btn = ttk.Button(self.button_frame, text='Stop', command=self.stop_measure)
+        self.stop_measure_btn.pack(side=tk.BOTTOM)
+        
+        self.start_measure_btn = ttk.Button(self.button_frame, text='Start', command=self.start_measure)
+        self.start_measure_btn.pack(side=tk.BOTTOM)
+        # self.button_frame.config(height='200', width='600')
+        self.button_frame.pack(expand=True, fill=tk.X, padx=3, pady=3, side=tk.TOP)
+        # self.mainframe.config(height='500', width='600')
+        self.mainframe.pack(side=tk.TOP)
+    
+    def start_measure(self) -> None:
+        self.root.thread.pause()
+        self.run: bool = True
+        
+        start: int = self.start_frq.get()
+        stop: int = self.stop_frq.get()
+        step: int = self.resolution.get()
+        
+        self.frequencies: list[int] = []
+        self.u_rms: list[int] = []
+        self.i_rms: list[int] = []
+        self.phase: list[int] = []
+        
+        self.ax.set_xlim(int(start), int(stop))
+        self.serial.send_and_get(Command.SET_GAIN + self.gain.get())
+        self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        self.serial.send_and_get(Command.SET_FLOW + f"{start};{stop};{step}")
+        
+        while self.run and self.serial.is_connected:
+            data_str: str = self.serial.get_answer()
+            if data_str == '':
+                continue
+            else:
+                data: list[int] = [int(val) for val in data_str.split(' ')]
+            print(data)
+            self.frequencies.append(data[0])
+            self.u_rms.append(data[1])
+            self.i_rms.append(data[2])
+            self.phase.append(data[3])
+            
+            self.p1.set_data(self.frequencies, self.u_rms)
+            self.p2.set_data(self.frequencies, self.i_rms)
+            self.p3.set_data(self.frequencies, self.phase)
+            self.fig.canvas.draw()
+            self.ax.set_ylim(
+                min(self.u_rms) - min(self.u_rms) * 0.4,
+                max(self.u_rms) + max(self.u_rms) * 0.2,)
+            self.twin1.set_ylim(
+                min(self.i_rms) - min(self.i_rms) * 0.4,
+                max(self.i_rms) + max(self.i_rms) * 0.2,)
+            self.twin2.set_ylim(
+                min(self.phase) - min(self.phase) * 0.4,
+                max(self.phase) + max(self.phase) * 0.2,)
+            self.fig.canvas.flush_events()
+            self.root.update()
+            time.sleep(0.1)     
+        
+        self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        self.root.thread.resume()
+        
+    def stop_measure(self) -> None:
+        self.run: bool = False   
+    
+    def save_spectrum(self):
+        self.filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
+        f = open(self.filename, 'w')
+        f.write("I-V-Phase Spectrum @ Gain: "+ self.gain.get() +" %\n")
+        f.write("Measurement time: "+self.measurementtime.isoformat()+"\n")
+        f.write("Frequency [Hz]"+"\t"+"Urms [V]"+"\t"+"Irms [mA]"+"\t"+"Phase [°]"+"\n")
+        for i in range(0, len(self.frequencies)):
+            f.write("{0}\t{1}\t{2}\t{3}\n".format(self.frequencies[i],self.u_rms[i], self.i_rms[i], self.phase[i]))
+        f.close()
 
 
 class SonicAgent(SonicThread):

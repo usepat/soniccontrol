@@ -1,5 +1,6 @@
 import soniccontrol as sc
 from sonicpackage import SonicCatch
+import tkinter as tk
 
 # sc: SonicCatch = SonicCatch.start()
 # sc.set_frq(1200000)
@@ -8,3 +9,4 @@ from sonicpackage import SonicCatch
 
 gui = sc.Root()
 gui.mainloop()
+
