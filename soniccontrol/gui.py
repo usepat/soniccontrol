@@ -7,6 +7,8 @@ import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 from abc import ABC, abstractmethod
 import time
+import subprocess
+import os
 from sonicpackage import Command, SerialConnection
 from .helpers import logger
 
@@ -536,120 +538,120 @@ class ScriptingGuide(tk.Toplevel):
         self.geometry("%dx%d+%d+%d" % (850, 500, x + dx, y))
         self.scriptText = scripttext
         # tk.Toplevel.__init__(self, master, **kw)
-        self.HelperFrame = ttk.Frame(self)
-        self.label_1 = ttk.Label(self.HelperFrame)
-        self.label_1.config(anchor='w', font='{Bahnschrift} 12 {}', justify='center', text='Command')
-        self.label_1.grid(column='0', columnspan='1', padx='20', pady='0', row='1')
-        self.label_2 = ttk.Label(self.HelperFrame)
-        self.label_2.config(font='{Bahnschrift} 12 {}', text='Arguments')
-        self.label_2.grid(column='1', padx='20', row='1')
-        self.label_3 = ttk.Label(self.HelperFrame)
-        self.label_3.config(font='{Bahnschrift} 12 {}', text='Description')
-        self.label_3.grid(column='2', padx='20', row='1')
-        self.HoldButton = ttk.Button(self.HelperFrame)
+        self.helper_frame = ttk.Frame(self)
+        
+        self.heading_command = ttk.Label(self.helper_frame, anchor='w', font='{Bahnschrift} 12 {}', justify='center', text='Command')
+        self.heading_command.grid(column='0', columnspan='1', padx='20', pady='0', row='1')
+        
+        self.heading_arg = ttk.Label(self.helper_frame, font='{Bahnschrift} 12 {}', text='Arguments')
+        self.heading_arg.grid(column='1', padx='20', row='1')
+        self.heading_description = ttk.Label(self.helper_frame)
+        self.heading_description.config(font='{Bahnschrift} 12 {}', text='Description')
+        self.heading_description.grid(column='2', padx='20', row='1')
+        self.HoldButton = ttk.Button(self.helper_frame)
         self.HoldButton.config(state='normal', text='hold', command = self.insertHold)
         self.HoldButton.grid(column='0', ipady='0', pady='5', row='2')
-        self.label_4 = ttk.Label(self.HelperFrame)
+        self.label_4 = ttk.Label(self.helper_frame)
         self.label_4.config(text='[1-100.000] in [seconds]')
         self.label_4.grid(column='1', padx='10', row='2')
-        self.label_5 = ttk.Label(self.HelperFrame)
+        self.label_5 = ttk.Label(self.helper_frame)
         self.label_5.config(text='Hold the last state for X seconds')
         self.label_5.grid(column='2', padx='10', row='2')
-        self.FreqButton = ttk.Button(self.HelperFrame)
+        self.FreqButton = ttk.Button(self.helper_frame)
         self.FreqButton.config(text='frequency', command = self.insertFrequency)
         self.FreqButton.grid(column='0', pady='5', row='3')
-        self.GainButton = ttk.Button(self.HelperFrame)
+        self.GainButton = ttk.Button(self.helper_frame)
         self.GainButton.config(text='gain', command = self.insertGain)
         self.GainButton.grid(column='0', pady='5', row='4')
-        self.kHzButton = ttk.Button(self.HelperFrame)
+        self.kHzButton = ttk.Button(self.helper_frame)
         self.kHzButton.config(text='setkHz', command = self.insertSetkHz)
         self.kHzButton.grid(column='0', pady='5', row='5')
-        self.MHzButton = ttk.Button(self.HelperFrame)
+        self.MHzButton = ttk.Button(self.helper_frame)
         self.MHzButton.config(text='setMHz', command = self.insertSetMHz)
         self.MHzButton.grid(column='0', pady='5', row='6')
-        self.OnButton = ttk.Button(self.HelperFrame)
+        self.OnButton = ttk.Button(self.helper_frame)
         self.OnButton.config(text='on', command = self.insertOn)
         self.OnButton.grid(column='0', pady='5', row='7')
-        self.OffButton = ttk.Button(self.HelperFrame)
+        self.OffButton = ttk.Button(self.helper_frame)
         self.OffButton.config(text='off', command = self.insertOff)
         self.OffButton.grid(column='0', pady='5', row='8')
-        self.StartLoopButton = ttk.Button(self.HelperFrame)
+        self.StartLoopButton = ttk.Button(self.helper_frame)
         self.StartLoopButton.config(text='startloop', command = self.insertStartloop)
         self.StartLoopButton.grid(column='0', pady='5', row='9')
-        self.EndLoopButton = ttk.Button(self.HelperFrame)
+        self.EndLoopButton = ttk.Button(self.helper_frame)
         self.EndLoopButton.config(text='endloop', command = self.insertEndloop)
         self.EndLoopButton.grid(column='0', pady='5', row='10')
-        self.RampButton = ttk.Button(self.HelperFrame)
+        self.RampButton = ttk.Button(self.helper_frame)
         self.RampButton.config(text='ramp', command = self.insertRamp)
         self.RampButton.grid(column='0', pady='5', row='11')
-        self.AutotuneButton = ttk.Button(self.HelperFrame)
+        self.AutotuneButton = ttk.Button(self.helper_frame)
         self.AutotuneButton.config(text='autotune', command = self.insertAutotune)
         self.AutotuneButton.grid(column='0', pady='5', row='12')
-        self.label_6 = ttk.Label(self.HelperFrame)
+        self.label_6 = ttk.Label(self.helper_frame)
         self.label_6.config(text='[50.000-1.200.000] for kHz in [Hz]\n [600.000-6.000.000] for MHz in [Hz]')
         self.label_6.grid(column='1', row='3')
-        self.label_7 = ttk.Label(self.HelperFrame)
+        self.label_7 = ttk.Label(self.helper_frame)
         self.label_7.config(text='Change to the indicated frequency in Hz')
         self.label_7.grid(column='2', padx='5', row='3')
-        self.label_8 = ttk.Label(self.HelperFrame)
+        self.label_8 = ttk.Label(self.helper_frame)
         self.label_8.config(text='[1-150] in [%]')
         self.label_8.grid(column='1', row='4')
-        self.label_9 = ttk.Label(self.HelperFrame)
+        self.label_9 = ttk.Label(self.helper_frame)
         self.label_9.config(text='Change to the selected gain in %')
         self.label_9.grid(column='2', row='4')
-        self.label_10 = ttk.Label(self.HelperFrame)
+        self.label_10 = ttk.Label(self.helper_frame)
         self.label_10.config(text='None')
         self.label_10.grid(column='1', row='5')
-        self.label_11 = ttk.Label(self.HelperFrame)
+        self.label_11 = ttk.Label(self.helper_frame)
         self.label_11.config(text='Change to the kHz range amplifier')
         self.label_11.grid(column='2', row='5')
-        self.label_12 = ttk.Label(self.HelperFrame)
+        self.label_12 = ttk.Label(self.helper_frame)
         self.label_12.config(text='None')
         self.label_12.grid(column='1', row='6')
-        self.label_13 = ttk.Label(self.HelperFrame)
+        self.label_13 = ttk.Label(self.helper_frame)
         self.label_13.config(text='Change to the MHz range amplifier')
         self.label_13.grid(column='2', row='6')
-        self.label_14 = ttk.Label(self.HelperFrame)
+        self.label_14 = ttk.Label(self.helper_frame)
         self.label_14.config(text='None')
         self.label_14.grid(column='1', row='7')
-        self.label_15 = ttk.Label(self.HelperFrame)
+        self.label_15 = ttk.Label(self.helper_frame)
         self.label_15.config(text='Activate US emission')
         self.label_15.grid(column='2', row='7')
-        self.label_16 = ttk.Label(self.HelperFrame)
+        self.label_16 = ttk.Label(self.helper_frame)
         self.label_16.config(text='None')
         self.label_16.grid(column='1', row='8')
-        self.label_17 = ttk.Label(self.HelperFrame)
+        self.label_17 = ttk.Label(self.helper_frame)
         self.label_17.config(text='Deactivate US emission')
         self.label_17.grid(column='2', row='8')
-        self.label_18 = ttk.Label(self.HelperFrame)
+        self.label_18 = ttk.Label(self.helper_frame)
         self.label_18.config(text='[2-10.000] as an [integer]')
         self.label_18.grid(column='1', row='9')
-        self.label_19 = ttk.Label(self.HelperFrame)
+        self.label_19 = ttk.Label(self.helper_frame)
         self.label_19.config(text='Start a loop for X times')
         self.label_19.grid(column='2', row='9')
-        self.label_20 = ttk.Label(self.HelperFrame)
+        self.label_20 = ttk.Label(self.helper_frame)
         self.label_20.config(text='None')
         self.label_20.grid(column='1', row='10')
-        self.label_21 = ttk.Label(self.HelperFrame)
+        self.label_21 = ttk.Label(self.helper_frame)
         self.label_21.config(text='End the loop here')
         self.label_21.grid(column='2', row='10')
-        self.label_24 = ttk.Label(self.HelperFrame)
+        self.label_24 = ttk.Label(self.helper_frame)
         self.label_24.config(text='start f [Hz], stop f [Hz], step size [Hz], delay [s]')
         self.label_24.grid(column='1', row='11')
-        self.label_23 = ttk.Label(self.HelperFrame)
+        self.label_23 = ttk.Label(self.helper_frame)
         self.label_23.config(text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps')
         self.label_23.grid(column='2', row='11')
-        self.label_26 = ttk.Label(self.HelperFrame)
+        self.label_26 = ttk.Label(self.helper_frame)
         self.label_26.config(text='None')
         self.label_26.grid(column='1', row='12')
-        self.label_25 = ttk.Label(self.HelperFrame)
+        self.label_25 = ttk.Label(self.helper_frame)
         self.label_25.config(text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.')
         self.label_25.grid(column='2', row='12')
-        self.label_22 = ttk.Label(self.HelperFrame)
+        self.label_22 = ttk.Label(self.helper_frame)
         self.label_22.config(text='To insert a function at the cursor position, click on the respective button', font=('TkDefaultFont', 11, 'bold'))
         self.label_22.grid(column='0', columnspan='3', padx='5', pady='5', row='13')
-        self.HelperFrame.config(height='250', width='400')
-        self.HelperFrame.pack(side='top')
+        self.helper_frame.config(height='250', width='400')
+        self.helper_frame.pack(side='top')
 
     def insertHold(self):
         self.scriptText.insert(self.scriptText.index(tk.INSERT), 'hold X\n')
@@ -733,6 +735,49 @@ class ConnectionTab(ttk.Frame):
             command = self.refresh)
         
         self.botframe: ttk.Frame = ttk.Frame(self)
+        # self.firmware_tree: ttk.Treeview = ttkb.Treeview(
+        #     self.botframe,
+        #     columns=("Title", "Value"),
+        #     style="dark.TTreeview",
+        #     height=3,
+        #     selectmode=None,)
+        # self.firmware_tree.column('Title',anchor='sw', width=80)
+        # self.firmware_tree.column('Value',anchor='sw', width=80)
+        # self.firmware_tree.heading('Title', text='Title', anchor='sw',)
+        # self.firmware_tree.heading('Value', text='Value', anchor='sw',)
+        self.firmware_frame: ttk.Labelframe = ttk.Labelframe(
+            self.botframe,
+            text='Firmware',)
+        
+        self.firmware_label: ttk.Label = ttk.Label(
+            self.firmware_frame,
+            justify=tk.CENTER,
+            style='dark.TLabel')
+        
+        self.flash_frame = ttk.Labelframe(
+            self.botframe, 
+            height=250, 
+            text='Update Firmware', 
+            width=200)
+        
+        self.file_entry = ttk.Button(
+            self.flash_frame, 
+            text="Specify path for Firmware file", 
+            width=20, 
+            style="dark.TButton",
+            command=self.hex_file_path_handler)
+        
+        self.hex_file_path = tk.StringVar()
+        
+        # self.firmware_progress_text = ttk.Label(
+        #     self, text="Uploading...", font=self.root.qtype12)
+        
+        self.upload_button = ttk.Button(
+            self.flash_frame, 
+            style='dark.TButton',
+            width=20,
+            text='Upload Firmware', 
+            command=self.upload_file)
         
         logger.info("Initialized children and object connectiontab")
     
@@ -748,6 +793,9 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue.config(
             textvariable=self.root.port,
             values=self.root.serial.device_list,)
+        self.firmware_label["text"] = self.root.sonicamp.firmware[0] #!Here
+        for child in self.flash_frame.children.values():
+            child.configure(state=tk.NORMAL)
         
     def abolish_data(self) -> None:
         logger.info("abolishing data")
@@ -761,12 +809,18 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue.config(
             textvariable=self.root.port,
             values=self.root.serial.device_list,)
+        self.firmware_label["text"] = ""
+        for child in self.flash_frame.children.values():
+            child.configure(state=tk.DISABLED)
 
     def refresh(self) -> None:
         self.ports_menue['values'] = self.root.serial.get_ports()
     
     def disconnect(self) -> None:
-        pass
+        self.abolish_data()
+        self.root.serial.disconnect()
+        self.root.publish_disconnected()
+        self.root.thread.pause()
     
     def publish(self) -> None:
         logger.info("Publishing connectiontab")
@@ -783,6 +837,43 @@ class ConnectionTab(ttk.Frame):
         self.refresh_button.grid(row=0, column=3 ,columnspan=1,  pady=10, padx=5, sticky=tk.NSEW)
         self.control_frame.pack(padx=10, pady=20, expand=True)
     
+        self.firmware_frame.grid(row=0, column=0, padx=10, pady=10)
+        self.firmware_label.pack()
+        self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
+        self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
+        self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
+    
+    def hex_file_path_handler(self):
+        self.hex_file_path = filedialog.askopenfilename(defaultextension=".hex", filetypes=(("HEX File", "*.hex"),))
+        if self.hex_file_path[-4:] == ".hex":
+            self.file_entry.config(style="success.TButton", text="File specified and validated")
+        else:
+            messagebox.showerror("Wrong File", "The specified file is not a validated firmware file. Please try again with a file that ends with the format \".hex\"")
+            self.file_entry.config(style="danger.TButton", text="File is not a firmware file")
+
+    def upload_file(self):
+        if self.root.serial.is_connected:
+            if self.hex_file_path:
+                port = self.ser.port
+                self.ser.close()
+                cur_dir = os.getcwd()
+                # self.firmware_progress_text.pack(padx=10, pady=10)
+                try:
+                    command = f"\"{cur_dir}/avrdude/avrdude.exe\" -v -patmega328p -carduino -P{port} -b115200 -D -Uflash:w:\"{self.hex_file_path}\":i"
+                    msgbox = messagebox.showwarning("Process about to start", "The program is about to flash a new firmware on your device, please do NOT disconnect or turn off your device during that process")
+                    if msgbox:
+                        output = subprocess.run(command, shell=True)
+                        self.file_entry.configure(style="dark.TButton", text="Specify the path for the Firmware file")
+                        # self.firmware_progress_text.pack_forget()
+                        self.connectPort(port)
+                    else:
+                        messagebox.showerror("Error", "Cancled the update")
+                except WindowsError:
+                    messagebox.showerror("Error", "Something went wrong, please try again. Maybe restart the device and the program")
+            else:
+                messagebox.showerror("Couldn't find file", "Please specify the path to the firmware file, before flashing your SonicAmp")
+        else:
+            messagebox.showerror("Error", "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.")
 
 
 
@@ -820,14 +911,14 @@ class InfoTab(ttk.Frame):
         self.controlframe = ttk.Frame(self)
         self.manual_btn = ttk.Button(
             self.controlframe,
-            text='Manual',
+            text='Help Manual',
             command=self.open_manual)
         
-        self.dev_btn = ttk.Button(
-            self.controlframe,
-            text='I\'m a developer...',
-            command=self.root.publish_serial_monitor,
-            style='outline.dark.TButton')
+        # self.dev_btn = ttk.Button(
+        #     self.controlframe,
+        #     text='I\'m a developer...',
+        #     command=self.root.publish_serial_monitor,
+        #     style='outline.dark.TButton')
         
         logger.info("Initialized children and object infotab")
         
@@ -838,7 +929,7 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
         self.info_label.pack()
         self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
-        self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
+        # self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
         self.controlframe.pack()
     
     def open_manual(self) -> None:
@@ -846,25 +937,3 @@ class InfoTab(ttk.Frame):
     
     def attach_data(self) -> None:
         pass
-
-
-class ScrollableFrame(ttk.Frame):
-    def __init__(self, container, *args, **kwargs):
-        super().__init__(container, *args, **kwargs)
-        canvas = tk.Canvas(self)
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
-        self.scrollable_frame = ttk.Frame(canvas)
-
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
-            )
-        )
-
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")

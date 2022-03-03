@@ -14,7 +14,7 @@ from sonicpackage import Command, Status, Modules, SonicCatch, SonicWipe, Serial
 from sonicpackage.threads import SonicThread
 from soniccontrol.fonts import *
 import soniccontrol.pictures as pics
-from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab, ScrollableFrame
+from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab
 from soniccontrol.helpers import logger
 
 class Root(tk.Tk):
@@ -101,8 +101,8 @@ class Root(tk.Tk):
     def __reinit__(self) -> None:
         if self.serial.auto_connect():
             logger.info("autoconnected")
-            self.engine()
             self.decide_action()
+            self.engine()
         elif self.port.get()[:3] == ('COM' or '/de'):
             logger.info("manually connected")
             self.engine()
@@ -129,12 +129,17 @@ class Root(tk.Tk):
         init_status: Status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
         self.frq.set(init_status.frequency)
         self.gain.set(init_status.gain)
+        
         type_: str = self.serial.send_and_get(Command.GET_TYPE)
         if type_ == "soniccatch":
             logger.info("Found soniccatch")
             self.serial.send_and_get(Command.SET_MHZ)
             self.frq_range.set('mhz')
             self.sonicamp = SonicCatch(self.serial)
+            # firmware: list = self.sonicamp.firmware[0].splitlines()
+            # self.notebook.connectiontab.firmware_tree.insert('', tk.END, values=("Company", firmware[1]))
+            # self.notebook.connectiontab.firmware_tree.insert('', tk.END, values=("Version", firmware[2]))
+            # self.notebook.connectiontab.firmware_tree.insert('', tk.END,values=("Number", firmware[3]))
             self.publish_for_catch()
         elif type_ == "sonicwipe":
             logger.info("Found sonicwipe")
@@ -145,6 +150,7 @@ class Root(tk.Tk):
         """ Publishes children in case there is no connection """
         logger.info("publishing for disconnected")
         self.notebook.publish_disconnected()
+        self.status_frame_catch.abolish_data()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
     def publish_for_catch(self) -> None:
@@ -537,7 +543,7 @@ Here is a list for all commands:
         self.insert_text(f">>> {command}")
         
         if command == 'clear':
-            for child in self.text_frame.children.values():
+            for child in self.scrollable_frame.children.values():
                 child.destroy()
         elif command == 'help':
             self.insert_text(SerialMonitor.HELPTEXT)

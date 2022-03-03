@@ -24,6 +24,6 @@ setuptools.setup(
     url="https://bitbucket.org/stefangroup/soniccontrol_new.git",
     packages=setuptools.find_packages(),
     classifiers=classifiers,
-    install_requires=['pyserial', 'Pillow', 'pyglet', 'ttkbootstrap', 'sonicpackage']
+    install_requires=['pyserial', 'Pillow', 'pyglet', 'ttkbootstrap', 'matplotlib', 'sonicpackage']
 )
 
