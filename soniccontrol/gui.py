@@ -1,16 +1,54 @@
+from ast import arg
 import datetime
 from distutils import command
+import enum
 import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import tkinter.ttk as ttk
+from matplotlib import style
+from pyparsing import col
 import ttkbootstrap as ttkb
 from abc import ABC, abstractmethod
 import time
 import subprocess
 import os
-from sonicpackage import Command, SerialConnection
+from sonicpackage import Command, SerialConnection, Status
 from .helpers import logger
+
+
+
+class ScriptCommand(enum.Enum):
+    
+    SET_FRQ: str = "frequency XXXXXXXX\n"
+    SET_GAIN: str = "gain XXX\n"
+    SET_KHZ: str = "setkHz\n"
+    SET_MHZ: str = "setMHz\n"
+    SET_SIGNAL_ON: str = "on\n"
+    SET_SIGNAL_OFF: str = "off\n"
+    SET_AUTO: str = "autotune\n"
+    SET_HOLD: str = "hold X\n"
+    STARTLOOP: str = "startloop X\n"
+    ENDLOOP: str = "endloop\n"
+    SET_RAMP: str = "ramp XXXXXXX,XXXXXXX,XXXX,XX\n"
+    # SET_WIPE: str = ""
+    # SET_PROT: str = ""
+    # SET_PROT_RANGE: str = ""
+    # SET_PROT_STEP: str =""
+    # SET_PROT_TIME_ON: str =""
+    # SET_PROT_TIME_OFF: str =""
+    # SET_PROT_FRQ1: str = ""
+    # SET_PROT_FRQ2: str = ""
+    # SET_PROT_FRQ3: str = ""
+    # SET_TUNING_STEP: str = ""
+    # SET_TUNING_PAUSE: str = ""
+    # SET_SCANNING_STEP: str = ""
+    # SET_FLOW: str = ""
+    # SET_CURRENT1: str = ""
+    # SET_CURRENT2: str = ""
+    # SET_SERIAL: str = ""
+
+
 
 class HomeTabCatch(ttk.Frame):
     
@@ -218,7 +256,7 @@ class ScriptingTab(ttk.Frame):
         
         self.logger: logging.Logger = logging.getLogger("Scripting")
         self.formatter: logging.Formatter = logging.Formatter('%(asctime)s  %(message)s')
-        self.file_handler: logging.FileHandler = logging.FileHandler('sequence.log')
+        self.file_handler: logging.FileHandler = logging.FileHandler(f'{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.log')
         self.logger.setLevel(logging.DEBUG)
         self.file_handler.setFormatter(self.formatter)
         self.logger.addHandler(self.file_handler)
@@ -247,12 +285,12 @@ class ScriptingTab(ttk.Frame):
             width=15,
             command=self.save_file,)
         
-        self.save_log_btn: ttk.Button = ttk.Button(
-            self.button_frame,
-            text='Specify logfile path',
-            style='dark.TButton',
-            width=15,
-            command=self.open_logfile)
+        # self.save_log_btn: ttk.Button = ttk.Button(
+        #     self.button_frame,
+        #     text='Specify logfile path',
+        #     style='dark.TButton',
+        #     width=15,
+        #     command=self.open_logfile)
         
         self.sequence_status: ttkb.Floodgauge = ttkb.Floodgauge(
             self.button_frame,
@@ -354,57 +392,47 @@ class ScriptingTab(ttk.Frame):
     
     def close_file(self) -> None:
         self.run: bool = False
+        self.scripttext.tag_delete("currentLine", 1.0, tk.END)
         self.start_script_btn.configure(
             text='Run',
             style='success.TButton',
             image=self.root.play_img,
             command=self.read_file)
-        
+        self.sequence_status.stop()
         self.current_task.set('Idle')
         self.previous_task.set('Idle')
         self.root.notebook.enable_children()
         self.scripttext.config(state=tk.NORMAL)
         self.load_script_btn.config(state=tk.NORMAL)
         self.save_script_btn.config(state=tk.NORMAL)
-        self.save_log_btn.config(state=tk.NORMAL)
+        # self.save_log_btn.config(state=tk.NORMAL)
         self.script_guide_btn.config(state=tk.NORMAL)
         self.sequence_status.config(text=None)
         self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        self.root.thread.resume()
     
     def read_file(self):
         self.run: bool = True
-        
+        self.root.thread.pause()
         self.start_script_btn.configure(
             text='Stop',
             style='danger.TButton',
             image=self.root.pause_img,
             command=self.close_file)
-
+        self.sequence_status.start()
         self.root.notebook.disable_children(self)
         self.scripttext.config(state=tk.DISABLED)
         self.load_script_btn.config(state=tk.DISABLED)
         self.save_script_btn.config(state=tk.DISABLED)
-        self.save_log_btn.config(state=tk.DISABLED)
+        # self.save_log_btn.config(state=tk.DISABLED)
         self.script_guide_btn.config(state=tk.DISABLED)
         self.serial.send_and_get(Command.SET_SIGNAL_ON)
         
-        try:
-            self.logfilehandler = open(self.logfilepath, 'w')
-            self.logfilehandler.write("Timestamp"+"\t"+"Datetime"+"\t"+"Action"+"\n")
-            self.logfilehandler.close()
-            self.start_sequence()
-        except:
-            messagebox.showerror("Error", "No logfile is specified. Please specify a file.")
-            self.open_logfile()
-            if not self.logfilepath:
-                self.close_file()
-            else:
-                self.logfilehandler = open(self.logfilepath, 'w')
-                self.logfilehandler.write("Timestamp"+"\t"+"Datetime"+"\t"+"Action"+"\n")
-                self.logfilehandler.close()
-                self.start_sequence()
+        self.start_sequence()
     
     def start_sequence(self) -> None:
+        logger.info("started sequence")
+        
         self.commands: list[str] = []
         self.args_: list[str] = []
         self.loops: list[list[int]] = [[]]
@@ -441,7 +469,11 @@ class ScriptingTab(ttk.Frame):
                 self.loops.insert(i, [])
         
         i = 0
-        while i < len(self.commands):
+        while i < len(self.commands) and self.run:
+            self.sequence_status["text"] = self.current_task.get()
+            self.scripttext.tag_remove('currentLine', 1.0, "end")
+            self.scripttext.tag_add('currentLine', f"{i}.0", f"{i}.end")
+            self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
             if self.commands[i] == 'startloop':
                 if self.loops[i][1]:
                     self.loops[i][1] =- 1
@@ -465,34 +497,45 @@ class ScriptingTab(ttk.Frame):
         self.root.update()
         if counter > 0:
             self.previous_task.set(f"{self.commands[counter-1]} {self.args_[counter-1]}")
-        self.logger.info(f"{str(self.commands[counter])}   {str(self.args_[counter])}  {str(self.root.sonicamp.status.frequency)}")
-        if self.commands[counter] == "set_frq":
-            self.serial.sc_sendget(Command.SET_FRQ + self.args_[counter], self.root.thread)
-        elif self.commands[counter] == "set_gain":
-            self.serial.sc_sendget(Command.SET_GAIN + self.args_[counter], self.root.thread)
+        status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
+        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{status.frequency}\t{status.gain}")
+        if self.commands[counter] == "frequency":
+            logger.info("executing frq command")
+            self.serial.send_and_get(Command.SET_FRQ + self.args_[counter])#, self.root.thread)
+        elif self.commands[counter] == "gain":
+            logger.info("executing gain")
+            self.serial.send_and_get(Command.SET_GAIN + self.args_[counter][0])#, self.root.thread)
         elif self.commands[counter] == "ramp":
+            logger.info("executing ramp command")
             self.start_ramp(self.args_[counter])
         elif self.commands[counter] == "hold":
+            logger.info("executing hold command")
             now = datetime.datetime.now()
             target = now + datetime.timedelta(milliseconds=int(self.args_[counter][0]))
             while now < target:
                 time.sleep(0.02)
                 now = datetime.datetime.now()
-                self.root.update()
-        elif self.commands[counter] == "set_signal_on":
-            self.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread)
-            self.root.update()
-        elif self.commands[counter] == "set_signal_off":
-            self.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread)
-            self.root.update()
-        elif self.commands[counter] == "set_mhz":
-            self.serial.sc_sendget(Command.SET_MHZ, self.root.thread)
-        elif self.commands[counter] == "set_khz":
-            self.serial.sc_sendget(Command.SET_KHZ, self.root.thread)
-        elif self.commands[counter] == "set_auto":
-            self.serial.sc_sendget(Command.SET_AUTO, self.root.thread)
+                # self.root.attach_data()
+        elif self.commands[counter] == "on":
+            logger.info("executing on command")
+            self.serial.send_and_get(Command.SET_SIGNAL_ON)#, self.root.thread)
+            # self.root.attach_data()
+        elif self.commands[counter] == "off":
+            logger.info("executing off command")
+            self.serial.send_and_get(Command.SET_SIGNAL_OFF)#, self.root.thread)
+            # self.root.attach_data()
+        elif self.commands[counter] == "setMHz":
+            logger.info("executing mhz command")
+            self.serial.send_and_get(Command.SET_MHZ)#, self.root.thread)
+        elif self.commands[counter] == "setkHz":
+            logger.info("executing khz command")
+            self.serial.send_and_get(Command.SET_KHZ)#, self.root.thread)
+        elif self.commands[counter] == "autotune":
+            logger.info("executing auto command")
+            self.serial.send_and_get(Command.SET_AUTO)#, self.root.thread)
     
     def start_ramp(self, args_: list) -> None:
+        logger.info("starting ramp")
         start = int(args_[0])
         stop = int(args_[1])
         step = int(args_[2])
@@ -513,6 +556,7 @@ class ScriptingTab(ttk.Frame):
                 
     
     def parse_commands(self, line_list: list) -> None:
+        logger.info("Parsing commands")
         for line in line_list:
             if ' ' in line:
                 self.commands.append(line.split(' ')[0])
@@ -531,161 +575,174 @@ class ScriptingGuide(tk.Toplevel):
     def __init__(self, root: tk.Tk, scripttext: tk.Text, *args, **kwargs):
         super().__init__(root, *args, **kwargs)
         self.title('Function Helper')
-        x = root.winfo_x()
-        dx = root.winfo_width()
-        # dy = root.winfo_height()
-        y = root.winfo_y()
-        self.geometry("%dx%d+%d+%d" % (850, 500, x + dx, y))
-        self.scriptText = scripttext
-        # tk.Toplevel.__init__(self, master, **kw)
-        self.helper_frame = ttk.Frame(self)
-        
-        self.heading_command = ttk.Label(self.helper_frame, anchor='w', font='{Bahnschrift} 12 {}', justify='center', text='Command')
-        self.heading_command.grid(column='0', columnspan='1', padx='20', pady='0', row='1')
-        
-        self.heading_arg = ttk.Label(self.helper_frame, font='{Bahnschrift} 12 {}', text='Arguments')
-        self.heading_arg.grid(column='1', padx='20', row='1')
-        self.heading_description = ttk.Label(self.helper_frame)
-        self.heading_description.config(font='{Bahnschrift} 12 {}', text='Description')
-        self.heading_description.grid(column='2', padx='20', row='1')
-        self.HoldButton = ttk.Button(self.helper_frame)
-        self.HoldButton.config(state='normal', text='hold', command = self.insertHold)
-        self.HoldButton.grid(column='0', ipady='0', pady='5', row='2')
-        self.label_4 = ttk.Label(self.helper_frame)
-        self.label_4.config(text='[1-100.000] in [seconds]')
-        self.label_4.grid(column='1', padx='10', row='2')
-        self.label_5 = ttk.Label(self.helper_frame)
-        self.label_5.config(text='Hold the last state for X seconds')
-        self.label_5.grid(column='2', padx='10', row='2')
-        self.FreqButton = ttk.Button(self.helper_frame)
-        self.FreqButton.config(text='frequency', command = self.insertFrequency)
-        self.FreqButton.grid(column='0', pady='5', row='3')
-        self.GainButton = ttk.Button(self.helper_frame)
-        self.GainButton.config(text='gain', command = self.insertGain)
-        self.GainButton.grid(column='0', pady='5', row='4')
-        self.kHzButton = ttk.Button(self.helper_frame)
-        self.kHzButton.config(text='setkHz', command = self.insertSetkHz)
-        self.kHzButton.grid(column='0', pady='5', row='5')
-        self.MHzButton = ttk.Button(self.helper_frame)
-        self.MHzButton.config(text='setMHz', command = self.insertSetMHz)
-        self.MHzButton.grid(column='0', pady='5', row='6')
-        self.OnButton = ttk.Button(self.helper_frame)
-        self.OnButton.config(text='on', command = self.insertOn)
-        self.OnButton.grid(column='0', pady='5', row='7')
-        self.OffButton = ttk.Button(self.helper_frame)
-        self.OffButton.config(text='off', command = self.insertOff)
-        self.OffButton.grid(column='0', pady='5', row='8')
-        self.StartLoopButton = ttk.Button(self.helper_frame)
-        self.StartLoopButton.config(text='startloop', command = self.insertStartloop)
-        self.StartLoopButton.grid(column='0', pady='5', row='9')
-        self.EndLoopButton = ttk.Button(self.helper_frame)
-        self.EndLoopButton.config(text='endloop', command = self.insertEndloop)
-        self.EndLoopButton.grid(column='0', pady='5', row='10')
-        self.RampButton = ttk.Button(self.helper_frame)
-        self.RampButton.config(text='ramp', command = self.insertRamp)
-        self.RampButton.grid(column='0', pady='5', row='11')
-        self.AutotuneButton = ttk.Button(self.helper_frame)
-        self.AutotuneButton.config(text='autotune', command = self.insertAutotune)
-        self.AutotuneButton.grid(column='0', pady='5', row='12')
-        self.label_6 = ttk.Label(self.helper_frame)
-        self.label_6.config(text='[50.000-1.200.000] for kHz in [Hz]\n [600.000-6.000.000] for MHz in [Hz]')
-        self.label_6.grid(column='1', row='3')
-        self.label_7 = ttk.Label(self.helper_frame)
-        self.label_7.config(text='Change to the indicated frequency in Hz')
-        self.label_7.grid(column='2', padx='5', row='3')
-        self.label_8 = ttk.Label(self.helper_frame)
-        self.label_8.config(text='[1-150] in [%]')
-        self.label_8.grid(column='1', row='4')
-        self.label_9 = ttk.Label(self.helper_frame)
-        self.label_9.config(text='Change to the selected gain in %')
-        self.label_9.grid(column='2', row='4')
-        self.label_10 = ttk.Label(self.helper_frame)
-        self.label_10.config(text='None')
-        self.label_10.grid(column='1', row='5')
-        self.label_11 = ttk.Label(self.helper_frame)
-        self.label_11.config(text='Change to the kHz range amplifier')
-        self.label_11.grid(column='2', row='5')
-        self.label_12 = ttk.Label(self.helper_frame)
-        self.label_12.config(text='None')
-        self.label_12.grid(column='1', row='6')
-        self.label_13 = ttk.Label(self.helper_frame)
-        self.label_13.config(text='Change to the MHz range amplifier')
-        self.label_13.grid(column='2', row='6')
-        self.label_14 = ttk.Label(self.helper_frame)
-        self.label_14.config(text='None')
-        self.label_14.grid(column='1', row='7')
-        self.label_15 = ttk.Label(self.helper_frame)
-        self.label_15.config(text='Activate US emission')
-        self.label_15.grid(column='2', row='7')
-        self.label_16 = ttk.Label(self.helper_frame)
-        self.label_16.config(text='None')
-        self.label_16.grid(column='1', row='8')
-        self.label_17 = ttk.Label(self.helper_frame)
-        self.label_17.config(text='Deactivate US emission')
-        self.label_17.grid(column='2', row='8')
-        self.label_18 = ttk.Label(self.helper_frame)
-        self.label_18.config(text='[2-10.000] as an [integer]')
-        self.label_18.grid(column='1', row='9')
-        self.label_19 = ttk.Label(self.helper_frame)
-        self.label_19.config(text='Start a loop for X times')
-        self.label_19.grid(column='2', row='9')
-        self.label_20 = ttk.Label(self.helper_frame)
-        self.label_20.config(text='None')
-        self.label_20.grid(column='1', row='10')
-        self.label_21 = ttk.Label(self.helper_frame)
-        self.label_21.config(text='End the loop here')
-        self.label_21.grid(column='2', row='10')
-        self.label_24 = ttk.Label(self.helper_frame)
-        self.label_24.config(text='start f [Hz], stop f [Hz], step size [Hz], delay [s]')
-        self.label_24.grid(column='1', row='11')
-        self.label_23 = ttk.Label(self.helper_frame)
-        self.label_23.config(text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps')
-        self.label_23.grid(column='2', row='11')
-        self.label_26 = ttk.Label(self.helper_frame)
-        self.label_26.config(text='None')
-        self.label_26.grid(column='1', row='12')
-        self.label_25 = ttk.Label(self.helper_frame)
-        self.label_25.config(text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.')
-        self.label_25.grid(column='2', row='12')
-        self.label_22 = ttk.Label(self.helper_frame)
-        self.label_22.config(text='To insert a function at the cursor position, click on the respective button', font=('TkDefaultFont', 11, 'bold'))
-        self.label_22.grid(column='0', columnspan='3', padx='5', pady='5', row='13')
-        self.helper_frame.config(height='250', width='400')
-        self.helper_frame.pack(side='top')
 
-    def insertHold(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'hold X\n')
+        self.scripttext: tk.Text = scripttext
         
-    def insertFrequency(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'frequency XXXXXXXX\n')
+        # Headings
+        self.heading_frame: ttk.Frame = ttk.Frame(self)
+        self.heading_command = ttk.Label(
+            self.heading_frame, 
+            anchor=tk.W, 
+            justify=tk.CENTER, 
+            text='Command',
+            width=15,
+            style="dark.TLabel",
+            font="QTypeOT-CondMedium 15 bold",)
+        self.heading_command.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW)
         
-    def insertGain(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'gain XXX\n')
+        self.heading_arg = ttk.Label(
+            self.heading_frame, 
+            anchor=tk.W, 
+            justify=tk.CENTER,
+            width=15,
+            style="info.TLabel",
+            text='Arguments', 
+            font="QTypeOT-CondMedium 15 bold",)
+        self.heading_arg.grid(row=0, column=1, padx=5, pady=5, sticky=tk.NSEW)
         
-    def insertSetkHz(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'setkHz\n')
+        self.heading_description = ttk.Label(
+            self.heading_frame, 
+            anchor=tk.W, 
+            justify=tk.CENTER,
+            width=15,
+            style="primary.TLabel",
+            text='Description',
+            font="QTypeOT-CondMedium 15 bold",)
+        self.heading_description.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        self.heading_frame.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W, expand=True, fill=tk.X)
         
-    def insertSetMHz(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'setMHz\n')
+        self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text="hold",
+            arg_text="[1-100.000] in [seconds]",
+            desc_text="Hold the last state for X seconds",
+            command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
+        self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
-    def insertOn(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'on\n')
+        self.frq_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='frequency',
+            arg_text='[50.000-1.200.000] for kHz in [Hz]\n [600.000-6.000.000] for MHz in [Hz]',
+            desc_text='Change to the indicated frequency in Hz',
+            command = lambda: self.insert_command(ScriptCommand.SET_FRQ))
+        self.frq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
-    def insertOff(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'off\n')
+        self.gain_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='gain',
+            arg_text='[1-150] in [%]',
+            desc_text='Change to the selected gain in %',
+            command = lambda: self.insert_command(ScriptCommand.SET_GAIN))
+        self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
-    def insertStartloop(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'startloop X\n')
+        self.khz_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='setkHz',
+            arg_text=None,
+            desc_text='Change to the kHz range amplifier',
+            command = lambda: self.insert_command(ScriptCommand.SET_KHZ))
+        self.khz_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
-    def insertEndloop(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'endloop\n')
+        self.mhz_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='setMHz',
+            arg_text=None,
+            desc_text='Change to the MHz range amplifier',
+            command = lambda: self.insert_command(ScriptCommand.SET_MHZ))
+        self.mhz_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
-    def insertRamp(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'ramp XXXXXXX,XXXXXXX,XXXX,XX\n')
+        self.on_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='on',
+            arg_text=None,
+            desc_text='Activate US emission',
+            command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_ON))
+        self.on_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.off_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='off',
+            arg_text=None,
+            desc_text='Deactivate US emission',
+            command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_OFF))
+        self.off_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.startloop_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='startloop',
+            arg_text='[2-10.000] as an [integer]',
+            desc_text='Start a loop for X times',
+            command = lambda: self.insert_command(ScriptCommand.STARTLOOP))
+        self.startloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.endloop_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='endloop',
+            arg_text=None,
+            desc_text='End the loop here',
+            command = lambda: self.insert_command(ScriptCommand.ENDLOOP))
+        self.endloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.ramp_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='ramp',
+            arg_text='start f [Hz], stop f [Hz], step size [Hz], delay [s]',
+            desc_text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps',
+            command = lambda: self.insert_command(ScriptCommand.SET_RAMP))
+        self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.autotune_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='autotune',
+            arg_text=None,
+            desc_text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.',
+            command = lambda: self.insert_command(ScriptCommand.SET_AUTO))
+        self.autotune_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.disclaimer_label = ttk.Label(
+            self, 
+            text='To insert a function at the cursor position, click on the respective button', 
+            font=('TkDefaultFont', 11, 'bold'))
+        self.disclaimer_label.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)
+        
+        
+    def insert_command(self, command: ScriptCommand) -> None:
+        self.scripttext.insert(self.scripttext.index(tk.INSERT), command.value)
+        
+
+class ScriptingGuideRow(ttk.Frame):
     
-    def insertAutotune(self):
-        self.scriptText.insert(self.scriptText.index(tk.INSERT), 'autotune\n')
-    
+    def __init__(self, parent: ttk.Frame, btn_text: str, arg_text: str, desc_text: str, command,*args, **kwargs) -> None:
+        super().__init__(parent, *args, **kwargs)
+        
+        self.command_btn: ttk.Button = ttk.Button(
+            self,
+            width=15,
+            style="dark.TButton",
+            text=btn_text,
+            command=command)
+        self.command_btn.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW)
+        
+        if arg_text:
+            # self.arg_entry: ttk.Entry = ttk.Entry(
+            #     self,
+            #     width=15,
+            #     justify=tk.LEFT,
+            #     style="info.TEntry",)
+            # self.arg_entry.grid(row=0, column=1, padx=5, pady=5, sticky=tk.NSEW)
+
+            self.arg_label: ttk.Label = ttk.Label(
+                self,
+                style='inverse.info.TLabel',
+                text=arg_text)
+            self.arg_label.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)  
+        
+        
+        self.desc_label: ttk.Label = ttk.Label(
+            self,
+            text=desc_text,
+            style='inverse.primary.TLabel')
+        self.desc_label.grid(row=0, column=3, padx=5, pady=5, sticky=tk.NSEW)
 
 
 class ConnectionTab(ttk.Frame):

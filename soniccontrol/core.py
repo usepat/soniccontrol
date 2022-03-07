@@ -38,6 +38,7 @@ class Root(tk.Tk):
         self.frq: tk.IntVar = tk.IntVar()
         self.gain: tk.IntVar = tk.IntVar()
         self.frq_range: tk.StringVar = tk.StringVar()
+        self.protocol: tk.StringVar = tk.StringVar()
         
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -397,16 +398,90 @@ class StatusFrameCatch(ttk.Frame):
 
 class StatusFrameWipe(ttk.Frame):
     
+    @property
+    def root(self) -> Root:
+        return self._root
+    
+    @property
+    def serial(self) -> SerialConnection:
+        return self._serial
+    
+    # @property
+    # def sonicamp(self) -> SonicAmp:
+    #     return self._sonicamp
+    
     def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
         """
         Statusframe object, that is used in case the GUI is
         connected to a SonicWipe
         """
         super().__init__(parent, *args, **kwargs)
+        self._root = root
+        self._serial = root.serial
+        # self._sonicamp = root.sonicamp
         
         # Is being splittet into two main frames
         self.meter_frame: ttk.Frame = ttk.Frame(self)
-        self.overview_frame: ttk.Frame = ttk.Frame(self)
+        self.overview_frame: ttk.Frame = ttk.Frame(self, style="secondary.TFrame")
+        
+        # meter frame
+        self.frq_meter: ttkb.Meter = ttkb.Meter(
+            self.meter_frame,
+            bootstyle='dark',
+            amounttotal=1200000 / 1000, 
+            amountused=0,
+            textright='kHz',
+            subtext='Current Frequency',
+            metersize=150)
+        
+        self.seperator: ttk.Separator = ttk.Separator(
+            self.meter_frame,
+            orient=tk.HORIZONTAL,
+            style="info.TSeperator",)
+        
+        self.protocol_status: ttk.Label = ttk.Label(
+            self.meter_frame,
+            textvariable=self.root.protocol,
+            text="Dummy Text",
+            style="info.TLabel",
+        )
+        
+        # Overview Frame
+        self.con_status_label: ttkb.Label = ttkb.Label(
+            self.overview_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,0,5,0),
+            justify=tk.CENTER,
+            anchor=tk.CENTER,
+            compound=tk.LEFT,
+            width=15,
+            image=self.root.led_red_img,
+            bootstyle="inverse-secondary",
+            text="not connected")
+        
+        self.sig_status_label: ttkb.Label = ttkb.Label(
+            self.overview_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,0,5,0),
+            justify=tk.CENTER,
+            anchor=tk.CENTER,
+            compound=tk.LEFT,
+            width=10,
+            image=self.root.led_red_img,
+            bootstyle="inverse-secondary",
+            text="Signal OFF")
+        
+        self.err_status_label: ttkb.Label = ttkb.Label(
+            self.overview_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5,5,5,5),
+            justify=tk.CENTER,
+            anchor=tk.CENTER,
+            compound=tk.CENTER,
+            relief=tk.RIDGE,
+            width=10,
+            text=None)
+        
         
     def publish(self) -> None:
         """ Function to build the statusframe """
