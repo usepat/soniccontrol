@@ -632,11 +632,12 @@ Here is a list for all commands:
             self.insert_text(answer)
             self.root.thread.resume()
         
-        self.canvas.yview_moveto(2)
+        self.canvas.yview_moveto(1)
         self.command_field.delete(0, tk.END)
     
     def insert_text(self, text: str) -> None:
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
+        self.canvas.update()
     
     def history_up(self, event) -> None:
         if self.index_history != len(self.command_history) - 1:
@@ -851,10 +852,13 @@ class SonicAgent(SonicThread):
                 # thread should not try to do something if paused
                 # in case not paused
                 if self.root.serial.is_connected:
-                    data_str = self.root.serial.send_and_get(Command.GET_STATUS)
-                    if len(data_str) > 1:
-                        status: Status = Status.construct_from_str(data_str)
-                        if status != self.root.sonicamp.status:
-                            self.queue.put(status)
+                    try:
+                        data_str = self.root.serial.send_and_get(Command.GET_STATUS)
+                        if len(data_str) > 1:
+                            status: Status = Status.construct_from_str(data_str)
+                            if status != self.root.sonicamp.status:
+                                self.queue.put(status)
+                    except ValueError:
+                        logger.info(f"ValueError: Received {data_str}")
                 else:
                     self.pause_cond.wait()

@@ -321,11 +321,11 @@ class ScriptingTab(ttk.Frame):
             orient='vertical',
             command=self.scripttext.yview)  
         
-        self.show_log_console: ttk.Button = ttk.Button(
-            self.scripting_frame,
-            text='Show log console',
-            style="secondary.TButton",
-            command=self.show_console)
+        # self.show_log_console: ttk.Button = ttk.Button(
+        #     self.scripting_frame,
+        #     text='Show log console',
+        #     style="secondary.TButton",
+        #     command=self.show_console)
         
         self.script_guide_btn = ttk.Button(
             self.scripting_frame,
@@ -362,8 +362,8 @@ class ScriptingTab(ttk.Frame):
         #Scripting Frame
         self.scripting_frame.pack(anchor=tk.N ,side=tk.RIGHT ,padx=5, pady=5, expand=True, fill=tk.X)
         self.scripttext.grid(row=0, column=0, columnspan=2)
-        self.show_log_console.grid(row=1, column=0, padx=5, pady=5)
-        self.script_guide_btn.grid(row=1, column=1, padx=5, pady=5)
+        # self.show_log_console.grid(row=1, column=0, padx=5, pady=5)
+        self.script_guide_btn.grid(row=1, column=0, padx=5, pady=5)
         
         #Task Frame
         self.task_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
@@ -409,6 +409,7 @@ class ScriptingTab(ttk.Frame):
         self.script_guide_btn.config(state=tk.NORMAL)
         self.sequence_status.config(text=None)
         self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        self.root.attach_data()
         self.root.thread.resume()
     
     def read_file(self):
@@ -431,8 +432,6 @@ class ScriptingTab(ttk.Frame):
         self.start_sequence()
     
     def start_sequence(self) -> None:
-        logger.info("started sequence")
-        
         self.commands: list[str] = []
         self.args_: list[str] = []
         self.loops: list[list[int]] = [[]]
@@ -440,7 +439,125 @@ class ScriptingTab(ttk.Frame):
         
         line_list: list[str] = self.scripttext.get(1.0, tk.END).splitlines()
         self.parse_commands(line_list)
+        self.parse_loops()
         
+        i = 0
+        while i < len(self.commands) and self.run:
+            self.sequence_status["text"] = self.current_task.get()
+            self.scripttext.tag_remove('currentLine', 1.0, "end")
+            self.scripttext.tag_add('currentLine', f"{i}.0", f"{i}.end")
+            self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
+            if self.commands[i] == 'startloop':
+                if bool(self.loops[i][1]):
+                    self.loops[i][1] -= 1
+                    i += 1
+                else:
+                    i = self.loops[i][2] + 1
+            elif self.commands[i] == 'endloop':
+                for loop in self.loops:
+                    if bool(loop) and loop[2] == i:
+                        for j in range(loop[0]+1, loop[2]):
+                            if bool(self.loops[j]):
+                                self.loops[j][1] = int(self.args_[j][0])
+                        i = loop[0]
+            else:
+                self.exec_command(i)
+                i += 1
+        self.close_file()
+        
+    def status_handler(self) -> None:
+        self.status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
+        self.root.status_frame_catch.frq_meter["amountused"] = self.status.frequency / 1000
+        self.root.status_frame_catch.gain_meter["amountused"] = self.status.gain
+ 
+        if self.status.frequency:
+            self.root.status_frame_catch.sig_status_label["text"] = "Signal ON"
+            self.root.status_frame_catch.sig_status_label["image"] = self.root.led_green_img
+        else:
+            self.root.status_frame_catch.sig_status_label["text"] = "Signal OFF"
+            self.root.status_frame_catch.sig_status_label["image"] = self.root.led_red_img
+                
+    def exec_command(self, counter: int) -> None:
+        self.current_task.set(f"{self.commands[counter]} {str(self.args_[counter])}")
+        self.status_handler()
+        self.root.update()
+        
+        if counter > 0:
+            self.previous_task.set(f"{self.commands[counter-1]} {self.args_[counter-1]}")
+        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{self.status.frequency}\t{self.status.gain}")
+        
+        if self.run:
+            if self.commands[counter] == "frequency":
+                logger.info("executing frq command")
+                self.serial.send_and_get(Command.SET_FRQ + self.args_[counter])#, self.root.thread)
+
+            elif self.commands[counter] == "gain":
+                logger.info("executing gain")
+                self.serial.send_and_get(Command.SET_GAIN + self.args_[counter])#, self.root.thread)
+
+            elif self.commands[counter] == "ramp":
+                logger.info("executing ramp command")
+                self.start_ramp(self.args_[counter])
+
+            elif self.commands[counter] == "hold":
+                logger.info("executing hold command")
+                now = datetime.datetime.now()
+                target = now + datetime.timedelta(milliseconds=int(self.args_[counter]))
+                while now < target:
+                    time.sleep(0.02)
+                    now = datetime.datetime.now()
+
+            elif self.commands[counter] == "on":
+                logger.info("executing on command")
+                self.serial.send_and_get(Command.SET_SIGNAL_ON)#, self.root.thread)
+                # self.root.attach_data()
+
+            elif self.commands[counter] == "off":
+                logger.info("executing off command")
+                self.serial.send_and_get(Command.SET_SIGNAL_OFF)#, self.root.thread)
+                # self.root.attach_data()
+
+            elif self.commands[counter] == "setMHz":
+                logger.info("executing mhz command")
+                self.serial.send_and_get(Command.SET_MHZ)#, self.root.thread)
+
+            elif self.commands[counter] == "setkHz":
+                logger.info("executing khz command")
+                self.serial.send_and_get(Command.SET_KHZ)#, self.root.thread)
+
+            elif self.commands[counter] == "autotune":
+                logger.info("executing auto command")
+                self.serial.send_and_get(Command.SET_AUTO)#, self.root.thread)
+    
+    def start_ramp(self, args_: list) -> None:
+        logger.info("starting ramp")
+        start = int(args_[0])
+        stop = int(args_[1])
+        step = int(args_[2])
+        delay = int(args_[3])
+        
+        if start > stop:
+            frq_list: list[int] = list(range(stop, start+step, step))
+            frq_list.sort(reverse=True)
+        else:
+            frq_list: list[int] = list(range(start, stop+step, step))
+        
+        for frq in frq_list:
+            if self.run:
+                self.current_task.set(f"Ramp is @ {frq/1000}kHz")
+                self.logger.info(f"ramp\t{start},{stop},{step}\t{frq}\t{self.status.gain}")
+                self.serial.send_and_get(Command.SET_FRQ + frq)#, self.root.thread)
+
+                now = datetime.datetime.now()
+                target = now+datetime.timedelta(milliseconds=int(delay))
+                while(now < target):
+                    time.sleep(0.02)
+                    now = datetime.datetime.now()
+                    self.root.update()
+            else:
+                break
+    
+    def parse_loops(self) -> None:
         for i, command in enumerate(self.commands):
             if command == "startloop":
                 loopdata = [i, int(self.args_[i][0])]
@@ -451,116 +568,18 @@ class ScriptingTab(ttk.Frame):
                     if len(loop) == 2:
                         loop.insert(2, i)
                         break
-            elif command == "hold":
-                self.loops.insert(i, [])
-            elif command == "ramp":
-                self.loops.insert(i, [])
-                
-                start: int = int(self.args_[i][0])
-                stop: int = int(self.args_[i][1])
-                step: int = int(self.args_[i][2])
-                delay: int = int(self.args_[i][3])
-                
-                if start > stop:
-                    frq_list: list = list(range(stop, start, step))
-                else:
-                    frq_list: list = list(range(start, stop, step))
             else:
                 self.loops.insert(i, [])
-        
-        i = 0
-        while i < len(self.commands) and self.run:
-            self.sequence_status["text"] = self.current_task.get()
-            self.scripttext.tag_remove('currentLine', 1.0, "end")
-            self.scripttext.tag_add('currentLine', f"{i}.0", f"{i}.end")
-            self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
-            if self.commands[i] == 'startloop':
-                if self.loops[i][1]:
-                    self.loops[i][1] =- 1
-                    i += 1
-                else:
-                    i = self.loops[i][2] + 1
-            elif self.commands[i] == 'endloop':
-                for loop in self.loops:
-                    if loop[2] == i:
-                        for j in range(self.loops[0]+1, self.loops[2]):
-                            if self.loops[j]:
-                                self.loops[j][1] = int(self.args_[j][0])
-                        i = loop[0]
-            else:
-                self.exec_command(i)
-                i += 1
-        self.close_file()
-        
-    def exec_command(self, counter: int) -> None:
-        self.current_task.set(f"{self.commands[counter]} {str(self.args_[counter])}")
-        self.root.update()
-        if counter > 0:
-            self.previous_task.set(f"{self.commands[counter-1]} {self.args_[counter-1]}")
-        status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
-        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{status.frequency}\t{status.gain}")
-        if self.commands[counter] == "frequency":
-            logger.info("executing frq command")
-            self.serial.send_and_get(Command.SET_FRQ + self.args_[counter])#, self.root.thread)
-        elif self.commands[counter] == "gain":
-            logger.info("executing gain")
-            self.serial.send_and_get(Command.SET_GAIN + self.args_[counter][0])#, self.root.thread)
-        elif self.commands[counter] == "ramp":
-            logger.info("executing ramp command")
-            self.start_ramp(self.args_[counter])
-        elif self.commands[counter] == "hold":
-            logger.info("executing hold command")
-            now = datetime.datetime.now()
-            target = now + datetime.timedelta(milliseconds=int(self.args_[counter][0]))
-            while now < target:
-                time.sleep(0.02)
-                now = datetime.datetime.now()
-                # self.root.attach_data()
-        elif self.commands[counter] == "on":
-            logger.info("executing on command")
-            self.serial.send_and_get(Command.SET_SIGNAL_ON)#, self.root.thread)
-            # self.root.attach_data()
-        elif self.commands[counter] == "off":
-            logger.info("executing off command")
-            self.serial.send_and_get(Command.SET_SIGNAL_OFF)#, self.root.thread)
-            # self.root.attach_data()
-        elif self.commands[counter] == "setMHz":
-            logger.info("executing mhz command")
-            self.serial.send_and_get(Command.SET_MHZ)#, self.root.thread)
-        elif self.commands[counter] == "setkHz":
-            logger.info("executing khz command")
-            self.serial.send_and_get(Command.SET_KHZ)#, self.root.thread)
-        elif self.commands[counter] == "autotune":
-            logger.info("executing auto command")
-            self.serial.send_and_get(Command.SET_AUTO)#, self.root.thread)
-    
-    def start_ramp(self, args_: list) -> None:
-        logger.info("starting ramp")
-        start = int(args_[0])
-        stop = int(args_[1])
-        step = int(args_[2])
-        delay = int(args_[3])
-        
-        if start > stop:
-            for frq in range(start, stop, -step):
-                self.current_task.set(f"Ramp is @ {frq/1000}kHz")
-                self.logger.info(f"ramp\t{start},{stop},{step}\t{frq}")
-                self.root.status_frame_catch.frq_meter["amountused"] = frq
-                self.serial.sc_sendget(Command.SET_FRQ + frq, self.root.thread)
-        else:
-            for frq in range(start, stop, step):
-                self.current_task.set(f"Ramp is @ {frq/1000}kHz")
-                self.logger.info(f"ramp\t{start},{stop},{step}\t{frq}")
-                self.root.status_frame_catch.frq_meter["amountused"] = frq
-                self.serial.sc_sendget(Command.SET_FRQ + frq, self.root.thread)
-                
     
     def parse_commands(self, line_list: list) -> None:
         logger.info("Parsing commands")
         for line in line_list:
             if ' ' in line:
                 self.commands.append(line.split(' ')[0])
-                self.args_.append(line.split(' ')[1].split(','))
+                if ',' in line:
+                    self.args_.append(line.split(' ')[1].split(','))
+                else:
+                    self.args_.append(line.split(' ')[1])
             else:
                 self.commands.append(line)
                 self.args_.append(None)

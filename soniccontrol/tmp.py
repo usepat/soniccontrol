@@ -25,3 +25,16 @@ def animate(i):
     x_list = []
     y_list = []
     i = 0
+    
+
+on
+startloop 3
+setMHz
+frequency 1000000
+gain 100
+startloop 2
+ramp 2100000,1900000,10000,100
+endloop
+hold 10
+endloop
+off
