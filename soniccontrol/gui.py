@@ -9,6 +9,7 @@ import tkinter.ttk as ttk
 from matplotlib import style
 from pyparsing import col
 import ttkbootstrap as ttkb
+from ttkbootstrap.tooltip import ToolTip
 from abc import ABC, abstractmethod
 import time
 import subprocess
@@ -169,6 +170,7 @@ class HomeTabCatch(ttk.Frame):
             style='success.TButton',
             width=10,
             command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread))
+        ToolTip(self.us_on_button, text="Turn on the ultrasound signal on")
         
         self.us_off_button: object = ttk.Button(
             self.botframe,
@@ -248,7 +250,7 @@ class ScriptingTab(ttk.Frame):
         self.logfilename: str
         self.logfilepath: str
         self.current_task: tk.StringVar = tk.StringVar(value='Idle')
-        self.previous_task: tk.StringVar = tk.StringVar(value='Idle')
+        self.previous_task: str = "Idle"
         
         self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
         
@@ -292,13 +294,12 @@ class ScriptingTab(ttk.Frame):
         #     width=15,
         #     command=self.open_logfile)
         
-        self.sequence_status: ttkb.Floodgauge = ttkb.Floodgauge(
+        self.script_guide_btn = ttk.Button(
             self.button_frame,
-            font=self.root.qtype12,
-            length=160,
-            mode=ttkb.INDETERMINATE,
-            orient=ttkb.HORIZONTAL,
-            bootstyle=ttkb.DARK,) 
+            text='Scripting Guide',
+            style='info.TButton',
+            width=15,
+            command=lambda: ScriptingGuide(self.root, self.scripttext))
         
         self.scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self,
@@ -327,28 +328,31 @@ class ScriptingTab(ttk.Frame):
         #     style="secondary.TButton",
         #     command=self.show_console)
         
-        self.script_guide_btn = ttk.Button(
-            self.scripting_frame,
-            text='Scripting Guide',
-            style='dark.TButton',
-            command=lambda: ScriptingGuide(self.root, self.scripttext))
-
-        self.task_frame = ttk.Frame(self)
-        self.static_prevtask_label = ttk.Label(
-            self.task_frame,
-            text='Previous Task:',)
-        
-        self.prev_task_label = ttk.Label(
-            self.task_frame,
-            textvariable=self.previous_task,)
-        
-        self.static_curtask_label = ttk.Label(
-            self.task_frame,
-            text='Current Task:')
-        
         self.cur_task_label = ttk.Label(
-            self.task_frame,
-            textvariable=self.current_task)
+           self.scripting_frame,
+           justify=tk.CENTER,
+           style="inverse.secondary.TLabel",
+           textvariable=self.current_task)
+        
+        self.sequence_status: ttk.Progressbar = ttk.Progressbar(
+            self.scripting_frame,
+            length=160,
+            mode="indeterminate",
+            orient=tk.HORIZONTAL,
+            style="striped.dark.TProgressbar",) 
+
+        # self.task_frame = ttk.Frame(self)
+        # self.static_prevtask_label = ttk.Label(
+        #     self.task_frame,
+        #     text='Previous Task:',)
+        
+        # self.prev_task_label = ttk.Label(
+        #     self.task_frame,
+        #     textvariable=self.previous_task,)
+        
+        # self.static_curtask_label = ttk.Label(
+        #     self.task_frame,
+        #     text='Current Task:')
         
         logger.info("Initialized scripting tab")
 
@@ -363,14 +367,15 @@ class ScriptingTab(ttk.Frame):
         self.scripting_frame.pack(anchor=tk.N ,side=tk.RIGHT ,padx=5, pady=5, expand=True, fill=tk.X)
         self.scripttext.grid(row=0, column=0, columnspan=2)
         # self.show_log_console.grid(row=1, column=0, padx=5, pady=5)
-        self.script_guide_btn.grid(row=1, column=0, padx=5, pady=5)
+        self.cur_task_label.grid(row=1, column=0, padx=5, pady=5, sticky=tk.EW, columnspan=2)
+        self.sequence_status.grid(row=2, column=0, padx=5, pady=5, sticky=tk.EW, columnspan=2)
         
-        #Task Frame
-        self.task_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
-        self.static_prevtask_label.grid(row=0, column=0)
-        self.prev_task_label.grid(row=1, column=0)
-        self.static_curtask_label.grid(row=0, column=1)
-        self.cur_task_label.grid(row=1, column=1)
+        # #Task Frame
+        # self.task_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
+        # self.static_prevtask_label.grid(row=0, column=0)
+        # self.prev_task_label.grid(row=1, column=0)
+        # self.static_curtask_label.grid(row=0, column=1)
+        # self.cur_task_label.grid(row=1, column=1)
     
     def show_console(self):
         pass
@@ -399,8 +404,8 @@ class ScriptingTab(ttk.Frame):
             image=self.root.play_img,
             command=self.read_file)
         self.sequence_status.stop()
-        self.current_task.set('Idle')
-        self.previous_task.set('Idle')
+        self.current_task.set("Idle")
+        self.previous_task = "Idle"
         self.root.notebook.enable_children()
         self.scripttext.config(state=tk.NORMAL)
         self.load_script_btn.config(state=tk.NORMAL)
@@ -431,6 +436,12 @@ class ScriptingTab(ttk.Frame):
         
         self.start_sequence()
     
+    def highlight_line(self, i: int) -> None:
+        i += 1
+        self.scripttext.tag_remove('currentLine', 1.0, "end")
+        self.scripttext.tag_add('currentLine', f"{i}.0", f"{i}.end")
+        self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
+    
     def start_sequence(self) -> None:
         self.commands: list[str] = []
         self.args_: list[str] = []
@@ -439,14 +450,10 @@ class ScriptingTab(ttk.Frame):
         
         line_list: list[str] = self.scripttext.get(1.0, tk.END).splitlines()
         self.parse_commands(line_list)
-        self.parse_loops()
         
         i = 0
         while i < len(self.commands) and self.run:
-            self.sequence_status["text"] = self.current_task.get()
-            self.scripttext.tag_remove('currentLine', 1.0, "end")
-            self.scripttext.tag_add('currentLine', f"{i}.0", f"{i}.end")
-            self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
+            self.highlight_line(i)
             if self.commands[i] == 'startloop':
                 if bool(self.loops[i][1]):
                     self.loops[i][1] -= 1
@@ -463,7 +470,9 @@ class ScriptingTab(ttk.Frame):
             else:
                 self.exec_command(i)
                 i += 1
-        self.close_file()
+
+        if self.run:
+            self.close_file()
         
     def status_handler(self) -> None:
         self.status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
@@ -476,16 +485,19 @@ class ScriptingTab(ttk.Frame):
         else:
             self.root.status_frame_catch.sig_status_label["text"] = "Signal OFF"
             self.root.status_frame_catch.sig_status_label["image"] = self.root.led_red_img
+        
+        self.root.update()
                 
     def exec_command(self, counter: int) -> None:
+        self.highlight_line(counter)
+
         self.current_task.set(f"{self.commands[counter]} {str(self.args_[counter])}")
-        self.status_handler()
-        self.root.update()
-        
         if counter > 0:
-            self.previous_task.set(f"{self.commands[counter-1]} {self.args_[counter-1]}")
-        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{self.status.frequency}\t{self.status.gain}")
+            self.previous_task = f"{self.commands[counter-1]} {self.args_[counter-1]}"
         
+        self.status_handler()
+        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{self.status.frequency}\t{self.status.gain}")
+
         if self.run:
             if self.commands[counter] == "frequency":
                 logger.info("executing frq command")
@@ -503,7 +515,7 @@ class ScriptingTab(ttk.Frame):
                 logger.info("executing hold command")
                 now = datetime.datetime.now()
                 target = now + datetime.timedelta(milliseconds=int(self.args_[counter]))
-                while now < target:
+                while now < target and self.run:
                     time.sleep(0.02)
                     now = datetime.datetime.now()
 
@@ -545,6 +557,7 @@ class ScriptingTab(ttk.Frame):
         for frq in frq_list:
             if self.run:
                 self.current_task.set(f"Ramp is @ {frq/1000}kHz")
+                self.status_handler()
                 self.logger.info(f"ramp\t{start},{stop},{step}\t{frq}\t{self.status.gain}")
                 self.serial.send_and_get(Command.SET_FRQ + frq)#, self.root.thread)
 
@@ -556,20 +569,6 @@ class ScriptingTab(ttk.Frame):
                     self.root.update()
             else:
                 break
-    
-    def parse_loops(self) -> None:
-        for i, command in enumerate(self.commands):
-            if command == "startloop":
-                loopdata = [i, int(self.args_[i][0])]
-                self.loops.insert(i, loopdata)
-            elif command == "endloop":
-                self.loops.insert(i, [])
-                for loop in reversed(self.loops):
-                    if len(loop) == 2:
-                        loop.insert(2, i)
-                        break
-            else:
-                self.loops.insert(i, [])
     
     def parse_commands(self, line_list: list) -> None:
         logger.info("Parsing commands")
@@ -583,6 +582,19 @@ class ScriptingTab(ttk.Frame):
             else:
                 self.commands.append(line)
                 self.args_.append(None)
+        
+        for i, command in enumerate(self.commands):
+            if command == "startloop":
+                loopdata = [i, int(self.args_[i][0])]
+                self.loops.insert(i, loopdata)
+            elif command == "endloop":
+                self.loops.insert(i, [])
+                for loop in reversed(self.loops):
+                    if len(loop) == 2:
+                        loop.insert(2, i)
+                        break
+            else:
+                self.loops.insert(i, [])
     
     def attach_data(self) -> None:
         pass
@@ -803,6 +815,7 @@ class ConnectionTab(ttk.Frame):
             width=7,
             style = "dark.TCombobox",
             state=tk.READABLE)
+        ToolTip(self.ports_menue, text="Choose the serial communication address of you SonicAmp")
         
         self.refresh_button = ttkb.Button(
             self.control_frame, 

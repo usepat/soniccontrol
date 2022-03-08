@@ -127,6 +127,7 @@ class Root(tk.Tk):
         self.after(100, self.engine)
     
     def decide_action(self) -> None:
+        self.serial.send_and_get(Command.SET_SERIAL, line=False)
         init_status: Status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
         self.frq.set(init_status.frequency)
         self.gain.set(init_status.gain)
@@ -137,10 +138,6 @@ class Root(tk.Tk):
             self.serial.send_and_get(Command.SET_MHZ)
             self.frq_range.set('mhz')
             self.sonicamp = SonicCatch(self.serial)
-            # firmware: list = self.sonicamp.firmware[0].splitlines()
-            # self.notebook.connectiontab.firmware_tree.insert('', tk.END, values=("Company", firmware[1]))
-            # self.notebook.connectiontab.firmware_tree.insert('', tk.END, values=("Version", firmware[2]))
-            # self.notebook.connectiontab.firmware_tree.insert('', tk.END,values=("Number", firmware[3]))
             self.publish_for_catch()
         elif type_ == "sonicwipe":
             logger.info("Found sonicwipe")
