@@ -189,9 +189,19 @@ class HomeTabCatch(ttk.Frame):
             
     def attach_data(self) -> None:
         logger.info("Attaching data to Hometab")
-        self.frq_spinbox.config(
-            from_=self.root.sonicamp.frq_range_start,
-            to=self.root.sonicamp.frq_range_stop)
+        if self.root.frq_range.get() == "khz":
+            self.frq_spinbox.config(
+                from_=50000,
+                to=1200000)
+            for child in self.gain_frame.children.values():
+                child.configure(state=tk.DISABLED)
+        else:
+            self.frq_spinbox.config(
+                from_=600000,
+                to=6000000)
+            for child in self.gain_frame.children.values():
+                child.configure(state=tk.NORMAL)
+        
             
     def publish(self) -> None:
         """ Function to build children of this frame """
@@ -331,7 +341,8 @@ class ScriptingTab(ttk.Frame):
         self.cur_task_label = ttk.Label(
            self.scripting_frame,
            justify=tk.CENTER,
-           style="inverse.secondary.TLabel",
+           anchor=tk.CENTER,
+           style="dark.TLabel",
            textvariable=self.current_task)
         
         self.sequence_status: ttk.Progressbar = ttk.Progressbar(
@@ -339,7 +350,14 @@ class ScriptingTab(ttk.Frame):
             length=160,
             mode="indeterminate",
             orient=tk.HORIZONTAL,
-            style="striped.dark.TProgressbar",) 
+            style="dark.TProgressbar",) 
+
+        # self.sequence_status: ttkb.Floodgauge = ttkb.Floodgauge(
+        #     self.scripting_frame,
+        #     length=160,
+        #     mode=ttkb.INDETERMINATE,
+        #     orient=ttkb.HORIZONTAL,
+        #     bootstyle=ttkb.DARK,)
 
         # self.task_frame = ttk.Frame(self)
         # self.static_prevtask_label = ttk.Label(
@@ -367,8 +385,8 @@ class ScriptingTab(ttk.Frame):
         self.scripting_frame.pack(anchor=tk.N ,side=tk.RIGHT ,padx=5, pady=5, expand=True, fill=tk.X)
         self.scripttext.grid(row=0, column=0, columnspan=2)
         # self.show_log_console.grid(row=1, column=0, padx=5, pady=5)
-        self.cur_task_label.grid(row=1, column=0, padx=5, pady=5, sticky=tk.EW, columnspan=2)
-        self.sequence_status.grid(row=2, column=0, padx=5, pady=5, sticky=tk.EW, columnspan=2)
+        self.cur_task_label.grid(row=1, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
+        self.sequence_status.grid(row=2, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
         
         # #Task Frame
         # self.task_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
@@ -603,7 +621,7 @@ class ScriptingTab(ttk.Frame):
 
 class ScriptingGuide(tk.Toplevel):
     
-    def __init__(self, root: tk.Tk, scripttext: tk.Text, *args, **kwargs):
+    def __init__(self, root: tk.Tk, scripttext: tk.Text, *args, **kwargs) -> None:
         super().__init__(root, *args, **kwargs)
         self.title('Function Helper')
 
@@ -730,7 +748,7 @@ class ScriptingGuide(tk.Toplevel):
             command = lambda: self.insert_command(ScriptCommand.SET_AUTO))
         self.autotune_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
-        self.disclaimer_label = ttk.Label(
+        self.disclaimer_label: ttk.Label = ttk.Label(
             self, 
             text='To insert a function at the cursor position, click on the respective button', 
             font=('TkDefaultFont', 11, 'bold'))
