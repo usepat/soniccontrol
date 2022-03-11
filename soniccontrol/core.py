@@ -1,4 +1,3 @@
-from cmath import exp
 import time
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -9,6 +8,7 @@ from tkinter import font
 from tkinter import filedialog
 from ttkbootstrap import Style
 from PIL.ImageTk import PhotoImage
+import serial
 
 from sonicpackage import Command, Status, Modules, SonicCatch, SonicWipe, SerialConnection, SonicAmp
 from sonicpackage.threads import SonicThread
@@ -96,7 +96,6 @@ class Root(tk.Tk):
         self.thread: SonicThread = SonicAgent(self)
         self.thread.setDaemon(True)
         self.thread.start()
-        self.engine()
         
         self.__reinit__()
     
@@ -120,6 +119,9 @@ class Root(tk.Tk):
             pass
     
     def engine(self) -> None:
+        # if not self.serial.serial.is_open:
+        #     self.notebook.connectiontab.disconnect()
+        
         while self.thread.queue.qsize():
             self.sonicamp.status = self.thread.queue.get(0)
             self.update_idletasks()
@@ -144,6 +146,8 @@ class Root(tk.Tk):
             self.sonicamp = SonicWipe(self.serial)
             self.publish_for_wipe()
         
+        self.engine()
+        
         if self.thread.paused:
             self.thread.resume()
     
@@ -153,6 +157,9 @@ class Root(tk.Tk):
         self.notebook.publish_disconnected()
         self.status_frame_catch.abolish_data()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        
+        if self.winfo_width() == Root.MAX_WIDTH:
+            self.adjust_dimensions()
     
     def publish_for_catch(self) -> None:
         """ Publishes children in case there is a connection to a soniccatch """
@@ -826,6 +833,32 @@ class SonicMeasure(tk.Toplevel):
         f.close()
 
 
+
+# class SonicMeasure(tk.Toplevel):
+    
+#     @property
+#     def root(self) -> Root:
+#         return self._root
+    
+#     @property
+#     def serial(self) -> SerialConnection:
+#         return self._serial
+    
+#     def __init__(self, root: Root, *args, **kwargs) -> None:
+#         super().__init__(root, *args, **kwargs)
+#         self._root: Root = root
+#         self._serial: SerialConnection = root.serial
+#         self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
+        
+#         self.title('SonicMeasure')
+        
+#         self.start_frq: tk.IntVar = tk.IntVar(value=1900000)
+#         self.stop_frq: tk.IntVar = tk.IntVar(value=2100000)
+#         self.resolution: tk.IntVar = tk.IntVar(value=100)
+#         self.gain: tk.IntVar = tk.IntVar(value=10)
+
+
+
 class SonicAgent(SonicThread):
     """
     The SonicAgent sends the Command.GET_STATUS command to get the status data
@@ -860,5 +893,7 @@ class SonicAgent(SonicThread):
                                 self.queue.put(status)
                     except ValueError:
                         logger.info(f"ValueError: Received {data_str}")
+                    except serial.SerialException:
+                        self.root.notebook.connectiontab.disconnect()
                 else:
                     self.pause_cond.wait()
