@@ -96,6 +96,7 @@ class Root(tk.Tk):
         self.thread: SonicThread = SonicAgent(self)
         self.thread.setDaemon(True)
         self.thread.start()
+        self.engine()
         
         self.__reinit__()
     
@@ -103,10 +104,9 @@ class Root(tk.Tk):
         if self.serial.auto_connect():
             logger.info("autoconnected")
             self.decide_action()
-            self.engine()
         elif self.port.get()[:3] == ('COM' or '/de'):
             logger.info("manually connected")
-            self.engine()
+            # self.engine()
             self.decide_action()
         else:
             logger.info("Did not detect connection")
@@ -143,6 +143,9 @@ class Root(tk.Tk):
             logger.info("Found sonicwipe")
             self.sonicamp = SonicWipe(self.serial)
             self.publish_for_wipe()
+        
+        if self.thread.paused:
+            self.thread.resume()
     
     def publish_disconnected(self) -> None:
         """ Publishes children in case there is no connection """

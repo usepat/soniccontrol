@@ -1,13 +1,10 @@
-from ast import arg
 import datetime
-from distutils import command
 import enum
 import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import tkinter.ttk as ttk
 from matplotlib import style
-from pyparsing import col
 import ttkbootstrap as ttkb
 from ttkbootstrap.tooltip import ToolTip
 from abc import ABC, abstractmethod
@@ -85,6 +82,7 @@ class HomeTabCatch(ttk.Frame):
             width=16,
             style='dark.TSpinbox',
             command=lambda: self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+        ToolTip(self.frq_spinbox, text="Configure the frequency of your device")
         
         self.scroll_digit: ttk.Spinbox = ttk.Spinbox(
             self.frq_frame,
@@ -95,6 +93,7 @@ class HomeTabCatch(ttk.Frame):
             width=5,
             style='secondary.TSpinbox',
             command=self.set_scrolldigit)
+        ToolTip(self.scroll_digit, text="Set the digit you want to scroll in the Frequency field")
         
         # Gain Frame
         self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
@@ -107,6 +106,7 @@ class HomeTabCatch(ttk.Frame):
             width=5,
             style='dark.TSpinbox',
             command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+        ToolTip(self.gain_frame, text="Configure the gain for your device")
         
         self.gain_scale: ttk.Scale = ttk.Scale(
             self.gain_frame,
@@ -178,6 +178,7 @@ class HomeTabCatch(ttk.Frame):
             style='danger.TButton',
             width=10,
             command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread))
+        ToolTip(self.us_on_button, text="Turn on the ultrasound signal off")
         
         logger.info("Initialized children and object")
 
@@ -306,7 +307,7 @@ class ScriptingTab(ttk.Frame):
         
         self.script_guide_btn = ttk.Button(
             self.button_frame,
-            text='Scripting Guide',
+            text='Function Helper',
             style='info.TButton',
             width=15,
             command=lambda: ScriptingGuide(self.root, self.scripttext))
@@ -800,7 +801,7 @@ class ConnectionTab(ttk.Frame):
     def root(self) -> tk.Tk:
         return self._root
     
-    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs):
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
         self._root = root
         
@@ -812,12 +813,14 @@ class ConnectionTab(ttk.Frame):
         self.heading1 = ttk.Label(
             self.heading_frame, 
             padding=(10,0,0,10),
-            font = self.root.qtype30)
+            font = self.root.qtype30,
+            borderwidth=-2)
         
         self.heading2 = ttk.Label(
             self.heading_frame,
             padding=(0,0,10,10),
-            font = self.root.qtype30b)
+            font = self.root.qtype30b,
+            borderwidth=-2)
         
         self.control_frame = ttk.Frame(self.topframe)
         
@@ -865,7 +868,8 @@ class ConnectionTab(ttk.Frame):
             self.botframe, 
             height=250, 
             text='Update Firmware', 
-            width=200)
+            width=200,
+            padding=(0, 12, 0, 12))
         
         self.file_entry = ttk.Button(
             self.flash_frame, 
@@ -897,10 +901,9 @@ class ConnectionTab(ttk.Frame):
             bootstyle="danger",
             text="Disconnect",
             command=self.disconnect,)
-        self.ports_menue.config(
-            textvariable=self.root.port,
-            values=self.root.serial.device_list,)
-        self.firmware_label["text"] = self.root.sonicamp.firmware[0] #!Here
+        self.ports_menue.config(state=tk.DISABLED)
+        self.refresh_button.config(state=tk.DISABLED)
+        self.firmware_label["text"] = self.root.sonicamp.firmware[0] #* Treeview for future ideas
         for child in self.flash_frame.children.values():
             child.configure(state=tk.NORMAL)
         
@@ -915,19 +918,22 @@ class ConnectionTab(ttk.Frame):
             command=self.root.__reinit__,)
         self.ports_menue.config(
             textvariable=self.root.port,
-            values=self.root.serial.device_list,)
+            values=self.root.serial.device_list,
+            state=tk.NORMAL)
+        self.refresh_button.config(state=tk.NORMAL)
         self.firmware_label["text"] = ""
         for child in self.flash_frame.children.values():
             child.configure(state=tk.DISABLED)
+        self.root.sonicamp = None
 
     def refresh(self) -> None:
         self.ports_menue['values'] = self.root.serial.get_ports()
     
     def disconnect(self) -> None:
+        self.root.thread.pause()
         self.abolish_data()
         self.root.serial.disconnect()
         self.root.publish_disconnected()
-        self.root.thread.pause()
     
     def publish(self) -> None:
         logger.info("Publishing connectiontab")
@@ -1005,13 +1011,15 @@ class InfoTab(ttk.Frame):
             self.soniccontrol_logo_frame,
             text = "sonic",
             padding=(10,0,0,10),
-            font = "QTypeOT-CondLight 30")
+            font = "QTypeOT-CondLight 30",
+            borderwidth=-2,)
         
         self.soniccontrol_logo2 = ttk.Label(
             self.soniccontrol_logo_frame,
-            text = 'crash',
+            text = 'control',
             padding=(0,0,0,10),
-            font = "QTypeOT-CondBook 30 bold")
+            font = "QTypeOT-CondBook 30 bold",
+            borderwidth=-2,)
         
         self.info_label = ttk.Label(self, text=InfoTab.INFOTEXT)
         
