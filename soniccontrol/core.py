@@ -1,3 +1,4 @@
+from msilib import type_binary
 import time
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -105,7 +106,7 @@ class Root(tk.Tk):
             self.decide_action()
         elif self.port.get()[:3] == ('COM' or '/de'):
             logger.info("manually connected")
-            # self.engine()
+            self.serial.connect_to_port(self.port.get())
             self.decide_action()
         else:
             logger.info("Did not detect connection")
@@ -177,9 +178,9 @@ class Root(tk.Tk):
         self.status_frame_wipe.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
-    def publish_sonicmeasure(self) -> None:
-        """ Publishes the sonicmeasure frame """
-        self.sonic_measure: SonicMeasure = SonicMeasure(self)
+    # def publish_sonicmeasure(self) -> None:
+    #     """ Publishes the sonicmeasure frame """
+    #     self.sonic_measure: SonicMeasure = SonicMeasure(self)
     
     def publish_serial_monitor(self) -> None:
         """ Publishes the serial monitor """
@@ -663,7 +664,7 @@ Here is a list for all commands:
             
 
 
-class SonicMeasure(tk.Toplevel):
+class SonicMeasure1(tk.Toplevel):
     
     @property
     def root(self) -> Root:
@@ -831,32 +832,8 @@ class SonicMeasure(tk.Toplevel):
         for i in range(0, len(self.frequencies)):
             f.write("{0}\t{1}\t{2}\t{3}\n".format(self.frequencies[i],self.u_rms[i], self.i_rms[i], self.phase[i]))
         f.close()
-
-
-
-# class SonicMeasure(tk.Toplevel):
-    
-#     @property
-#     def root(self) -> Root:
-#         return self._root
-    
-#     @property
-#     def serial(self) -> SerialConnection:
-#         return self._serial
-    
-#     def __init__(self, root: Root, *args, **kwargs) -> None:
-#         super().__init__(root, *args, **kwargs)
-#         self._root: Root = root
-#         self._serial: SerialConnection = root.serial
-#         self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
         
-#         self.title('SonicMeasure')
         
-#         self.start_frq: tk.IntVar = tk.IntVar(value=1900000)
-#         self.stop_frq: tk.IntVar = tk.IntVar(value=2100000)
-#         self.resolution: tk.IntVar = tk.IntVar(value=100)
-#         self.gain: tk.IntVar = tk.IntVar(value=10)
-
 
 
 class SonicAgent(SonicThread):

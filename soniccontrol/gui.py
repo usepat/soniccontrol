@@ -5,6 +5,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import tkinter.ttk as ttk
 from matplotlib import style
+from matplotlib.figure import Figure
+from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import ttkbootstrap as ttkb
 from ttkbootstrap.tooltip import ToolTip
 from abc import ABC, abstractmethod
@@ -153,7 +155,7 @@ class HomeTabCatch(ttk.Frame):
             style='dark.TButton',
             image=self.root.graph_img,
             compound=tk.TOP,
-            command=self.root.publish_sonicmeasure)
+            command=lambda: SonicMeasure(self.root))
         
         self.serial_monitor_btn: ttk.Button = ttk.Button(
             self.sonic_measure_frame,
@@ -1052,3 +1054,170 @@ class InfoTab(ttk.Frame):
     
     def attach_data(self) -> None:
         pass
+
+
+
+class SonicMeasure(tk.Toplevel):
+    
+    # @property
+    # def root(self) -> tk.Tk:
+    #     return self._root
+    
+    @property
+    def serial(self) -> SerialConnection:
+        return self._serial
+    
+    def __init__(self, root: tk.Tk, *args, **kwargs) -> None:
+        super().__init__(master=root, *args, **kwargs)
+        # self._root: tk.Tk = root
+        self._serial: SerialConnection = root.serial
+        self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
+        
+        self.title('SonicMeasure')
+        
+        self.start_frq: tk.IntVar = tk.IntVar(value=1900000)
+        self.stop_frq: tk.IntVar = tk.IntVar(value=2100000)
+        self.step_frq: tk.IntVar = tk.IntVar(value=100)
+        
+        self.start_gain: tk.IntVar = tk.IntVar(value=10)
+        self.stop_gain: tk.IntVar = tk.IntVar(value=10)
+        self.step_gain: tk.IntVar = tk.IntVar(value=0)
+        
+        # Figure Frame
+        self.fig_frame: ttk.Frame = ttk.Frame(self)
+        self.figure_canvas: FigureCanvasTkAgg = MeasureCanvas(self.fig_frame, self.start_frq.get(), self.stop_frq.get())
+        
+        # Utility controls Frame
+        self.control_frame: ttk.Frame = ttk.Frame(self)
+        self.util_ctrl_frame: ttk.Frame = ttk.Frame(self.control_frame)
+        self.start_btn: ttk.Button = ttk.Button(
+            self.util_ctrl_frame,
+            text="Start",
+            style='success.TButton',
+            image=root.play_img,
+            compound=tk.RIGHT,
+            command=self.start)
+        
+        self.save_btn: ttk.Button = ttk.Button(
+            self.util_ctrl_frame,
+            text="Save Plot",
+            style="info.TButton",
+            # image=self.root.save_img, #! Implement image
+            # compound=tk.RIGHT,
+            command=self.save)
+        
+        # Frquency Frame
+        self.frq_frame: ttk.LabelFrame = ttk.LabelFrame(self.control_frame, text="Set up Frequency", style="secondary.TLabelframe")
+        self.start_frq_label: ttk.Label = ttk.Label(self.frq_frame, text="Start frequency [Hz]")
+        self.start_frq_entry: ttk.Entry = ttk.Entry(
+            self.frq_frame,
+            textvariable=self.start_frq,
+            style="dark.TEntry",)
+        
+        self.stop_frq_label: ttk.Label = ttk.Label(self.frq_frame, text="Stop frequency [Hz]")
+        self.stop_frq_entry: ttk.Entry = ttk.Entry(
+            self.frq_frame,
+            textvariable=self.stop_frq,
+            style="dark.TEntry",)
+        
+        self.step_frq_label: ttk.Label = ttk.Label(self.frq_frame, text="Resolution [Hz]")
+        self.step_frq_entry: ttk.Entry = ttk.Entry(
+            self.frq_frame,
+            textvariable=self.step_frq,
+            style="dark.TEntry")
+        
+        # Gain Frame
+        self.gain_frame: ttk.LabelFrame = ttk.LabelFrame(self.control_frame, text="Set up Gain", style="secondary.TLabelframe")
+        self.start_gain_label: ttk.Label = ttk.Label(self.gain_frame, text="Start gain [%]")
+        self.start_gain_entry: ttk.Entry = ttk.Entry(
+            self.gain_frame,
+            textvariable=self.start_gain,
+            style="dark.TEntry",)
+        
+        self.stop_gain_label: ttk.Label = ttk.Label(self.gain_frame, text="Stop gain [%]")
+        self.stop_gain_entry: ttk.Entry = ttk.Entry(
+            self.gain_frame,
+            textvariable=self.stop_gain,
+            style="dark.TEntry",)
+        
+        self.step_gain_label: ttk.Label = ttk.Label(self.gain_frame, text="Resolution [%]")
+        self.step_gain_entry: ttk.Entry = ttk.Entry(
+            self.gain_frame,
+            textvariable=self.step_gain,
+            style="dark.TEntry")
+        
+        self.publish()
+        
+    def start(self) -> None:
+        pass
+    
+    def save(self) -> None:
+        pass
+    
+    def publish(self) -> None:
+        self.fig_frame.pack(fill=tk.BOTH, expand=True)
+        self.figure_canvas._tkcanvas.pack(fill=tk.BOTH, expand=True)
+        self.control_frame.pack()
+        
+        self.util_ctrl_frame.grid(row=0, column=0, padx=5, pady=5)
+        self.frq_frame.grid(row=0, column=1, padx=5, pady=5)
+        self.gain_frame.grid(row=0, column=2, padx=5, pady=5)
+        
+        self.start_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
+        self.save_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
+        
+        # Frq Frame
+        self.start_frq_label.grid(row=0, column=0, padx=3, pady=3)
+        self.start_frq_entry.grid(row=0, column=1, padx=3, pady=3)
+        
+        self.stop_frq_label.grid(row=1, column=0, padx=3, pady=3)
+        self.stop_frq_entry.grid(row=1, column=1, padx=3, pady=3)
+        
+        self.step_frq_label.grid(row=2, column=0, padx=3, pady=3)
+        self.step_frq_entry.grid(row=2, column=1, padx=3, pady=3)
+        
+        # Gain Frame
+        self.start_gain_label.grid(row=0, column=0, padx=3, pady=3)
+        self.start_gain_entry.grid(row=0, column=1, padx=3, pady=3)
+        
+        self.stop_gain_label.grid(row=1, column=0, padx=3, pady=3)
+        self.stop_gain_entry.grid(row=1, column=1, padx=3, pady=3)
+        
+        self.step_gain_label.grid(row=2, column=0, padx=3, pady=3)
+        self.step_gain_entry.grid(row=2, column=1, padx=3, pady=3)
+        
+        
+        
+        
+class MeasureCanvas(FigureCanvasTkAgg):
+    
+    def __init__(self, parent: ttk.Frame, start_frq: int, stop_frq: int) -> None:
+        self.figure: Figure = Figure()
+        style.use('seaborn')
+        
+        self.ax_urms = self.figure.add_subplot(111)
+        self.figure.subplots_adjust(right=0.8)
+        
+        self.ax_irms = self.ax_urms.twinx()
+        self.ax_phase = self.ax_urms.twinx()
+        self.ax_phase.spines['right'].set_position(("axes", 1.15))
+
+        self.plot_urms, = self.ax_urms.plot([], [], "bo-", label="U$_{RMS}$ / mV")
+        self.plot_irms, = self.ax_irms.plot([], [], "ro-", label="I$_{RMS}$ / mA")
+        self.plot_phase, = self.ax_phase.plot([], [], "go-", label="Phase / °")
+        
+        self.ax_urms.set_xlim(start_frq, stop_frq)
+        self.ax_urms.set_xlabel("Frequency / Hz")
+        self.ax_urms.set_ylabel("U$_{RMS}$ / mV")
+        self.ax_irms.set_ylabel("I$_{RMS}$ / mA")
+        self.ax_phase.set_ylabel("Phase / °")
+        
+        self.ax_urms.yaxis.label.set_color(self.plot_urms.get_color())
+        self.ax_irms.yaxis.label.set_color(self.plot_irms.get_color())
+        self.ax_phase.yaxis.label.set_color(self.plot_phase.get_color())
+        
+        self.ax_urms.legend(handles=[self.plot_urms, self.plot_irms, self.plot_phase])
+        super().__init__(self.figure, parent)
+    
+    def update_axes(self, start_frq: int, stop_frq: int) -> None:
+        self.ax_urms.set_xlim(start_frq, stop_frq)
