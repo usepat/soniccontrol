@@ -238,7 +238,198 @@ class HomeTabCatch(ttk.Frame):
         """ Function regarding the scroll digit combobox """
         self.frq_spinbox.config(
             increment = str(10 ** (int(self.scroll_digit.get())-1)))
+
+
+
+
+class HomeTabWipe(ttk.Frame):
+    
+    @property
+    def root(self) -> tk.Tk:
+        return self._root
+    
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
+        """
+        The Hometab is a child tab of the Notebook menu and is resonsible
+        for handling and updating its children
         
+        The frame is, again, splittet up into two main frames that organize
+        its children
+        """
+        super().__init__(parent, *args, **kwargs)
+        self._root: tk.Tk = root
+        
+        self.config(height=200, width=200)
+        
+        # Here follows the code regarding the TOPFRAME
+        self.topframe: ttk.Labelframe = ttk.Labelframe(self, text="Manual control")
+        self.control_frame: ttk.Frame = ttk.Frame(self.topframe) 
+        
+        # Frq frame
+        self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
+        self.frq_spinbox: ttk.Spinbox = ttk.Spinbox(
+            self.frq_frame,
+            from_=600000,
+            increment=100,
+            to=6000000,
+            textvariable=self.root.frq, 
+            width=16,
+            style='dark.TSpinbox',
+            command=lambda: self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+        ToolTip(self.frq_spinbox, text="Configure the frequency of your device")
+        
+        self.scroll_digit: ttk.Spinbox = ttk.Spinbox(
+            self.frq_frame,
+            from_=1,
+            increment=1,
+            to=6,
+            validate=None,
+            width=5,
+            style='secondary.TSpinbox',
+            command=self.set_scrolldigit)
+        ToolTip(self.scroll_digit, text="Set the digit you want to scroll in the Frequency field")
+        
+        # Gain Frame
+        self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
+        self.gain_spinbox: ttk.Spinbox = ttk.Spinbox(
+            self.gain_frame,
+            from_=0,
+            increment=10,
+            to=150,
+            textvariable=self.root.gain,
+            width=5,
+            style='dark.TSpinbox',
+            command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+        ToolTip(self.gain_frame, text="Configure the gain for your device")
+        
+        self.gain_scale: ttk.Scale = ttk.Scale(
+            self.gain_frame,
+            from_=0,
+            to=150,
+            name='gainscale',
+            length=180,
+            orient=tk.HORIZONTAL,
+            style="primary.TScale",
+            variable=self.root.gain,)
+            #command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+        
+        # kHz MHz Frame
+        self.frq_rng_frame: ttk.Label = ttk.Label(self.control_frame)
+        self.khz_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.frq_rng_frame,
+            text='KHz',
+            value='khz',
+            variable=self.root.frq_range,
+            bootstyle='dark-outline-toolbutton',
+            width=12,
+            command=lambda: self.root.serial.sc_sendget(Command.SET_KHZ, self.root.thread))
+        
+        self.mhz_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.frq_rng_frame,
+            text='MHz',
+            value='mhz',
+            variable=self.root.frq_range,
+            bootstyle='dark-outline-toolbutton',
+            width=12,
+            command=lambda: self.root.serial.sc_sendget(Command.SET_MHZ, self.root.thread)) 
+        
+        # Other children of the control frame
+        self.set_val_btn: ttk.Button = ttk.Button(
+            self.control_frame,
+            text='Set Frequency and Gain',
+            command=self.set_val,
+            bootstyle='dark.TButton',)
+        
+        self.sonic_measure_frame: ttk.Frame = ttk.Frame(self.topframe)
+        self.sonic_measure_button: ttk.Button = ttk.Button(
+            self.sonic_measure_frame,
+            text='Sonic measure',
+            style='dark.TButton',
+            image=self.root.graph_img,
+            compound=tk.TOP,
+            command=lambda: SonicMeasure(self.root))
+        
+        self.serial_monitor_btn: ttk.Button = ttk.Button(
+            self.sonic_measure_frame,
+            text='Serial Monitor',
+            style='secondary.TButton',
+            width=12,
+            command=self.root.publish_serial_monitor,)
+        
+        self.botframe: ttk.Frame = ttk.Frame(self)
+        
+        self.us_on_button: ttk.Button = ttk.Button(
+            self.botframe,
+            text='ON',
+            style='success.TButton',
+            width=10,
+            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread))
+        ToolTip(self.us_on_button, text="Turn on the ultrasound signal on")
+        
+        self.us_off_button: object = ttk.Button(
+            self.botframe,
+            text='OFF',
+            style='danger.TButton',
+            width=10,
+            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread))
+        ToolTip(self.us_on_button, text="Turn on the ultrasound signal off")
+        
+        logger.info("Initialized children and object")
+
+    def set_val(self) -> None:
+        self.root.serial.sc_sendget(
+            [Command.SET_GAIN + int(self.root.gain.get()),
+            Command.SET_FRQ + self.root.frq.get(),], 
+            self.root.thread)
+            
+    def attach_data(self) -> None:
+        logger.info("Attaching data to Hometab")
+        if self.root.frq_range.get() == "khz":
+            self.frq_spinbox.config(
+                from_=50000,
+                to=1200000)
+            for child in self.gain_frame.children.values():
+                child.configure(state=tk.DISABLED)
+        else:
+            self.frq_spinbox.config(
+                from_=600000,
+                to=6000000)
+            for child in self.gain_frame.children.values():
+                child.configure(state=tk.NORMAL)
+        
+            
+    def publish(self) -> None:
+        """ Function to build children of this frame """
+        logger.info("Publishing hometab")
+        self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        
+        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        
+        self.khz_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.mhz_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        
+        self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.frq_rng_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
+        self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5)
+        
+        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.sonic_measure_frame.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
+
+        self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+
+        self.topframe.pack(side=tk.TOP, padx=20, pady=20)
+        self.botframe.pack(side=tk.TOP)        
+            
+    def set_scrolldigit(self) -> None:
+        """ Function regarding the scroll digit combobox """
+        self.frq_spinbox.config(
+            increment = str(10 ** (int(self.scroll_digit.get())-1)))
         
 
 
@@ -496,7 +687,15 @@ class ScriptingTab(ttk.Frame):
             self.close_file()
         
     def status_handler(self) -> None:
-        self.status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
+        try:
+            self.status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
+        except:
+            self.status = Status.construct_from_list([
+                                0,
+                                int(self.root.serial.send_and_get(Command.GET_FRQ)),
+                                int(self.root.serial.send_and_get(Command.GET_GAIN)),
+                                int(self.root.serial.send_and_get(Command.GET_PROTOCOL).split('-')[0]),
+                                0])
         self.root.status_frame_catch.frq_meter["amountused"] = self.status.frequency / 1000
         self.root.status_frame_catch.gain_meter["amountused"] = self.status.gain
  
