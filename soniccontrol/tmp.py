@@ -1,52 +1,17 @@
-import datetime
-import sonicpackage as sp
+        
+#*  Status Frame:
+#TODO      Soll man noch was anzeigen? Catch und Wipe
+#*      Feedback Frame?
 
-sc = sp.SerialConnection()
-sc.auto_connect()
+#*  Help Page
+#*      Meinungen zum helppage, was soll man machen?
 
-while True:
-    # print(f"{datetime.datetime.now()}    {sc.get_answer()}")   
-    print(f"{datetime.datetime.now()}    {sc.send_and_get(sp.Command.GET_STATUS)}")
+#*  Scripting Tab
+#*      Scriptsprache ändern?
 
+#*  HomeTab
+#*      Feedback Frame Console?
+#!      Relaysteuerung auch automatisch?
+#!      Catch: Auto Button??
 
-# import serial
-# import time
-# from datetime import datetime
-# import random
-# import os
-# import sys
-
-# import tkinter as tk
-# import tkinter.ttk as ttk
-
-# import matplotlib
-# from matplotlib.backends.backend_tkagg import FigureCanvasAgg, NavigationToolbar2Tk
-# from matplotlib.figure import Figure
-# import matplotlib.animation as animation
-# from matplotlib import style
-
-# def timestamp():
-#     return str(datetime.fromtimestamp(int(time.time)))
-
-# def animate(i):
-#     filehandle = open(datafile_name, "r")
-#     pulldata = filehandle.read()
-    
-#     datalist = pulldata.split('\n')
-#     x_list = []
-#     y_list = []
-#     i = 0
-    
-
-# on
-# startloop 3
-# setMHz
-# on
-# frequency 1000000
-# gain 100
-# startloop 2
-# ramp 2100000,1900000,10000,100
-# endloop
-# hold 10
-# endloop
-# off
+#TODO: Edge cases und exceptions

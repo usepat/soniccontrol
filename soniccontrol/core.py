@@ -12,7 +12,7 @@ from ttkbootstrap import Style
 from PIL.ImageTk import PhotoImage
 import serial
 
-from sonicpackage import Command, Status, Modules, SonicCatch, SonicWipe, SerialConnection, SonicAmp
+from sonicpackage import Command, Status, Modules, SonicCatch, SonicWipe, SerialConnection, SonicAmp, SonicAmpBuilder
 from sonicpackage.threads import SonicThread
 from soniccontrol.fonts import *
 import soniccontrol.pictures as pics
@@ -40,7 +40,8 @@ class Root(tk.Tk):
         self.frq: tk.IntVar = tk.IntVar()
         self.gain: tk.IntVar = tk.IntVar()
         self.frq_range: tk.StringVar = tk.StringVar()
-        self.protocol: tk.StringVar = tk.StringVar()
+        self.wipe_mode: tk.IntVar = tk.IntVar()
+        self.protocol: tk.StringVar = tk.IntVar()
         
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -93,84 +94,65 @@ class Root(tk.Tk):
         self.status_frame_wipe: StatusFrameWipe = StatusFrameWipe(self.mainframe, self, style='dark.TFrame')
         self.serial_monitor: SerialMonitor = SerialMonitor(self)
         
-        logger.info("initialized children and root")
+        logger.info("Root:initialized children and object")
         
         self.thread: SonicThread = SonicAgent(self)
         self.thread.setDaemon(True)
         self.thread.start()
-        
+        self.thread.pause()
         self.__reinit__()
     
     def __reinit__(self) -> None:
         if self.serial.auto_connect():
-            logger.info("autoconnected")
+            logger.info("Root:autoconnected")
             self.decide_action()
-        elif self.port.get()[:3] == ('COM' or '/de'):
-            logger.info("manually connected")
-            self.serial.connect_to_port(self.port.get())
+        elif self.port.get()[:3] == ('COM' or '/de') and self.serial.connect_to_port(self.port.get()):
+            logger.info("Root:manually connected")
             self.decide_action()
         else:
-            logger.info("Did not detect connection")
+            logger.info("Root:Did not detect connection")
             self.publish_disconnected()
             
     def attach_data(self) -> None:
-        if self.sonicamp.amp_type == 'soniccatch':
-            self.notebook.attach_data()
+        logger.info(f"Root:attaching data for:{self.sonicamp.type_}")
+        self.notebook.attach_data()
+        if self.sonicamp.type_ == 'soniccatch':
             self.status_frame_catch.attach_data()
-        elif self.sonicamp.amp_type == 'sonicwipe':
-            self.notebook.attach_data()
+        elif self.sonicamp.type_ == 'sonicwipe':
             self.status_frame_wipe.attach_data()
     
     def engine(self) -> None:
-        # if not self.serial.serial.is_open:
-        #     self.notebook.connectiontab.disconnect()
-        
         while self.thread.queue.qsize():
-            self.sonicamp.status = self.thread.queue.get(0)
+            status: Status = self.thread.queue.get(0)
+            logger.info(f"Root:new status in Thread queue:{status}")
+            self.sonicamp.status = status
             self.update_idletasks()
             self.attach_data()
         self.after(100, self.engine)
     
     def decide_action(self) -> None:
-        self.serial.send_and_get(Command.SET_SERIAL, line=False)
-        try:
-            init_status: Status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
-        except:
-            init_status: Status = Status.construct_from_list(
-                [0,
-                self.serial.send_and_get(Command.GET_FRQ),
-                self.serial.send_and_get(Command.GET_GAIN),
-                self.serial.send_and_get(Command.GET_PROTOCOL).split('-')[0],
-                0,])
-        self.frq.set(init_status.frequency)
-        self.gain.set(init_status.gain)
-        
-        type_: Union[str, bool] = self.serial.send_and_get(Command.GET_TYPE)
-        if not type_:
-            type_ = self.serial.type
-        
-        if type_ == "soniccatch":
-            logger.info("Found soniccatch")
-            self.serial.send_and_get(Command.SET_MHZ)
-            self.frq_range.set('mhz')
-            self.sonicamp = SonicCatch(self.serial)
-            self.sonicamp.amp_type = type_
+        self.sonicamp: SonicAmp = SonicAmpBuilder.get_type(init_dict=self.serial.init_dict,
+                                                           serial=self.serial)
+        if self.sonicamp.type_ == 'soniccatch':
             self.publish_for_catch()
-        elif type_ == "sonicwipe":
-            logger.info("Found sonicwipe")
-            self.sonicamp = SonicWipe(self.serial)
-            self.sonicamp.amp_type = type_
+        if self.sonicamp.type_ == 'sonicwipe':
             self.publish_for_wipe()
         
-        self.engine()
+        init_status: Status = self.sonicamp.get_status()
+        self.frq.set(init_status.frequency)
+        self.gain.set(init_status.gain)
+        self.wipe_mode.set(init_status.wipe_mode)
+        self.protocol.set(init_status.current_prtcl)
+        self.frq_range.set(init_status.frq_range)
         
-        if self.thread.paused:
-            self.thread.resume()
+        self.engine()
+        self.thread.resume()
     
     def publish_disconnected(self) -> None:
         """ Publishes children in case there is no connection """
-        logger.info("publishing for disconnected")
+        logger.info("Root:publishing for disconnected")
         self.notebook.publish_disconnected()
+        self.status_frame_catch.publish()
         self.status_frame_catch.abolish_data()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
         
@@ -179,23 +161,18 @@ class Root(tk.Tk):
     
     def publish_for_catch(self) -> None:
         """ Publishes children in case there is a connection to a soniccatch """
-        logger.info("publishing for catch")
+        logger.info("Root:publishing for catch")
         self.attach_data()
         self.notebook.publish_for_catch()
         self.status_frame_catch.publish()
-        # self.mainframe.grid(row=0, column=0, sticky=tk.NSEW)
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
     def publish_for_wipe(self) -> None:
         """ Publishes children in case there is a connection to a sonicwipe """
-        logger.info("publishing for wipe")
+        logger.info("Root:publishing for wipe")
         self.notebook.publish_for_wipe()
         self.status_frame_wipe.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
-    
-    # def publish_sonicmeasure(self) -> None:
-    #     """ Publishes the sonicmeasure frame """
-    #     self.sonic_measure: SonicMeasure = SonicMeasure(self)
     
     def publish_serial_monitor(self) -> None:
         """ Publishes the serial monitor """
@@ -234,14 +211,16 @@ class NotebookMenu(ttk.Notebook):
         self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
         self.connectiontab: ConnectionTab = ConnectionTab(self, self.root)
         self.infotab: InfoTab = InfoTab(self, self.root)
-        logger.info("initialized children and object")
+        logger.info("NotebookMenu:initialized children and object")
         
     def attach_data(self) -> None:
+        logger.info(f"NotebookMenu:attaching data")
         for child in self.children.values():
             child.attach_data()
         
     def publish_for_catch(self) -> None:
         """ Builds children and displayes menue for a soniccatch """
+        logger.info(f"NotebookMenu:publishing for catch")
         self.add(self.hometab, text="Home", image=self.root.home_img, compound=tk.TOP)
         self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
         self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
@@ -253,6 +232,7 @@ class NotebookMenu(ttk.Notebook):
         self.pack(padx=5, pady=5)
         
     def publish_for_wipe(self) -> None:
+        logger.info(f"NotebookMenu:publishing for wipe")
         self.add(self.hometabwipe, text="Home", image=self.root.home_img, compound=tk.TOP)
         self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
         self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
@@ -264,6 +244,7 @@ class NotebookMenu(ttk.Notebook):
         self.pack(padx=5, pady=5)
     
     def publish_disconnected(self) -> None:
+        logger.info(f"NotebookMenu:publishing for disconnected")
         self.add(self.hometab, text="Home", image=self.root.home_img, compound=tk.TOP)
         self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
         self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
@@ -340,9 +321,9 @@ class StatusFrameCatch(ttk.Frame):
             self.meter_frame,
             bootstyle='warning',
             amounttotal=100,
-            amountused=0,
+            amountused=None,
             textright='°C',
-            subtext='Liquid Temperature',
+            subtext='Thermometer not found',
             metersize=150)
         
         # Overview frame objects
@@ -383,6 +364,7 @@ class StatusFrameCatch(ttk.Frame):
         
     def publish(self) -> None:
         """ Function to build the statusframe """
+        logger.info("StatusFrameCatch:publishing")
         self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.gain_meter.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.temp_meter.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
@@ -404,9 +386,10 @@ class StatusFrameCatch(ttk.Frame):
     
     def abolish_data(self) -> None:
         """ Function to repeal setted values """
+        logger.info("StatusFrameCatch:abolishing data")
         self.frq_meter["amountused"] = 0
         self.gain_meter["amountused"] = 0
-        self.temp_meter["amountused"] = 0
+        # self.temp_meter["amountused"] = 0
         
         self.con_status_label["image"] = self.root.led_red_img
         self.con_status_label["text"] = "Not Connected"
@@ -416,15 +399,15 @@ class StatusFrameCatch(ttk.Frame):
         
     def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
-        logger.info("attaching data")
+        logger.info("StatusFrameCatch:attaching data")
         self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000
         self.gain_meter["amountused"] = self.root.sonicamp.status.gain
-        self.temp_meter["amountused"] = 36 #!Here
+        # self.temp_meter["amountused"] = 36 #!Here
         
         self.con_status_label["image"] = self.root.led_green_img
         self.con_status_label["text"] = "connected"
         
-        if self.root.sonicamp.status.frequency:
+        if self.root.sonicamp.status.signal:
             self.sig_status_label["text"] = "Signal ON"
             self.sig_status_label["image"] = self.root.led_green_img
         else:
@@ -474,15 +457,22 @@ class StatusFrameWipe(ttk.Frame):
         
         self.seperator: ttk.Separator = ttk.Separator(
             self.meter_frame,
-            orient=tk.HORIZONTAL,
-            style="info.TSeperator",)
+            orient=tk.VERTICAL,
+            style="dark.TSeperator",)
+        
+        self.wipe_data_frame: ttk.Frame = ttk.Frame(self.meter_frame)
+        self.wipe_progressbar: ttkb.Floodgauge = ttkb.Floodgauge(
+            self.wipe_data_frame,
+            bootstyle='primary',
+            text='Wiping state',
+            mode=ttkb.INDETERMINATE,
+            font="Arial 15 bold",
+            orient=ttkb.VERTICAL,)
         
         self.protocol_status: ttk.Label = ttk.Label(
-            self.meter_frame,
+            self.wipe_data_frame,
             textvariable=self.root.protocol,
-            text="Dummy Text",
-            style="info.TLabel",
-        )
+            style="primary.TLabel",)
         
         # Overview Frame
         self.con_status_label: ttkb.Label = ttkb.Label(
@@ -525,7 +515,10 @@ class StatusFrameWipe(ttk.Frame):
         """ Function to build the statusframe """
         self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.seperator.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.protocol_status.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipe_data_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        
+        self.wipe_progressbar.pack(side=tk.TOP, padx=5, pady=5, ipadx=5, ipady=5,)
+        self.protocol_status.pack(side=tk.TOP, padx=5, pady=5)
         
         self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
@@ -549,12 +542,12 @@ class StatusFrameWipe(ttk.Frame):
     def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
         logger.info("attaching data")
-        self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000
+        self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000    
         
         self.con_status_label["image"] = self.root.led_green_img
         self.con_status_label["text"] = "connected"
         
-        if self.root.sonicamp.status.frequency:
+        if self.root.sonicamp.status.signal:
             self.sig_status_label["text"] = "Signal ON"
             self.sig_status_label["image"] = self.root.led_green_img
         else:
@@ -694,14 +687,16 @@ Here is a list for all commands:
             self.root.thread.pause()
             self.root.serial.serial.write(f"{command}\n".encode())
             time.sleep(0.3)
-            answer: str = self.root.serial.serial.read(255)
+            answer: str = self.root.serial.send_and_get(command)
             self.insert_text(answer)
             self.root.thread.resume()
         
         self.canvas.yview_moveto(1)
         self.command_field.delete(0, tk.END)
     
-    def insert_text(self, text: str) -> None:
+    def insert_text(self, text: Union[str, list]) -> None:
+        if text is list:
+            ''.join(text)
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
         self.canvas.update()
     
@@ -909,36 +904,13 @@ class SonicAgent(SonicThread):
         super().__init__()
         self._root: Root = root
         
-    
     def run(self) -> None:
         while True:
-            # in case the thread is paused
             with self.pause_cond:
                 while self.paused:
                     self.pause_cond.wait()
-                
-                # thread should not try to do something if paused
-                # in case not paused
+
                 if self.root.serial.is_connected:
-                    try:
-                        if self.root.sonicamp.version < 0.3:
-                            status: Status = Status.construct_from_list([
-                                0,
-                                int(self.root.serial.send_and_get(Command.GET_FRQ)),
-                                int(self.root.serial.send_and_get(Command.GET_GAIN)),
-                                int(self.root.serial.send_and_get(Command.GET_PROTOCOL).split('-')[0]),
-                                0])
-                        else:
-                            data_str = self.root.serial.send_and_get(Command.GET_STATUS)
-                            if len(data_str) > 1:
-                                status: Status = Status.construct_from_str(data_str)
-                        
-                        if status != self.root.sonicamp.status:
-                            self.queue.put(status)
-                            
-                    except ValueError:
-                        logger.info(f"ValueError: Received {data_str}")
-                    except serial.SerialException:
-                        self.root.notebook.connectiontab.disconnect()
-                else:
-                    self.pause_cond.wait()
+                    status: Status = self.root.sonicamp.get_status()
+                    if type(status) != bool and status != self.root.sonicamp.status:
+                        self.queue.put(status)

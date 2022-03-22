@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import ttkbootstrap as ttkb
 from ttkbootstrap.tooltip import ToolTip
+from typing import Union
 from abc import ABC, abstractmethod
 import time
 import subprocess
@@ -71,7 +72,7 @@ class HomeTabCatch(ttk.Frame):
         
         # Here follows the code regarding the TOPFRAME
         self.topframe: ttk.Labelframe = ttk.Labelframe(self, text="Manual control")
-        self.control_frame: ttk.Frame = ttk.Frame(self.topframe) 
+        self.control_frame: ttk.Frame = ttk.Frame(self.topframe)
         
         # Frq frame
         self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
@@ -83,7 +84,7 @@ class HomeTabCatch(ttk.Frame):
             textvariable=self.root.frq, 
             width=16,
             style='dark.TSpinbox',
-            command=lambda: self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+            command=self.set_frq)
         ToolTip(self.frq_spinbox, text="Configure the frequency of your device")
         
         self.scroll_digit: ttk.Spinbox = ttk.Spinbox(
@@ -107,7 +108,7 @@ class HomeTabCatch(ttk.Frame):
             textvariable=self.root.gain,
             width=5,
             style='dark.TSpinbox',
-            command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+            command=self.set_gain)
         ToolTip(self.gain_frame, text="Configure the gain for your device")
         
         self.gain_scale: ttk.Scale = ttk.Scale(
@@ -130,7 +131,7 @@ class HomeTabCatch(ttk.Frame):
             variable=self.root.frq_range,
             bootstyle='dark-outline-toolbutton',
             width=12,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_KHZ, self.root.thread))
+            command=lambda: self.insert_feed(self.root.serial.sc_sendget(Command.SET_KHZ, self.root.thread)))
         
         self.mhz_button: ttkb.Radiobutton = ttkb.Radiobutton(
             self.frq_rng_frame,
@@ -139,7 +140,7 @@ class HomeTabCatch(ttk.Frame):
             variable=self.root.frq_range,
             bootstyle='dark-outline-toolbutton',
             width=12,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_MHZ, self.root.thread)) 
+            command=lambda: self.insert_feed(self.root.serial.sc_sendget(Command.SET_MHZ, self.root.thread))) 
         
         # Other children of the control frame
         self.set_val_btn: ttk.Button = ttk.Button(
@@ -164,48 +165,77 @@ class HomeTabCatch(ttk.Frame):
             width=12,
             command=self.root.publish_serial_monitor,)
         
-        self.botframe: ttk.Frame = ttk.Frame(self)
-        
+        self.us_control_frame: ttk.Frame = ttk.Frame(self)
         self.us_on_button: ttk.Button = ttk.Button(
-            self.botframe,
+            self.us_control_frame,
             text='ON',
             style='success.TButton',
             width=10,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread))
-        ToolTip(self.us_on_button, text="Turn on the ultrasound signal on")
+            command=lambda: self.insert_feed(self.root.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread)))
+        ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
         
         self.us_off_button: object = ttk.Button(
-            self.botframe,
+            self.us_control_frame,
             text='OFF',
             style='danger.TButton',
             width=10,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread))
-        ToolTip(self.us_on_button, text="Turn on the ultrasound signal off")
+            command=lambda: self.insert_feed(self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread)))
+        ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
+        
+        self.botframe: ttk.Frame = ttk.Frame(self)
+        
+        # Feedback Frame
+        self.output_frame: ttk.Frame = ttk.LabelFrame(self.botframe, text='Feedback')
+        container: ttk.Frame = ttk.Frame(self.output_frame)
+        self.canvas: tk.Canvas = tk.Canvas(container)
+        scrollbar: ttk.Scrollbar = ttk.Scrollbar(container, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollable_frame: ttk.Frame = ttk.Frame(self.canvas)
+        
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda x: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
+        
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor=tk.NW)
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        
+        container.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
         logger.info("Initialized children and object")
-
+        
+    def insert_feed(self, text: Union[str, list]) -> None:
+        if text is list:
+            text = ' '.join(text)
+        ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
+        self.canvas.update()
+        self.canvas.yview_moveto(1)
+        
     def set_val(self) -> None:
-        self.root.serial.sc_sendget(
-            [Command.SET_GAIN + int(self.root.gain.get()),
-            Command.SET_FRQ + self.root.frq.get(),], 
-            self.root.thread)
-            
+        self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+        self.insert_feed(self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+
+    def set_frq(self) -> None:
+        self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread)
+    
+    def set_gain(self) -> None:
+        self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+    
     def attach_data(self) -> None:
         logger.info("Attaching data to Hometab")
         if self.root.frq_range.get() == "khz":
             self.frq_spinbox.config(
                 from_=50000,
-                to=1200000)
-            for child in self.gain_frame.children.values():
-                child.configure(state=tk.DISABLED)
+                to=1200000,)
+            self.gain_scale.config(state=tk.DISABLED)
+            self.gain_spinbox.config(state=tk.DISABLED)
         else:
             self.frq_spinbox.config(
                 from_=600000,
-                to=6000000)
-            for child in self.gain_frame.children.values():
-                child.configure(state=tk.NORMAL)
+                to=6000000,)
+            self.gain_scale.config(state=tk.NORMAL)
+            self.gain_spinbox.config(state=tk.NORMAL)
         
-            
     def publish(self) -> None:
         """ Function to build children of this frame """
         logger.info("Publishing hometab")
@@ -231,7 +261,11 @@ class HomeTabCatch(ttk.Frame):
         self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
-        self.topframe.pack(side=tk.TOP, padx=20, pady=20)
+        self.topframe.pack(side=tk.TOP, padx=10, pady=10)
+        
+        self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
+
+        self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
         self.botframe.pack(side=tk.TOP)        
             
     def set_scrolldigit(self) -> None:
@@ -261,21 +295,24 @@ class HomeTabWipe(ttk.Frame):
         
         self.config(height=200, width=200)
         
+        self.wipe_var: tk.IntVar = tk.IntVar()
+        self.wipe_mode: tk.BooleanVar = tk.BooleanVar()
+        
         # Here follows the code regarding the TOPFRAME
-        self.topframe: ttk.Labelframe = ttk.Labelframe(self, text="Manual control")
-        self.control_frame: ttk.Frame = ttk.Frame(self.topframe) 
+        self.topframe: ttk.Frame = ttk.Frame(self)
+        self.frq_control_frame: ttk.LabelFrame = ttk.LabelFrame(self.topframe, text='Set up frequency') 
         
         # Frq frame
-        self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
+        self.frq_frame: ttk.Label = ttk.Label(self.frq_control_frame)
         self.frq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self.frq_frame,
             from_=600000,
             increment=100,
             to=6000000,
             textvariable=self.root.frq, 
-            width=16,
+            width=8,
             style='dark.TSpinbox',
-            command=lambda: self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+            command=self.set_frq)
         ToolTip(self.frq_spinbox, text="Configure the frequency of your device")
         
         self.scroll_digit: ttk.Spinbox = ttk.Spinbox(
@@ -287,143 +324,163 @@ class HomeTabWipe(ttk.Frame):
             width=5,
             style='secondary.TSpinbox',
             command=self.set_scrolldigit)
-        ToolTip(self.scroll_digit, text="Set the digit you want to scroll in the Frequency field")
+        ToolTip(self.scroll_digit, text="Set the digit you want to scroll in the frequency field")
         
-        # Gain Frame
-        self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
-        self.gain_spinbox: ttk.Spinbox = ttk.Spinbox(
-            self.gain_frame,
-            from_=0,
-            increment=10,
-            to=150,
-            textvariable=self.root.gain,
-            width=5,
-            style='dark.TSpinbox',
-            command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
-        ToolTip(self.gain_frame, text="Configure the gain for your device")
-        
-        self.gain_scale: ttk.Scale = ttk.Scale(
-            self.gain_frame,
-            from_=0,
-            to=150,
-            name='gainscale',
-            length=180,
-            orient=tk.HORIZONTAL,
-            style="primary.TScale",
-            variable=self.root.gain,)
-            #command=lambda: self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
-        
-        # kHz MHz Frame
-        self.frq_rng_frame: ttk.Label = ttk.Label(self.control_frame)
-        self.khz_button: ttkb.Radiobutton = ttkb.Radiobutton(
-            self.frq_rng_frame,
-            text='KHz',
-            value='khz',
-            variable=self.root.frq_range,
-            bootstyle='dark-outline-toolbutton',
-            width=12,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_KHZ, self.root.thread))
-        
-        self.mhz_button: ttkb.Radiobutton = ttkb.Radiobutton(
-            self.frq_rng_frame,
-            text='MHz',
-            value='mhz',
-            variable=self.root.frq_range,
-            bootstyle='dark-outline-toolbutton',
-            width=12,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_MHZ, self.root.thread)) 
-        
-        # Other children of the control frame
         self.set_val_btn: ttk.Button = ttk.Button(
-            self.control_frame,
-            text='Set Frequency and Gain',
-            command=self.set_val,
-            bootstyle='dark.TButton',)
-        
-        self.sonic_measure_frame: ttk.Frame = ttk.Frame(self.topframe)
-        self.sonic_measure_button: ttk.Button = ttk.Button(
-            self.sonic_measure_frame,
-            text='Sonic measure',
-            style='dark.TButton',
-            image=self.root.graph_img,
-            compound=tk.TOP,
-            command=lambda: SonicMeasure(self.root))
-        
-        self.serial_monitor_btn: ttk.Button = ttk.Button(
-            self.sonic_measure_frame,
-            text='Serial Monitor',
-            style='secondary.TButton',
-            width=12,
-            command=self.root.publish_serial_monitor,)
-        
-        self.botframe: ttk.Frame = ttk.Frame(self)
+            self.frq_control_frame,
+            text='Set Frequency',
+            bootstyle='dark.TButton',
+            command=lambda: self.insert_feed(self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread)))
         
         self.us_on_button: ttk.Button = ttk.Button(
-            self.botframe,
+            self.frq_control_frame,
             text='ON',
             style='success.TButton',
             width=10,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread))
-        ToolTip(self.us_on_button, text="Turn on the ultrasound signal on")
+            command=lambda: self.insert_feed(self.root.serial.sc_sendget(Command.SET_SIGNAL_ON, self.root.thread)))
+        ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
+        
+        self.wipe_frame: ttk.LabelFrame = ttk.LabelFrame(self.topframe, text='Set up wiping')
+        self.wipe_spinbox: ttk.Spinbox = ttk.Spinbox(
+            self.wipe_frame,
+            from_=0,
+            increment=5,
+            to=100,
+            textvariable=self.wipe_var, 
+            width=16,
+            style='dark.TSpinbox',)
+        ToolTip(self.wipe_spinbox, text="Set up wipe cycles")
+        
+        self.wipe_mode_frame: ttk.Label = ttk.Label(self.wipe_frame)
+        self.def_wipe_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.wipe_mode_frame,
+            text='Definite',
+            value=True,
+            variable=self.wipe_mode,
+            bootstyle='dark-outline-toolbutton',
+            width=6,
+            command=self.handle_wipe_mode)
+        
+        self.inf_wipe_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.wipe_mode_frame,
+            text='Infinite',
+            value=False,
+            variable=self.wipe_mode,
+            bootstyle='dark-outline-toolbutton',
+            width=6,
+            command=self.handle_wipe_mode)
+        
+        # self.protocol_menu: ttk.Button = ttk.Button(
+        #     self.wipe_frame)
+        self.start_wipe_button: ttk.Button = ttk.Button(
+            self.wipe_frame,
+            text='WIPE',
+            style='primary.TButton',
+            command=self.start_wiping)
         
         self.us_off_button: object = ttk.Button(
-            self.botframe,
+            self.topframe,
             text='OFF',
             style='danger.TButton',
             width=10,
-            command=lambda: self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread))
-        ToolTip(self.us_on_button, text="Turn on the ultrasound signal off")
+            command=self.set_signal_off)
+        ToolTip(self.us_on_button, text="Turn the ultrasound signal off")
+        
+        # self.serial_monitor_btn: ttk.Button = ttk.Button(
+        #     self.sonic_measure_frame,
+        #     text='Serial Monitor',
+        #     style='secondary.TButton',
+        #     width=12,
+        #     command=self.root.publish_serial_monitor,)
+        
+        self.botframe: ttk.Frame = ttk.Frame(self)
+        
+        # Feedback Frame
+        self.output_frame: ttk.Frame = ttk.LabelFrame(self.botframe, text='Feedback')
+        container: ttk.Frame = ttk.Frame(self.output_frame)
+        self.canvas: tk.Canvas = tk.Canvas(container)
+        scrollbar: ttk.Scrollbar = ttk.Scrollbar(container, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollable_frame: ttk.Frame = ttk.Frame(self.canvas)
+        
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda x: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
+        
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor=tk.NW)
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        
+        container.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
         logger.info("Initialized children and object")
-
-    def set_val(self) -> None:
-        self.root.serial.sc_sendget(
-            [Command.SET_GAIN + int(self.root.gain.get()),
-            Command.SET_FRQ + self.root.frq.get(),], 
-            self.root.thread)
+        
+    def insert_feed(self, text: Union[str, list]) -> None:
+        if text is list:
+            text = ' '.join(text)
+        ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
+        self.canvas.update()
+        self.canvas.yview_moveto(1)
+        
+    def set_frq(self) -> None:
+        answer = self.root.serial.sc_sendget(
+                Command.SET_FRQ + self.root.frq.get(), 
+                self.root.thread)
+        # self.insert_feed(answer)
+    
+    def set_signal_off(self) -> None:
+        self.root.wipe_mode.set(0)
+        self.root.status_frame_wipe.wipe_progressbar.stop()
+        self.insert_feed(self.root.serial.sc_sendget(Command.SET_SIGNAL_OFF, self.root.thread))
+    
+    def handle_wipe_mode(self) -> None:
+        # In case its set to definite
+        if self.wipe_mode.get():
+            self.wipe_spinbox.config(state=tk.NORMAL)
+        else:
+            self.wipe_spinbox.config(state=tk.DISABLED)
+    
+    def start_wiping(self) -> None:
+        # In case its set to definite
+        if self.wipe_mode.get():
+            self.insert_feed(self.root.serial.sc_sendget(Command.SET_WIPE_DEF + self.wipe_var.get(), self.root.thread))
+        else:
+            self.insert_feed(self.root.serial.sc_sendget(Command.SET_WIPE_INF, self.root.thread))
+        
+        self.root.status_frame_wipe.wipe_progressbar.start()
+        self.root.wipe_mode.set(1)
             
     def attach_data(self) -> None:
         logger.info("Attaching data to Hometab")
-        if self.root.frq_range.get() == "khz":
-            self.frq_spinbox.config(
-                from_=50000,
-                to=1200000)
-            for child in self.gain_frame.children.values():
-                child.configure(state=tk.DISABLED)
-        else:
-            self.frq_spinbox.config(
-                from_=600000,
-                to=6000000)
-            for child in self.gain_frame.children.values():
-                child.configure(state=tk.NORMAL)
+        self.frq_spinbox.config(
+            from_=50000,
+            to=1200000)
         
-            
     def publish(self) -> None:
         """ Function to build children of this frame """
         logger.info("Publishing hometab")
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        
-        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        
-        self.khz_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.mhz_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        
+        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)        
         self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.frq_rng_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
-        self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
-        self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5)
+        self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
         
-        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sonic_measure_frame.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
-
-        self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-
+        
+        self.wipe_spinbox.pack(side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X)
+        self.inf_wipe_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.def_wipe_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipe_mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.start_wipe_button.pack(side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X)
+        
+        self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.frq_control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        
+        self.us_off_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+        
+        # self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5)
         self.topframe.pack(side=tk.TOP, padx=20, pady=20)
+        
+        self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
         self.botframe.pack(side=tk.TOP)        
             
     def set_scrolldigit(self) -> None:
@@ -458,14 +515,9 @@ class ScriptingTab(ttk.Frame):
         
         self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
         
-        self.config(height=200, width=200)
+        self.logger: logging.Logger
         
-        self.logger: logging.Logger = logging.getLogger("Scripting")
-        self.formatter: logging.Formatter = logging.Formatter('%(asctime)s  %(message)s')
-        self.file_handler: logging.FileHandler = logging.FileHandler(f'{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.log')
-        self.logger.setLevel(logging.DEBUG)
-        self.file_handler.setFormatter(self.formatter)
-        self.logger.addHandler(self.file_handler)
+        self.config(height=200, width=200)
         
         self.button_frame: ttk.Frame = ttk.Frame(self)
         self.start_script_btn = ttk.Button(
@@ -504,6 +556,7 @@ class ScriptingTab(ttk.Frame):
             style='info.TButton',
             width=15,
             command=lambda: ScriptingGuide(self.root, self.scripttext))
+        ToolTip(self.script_guide_btn, text="Help regarding the scripting commands")
         
         self.scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self,
@@ -581,13 +634,6 @@ class ScriptingTab(ttk.Frame):
         # self.show_log_console.grid(row=1, column=0, padx=5, pady=5)
         self.cur_task_label.grid(row=1, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
         self.sequence_status.grid(row=2, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
-        
-        # #Task Frame
-        # self.task_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
-        # self.static_prevtask_label.grid(row=0, column=0)
-        # self.prev_task_label.grid(row=1, column=0)
-        # self.static_curtask_label.grid(row=0, column=1)
-        # self.cur_task_label.grid(row=1, column=1)
     
     def show_console(self):
         pass
@@ -631,6 +677,14 @@ class ScriptingTab(ttk.Frame):
     
     def read_file(self):
         self.run: bool = True
+        
+        self.logger: logging.Logger = logging.getLogger("Scripting")
+        self.formatter: logging.Formatter = logging.Formatter('%(asctime)s  %(message)s')
+        self.file_handler: logging.FileHandler = logging.FileHandler(f'{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.log')
+        self.logger.setLevel(logging.DEBUG)
+        self.file_handler.setFormatter(self.formatter)
+        self.logger.addHandler(self.file_handler)
+        
         self.root.thread.pause()
         self.start_script_btn.configure(
             text='Stop',
@@ -645,7 +699,6 @@ class ScriptingTab(ttk.Frame):
         # self.save_log_btn.config(state=tk.DISABLED)
         self.script_guide_btn.config(state=tk.DISABLED)
         self.serial.send_and_get(Command.SET_SIGNAL_ON)
-        
         self.start_sequence()
     
     def highlight_line(self, i: int) -> None:
@@ -667,8 +720,10 @@ class ScriptingTab(ttk.Frame):
         while i < len(self.commands) and self.run:
             self.highlight_line(i)
             if self.commands[i] == 'startloop':
-                if bool(self.loops[i][1]):
+                if bool(self.loops[i][1]) and isinstance(self.loops[i][1], int):
                     self.loops[i][1] -= 1
+                    i += 1
+                elif self.loops[i][1] == 'inf':
                     i += 1
                 else:
                     i = self.loops[i][2] + 1
@@ -687,24 +742,27 @@ class ScriptingTab(ttk.Frame):
             self.close_file()
         
     def status_handler(self) -> None:
-        try:
-            self.status = Status.construct_from_str(self.serial.send_and_get(Command.GET_STATUS))
-        except:
-            self.status = Status.construct_from_list([
-                                0,
-                                int(self.root.serial.send_and_get(Command.GET_FRQ)),
-                                int(self.root.serial.send_and_get(Command.GET_GAIN)),
-                                int(self.root.serial.send_and_get(Command.GET_PROTOCOL).split('-')[0]),
-                                0])
-        self.root.status_frame_catch.frq_meter["amountused"] = self.status.frequency / 1000
-        self.root.status_frame_catch.gain_meter["amountused"] = self.status.gain
- 
-        if self.status.frequency:
-            self.root.status_frame_catch.sig_status_label["text"] = "Signal ON"
-            self.root.status_frame_catch.sig_status_label["image"] = self.root.led_green_img
-        else:
-            self.root.status_frame_catch.sig_status_label["text"] = "Signal OFF"
-            self.root.status_frame_catch.sig_status_label["image"] = self.root.led_red_img
+        self.status: Status = self.root.sonicamp.get_status()
+        if self.root.sonicamp.type_ == 'soniccatch':
+            self.root.status_frame_catch.gain_meter["amountused"] = self.status.gain
+            self.root.status_frame_catch.frq_meter["amountused"] = self.status.frequency / 1000
+
+            if self.status.frequency:
+                self.root.status_frame_catch.sig_status_label["text"] = "Signal ON"
+                self.root.status_frame_catch.sig_status_label["image"] = self.root.led_green_img
+            else:
+                self.root.status_frame_catch.sig_status_label["text"] = "Signal OFF"
+                self.root.status_frame_catch.sig_status_label["image"] = self.root.led_red_img
+        
+        elif self.root.sonicamp.type_ == 'sonicwipe':
+            self.root.status_frame_wipe.frq_meter["amountused"] = self.status.frequency / 1000
+
+            if self.status.frequency:
+                self.root.status_frame_wipe.sig_status_label["text"] = "Signal ON"
+                self.root.status_frame_wipe.sig_status_label["image"] = self.root.led_green_img
+            else:
+                self.root.status_frame_wipe.sig_status_label["text"] = "Signal OFF"
+                self.root.status_frame_wipe.sig_status_label["image"] = self.root.led_red_img
         
         self.root.update()
                 
@@ -721,6 +779,7 @@ class ScriptingTab(ttk.Frame):
         if self.run:
             if self.commands[counter] == "frequency":
                 logger.info("executing frq command")
+                self.check_relay(int(self.args_[counter]))
                 self.serial.send_and_get(Command.SET_FRQ + self.args_[counter])#, self.root.thread)
 
             elif self.commands[counter] == "gain":
@@ -749,17 +808,25 @@ class ScriptingTab(ttk.Frame):
                 self.serial.send_and_get(Command.SET_SIGNAL_OFF)#, self.root.thread)
                 # self.root.attach_data()
 
-            elif self.commands[counter] == "setMHz":
-                logger.info("executing mhz command")
-                self.serial.send_and_get(Command.SET_MHZ)#, self.root.thread)
+            # elif self.commands[counter] == "setMHz":
+            #     logger.info("executing mhz command")
+            #     self.serial.send_and_get(Command.SET_MHZ)#, self.root.thread)
 
-            elif self.commands[counter] == "setkHz":
-                logger.info("executing khz command")
-                self.serial.send_and_get(Command.SET_KHZ)#, self.root.thread)
+            # elif self.commands[counter] == "setkHz":
+            #     logger.info("executing khz command")
+            #     self.serial.send_and_get(Command.SET_KHZ)#, self.root.thread)
 
             elif self.commands[counter] == "autotune":
                 logger.info("executing auto command")
                 self.serial.send_and_get(Command.SET_AUTO)#, self.root.thread)
+    
+    def check_relay(self, frq: int) -> None:
+        if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch':
+            self.serial.send_and_get(Command.SET_MHZ)
+        elif frq < 1000000 and self.root.sonicamp.type_ == 'soniccatch':
+            self.serial.send_and_get(Command.SET_KHZ)
+        else:
+            pass
     
     def start_ramp(self, args_: list) -> None:
         logger.info("starting ramp")
@@ -777,9 +844,10 @@ class ScriptingTab(ttk.Frame):
         for frq in frq_list:
             if self.run:
                 self.current_task.set(f"Ramp is @ {frq/1000}kHz")
-                self.status_handler()
-                self.logger.info(f"ramp\t{start},{stop},{step}\t{frq}\t{self.status.gain}")
+                self.check_relay(frq)
                 self.serial.send_and_get(Command.SET_FRQ + frq)#, self.root.thread)
+                self.status_handler()
+                self.logger.info(f"ramp\t{start},{stop},{step}\t{self.status.frequency}\t{self.status.gain}")
 
                 now = datetime.datetime.now()
                 target = now+datetime.timedelta(milliseconds=int(delay))
@@ -805,7 +873,10 @@ class ScriptingTab(ttk.Frame):
         
         for i, command in enumerate(self.commands):
             if command == "startloop":
-                loopdata = [i, int(self.args_[i][0])]
+                if self.args_[i] == 'inf':
+                    loopdata: list = [i, 'inf']
+                else:    
+                    loopdata: list = [i, int(self.args_[i][0])]
                 self.loops.insert(i, loopdata)
             elif command == "endloop":
                 self.loops.insert(i, [])
@@ -851,104 +922,115 @@ class ScriptingGuide(tk.Toplevel):
             font="QTypeOT-CondMedium 15 bold",)
         self.heading_arg.grid(row=0, column=1, padx=5, pady=5, sticky=tk.NSEW)
         
-        self.heading_description = ttk.Label(
-            self.heading_frame, 
-            anchor=tk.W, 
-            justify=tk.CENTER,
-            width=15,
-            style="primary.TLabel",
-            text='Description',
-            font="QTypeOT-CondMedium 15 bold",)
-        self.heading_description.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        # self.heading_description = ttk.Label(
+        #     self.heading_frame, 
+        #     anchor=tk.W, 
+        #     justify=tk.CENTER,
+        #     width=15,
+        #     style="primary.TLabel",
+        #     text='Description',
+        #     font="QTypeOT-CondMedium 15 bold",)
+        # self.heading_description.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
         self.heading_frame.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W, expand=True, fill=tk.X)
         
         self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text="hold",
             arg_text="[1-100.000] in [seconds]",
-            desc_text="Hold the last state for X seconds",
+            desc_text=None,
             command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
         self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.hold_btn, text="Hold the last state for X seconds")
         
         self.frq_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='frequency',
             arg_text='[50.000-1.200.000] for kHz in [Hz]\n [600.000-6.000.000] for MHz in [Hz]',
-            desc_text='Change to the indicated frequency in Hz',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_FRQ))
         self.frq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.frq_btn, text='Change to the indicated frequency in Hz')
         
         self.gain_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='gain',
             arg_text='[1-150] in [%]',
-            desc_text='Change to the selected gain in %',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_GAIN))
-        self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.gain_btn, text='Change to the selected gain in %')
         
-        self.khz_btn: ScriptingGuideRow = ScriptingGuideRow(
-            self,
-            btn_text='setkHz',
-            arg_text=None,
-            desc_text='Change to the kHz range amplifier',
-            command = lambda: self.insert_command(ScriptCommand.SET_KHZ))
-        self.khz_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        # self.khz_btn: ScriptingGuideRow = ScriptingGuideRow(
+        #     self,
+        #     btn_text='setkHz',
+        #     arg_text=None,
+        #     desc_text='Change to the kHz range amplifier',
+        #     command = lambda: self.insert_command(ScriptCommand.SET_KHZ))
+        # self.khz_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
-        self.mhz_btn: ScriptingGuideRow = ScriptingGuideRow(
-            self,
-            btn_text='setMHz',
-            arg_text=None,
-            desc_text='Change to the MHz range amplifier',
-            command = lambda: self.insert_command(ScriptCommand.SET_MHZ))
-        self.mhz_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        # self.mhz_btn: ScriptingGuideRow = ScriptingGuideRow(
+        #     self,
+        #     btn_text='setMHz',
+        #     arg_text=None,
+        #     desc_text='Change to the MHz range amplifier',
+        #     command = lambda: self.insert_command(ScriptCommand.SET_MHZ))
+        # self.mhz_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         self.on_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='on',
             arg_text=None,
-            desc_text='Activate US emission',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_ON))
         self.on_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.on_btn, text='Activate US emission')
         
         self.off_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='off',
             arg_text=None,
-            desc_text='Deactivate US emission',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_OFF))
         self.off_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.off_btn, text='Deactivate US emission')
         
         self.startloop_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='startloop',
             arg_text='[2-10.000] as an [integer]',
-            desc_text='Start a loop for X times',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.STARTLOOP))
         self.startloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.startloop_btn, text='Start a loop for X times')
         
         self.endloop_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='endloop',
             arg_text=None,
-            desc_text='End the loop here',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.ENDLOOP))
         self.endloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.endloop_btn, text='End the loop here')
         
         self.ramp_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='ramp',
             arg_text='start f [Hz], stop f [Hz], step size [Hz], delay [s]',
-            desc_text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_RAMP))
         self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.ramp_btn, text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps')
         
         self.autotune_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='autotune',
             arg_text=None,
-            desc_text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.',
+            desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_AUTO))
-        self.autotune_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        ToolTip(self.autotune_btn, text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.')
+        
+        if root.sonicamp.type_ == 'soniccatch':
+            self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+            self.autotune_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         self.disclaimer_label: ttk.Label = ttk.Label(
             self, 
@@ -956,9 +1038,10 @@ class ScriptingGuide(tk.Toplevel):
             font=('TkDefaultFont', 11, 'bold'))
         self.disclaimer_label.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)
         
-        
     def insert_command(self, command: ScriptCommand) -> None:
         self.scripttext.insert(self.scripttext.index(tk.INSERT), command.value)
+        
+        
         
 
 class ScriptingGuideRow(ttk.Frame):
@@ -988,12 +1071,12 @@ class ScriptingGuideRow(ttk.Frame):
                 text=arg_text)
             self.arg_label.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)  
         
-        
-        self.desc_label: ttk.Label = ttk.Label(
-            self,
-            text=desc_text,
-            style='inverse.primary.TLabel')
-        self.desc_label.grid(row=0, column=3, padx=5, pady=5, sticky=tk.NSEW)
+        if desc_text:
+            self.desc_label: ttk.Label = ttk.Label(
+                self,
+                text=desc_text,
+                style='inverse.primary.TLabel')
+            self.desc_label.grid(row=0, column=3, padx=5, pady=5, sticky=tk.NSEW)
 
 
 class ConnectionTab(ttk.Frame):
@@ -1096,15 +1179,15 @@ class ConnectionTab(ttk.Frame):
     def attach_data(self) -> None:
         logger.info("attaching data")
         self.subtitle["text"] = "You are connected to"
-        self.heading1["text"] = self.root.sonicamp.amp_type[:5]
-        self.heading2["text"] = self.root.sonicamp.amp_type[5:]
+        self.heading1["text"] = self.root.sonicamp.type_[:5]
+        self.heading2["text"] = self.root.sonicamp.type_[5:]
         self.connect_button.config(
             bootstyle="danger",
             text="Disconnect",
             command=self.disconnect,)
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
-        self.firmware_label["text"] = self.root.sonicamp.firmware[0] #* Treeview for future ideas
+        self.firmware_label["text"] = self.root.sonicamp.firmware_msg #* Treeview for future ideas
         for child in self.flash_frame.children.values():
             child.configure(state=tk.NORMAL)
         
