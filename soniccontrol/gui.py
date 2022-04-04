@@ -57,7 +57,7 @@ class HomeTabCatch(ttk.Frame):
     def root(self) -> tk.Tk:
         return self._root
     
-    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, name: str, *args, **kwargs) -> None:
         """
         The Hometab is a child tab of the Notebook menu and is resonsible
         for handling and updating its children
@@ -65,7 +65,7 @@ class HomeTabCatch(ttk.Frame):
         The frame is, again, splittet up into two main frames that organize
         its children
         """
-        super().__init__(parent, *args, **kwargs)
+        super().__init__(parent, name=name, *args, **kwargs)
         self._root: tk.Tk = root
         
         self.config(height=200, width=200)
@@ -212,14 +212,32 @@ class HomeTabCatch(ttk.Frame):
         self.canvas.yview_moveto(1)
         
     def set_val(self) -> None:
-        self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
-        self.insert_feed(self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+        frq: int = self.root.frq.get()
+        if self.check_range(frq):
+            self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+            self.insert_feed(self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+        else:
+            messagebox.showwarning("Wrong Frequency Value", "This frequency cannot be setted under the current frequency range mode. Please use the spinbox once again")
 
     def set_frq(self) -> None:
-        self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread)
+        frq: int = self.root.frq.get()
+        if self.check_range(frq):
+            self.root.serial.sc_sendget(Command.SET_FRQ + frq, self.root.thread)
+        else:
+            messagebox.showwarning("Wrong Frequency Value", "This frequency cannot be setted under the current frequency range mode. Please use the spinbox once again")
     
     def set_gain(self) -> None:
         self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
+    
+    def check_range(self, frq: int) -> bool:
+        if self.root.frq_range.get() == "khz":
+            if frq > 1200000 or frq < 50000:
+                return False
+        elif self.root.frq_range.get() == "mhz":
+            if frq < 60000:
+                return False
+        
+        return True
     
     def attach_data(self) -> None:
         logger.info("Attaching data to Hometab")
@@ -252,8 +270,8 @@ class HomeTabCatch(ttk.Frame):
         self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.frq_rng_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
-        self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
-        self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5)
+        # self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
+        self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH)
         
         self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.sonic_measure_frame.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
@@ -282,7 +300,7 @@ class HomeTabWipe(ttk.Frame):
     def root(self) -> tk.Tk:
         return self._root
     
-    def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
+    def __init__(self, parent: ttk.Notebook, root: tk.Tk, name: str, *args, **kwargs) -> None:
         """
         The Hometab is a child tab of the Notebook menu and is resonsible
         for handling and updating its children
@@ -290,13 +308,13 @@ class HomeTabWipe(ttk.Frame):
         The frame is, again, splittet up into two main frames that organize
         its children
         """
-        super().__init__(parent, *args, **kwargs)
+        super().__init__(parent, name=name, *args, **kwargs)
         self._root: tk.Tk = root
         
         self.config(height=200, width=200)
         
-        self.wipe_var: tk.IntVar = tk.IntVar()
-        self.wipe_mode: tk.BooleanVar = tk.BooleanVar()
+        self.wipe_var: tk.IntVar = tk.IntVar(value=5)
+        self.wipe_mode: tk.BooleanVar = tk.BooleanVar(value=True)
         
         # Here follows the code regarding the TOPFRAME
         self.topframe: ttk.Frame = ttk.Frame(self)
@@ -306,9 +324,9 @@ class HomeTabWipe(ttk.Frame):
         self.frq_frame: ttk.Label = ttk.Label(self.frq_control_frame)
         self.frq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self.frq_frame,
-            from_=600000,
+            from_=50000,
             increment=100,
-            to=6000000,
+            to=1200000,
             textvariable=self.root.frq, 
             width=8,
             style='dark.TSpinbox',
@@ -343,7 +361,7 @@ class HomeTabWipe(ttk.Frame):
         self.wipe_frame: ttk.LabelFrame = ttk.LabelFrame(self.topframe, text='Set up wiping')
         self.wipe_spinbox: ttk.Spinbox = ttk.Spinbox(
             self.wipe_frame,
-            from_=0,
+            from_=1,
             increment=5,
             to=100,
             textvariable=self.wipe_var, 
@@ -385,13 +403,6 @@ class HomeTabWipe(ttk.Frame):
             width=10,
             command=self.set_signal_off)
         ToolTip(self.us_on_button, text="Turn the ultrasound signal off")
-        
-        # self.serial_monitor_btn: ttk.Button = ttk.Button(
-        #     self.sonic_measure_frame,
-        #     text='Serial Monitor',
-        #     style='secondary.TButton',
-        #     width=12,
-        #     command=self.root.publish_serial_monitor,)
         
         self.botframe: ttk.Frame = ttk.Frame(self)
         
@@ -442,7 +453,8 @@ class HomeTabWipe(ttk.Frame):
     
     def start_wiping(self) -> None:
         # In case its set to definite
-        if self.wipe_mode.get():
+        wipe_runs: int = self.wipe_mode.get()
+        if wipe_runs:
             self.insert_feed(self.root.serial.sc_sendget(Command.SET_WIPE_DEF + self.wipe_var.get(), self.root.thread))
         else:
             self.insert_feed(self.root.serial.sc_sendget(Command.SET_WIPE_INF, self.root.thread))
@@ -465,7 +477,6 @@ class HomeTabWipe(ttk.Frame):
         self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
         self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
         
-        
         self.wipe_spinbox.pack(side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X)
         self.inf_wipe_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.def_wipe_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
@@ -477,7 +488,6 @@ class HomeTabWipe(ttk.Frame):
         
         self.us_off_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
         
-        # self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5)
         self.topframe.pack(side=tk.TOP, padx=20, pady=20)
         
         self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
@@ -742,12 +752,15 @@ class ScriptingTab(ttk.Frame):
             self.close_file()
         
     def status_handler(self) -> None:
-        self.status: Status = self.root.sonicamp.get_status()
+        try:
+            self.status: Status = self.root.sonicamp.get_status()
+        except ValueError:
+            pass
         if self.root.sonicamp.type_ == 'soniccatch':
             self.root.status_frame_catch.gain_meter["amountused"] = self.status.gain
             self.root.status_frame_catch.frq_meter["amountused"] = self.status.frequency / 1000
 
-            if self.status.frequency:
+            if self.status.signal:
                 self.root.status_frame_catch.sig_status_label["text"] = "Signal ON"
                 self.root.status_frame_catch.sig_status_label["image"] = self.root.led_green_img
             else:
@@ -757,7 +770,7 @@ class ScriptingTab(ttk.Frame):
         elif self.root.sonicamp.type_ == 'sonicwipe':
             self.root.status_frame_wipe.frq_meter["amountused"] = self.status.frequency / 1000
 
-            if self.status.frequency:
+            if self.status.signal:
                 self.root.status_frame_wipe.sig_status_label["text"] = "Signal ON"
                 self.root.status_frame_wipe.sig_status_label["image"] = self.root.led_green_img
             else:
@@ -772,9 +785,6 @@ class ScriptingTab(ttk.Frame):
         self.current_task.set(f"{self.commands[counter]} {str(self.args_[counter])}")
         if counter > 0:
             self.previous_task = f"{self.commands[counter-1]} {self.args_[counter-1]}"
-        
-        self.status_handler()
-        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{self.status.frequency}\t{self.status.gain}")
 
         if self.run:
             if self.commands[counter] == "frequency":
@@ -819,6 +829,9 @@ class ScriptingTab(ttk.Frame):
             elif self.commands[counter] == "autotune":
                 logger.info("executing auto command")
                 self.serial.send_and_get(Command.SET_AUTO)#, self.root.thread)
+        
+        self.status_handler()
+        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{self.status.frequency}\t{self.status.gain}")
     
     def check_relay(self, frq: int) -> None:
         if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch':
@@ -936,11 +949,11 @@ class ScriptingGuide(tk.Toplevel):
         self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text="hold",
-            arg_text="[1-100.000] in [seconds]",
+            arg_text="[1-10000] in [milliseconds]",
             desc_text=None,
             command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
         self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
-        ToolTip(self.hold_btn, text="Hold the last state for X seconds")
+        ToolTip(self.hold_btn, text="Hold the last state for X milliseconds")
         
         self.frq_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
@@ -1014,19 +1027,19 @@ class ScriptingGuide(tk.Toplevel):
         self.ramp_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='ramp',
-            arg_text='start f [Hz], stop f [Hz], step size [Hz], delay [s]',
+            arg_text='start f [Hz], stop f [Hz], step size [Hz], delay [ms]',
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_RAMP))
         self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         ToolTip(self.ramp_btn, text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps')
         
-        self.autotune_btn: ScriptingGuideRow = ScriptingGuideRow(
-            self,
-            btn_text='autotune',
-            arg_text=None,
-            desc_text=None,
-            command = lambda: self.insert_command(ScriptCommand.SET_AUTO))
-        ToolTip(self.autotune_btn, text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.')
+        # self.autotune_btn: ScriptingGuideRow = ScriptingGuideRow(
+        #     self,
+        #     btn_text='autotune',
+        #     arg_text=None,
+        #     desc_text=None,
+        #     command = lambda: self.insert_command(ScriptCommand.SET_AUTO))
+        # ToolTip(self.autotune_btn, text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.')
         
         if root.sonicamp.type_ == 'soniccatch':
             self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
@@ -1174,6 +1187,13 @@ class ConnectionTab(ttk.Frame):
             text='Upload Firmware', 
             command=self.upload_file)
         
+        self.serial_monitor_btn: ttk.Button = ttk.Button(
+            self.botframe,
+            text='Serial Monitor',
+            style='secondary.TButton',
+            width=12,
+            command=self.root.publish_serial_monitor,)
+        
         logger.info("Initialized children and object connectiontab")
     
     def attach_data(self) -> None:
@@ -1236,9 +1256,10 @@ class ConnectionTab(ttk.Frame):
     
         self.firmware_frame.grid(row=0, column=0, padx=10, pady=10)
         self.firmware_label.pack()
-        self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
-        self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
-        self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
+        self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
+        # self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
+        # self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
+        # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
     
     def hex_file_path_handler(self):
         self.hex_file_path = filedialog.askopenfilename(defaultextension=".hex", filetypes=(("HEX File", "*.hex"),))
@@ -1327,7 +1348,7 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo2.grid(row=0, column=1)
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
         self.info_label.pack()
-        self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
+        # self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
         # self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
         self.controlframe.pack()
     

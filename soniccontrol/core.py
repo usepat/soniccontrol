@@ -1,6 +1,6 @@
-from msilib import type_binary
 import time
 import tkinter as tk
+from tkinter import messagebox
 from typing import Union
 import tkinter.ttk as ttk
 from matplotlib.figure import Figure
@@ -10,14 +10,42 @@ from tkinter import TclError, font
 from tkinter import filedialog
 from ttkbootstrap import Style
 from PIL.ImageTk import PhotoImage
-import serial
+import pyglet
+from PIL import Image
 
-from sonicpackage import Command, Status, Modules, SonicCatch, SonicWipe, SerialConnection, SonicAmp, SonicAmpBuilder
+from sonicpackage import Command, Status, SerialConnection, SonicAmp, SonicAmpBuilder
 from sonicpackage.threads import SonicThread
-from soniccontrol.fonts import *
-import soniccontrol.pictures as pics
 from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab, HomeTabWipe
 from soniccontrol.helpers import logger
+
+pyglet.font.add_file('QTypeOT-CondExtraLight.otf')
+pyglet.font.add_file('QTypeOT-CondLight.otf')
+pyglet.font.add_file('QTypeOT-CondMedium.otf')
+pyglet.font.add_file('QTypeOT-CondBook.otf')
+pyglet.font.add_file('QTypeOT-CondBold.otf')
+
+def resize_img(image_path: str, maxsize: tuple) -> Image:
+    image = Image.open(image_path)
+    r1 = image.size[0]/maxsize[0] # width ratio
+    r2 = image.size[1]/maxsize[1] # height ratio
+    ratio = max(r1, r2)
+    newsize = (int(image.size[0]/ratio), int(image.size[1]/ratio))
+    image = image.resize(newsize, Image.ANTIALIAS)
+    return image
+
+# Defining images
+# Uses custom resize funtion in helpers file
+refresh_img: Image = resize_img('refresh_icon.png', (20, 20))
+home_img: Image = resize_img('home_icon.png', (30, 30))
+script_img: Image = resize_img('script_icon.png', (30, 30))
+connection_img: Image = resize_img('connection_icon.png', (30, 30))
+info_img: Image = resize_img('info_icon.png', (30, 30))
+play_img: Image = resize_img('play_icon.png', (30, 30))
+pause_img: Image = resize_img('pause_icon.png', (30, 30))
+wave_bg: Image = resize_img('wave_bg.png', (540,440))
+graph_img: Image = resize_img('graph.png', (100,100))
+led_green_img: Image = resize_img('led_green.png', (35,35))
+led_red_img: Image = resize_img('led_red.png', (35,35))
 
 class Root(tk.Tk):
     """
@@ -41,13 +69,14 @@ class Root(tk.Tk):
         self.gain: tk.IntVar = tk.IntVar()
         self.frq_range: tk.StringVar = tk.StringVar()
         self.wipe_mode: tk.IntVar = tk.IntVar()
-        self.protocol: tk.StringVar = tk.IntVar()
+        self.protocol: tk.StringVar = tk.StringVar()
         
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
         self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
         self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
+        self.iconbitmap('welle.ico')
         style = Style(theme=Root.THEME) 
 
         # default font in GUI and custom Fonts
@@ -75,17 +104,17 @@ class Root(tk.Tk):
             weight=tk.font.BOLD)        
 
         #Defining images
-        self.refresh_img: PhotoImage = PhotoImage(pics.refresh_img)
-        self.home_img: PhotoImage = PhotoImage(pics.home_img)
-        self.script_img: PhotoImage = PhotoImage(pics.script_img)
-        self.connection_img: PhotoImage = PhotoImage(pics.connection_img)
-        self.info_img: PhotoImage = PhotoImage(pics.info_img)
-        self.play_img: PhotoImage = PhotoImage(pics.play_img)
-        self.pause_img: PhotoImage = PhotoImage(pics.pause_img)
-        self.wave_bg: PhotoImage = PhotoImage(pics.wave_bg)
-        self.graph_img: PhotoImage = PhotoImage(pics.graph_img)
-        self.led_green_img: PhotoImage = PhotoImage(pics.led_green_img)
-        self.led_red_img: PhotoImage = PhotoImage(pics.led_red_img)
+        self.refresh_img: PhotoImage = PhotoImage(refresh_img)
+        self.home_img: PhotoImage = PhotoImage(home_img)
+        self.script_img: PhotoImage = PhotoImage(script_img)
+        self.connection_img: PhotoImage = PhotoImage(connection_img)
+        self.info_img: PhotoImage = PhotoImage(info_img)
+        self.play_img: PhotoImage = PhotoImage(play_img)
+        self.pause_img: PhotoImage = PhotoImage(pause_img)
+        self.wave_bg: PhotoImage = PhotoImage(wave_bg)
+        self.graph_img: PhotoImage = PhotoImage(graph_img)
+        self.led_green_img: PhotoImage = PhotoImage(led_green_img)
+        self.led_red_img: PhotoImage = PhotoImage(led_red_img)
 
         # Children of Root
         self.mainframe: ttk.Frame = ttk.Frame(self)
@@ -103,14 +132,19 @@ class Root(tk.Tk):
         self.__reinit__()
     
     def __reinit__(self) -> None:
-        if self.serial.auto_connect():
-            logger.info("Root:autoconnected")
-            self.decide_action()
-        elif self.port.get()[:3] == ('COM' or '/de') and self.serial.connect_to_port(self.port.get()):
-            logger.info("Root:manually connected")
-            self.decide_action()
-        else:
-            logger.info("Root:Did not detect connection")
+        try:
+            if self.serial.auto_connect():
+                logger.info("Root:autoconnected")
+                self.decide_action()
+            elif self.port.get()[:3] == ('COM' or '/de') and self.serial.connect_to_port(self.port.get()):
+                logger.info("Root:manually connected")
+                self.decide_action()
+            else:
+                logger.info("Root:Did not detect connection")
+                self.publish_disconnected()
+        except Exception as e:
+            logger.info(f"Root:Exception:{e}")
+            messagebox.showerror("Error during connection","Something went wrong during, please try again to connect")
             self.publish_disconnected()
             
     def attach_data(self) -> None:
@@ -138,11 +172,16 @@ class Root(tk.Tk):
         if self.sonicamp.type_ == 'sonicwipe':
             self.publish_for_wipe()
         
+        prtcl: str = self.serial.send_and_get(Command.GET_PROTOCOL)
+        if type(prtcl) is list:
+            prtcl = ' '.join(prtcl)
+        
         init_status: Status = self.sonicamp.get_status()
-        self.frq.set(init_status.frequency)
+        init_dict: dict = self.sonicamp.get_overview()
+        self.frq.set(init_dict["frequency"])
         self.gain.set(init_status.gain)
         self.wipe_mode.set(init_status.wipe_mode)
-        self.protocol.set(init_status.current_prtcl)
+        self.protocol.set(prtcl)
         self.frq_range.set(init_status.frq_range)
         
         self.engine()
@@ -164,6 +203,7 @@ class Root(tk.Tk):
         logger.info("Root:publishing for catch")
         self.attach_data()
         self.notebook.publish_for_catch()
+        self.status_frame_wipe.pack_forget()
         self.status_frame_catch.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
@@ -171,6 +211,7 @@ class Root(tk.Tk):
         """ Publishes children in case there is a connection to a sonicwipe """
         logger.info("Root:publishing for wipe")
         self.notebook.publish_for_wipe()
+        self.status_frame_catch.pack_forget()
         self.status_frame_wipe.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
@@ -206,8 +247,8 @@ class NotebookMenu(ttk.Notebook):
         self.config(height=560, width=540)
         self['style'] = 'light.TNotebook'
         
-        self.hometab: HomeTabCatch = HomeTabCatch(self, self.root)
-        self.hometabwipe: HomeTabWipe = HomeTabWipe(self, self.root)
+        self.hometab: HomeTabCatch = HomeTabCatch(self, self.root, name='hometabcatch')
+        self.hometabwipe: HomeTabWipe = HomeTabWipe(self, self.root, name='hometabwipe')
         self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
         self.connectiontab: ConnectionTab = ConnectionTab(self, self.root)
         self.infotab: InfoTab = InfoTab(self, self.root)
@@ -217,14 +258,20 @@ class NotebookMenu(ttk.Notebook):
         logger.info(f"NotebookMenu:attaching data")
         for child in self.children.values():
             child.attach_data()
-        
-    def publish_for_catch(self) -> None:
-        """ Builds children and displayes menue for a soniccatch """
-        logger.info(f"NotebookMenu:publishing for catch")
-        self.add(self.hometab, text="Home", image=self.root.home_img, compound=tk.TOP)
+    
+    def _publish(self) -> None:
+        self.add(self.hometab, state=tk.NORMAL, text="Home", image=self.root.home_img, compound=tk.TOP)
+        self.add(self.hometabwipe, state=tk.HIDDEN,text="Home", image=self.root.home_img, compound=tk.TOP)
         self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
         self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
         self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
+    
+    def publish_for_catch(self) -> None:
+        """ Builds children and displayes menue for a soniccatch """
+        logger.info(f"NotebookMenu:publishing for catch")
+        self._publish()
+        # self.hide('hometabwipe')
+        self.forget(self.hometabwipe)
         self.select(self.connectiontab)
         self.enable_children()
         self.connectiontab.attach_data()
@@ -233,10 +280,9 @@ class NotebookMenu(ttk.Notebook):
         
     def publish_for_wipe(self) -> None:
         logger.info(f"NotebookMenu:publishing for wipe")
-        self.add(self.hometabwipe, text="Home", image=self.root.home_img, compound=tk.TOP)
-        self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
-        self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
-        self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
+        self._publish()
+        self.forget(self.hometab)
+        # self.hide('hometabcatch')
         self.select(self.connectiontab)
         self.enable_children()
         self.connectiontab.attach_data()
@@ -245,10 +291,9 @@ class NotebookMenu(ttk.Notebook):
     
     def publish_disconnected(self) -> None:
         logger.info(f"NotebookMenu:publishing for disconnected")
-        self.add(self.hometab, text="Home", image=self.root.home_img, compound=tk.TOP)
-        self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
-        self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
-        self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
+        self._publish()
+        self.forget(self.hometabwipe)
+        # self.hide('hometabcatch')
         self.select(self.connectiontab)
         self.connectiontab.abolish_data()
         self.publish_children()
@@ -685,9 +730,8 @@ Here is a list for all commands:
             self.destroy()
         else:
             self.root.thread.pause()
-            self.root.serial.serial.write(f"{command}\n".encode())
-            time.sleep(0.3)
-            answer: str = self.root.serial.send_and_get(command)
+            # self.root.serial.serial.write(f"{command}\n".encode())
+            answer: str = self.root.serial.send_and_get(f"{command}\n".encode())
             self.insert_text(answer)
             self.root.thread.resume()
         
@@ -696,7 +740,7 @@ Here is a list for all commands:
     
     def insert_text(self, text: Union[str, list]) -> None:
         if text is list:
-            ''.join(text)
+            text = ' '.join(text)
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
         self.canvas.update()
     
@@ -909,8 +953,12 @@ class SonicAgent(SonicThread):
             with self.pause_cond:
                 while self.paused:
                     self.pause_cond.wait()
-
-                if self.root.serial.is_connected:
-                    status: Status = self.root.sonicamp.get_status()
-                    if type(status) != bool and status != self.root.sonicamp.status:
-                        self.queue.put(status)
+                
+                try:
+                    if self.root.serial.is_connected:
+                        status: Status = self.root.sonicamp.get_status()
+                        if type(status) != bool and status != self.root.sonicamp.status:
+                            self.queue.put(status)
+                except Exception as e:
+                    print("exception in thread")
+                    logger.info(f"SonicAgent:Exception:{e}")
