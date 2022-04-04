@@ -136,7 +136,7 @@ class Root(tk.Tk):
             if self.serial.auto_connect():
                 logger.info("Root:autoconnected")
                 self.decide_action()
-            elif self.port.get()[:3] == ('COM' or '/de') and self.serial.connect_to_port(self.port.get()):
+            elif self.port.get() != '-' and self.serial.connect_to_port(self.port.get()):
                 logger.info("Root:manually connected")
                 self.decide_action()
             else:
