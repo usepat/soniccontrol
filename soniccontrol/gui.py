@@ -12,6 +12,7 @@ from ttkbootstrap.tooltip import ToolTip
 from typing import Union
 from abc import ABC, abstractmethod
 import time
+import csv
 import subprocess
 import os
 from sonicpackage import Command, SerialConnection, Status
@@ -270,7 +271,7 @@ class HomeTabCatch(ttk.Frame):
         self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.frq_rng_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
-        # self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
+        self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
         self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH)
         
         self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
@@ -960,7 +961,7 @@ class ScriptingGuide(tk.Toplevel):
         self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text="hold",
-            arg_text="[1-10000] in [milliseconds]",
+            arg_text="[1-10000] in [seconds]",
             desc_text=None,
             command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
         self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
@@ -1385,6 +1386,7 @@ class SonicMeasure(tk.Toplevel):
         super().__init__(master=root, *args, **kwargs)
         # self._root: tk.Tk = root
         self._serial: SerialConnection = root.serial
+        self.root: tk.Tk = root
         self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
         
         self.title('SonicMeasure')
@@ -1399,8 +1401,8 @@ class SonicMeasure(tk.Toplevel):
         
         # Figure Frame
         self.fig_frame: ttk.Frame = ttk.Frame(self)
-        self.figure_canvas: FigureCanvasTkAgg = MeasureCanvas(self.fig_frame, self.start_frq.get(), self.stop_frq.get())
-        
+        self.figure_canvas: MeasureCanvas = MeasureCanvas(self.fig_frame, self.start_frq.get(), self.stop_frq.get())
+        self.toolbar = NavigationToolbar2Tk(self.figure_canvas, self.fig_frame)
         # Utility controls Frame
         self.control_frame: ttk.Frame = ttk.Frame(self)
         self.util_ctrl_frame: ttk.Frame = ttk.Frame(self.control_frame)
@@ -1460,10 +1462,139 @@ class SonicMeasure(tk.Toplevel):
             textvariable=self.step_gain,
             style="dark.TEntry")
         
+        self._spectra_dir: str = 'SonicMeasure'
+        self.fieldnames: list = ['timestamp','frequency', 'urms', 'irms', 'phase']
+        
+        if not os.path.exists(self._spectra_dir):
+            os.mkdir(self._spectra_dir)
+        
         self.publish()
         
     def start(self) -> None:
-        pass
+        self.run: bool = True
+        self.start_btn.config(
+            text='Stop',
+            style='danger.TButton',
+            image=self.root.pause_img,
+            command=self.stop)
+        
+        self.save_btn.config(state=tk.DISABLED)
+        
+        for child in self.frq_frame.children.values():
+            child.config(state=tk.DISABLED)
+        
+        timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.spectra_file: str = f"sonicmeasure_{timestamp}.csv"
+        self._create_csv()
+        
+        self.root.thread.pause()
+        self.serial.send_and_get(Command.SET_MHZ)
+        self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        self.serial.send_and_get(Command.SET_GAIN + self.start_gain.get())
+        self.start_sequence()
+        
+    def stop(self) -> None:
+        self.start_btn.config(
+            text='Run',
+            style='success.TButton',
+            image=self.root.play_img,
+            command=self.start)
+        self.save_btn.config(state=tk.NORMAL)
+        for child in self.frq_frame.children.values():
+            child.config(state=tk.NORMAL)
+        
+        self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        self.root.thread.resume()
+        
+    def _create_csv(self) -> None:
+        with open(f"{self._spectra_dir}//{self.spectra_file}", "a", newline='') as f:
+            f.write(f"{datetime.datetime.now()}\ngain = {self.root.sonicamp.status.gain}\ndate[Y-m-d]\ntime[H:m:s.ms]\nurms[mV]\nirms[mA]\nphase[degree]\n\n")
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                f, fieldnames=self.fieldnames)
+            csv_writer.writeheader()
+        
+    def start_sequence(self) -> None:
+        start: int = self.start_frq.get()
+        stop: int = self.stop_frq.get()
+        step: int = self.step_frq.get()
+        
+        self.figure_canvas.update_axes(start, stop)
+        
+        self.frq_list: list = []
+        self.urms_list: list = []
+        self.irms_list: list = []
+        self.phase_list: list = []
+        
+        if start < 600000 or stop < 600000:
+            messagebox.showinfo("Not supported values", "Please make sure that your frequency values are between 600000Hz and 6000000Hz")
+            self.stop()
+        
+        if start > stop:
+            step = -abs(step)
+            
+        for frq in range(start, stop, step):
+            data: dict = self.get_data(frq)
+            print(data)
+            self.plot_data(data)
+            self.register_data(data)
+        
+        self.stop()
+    
+    def plot_data(self, data: dict) -> None:
+        self.frq_list.append(data["frequency"])
+        self.urms_list.append(data["urms"])
+        self.irms_list.append(data["irms"])
+        self.phase_list.append(data["phase"])
+        
+        self.figure_canvas.plot_urms.set_data(self.frq_list, self.urms_list)
+        self.figure_canvas.plot_irms.set_data(self.frq_list, self.irms_list)
+        self.figure_canvas.plot_phase.set_data(self.frq_list, self.phase_list)
+        
+        self.figure_canvas.draw()
+        
+        self.figure_canvas.ax_urms.set_ylim(
+            min(self.urms_list) - min(self.urms_list) * 0.4,
+            max(self.urms_list) + max(self.urms_list) * 0.2,)
+        self.figure_canvas.ax_irms.set_ylim(
+            min(self.irms_list) - min(self.irms_list) * 0.4,
+            max(self.irms_list) + max(self.irms_list) * 0.2,)
+        self.figure_canvas.ax_phase.set_ylim(
+            min(self.phase_list) - min(self.phase_list) * 0.4,
+            max(self.phase_list) + max(self.phase_list) * 0.2,)
+        
+        self.figure_canvas.flush_events()
+        self.root.update()
+            
+    def register_data(self, data: dict) -> None:
+        with open(f"{self._spectra_dir}//{self.spectra_file}", "a", newline='') as f:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                f, fieldnames=self.fieldnames)
+            print(data)
+            csv_writer.writerow(data)
+            
+    def get_data(self, frq: int) -> None:
+        self.serial.send_and_get(Command.SET_FRQ + frq)
+        data_list: list = self._get_sens()
+        print(data_list)
+        data_dict: dict = self._list_to_dict(data_list)
+        return data_dict
+    
+    def _list_to_dict(self, data_list: list) -> dict:
+        data_dict: dict = {
+            'timestamp': datetime.datetime.now(),
+            'frequency': data_list[0],
+            'urms': data_list[1],
+            'irms': data_list[2],
+            'phase': data_list[3],}
+        return data_dict
+    
+    def _get_sens(self) -> list:
+        data_str = self.serial.send_and_get(Command.GET_SENS)
+        print(data_str)
+        data_list: list = [int(data) for data in data_str.split(' ') if data != None or data != '']
+        if len(data_list) < 3:
+            return self._get_sens()
+        return data_list
     
     def save(self) -> None:
         pass
@@ -1494,11 +1625,11 @@ class SonicMeasure(tk.Toplevel):
         self.start_gain_label.grid(row=0, column=0, padx=3, pady=3)
         self.start_gain_entry.grid(row=0, column=1, padx=3, pady=3)
         
-        self.stop_gain_label.grid(row=1, column=0, padx=3, pady=3)
-        self.stop_gain_entry.grid(row=1, column=1, padx=3, pady=3)
+        # self.stop_gain_label.grid(row=1, column=0, padx=3, pady=3)
+        # self.stop_gain_entry.grid(row=1, column=1, padx=3, pady=3)
         
-        self.step_gain_label.grid(row=2, column=0, padx=3, pady=3)
-        self.step_gain_entry.grid(row=2, column=1, padx=3, pady=3)
+        # self.step_gain_label.grid(row=2, column=0, padx=3, pady=3)
+        # self.step_gain_entry.grid(row=2, column=1, padx=3, pady=3)
         
         
         
