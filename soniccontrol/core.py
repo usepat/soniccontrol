@@ -156,6 +156,8 @@ class Root(tk.Tk):
             self.status_frame_wipe.attach_data()
     
     def engine(self) -> None:
+        if not self.serial.is_connected:
+            self.__reinit__()
         while self.thread.queue.qsize():
             status: Status = self.thread.queue.get(0)
             logger.info(f"Root:new status in Thread queue:{status}")
@@ -312,7 +314,7 @@ class NotebookMenu(ttk.Notebook):
                 if child != focused_child:
                     self.tab(child, state=tk.DISABLED)
             except:
-                pass
+                logger.info("something went wrong in disabling children")
         self.select(focused_child)
     
     def enable_children(self) -> None:
@@ -321,7 +323,7 @@ class NotebookMenu(ttk.Notebook):
             try:
                 self.tab(child, state=tk.NORMAL)
             except TclError:
-                pass
+                logger.info("Something went wrong in enabling children")
 
 
 class StatusFrameCatch(ttk.Frame):

@@ -521,6 +521,7 @@ class ScriptingTab(ttk.Frame):
         self.logfilename: str
         self.logfilepath: str
         self.current_task: tk.StringVar = tk.StringVar(value='Idle')
+        self.status: Status
         self.previous_task: str = "Idle"
         
         self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
@@ -700,7 +701,8 @@ class ScriptingTab(ttk.Frame):
             text='Stop',
             style='danger.TButton',
             image=self.root.pause_img,
-            command=self.close_file)
+            command=lambda: self.set_run(False))
+        
         self.sequence_status.start()
         self.root.notebook.disable_children(self)
         self.scripttext.config(state=tk.DISABLED)
@@ -709,7 +711,11 @@ class ScriptingTab(ttk.Frame):
         # self.save_log_btn.config(state=tk.DISABLED)
         self.script_guide_btn.config(state=tk.DISABLED)
         self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        self.status_handler()
         self.start_sequence()
+        
+    def set_run(self, state: bool) -> None:
+        self.run = False
     
     def highlight_line(self, i: int) -> None:
         i += 1
@@ -724,7 +730,13 @@ class ScriptingTab(ttk.Frame):
         self.loop_index: int = 0
         
         line_list: list[str] = self.scripttext.get(1.0, tk.END).splitlines()
-        self.parse_commands(line_list)
+        logger.info(f"starting sequence: lines: {line_list}")
+        try:
+            self.parse_commands(line_list)
+        except Exception as e:
+            print(e)
+            messagebox.showerror("Error in formatting", "It seems you've given commands or arguments in the wrong format")
+            self.run: bool = False
         
         i = 0
         while i < len(self.commands) and self.run:
@@ -742,20 +754,20 @@ class ScriptingTab(ttk.Frame):
                     if bool(loop) and loop[2] == i:
                         for j in range(loop[0]+1, loop[2]):
                             if bool(self.loops[j]):
-                                self.loops[j][1] = int(self.args_[j][0])
+                                self.loops[j][1] = int(self.args_[j])
                         i = loop[0]
             else:
                 self.exec_command(i)
                 i += 1
 
-        if self.run:
-            self.close_file()
+        self.close_file()
         
     def status_handler(self) -> None:
         try:
             self.status: Status = self.root.sonicamp.get_status()
         except ValueError:
             pass
+        
         if self.root.sonicamp.type_ == 'soniccatch':
             self.root.status_frame_catch.gain_meter["amountused"] = self.status.gain
             self.root.status_frame_catch.frq_meter["amountused"] = self.status.frequency / 1000
@@ -791,41 +803,33 @@ class ScriptingTab(ttk.Frame):
                 logger.info("executing frq command")
                 self.check_relay(int(self.args_[counter]))
                 self.serial.send_and_get(Command.SET_FRQ + self.args_[counter])#, self.root.thread)
-
             elif self.commands[counter] == "gain":
                 logger.info("executing gain")
                 self.serial.send_and_get(Command.SET_GAIN + self.args_[counter])#, self.root.thread)
-
             elif self.commands[counter] == "ramp":
                 logger.info("executing ramp command")
                 self.start_ramp(self.args_[counter])
-
             elif self.commands[counter] == "hold":
                 logger.info("executing hold command")
                 now = datetime.datetime.now()
-                target = now + datetime.timedelta(milliseconds=int(self.args_[counter]))
+                target = now + datetime.timedelta(seconds=int(self.args_[counter]))
                 while now < target and self.run:
                     time.sleep(0.02)
                     now = datetime.datetime.now()
-
             elif self.commands[counter] == "on":
                 logger.info("executing on command")
                 self.serial.send_and_get(Command.SET_SIGNAL_ON)#, self.root.thread)
                 # self.root.attach_data()
-
             elif self.commands[counter] == "off":
                 logger.info("executing off command")
                 self.serial.send_and_get(Command.SET_SIGNAL_OFF)#, self.root.thread)
                 # self.root.attach_data()
-
             # elif self.commands[counter] == "setMHz":
             #     logger.info("executing mhz command")
             #     self.serial.send_and_get(Command.SET_MHZ)#, self.root.thread)
-
             # elif self.commands[counter] == "setkHz":
             #     logger.info("executing khz command")
             #     self.serial.send_and_get(Command.SET_KHZ)#, self.root.thread)
-
             elif self.commands[counter] == "autotune":
                 logger.info("executing auto command")
                 self.serial.send_and_get(Command.SET_AUTO)#, self.root.thread)
@@ -834,10 +838,12 @@ class ScriptingTab(ttk.Frame):
         self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{self.status.frequency}\t{self.status.gain}")
     
     def check_relay(self, frq: int) -> None:
-        if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch':
+        if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency < 1000000:
             self.serial.send_and_get(Command.SET_MHZ)
-        elif frq < 1000000 and self.root.sonicamp.type_ == 'soniccatch':
+            self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        elif frq < 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency >= 1000000:
             self.serial.send_and_get(Command.SET_KHZ)
+            self.serial.send_and_get(Command.SET_SIGNAL_ON)
         else:
             pass
     
@@ -853,7 +859,7 @@ class ScriptingTab(ttk.Frame):
             frq_list.sort(reverse=True)
         else:
             frq_list: list[int] = list(range(start, stop+step, step))
-        
+
         for frq in frq_list:
             if self.run:
                 self.current_task.set(f"Ramp is @ {frq/1000}kHz")
@@ -877,9 +883,12 @@ class ScriptingTab(ttk.Frame):
             if ' ' in line:
                 self.commands.append(line.split(' ')[0])
                 if ',' in line:
-                    self.args_.append(line.split(' ')[1].split(','))
+                    ramp_args: list = [int(arg) for arg in line.split(' ')[1].split(',') if arg != '']
+                    self.args_.append(ramp_args)
                 else:
-                    self.args_.append(line.split(' ')[1])
+                    arg: str = line.split(' ')[1]
+                    if arg != '':
+                        self.args_.append(int(arg))
             else:
                 self.commands.append(line)
                 self.args_.append(None)
@@ -889,7 +898,7 @@ class ScriptingTab(ttk.Frame):
                 if self.args_[i] == 'inf':
                     loopdata: list = [i, 'inf']
                 else:    
-                    loopdata: list = [i, int(self.args_[i][0])]
+                    loopdata: list = [i, int(self.args_[i])]
                 self.loops.insert(i, loopdata)
             elif command == "endloop":
                 self.loops.insert(i, [])
@@ -899,6 +908,8 @@ class ScriptingTab(ttk.Frame):
                         break
             else:
                 self.loops.insert(i, [])
+        
+        logger.info(f"after parsing: commands:{self.commands}  args:{self.args_}  loops:{self.loops}")
     
     def attach_data(self) -> None:
         pass
