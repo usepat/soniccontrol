@@ -1,0 +1,9 @@
+2022-04-08 15:01:30.400134
+gain = 10
+date[Y-m-d]
+time[H:m:s.ms]
+urms[mV]
+irms[mA]
+phase[degree]
+
+timestamp,frequency,urms,irms,phase

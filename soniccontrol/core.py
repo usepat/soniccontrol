@@ -15,7 +15,8 @@ from PIL import Image
 
 from sonicpackage import Command, Status, SerialConnection, SonicAmp, SonicAmpBuilder
 from sonicpackage.threads import SonicThread
-from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab, HomeTabWipe
+from sonicpackage.amp_tools import serial
+from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab, HomeTabWipe, SonicMeasure
 from soniccontrol.helpers import logger
 
 pyglet.font.add_file('QTypeOT-CondExtraLight.otf')
@@ -132,6 +133,11 @@ class Root(tk.Tk):
         self.__reinit__()
     
     def __reinit__(self) -> None:
+        """
+        This function initializes/ re-initializes the connection with a sonicamp,
+        and adapts the programm funtctions accordingly
+        """
+        self.serial.get_ports()
         try:
             if self.serial.auto_connect():
                 logger.info("Root:autoconnected")
@@ -148,6 +154,7 @@ class Root(tk.Tk):
             self.publish_disconnected()
             
     def attach_data(self) -> None:
+        """Attaches new data to all children, so that this becomes visible"""
         logger.info(f"Root:attaching data for:{self.sonicamp.type_}")
         self.notebook.attach_data()
         if self.sonicamp.type_ == 'soniccatch':
@@ -156,6 +163,10 @@ class Root(tk.Tk):
             self.status_frame_wipe.attach_data()
     
     def engine(self) -> None:
+        """
+        Function that checks every 100ms if new data came in, and updates the root respectively
+        The Data itself is being transferred through the queue object of the sonicagent thread
+        """
         if not self.serial.is_connected:
             self.__reinit__()
         while self.thread.queue.qsize():
@@ -167,6 +178,10 @@ class Root(tk.Tk):
         self.after(100, self.engine)
     
     def decide_action(self) -> None:
+        """
+        Gets the information about the sonicamp through the sonicampbuilder and decides what children to pusblish
+        and what functions to use
+        """
         self.sonicamp: SonicAmp = SonicAmpBuilder.get_type(init_dict=self.serial.init_dict,
                                                            serial=self.serial)
         if self.sonicamp.type_ == 'soniccatch':
@@ -187,7 +202,8 @@ class Root(tk.Tk):
         self.frq_range.set(init_status.frq_range)
         
         self.engine()
-        self.thread.resume()
+        if self.thread.paused:
+            self.thread.resume()
     
     def publish_disconnected(self) -> None:
         """ Publishes children in case there is no connection """
@@ -199,6 +215,13 @@ class Root(tk.Tk):
         
         if self.winfo_width() == Root.MAX_WIDTH:
             self.adjust_dimensions()
+        try:
+            if tk.Toplevel.winfo_exists(self.notebook.hometab.sonicmeasure):
+                self.notebook.hometab.sonicmeasure.destroy()
+                if self.thread.paused:
+                    self.thread.resume()
+        except AttributeError:
+            pass
     
     def publish_for_catch(self) -> None:
         """ Publishes children in case there is a connection to a soniccatch """
@@ -257,11 +280,13 @@ class NotebookMenu(ttk.Notebook):
         logger.info("NotebookMenu:initialized children and object")
         
     def attach_data(self) -> None:
+        """Attaches data to the notebookmenue and its children"""
         logger.info(f"NotebookMenu:attaching data")
         for child in self.children.values():
             child.attach_data()
     
     def _publish(self) -> None:
+        """publishes default children of the notebook"""
         self.add(self.hometab, state=tk.NORMAL, text="Home", image=self.root.home_img, compound=tk.TOP)
         self.add(self.hometabwipe, state=tk.HIDDEN,text="Home", image=self.root.home_img, compound=tk.TOP)
         self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
@@ -281,6 +306,7 @@ class NotebookMenu(ttk.Notebook):
         self.pack(padx=5, pady=5)
         
     def publish_for_wipe(self) -> None:
+        """ Builds children and displayes menue for a sonicwipe """
         logger.info(f"NotebookMenu:publishing for wipe")
         self._publish()
         self.forget(self.hometab)
@@ -292,6 +318,7 @@ class NotebookMenu(ttk.Notebook):
         self.pack(padx=5, pady=5)
     
     def publish_disconnected(self) -> None:
+        """Publishes children in the case that there is no connection"""
         logger.info(f"NotebookMenu:publishing for disconnected")
         self._publish()
         self.forget(self.hometabwipe)
@@ -719,6 +746,7 @@ Here is a list for all commands:
         self.output_frame.pack_propagate(False)
     
     def send_command(self, event) -> None:
+        """Sends the command written in the input field"""
         command: str = self.command_field.get()
         self.command_history.insert(0, command)
         self.insert_text(f">>> {command}")
@@ -741,18 +769,21 @@ Here is a list for all commands:
         self.command_field.delete(0, tk.END)
     
     def insert_text(self, text: Union[str, list]) -> None:
+        """Inserts text in the output frame"""
         if text is list:
             text = ' '.join(text)
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
         self.canvas.update()
     
     def history_up(self, event) -> None:
+        """function to go through the history of commands upwards"""
         if self.index_history != len(self.command_history) - 1:
             self.index_history += 1
             self.command_field.delete(0, tk.END)
             self.command_field.insert(0, self.command_history[self.index_history])
             
     def history_down(self, event) -> None:
+        """function to go through the history of commands downwards"""
         if self.index_history !=  -1:
             self.index_history -= 1
             self.command_field.delete(0, tk.END)
@@ -961,6 +992,8 @@ class SonicAgent(SonicThread):
                         status: Status = self.root.sonicamp.get_status()
                         if type(status) != bool and status != self.root.sonicamp.status:
                             self.queue.put(status)
+                except serial.SerialException:
+                    self.root.__reinit__()
                 except Exception as e:
                     print("exception in thread")
                     logger.info(f"SonicAgent:Exception:{e}")

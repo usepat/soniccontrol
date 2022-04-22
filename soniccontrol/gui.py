@@ -16,6 +16,7 @@ import csv
 import subprocess
 import os
 from sonicpackage import Command, SerialConnection, Status
+from sonicpackage.amp_tools import serial
 from .helpers import logger
 
 
@@ -157,7 +158,7 @@ class HomeTabCatch(ttk.Frame):
             style='dark.TButton',
             image=self.root.graph_img,
             compound=tk.TOP,
-            command=lambda: SonicMeasure(self.root))
+            command=self.publish_sonicmeasure)
         
         self.serial_monitor_btn: ttk.Button = ttk.Button(
             self.sonic_measure_frame,
@@ -254,6 +255,9 @@ class HomeTabCatch(ttk.Frame):
                 to=6000000,)
             self.gain_scale.config(state=tk.NORMAL)
             self.gain_spinbox.config(state=tk.NORMAL)
+            
+    def publish_sonicmeasure(self) -> None:
+        self.sonicmeasure: SonicMeasure = SonicMeasure(self.root)
         
     def publish(self) -> None:
         """ Function to build children of this frame """
@@ -1360,12 +1364,13 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo2.grid(row=0, column=1)
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
         self.info_label.pack()
-        # self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
+        self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
         # self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
         self.controlframe.pack()
     
     def open_manual(self) -> None:
-        pass
+        """Opens the helppage manual with the default pdf viewer"""
+        subprocess.Popen(['help_page.pdf'], shell=True)
     
     def attach_data(self) -> None:
         pass
@@ -1373,10 +1378,6 @@ class InfoTab(ttk.Frame):
 
 
 class SonicMeasure(tk.Toplevel):
-    
-    # @property
-    # def root(self) -> tk.Tk:
-    #     return self._root
     
     @property
     def serial(self) -> SerialConnection:
@@ -1470,6 +1471,10 @@ class SonicMeasure(tk.Toplevel):
         
         self.publish()
         
+    def on_closing(self) -> None:
+        self.stop()
+        self.destroy()
+        
     def start(self) -> None:
         self.run: bool = True
         self.start_btn.config(
@@ -1531,12 +1536,17 @@ class SonicMeasure(tk.Toplevel):
         
         if start > stop:
             step = -abs(step)
-            
+                
         for frq in range(start, stop, step):
-            data: dict = self.get_data(frq)
-            print(data)
-            self.plot_data(data)
-            self.register_data(data)
+            try:
+                data: dict = self.get_data(frq)
+                self.protocol("WM_DELETE_WINDOW", self.on_closing)
+                print(data)
+                self.plot_data(data)
+                self.register_data(data)
+            except serial.SerialException:
+                self.root.__reinit__()
+                break
         
         self.stop()
     
