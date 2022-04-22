@@ -207,6 +207,7 @@ class Root(tk.Tk):
         """ Publishes children in case there is no connection """
         logger.info("Root:publishing for disconnected")
         self.notebook.publish_disconnected()
+        self.status_frame_wipe.forget()
         self.status_frame_catch.publish()
         self.status_frame_catch.abolish_data()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
@@ -295,7 +296,7 @@ class NotebookMenu(ttk.Notebook):
         """ Builds children and displayes menue for a soniccatch """
         logger.info(f"NotebookMenu:publishing for catch")
         self._publish()
-        # self.hide('hometabwipe')
+        self.reorder_tabs()
         self.forget(self.hometabwipe)
         self.select(self.connectiontab)
         self.enable_children()
@@ -307,8 +308,8 @@ class NotebookMenu(ttk.Notebook):
         """ Builds children and displayes menue for a sonicwipe """
         logger.info(f"NotebookMenu:publishing for wipe")
         self._publish()
+        self.reorder_tabs()
         self.forget(self.hometab)
-        # self.hide('hometabcatch')
         self.select(self.connectiontab)
         self.enable_children()
         self.connectiontab.attach_data()
@@ -326,7 +327,18 @@ class NotebookMenu(ttk.Notebook):
         self.publish_children()
         self.disable_children(self.connectiontab)
         self.pack(padx=5, pady=5)
-        
+    
+    def reorder_tabs(self) -> None:
+        if self.root.sonicamp.type_ == 'soniccatch':
+            self.hometabwipe.forget()
+            self.insert(0, self.hometab)
+        else:
+            self.hometab.forget()
+            self.insert(0, self.hometabwipe)
+        self.insert(1, self.scriptingtab)
+        self.insert(2, self.connectiontab)
+        self.insert(3, self.infotab)
+    
     def publish_children(self) -> None:
         """ Publishes children """
         for child in self.children.values():
