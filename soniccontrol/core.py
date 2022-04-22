@@ -167,8 +167,6 @@ class Root(tk.Tk):
         Function that checks every 100ms if new data came in, and updates the root respectively
         The Data itself is being transferred through the queue object of the sonicagent thread
         """
-        if not self.serial.is_connected:
-            self.__reinit__()
         while self.thread.queue.qsize():
             status: Status = self.thread.queue.get(0)
             logger.info(f"Root:new status in Thread queue:{status}")
