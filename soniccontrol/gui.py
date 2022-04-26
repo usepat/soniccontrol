@@ -614,27 +614,13 @@ class ScriptingTab(ttk.Frame):
             length=160,
             mode="indeterminate",
             orient=tk.HORIZONTAL,
-            style="dark.TProgressbar",) 
-
-        # self.sequence_status: ttkb.Floodgauge = ttkb.Floodgauge(
-        #     self.scripting_frame,
-        #     length=160,
-        #     mode=ttkb.INDETERMINATE,
-        #     orient=ttkb.HORIZONTAL,
-        #     bootstyle=ttkb.DARK,)
-
-        # self.task_frame = ttk.Frame(self)
-        # self.static_prevtask_label = ttk.Label(
-        #     self.task_frame,
-        #     text='Previous Task:',)
+            style="dark.TProgressbar",)
         
-        # self.prev_task_label = ttk.Label(
-        #     self.task_frame,
-        #     textvariable=self.previous_task,)
+        self._sequence_dir: str = 'ScriptingSequence'
+        self.fieldnames: list = ['timestamp','frequency', 'urms', 'irms', 'phase']
         
-        # self.static_curtask_label = ttk.Label(
-        #     self.task_frame,
-        #     text='Current Task:')
+        if not os.path.exists(self._sequence_dir):
+            os.mkdir(self._sequence_dir)
         
         logger.info("Initialized scripting tab")
 
@@ -697,7 +683,7 @@ class ScriptingTab(ttk.Frame):
         
         self.logger: logging.Logger = logging.getLogger("Scripting")
         self.formatter: logging.Formatter = logging.Formatter('%(asctime)s  %(message)s')
-        self.file_handler: logging.FileHandler = logging.FileHandler(f'{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.log')
+        self.file_handler: logging.FileHandler = logging.FileHandler(f'{self._sequence_dir}//{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.log')
         self.logger.setLevel(logging.DEBUG)
         self.file_handler.setFormatter(self.formatter)
         self.logger.addHandler(self.file_handler)
@@ -874,7 +860,6 @@ class ScriptingTab(ttk.Frame):
         Args:
             args_ (list[Union[str, int]]): _description_
         """
-        print(args_)
         now: datetime.datetime = datetime.datetime.now()
         
         # Let us find out, what unit the delay should be in
@@ -917,7 +902,7 @@ class ScriptingTab(ttk.Frame):
             [1200000, 1900000, 10000, 100, 'ms']
         """
         logger.info("starting ramp")
-        print(args_)
+        
         # declaring variables for easier use
         start: int = args_[0]
         stop: int = args_[1]
@@ -1018,7 +1003,6 @@ class ScriptingTab(ttk.Frame):
             else:
                 self.loops.insert(i, [])
         
-        print(self.commands, self.args_)
         logger.info(f"after parsing: commands:{self.commands}  args:{self.args_}  loops:{self.loops}")
     
     def attach_data(self) -> None:
@@ -1070,16 +1054,16 @@ class ScriptingGuide(tk.Toplevel):
         self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text="hold",
-            arg_text="[1-10000] in [seconds]",
+            arg_text="[1-10000] in [seconds/ milliseconds] (depending on what you write e.g: 100ms, 5s, 123s)",
             desc_text=None,
             command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
         self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
-        ToolTip(self.hold_btn, text="Hold the last state for X milliseconds")
+        ToolTip(self.hold_btn, text="Hold the last state for X seconds/ milliseconds, depending on what unit you have given")
         
         self.frq_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='frequency',
-            arg_text='[50.000-1.200.000] for kHz in [Hz]\n [600.000-6.000.000] for MHz in [Hz]',
+            arg_text='[50.000-6.000.000] in [Hz]',
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_FRQ))
         self.frq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
@@ -1148,23 +1132,14 @@ class ScriptingGuide(tk.Toplevel):
         self.ramp_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='ramp',
-            arg_text='start f [Hz], stop f [Hz], step size [Hz], delay [ms]',
+            arg_text='<start f [Hz]> <stop f [Hz]> <step size [Hz]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, 3s, 234ms)',
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_RAMP))
         self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         ToolTip(self.ramp_btn, text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps')
-        
-        # self.autotune_btn: ScriptingGuideRow = ScriptingGuideRow(
-        #     self,
-        #     btn_text='autotune',
-        #     arg_text=None,
-        #     desc_text=None,
-        #     command = lambda: self.insert_command(ScriptCommand.SET_AUTO))
-        # ToolTip(self.autotune_btn, text='Start the autotune protocol. This should be followed by "hold"\n commands, otherwise the function will be stopped.')
-        
+                
         if root.sonicamp.type_ == 'soniccatch':
             self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
-            self.autotune_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         self.disclaimer_label: ttk.Label = ttk.Label(
             self, 
@@ -1263,16 +1238,7 @@ class ConnectionTab(ttk.Frame):
             command = self.refresh)
         
         self.botframe: ttk.Frame = ttk.Frame(self)
-        # self.firmware_tree: ttk.Treeview = ttkb.Treeview(
-        #     self.botframe,
-        #     columns=("Title", "Value"),
-        #     style="dark.TTreeview",
-        #     height=3,
-        #     selectmode=None,)
-        # self.firmware_tree.column('Title',anchor='sw', width=80)
-        # self.firmware_tree.column('Value',anchor='sw', width=80)
-        # self.firmware_tree.heading('Title', text='Title', anchor='sw',)
-        # self.firmware_tree.heading('Value', text='Value', anchor='sw',)
+
         self.firmware_frame: ttk.Labelframe = ttk.Labelframe(
             self.botframe,
             text='Firmware',)
@@ -1297,9 +1263,6 @@ class ConnectionTab(ttk.Frame):
             command=self.hex_file_path_handler)
         
         self.hex_file_path = tk.StringVar()
-        
-        # self.firmware_progress_text = ttk.Label(
-        #     self, text="Uploading...", font=self.root.qtype12)
         
         self.upload_button = ttk.Button(
             self.flash_frame, 
