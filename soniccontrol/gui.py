@@ -1,6 +1,7 @@
 import datetime
 import enum
 import logging
+import re
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import tkinter.ttk as ttk
@@ -729,15 +730,19 @@ class ScriptingTab(ttk.Frame):
         self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
     
     def start_sequence(self) -> None:
+        """
+        Starts the scripting sequence:
+        
+        """
         self.commands: list[str] = []
         self.args_: list[str] = []
         self.loops: list[list[int]] = [[]]
         self.loop_index: int = 0
         
-        line_list: list[str] = self.scripttext.get(1.0, tk.END).splitlines()
-        logger.info(f"starting sequence: lines: {line_list}")
+        # Try to parse the string from the textfield and get the data into ordered arrays
+        # If it fails, the formatting supposedely is false, so an error is shown
         try:
-            self.parse_commands(line_list)
+            self.parse_commands(self.scripttext.get(1.0, tk.END))
         except Exception as e:
             print(e)
             messagebox.showerror("Error in formatting", "It seems you've given commands or arguments in the wrong format")
@@ -746,7 +751,9 @@ class ScriptingTab(ttk.Frame):
         i = 0
         while i < len(self.commands) and self.run:
             self.highlight_line(i)
+            
             if self.commands[i] == 'startloop':
+                
                 if bool(self.loops[i][1]) and isinstance(self.loops[i][1], int):
                     self.loops[i][1] -= 1
                     i += 1
@@ -754,13 +761,16 @@ class ScriptingTab(ttk.Frame):
                     i += 1
                 else:
                     i = self.loops[i][2] + 1
+            
             elif self.commands[i] == 'endloop':
+                
                 for loop in self.loops:
                     if bool(loop) and loop[2] == i:
                         for j in range(loop[0]+1, loop[2]):
                             if bool(self.loops[j]):
-                                self.loops[j][1] = int(self.args_[j])
+                                self.loops[j][1] = int(self.args_[j][0])
                         i = loop[0]
+            
             else:
                 self.exec_command(i)
                 i += 1
@@ -768,6 +778,7 @@ class ScriptingTab(ttk.Frame):
         self.close_file()
         
     def status_handler(self) -> None:
+        """Update the Root Window at the status frame to display the current data from the sequence"""
         try:
             self.status: Status = self.root.sonicamp.get_status()
         except ValueError:
@@ -793,56 +804,98 @@ class ScriptingTab(ttk.Frame):
             else:
                 self.root.status_frame_wipe.sig_status_label["text"] = "Signal OFF"
                 self.root.status_frame_wipe.sig_status_label["image"] = self.root.led_red_img
-        
+
         self.root.update()
-                
+
     def exec_command(self, counter: int) -> None:
+        """This function manages the execution of functions
+        and manages the visualization of the execution
+
+        Args:
+            counter (int): The index of the line
+        """
         self.highlight_line(counter)
 
+        # For the visual feedback of the sequence
         self.current_task.set(f"{self.commands[counter]} {str(self.args_[counter])}")
         if counter > 0:
-            self.previous_task = f"{self.commands[counter-1]} {self.args_[counter-1]}"
+            self.previous_task: str = f"{self.commands[counter-1]} {self.args_[counter-1]}"
+
+        # Just for managing purposes
+        if len(self.args_[counter]) == 1:
+            argument: int = self.args_[counter][0]
+        else:
+            argument: list = self.args_[counter]
 
         if self.run:
+            
             if self.commands[counter] == "frequency":
                 logger.info("executing frq command")
-                self.check_relay(int(self.args_[counter]))
-                self.serial.send_and_get(Command.SET_FRQ + self.args_[counter])#, self.root.thread)
+                self.check_relay(int(argument))
+                self.serial.send_and_get(Command.SET_FRQ + argument)
+            
             elif self.commands[counter] == "gain":
                 logger.info("executing gain")
-                self.serial.send_and_get(Command.SET_GAIN + self.args_[counter])#, self.root.thread)
+                self.serial.send_and_get(Command.SET_GAIN + argument)
+            
             elif self.commands[counter] == "ramp":
                 logger.info("executing ramp command")
-                self.start_ramp(self.args_[counter])
+                self.start_ramp(argument)
+            
             elif self.commands[counter] == "hold":
                 logger.info("executing hold command")
-                now = datetime.datetime.now()
-                target = now + datetime.timedelta(seconds=int(self.args_[counter]))
-                while now < target and self.run:
-                    time.sleep(0.02)
-                    now = datetime.datetime.now()
+                self.hold(argument)
+            
             elif self.commands[counter] == "on":
                 logger.info("executing on command")
-                self.serial.send_and_get(Command.SET_SIGNAL_ON)#, self.root.thread)
-                # self.root.attach_data()
+                self.serial.send_and_get(Command.SET_SIGNAL_ON)
+            
             elif self.commands[counter] == "off":
                 logger.info("executing off command")
-                self.serial.send_and_get(Command.SET_SIGNAL_OFF)#, self.root.thread)
-                # self.root.attach_data()
-            # elif self.commands[counter] == "setMHz":
-            #     logger.info("executing mhz command")
-            #     self.serial.send_and_get(Command.SET_MHZ)#, self.root.thread)
-            # elif self.commands[counter] == "setkHz":
-            #     logger.info("executing khz command")
-            #     self.serial.send_and_get(Command.SET_KHZ)#, self.root.thread)
+                self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+
             elif self.commands[counter] == "autotune":
                 logger.info("executing auto command")
-                self.serial.send_and_get(Command.SET_AUTO)#, self.root.thread)
+                self.serial.send_and_get(Command.SET_AUTO)
+            else:
+                messagebox.showerror("Wrong command", f"the command {self.commands[counter]} is not known, please use the correct commands in the correct syntax")
+                self.run: bool = False
         
         self.status_handler()
-        self.logger.info(f"{str(self.commands[counter])}\t{str(self.args_[counter])}\t{self.status.frequency}\t{self.status.gain}")
+        self.logger.info(f"{str(self.commands[counter])}\t{str(argument)}\t{self.status.frequency}\t{self.status.gain}")
+    
+    def hold(self, args_: Union[list, int]) -> None:
+        """Holds the time during sequence, that was passed as an argument
+        The user has the ability to control in which time unit the delay should
+        be executed. More concretly:
+            trailing 's' -> seconds
+            trailing 'ms' -> milliseconds
+
+        Args:
+            args_ (list[Union[str, int]]): _description_
+        """
+        print(args_)
+        now: datetime.datetime = datetime.datetime.now()
+        
+        # Let us find out, what unit the delay should be in
+        if (len(args_) == 1) or (len(args_) > 1 and args_[1] == 's'):
+            target: datetime.datetime = now + datetime.timedelta(seconds=args_[0])
+        elif len(args_) > 1 and args_[1] == 'ms':
+            target: datetime.datetime = now + datetime.timedelta(milliseconds=args_[0])
+        
+        # The actual execute of the delay
+        while now < target and self.run:
+            time.sleep(0.02)
+            now = datetime.datetime.now()
+            self.root.update()
     
     def check_relay(self, frq: int) -> None:
+        """Function that checks the current relay setting in a soniccatch and changes
+        the relay accordingly, so that the frequency set would be possible
+
+        Args:
+            frq (int): The frequency that should be set
+        """
         if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency < 1000000:
             self.serial.send_and_get(Command.SET_MHZ)
             self.serial.send_and_get(Command.SET_SIGNAL_ON)
@@ -853,67 +906,119 @@ class ScriptingTab(ttk.Frame):
             pass
     
     def start_ramp(self, args_: list) -> None:
+        """Starts the ramp process, and ramps up the frequency from a
+        start value to a stop value. The resolution (step size) is also given
+        from the passed argument. Additionally, a delay and the unit of that
+        delay are also passed down.
+
+        Args:
+            args_ (list): [start, stop, step, delay, unit]
+            example:
+            [1200000, 1900000, 10000, 100, 'ms']
+        """
         logger.info("starting ramp")
-        start = int(args_[0])
-        stop = int(args_[1])
-        step = int(args_[2])
-        delay = int(args_[3])
+        print(args_)
+        # declaring variables for easier use
+        start: int = args_[0]
+        stop: int = args_[1]
+        step: int = args_[2]
+        delay: int = args_[3]
         
+        # Constructing an argument for the delay
+        if len(args_) > 4:
+            hold_argument: list = [delay, args_[4]]
+        else: 
+            hold_argument: list = [delay]
+        
+        # in case the ramp should be decreasing
         if start > stop:
             frq_list: list[int] = list(range(stop, start+step, step))
             frq_list.sort(reverse=True)
         else:
             frq_list: list[int] = list(range(start, stop+step, step))
 
+        # The core of the ramp function
         for frq in frq_list:
             if self.run:
                 self.current_task.set(f"Ramp is @ {frq/1000}kHz")
+                
                 self.check_relay(frq)
-                self.serial.send_and_get(Command.SET_FRQ + frq)#, self.root.thread)
+                self.serial.send_and_get(Command.SET_FRQ + frq)
                 self.status_handler()
+                
                 self.logger.info(f"ramp\t{start},{stop},{step}\t{self.status.frequency}\t{self.status.gain}")
 
-                now = datetime.datetime.now()
-                target = now+datetime.timedelta(milliseconds=int(delay))
-                while(now < target):
-                    time.sleep(0.02)
-                    now = datetime.datetime.now()
-                    self.root.update()
+                self.hold(hold_argument)
             else:
                 break
-    
-    def parse_commands(self, line_list: list) -> None:
+
+    def parse_commands(self, text: str) -> None:
+        """Parse a string and split it into data parts
+        Conretely into:
+            self.commands -> a list of strings indicating which action to execute
+            self.args_ -> a list of numbers and values for the commands
+            self.loops -> data about index of loops, index of the end of loops and arguments
+            
+        Every list has the same length, indicating the line numbers
+
+        Args:
+            text (str): a str of text 
+        """
         logger.info("Parsing commands")
-        for line in line_list:
-            if ' ' in line:
-                self.commands.append(line.split(' ')[0])
-                if ',' in line:
-                    ramp_args: list = [int(arg) for arg in line.split(' ')[1].split(',') if arg != '']
-                    self.args_.append(ramp_args)
-                else:
-                    arg: str = line.split(' ')[1]
-                    if arg != '':
-                        self.args_.append(int(arg))
-            else:
-                self.commands.append(line)
-                self.args_.append(None)
         
+        # The string becomes a list of strings, in which each item resembles a line
+        line_list: list[str] = text.rstrip().splitlines()
+
+        for line in line_list:
+            # Clean the line and split it where a white-space is
+            line: list = line.rstrip().split(' ')
+            
+            # Go through each word or number item of that line
+            for i, part in enumerate(line):
+                part = part.rstrip()                    # Clean the part from leading and trailing white-spaces
+                
+                # If the part is numeric, it should be resembled as an integer, not a string
+                if part.isnumeric():
+                    line[i] = int(part)
+                
+                # If part has no length, it's essentially a empty part, we don't need that
+                elif not len(part):
+                    line.pop(i)
+                
+                # In case it's a delay that shows in which time unit it should be executet
+                elif part[-2:] == 'ms' and part[0].isdigit():
+                    line[i] = int(part[:-2])
+                    line.append(part[-2:])
+                
+                elif part[-1:] == 's' and part[-2:] != 'ms' and part[0].isdigit():
+                    line[i] = int(part[:-1])
+                    line.append(part[-1:])
+            
+            self.commands.append(line[0])
+            self.args_.append(line[1:])
+        
+        # We go through each command to look for loops
         for i, command in enumerate(self.commands):
+        
             if command == "startloop":
                 if self.args_[i] == 'inf':
                     loopdata: list = [i, 'inf']
                 else:    
-                    loopdata: list = [i, int(self.args_[i])]
+                    loopdata: list = [i, self.args_[i][0]]
                 self.loops.insert(i, loopdata)
+            
             elif command == "endloop":
                 self.loops.insert(i, [])
                 for loop in reversed(self.loops):
+                
                     if len(loop) == 2:
                         loop.insert(2, i)
                         break
+            
             else:
                 self.loops.insert(i, [])
         
+        print(self.commands, self.args_)
         logger.info(f"after parsing: commands:{self.commands}  args:{self.args_}  loops:{self.loops}")
     
     def attach_data(self) -> None:
