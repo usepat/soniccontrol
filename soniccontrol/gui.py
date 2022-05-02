@@ -1,5 +1,6 @@
 import datetime
 import enum
+from functools import cache
 import logging
 import re
 import tkinter as tk
@@ -18,7 +19,7 @@ import subprocess
 import os
 from sonicpackage import Command, SerialConnection, Status
 from sonicpackage.amp_tools import serial
-from .helpers import logger
+from .helpers import logger, status_logger
 
 
 
@@ -67,6 +68,7 @@ class HomeTabCatch(ttk.Frame):
         
         The frame is, again, splittet up into two main frames that organize
         its children
+        
         """
         super().__init__(parent, name=name, *args, **kwargs)
         self._root: tk.Tk = root
@@ -205,27 +207,44 @@ class HomeTabCatch(ttk.Frame):
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        logger.info("Initialized children and object")
+        logger.info("HometabCatch\tInitialized")
         
     def insert_feed(self, text: Union[str, list]) -> None:
+        """Function that inserts a string or a list into the feedback frame
+
+        Args:
+            text (Union[str, list]): The text, that should be inserted
+        """
         if text is list:
             text = ' '.join(text)
+        
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1)
         
     def set_val(self) -> None:
+        """Function that will be called after pressing the <Set Frequency and Gain> Button
+        It firstly checks if the values are supported under the current relay setting
+        """
         frq: int = self.root.frq.get()
+        gain: int = self.root.gain.get()
+        
+        logger.info(f"HometabCatch\tsetting frequency and gain\t{frq = }\t{gain = }")
+        
         if self.check_range(frq):
-            self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
-            self.insert_feed(self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread))
+            self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + gain, self.root.thread))
+            self.insert_feed(self.root.serial.sc_sendget(Command.SET_FRQ + frq, self.root.thread))
+        
         else:
             messagebox.showwarning("Wrong Frequency Value", "This frequency cannot be setted under the current frequency range mode. Please use the spinbox once again")
 
     def set_frq(self) -> None:
+        """Sets the frequency"""
         frq: int = self.root.frq.get()
+        
         if self.check_range(frq):
             self.root.serial.sc_sendget(Command.SET_FRQ + frq, self.root.thread)
+        
         else:
             messagebox.showwarning("Wrong Frequency Value", "This frequency cannot be setted under the current frequency range mode. Please use the spinbox once again")
     
@@ -233,23 +252,35 @@ class HomeTabCatch(ttk.Frame):
         self.insert_feed(self.root.serial.sc_sendget(Command.SET_GAIN + int(self.root.gain.get()), self.root.thread))
     
     def check_range(self, frq: int) -> bool:
-        if self.root.frq_range.get() == "khz":
-            if frq > 1200000 or frq < 50000:
-                return False
-        elif self.root.frq_range.get() == "mhz":
-            if frq < 60000:
-                return False
+        """Checks the current setting of the relay on the sonicamp and 
+        returns true if the passed frequency is being supported under the
+        current relay setting.
+
+        Args:
+            frq (int): The to be checked frequency
+
+        Returns:
+            bool: Result if that frequency is possible to set or not
+        """
+        if self.root.frq_range.get() == "khz" and (frq > 1200000 or frq < 50000):
+            return False
+        
+        elif self.root.frq_range.get() == "mhz" and frq < 60000:
+            return False
         
         return True
     
     def attach_data(self) -> None:
-        logger.info("Attaching data to Hometab")
+        """Attaches new data to the hometab"""
+        logger.info("HometabCatch\tAttaching data")
+        
         if self.root.frq_range.get() == "khz":
             self.frq_spinbox.config(
                 from_=50000,
                 to=1200000,)
             self.gain_scale.config(state=tk.DISABLED)
             self.gain_spinbox.config(state=tk.DISABLED)
+        
         else:
             self.frq_spinbox.config(
                 from_=600000,
@@ -430,20 +461,24 @@ class HomeTabWipe(ttk.Frame):
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        logger.info("Initialized children and object")
+        logger.info("HometabWipe\tinitialized")
         
     def insert_feed(self, text: Union[str, list]) -> None:
+        """Function that inserts a list or a string into the feedback frame
+
+        Args:
+            text (Union[str, list]): Data that should be inserted
+        """
         if text is list:
             text = ' '.join(text)
+        
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1)
         
     def set_frq(self) -> None:
-        answer = self.root.serial.sc_sendget(
-                Command.SET_FRQ + self.root.frq.get(), 
-                self.root.thread)
-        # self.insert_feed(answer)
+        """Sets the frequency of the sonicamp"""
+        self.root.serial.sc_sendget(Command.SET_FRQ + self.root.frq.get(), self.root.thread)
     
     def set_signal_off(self) -> None:
         self.root.wipe_mode.set(0)
@@ -454,29 +489,34 @@ class HomeTabWipe(ttk.Frame):
         # In case its set to definite
         if self.wipe_mode.get():
             self.wipe_spinbox.config(state=tk.NORMAL)
+        
         else:
             self.wipe_spinbox.config(state=tk.DISABLED)
     
     def start_wiping(self) -> None:
         # In case its set to definite
         wipe_runs: int = self.wipe_mode.get()
+        
         if wipe_runs:
             self.insert_feed(self.root.serial.sc_sendget(Command.SET_WIPE_DEF + self.wipe_var.get(), self.root.thread))
+        
         else:
             self.insert_feed(self.root.serial.sc_sendget(Command.SET_WIPE_INF, self.root.thread))
         
+        logger.info(f"HometabWipe\tStarting wipe with definite cycles set to\t{wipe_runs = }")
         self.root.status_frame_wipe.wipe_progressbar.start()
         self.root.wipe_mode.set(1)
             
     def attach_data(self) -> None:
-        logger.info("Attaching data to Hometab")
+        """Attaches data to the hometab"""
+        logger.info("HometabWipe\tAttaching data")
         self.frq_spinbox.config(
             from_=50000,
             to=1200000)
         
     def publish(self) -> None:
         """ Function to build children of this frame """
-        logger.info("Publishing hometab")
+        logger.info("HometabWipe\tPublishing")
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)        
         self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
@@ -507,7 +547,7 @@ class HomeTabWipe(ttk.Frame):
 
 
 class ScriptingTab(ttk.Frame):
-    """ Scripting tab of the GUI """
+    """ Scripting tab of the GUI"""
     
     @property
     def root(self) -> tk.Tk:
@@ -520,6 +560,7 @@ class ScriptingTab(ttk.Frame):
     def __init__(self, parent: ttk.Notebook, root: tk.Tk, *args, **kwargs) -> None:
         """ Declare all children """
         super().__init__(parent, *args, **kwargs)
+        
         self._root = root
         self._serial: SerialConnection = root.serial
         self.script_filepath: str
@@ -620,14 +661,16 @@ class ScriptingTab(ttk.Frame):
         self.fieldnames: list = ['timestamp','frequency', 'urms', 'irms', 'phase']
         
         if not os.path.exists(self._sequence_dir):
+            logger.info(f"ScriptingTab\tno sequence directory\tcreating folder")
             os.mkdir(self._sequence_dir)
         
-        logger.info("Initialized scripting tab")
+        logger.info("ScriptingTab\tInitialized")
 
     def publish(self):
         # Button Frame
-        logger.info("Publishing scripting tab")
+        logger.info("Scriptingtab\tPublishing")
         self.button_frame.pack(anchor=tk.N, side=tk.LEFT, padx=5, pady=5)
+        
         for child in self.button_frame.winfo_children():
             child.pack(side=tk.TOP, padx=5, pady=5)
 
@@ -643,13 +686,16 @@ class ScriptingTab(ttk.Frame):
     
     def load_file(self) -> None:
         self.script_filepath = filedialog.askopenfilename(defaultextension='.txt', filetypes=self._filetypes)
+        
         with open(self.script_filepath, 'r') as f:
             self.scripttext.delete(0, tk.END)
             self.scripttext.insert(tk.INSERT, f.read())
+        
         logger.info("Loaded file")
     
     def save_file(self) -> None:
         self.save_filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
+        
         with open(self.save_filename, 'w') as f:
             f.write(self.scripttext.get(0, tk.END))
     
@@ -657,6 +703,9 @@ class ScriptingTab(ttk.Frame):
         self.logfilepath = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
     
     def close_file(self) -> None:
+        """Function that closes the scripting sequence"""
+        logger.info("Scriptingtab\tSequence ended\t")
+        
         self.run: bool = False
         self.scripttext.tag_delete("currentLine", 1.0, tk.END)
         self.start_script_btn.configure(
@@ -678,12 +727,13 @@ class ScriptingTab(ttk.Frame):
         self.root.attach_data()
         self.root.thread.resume()
     
-    def read_file(self):
+    def read_file(self) -> None:
+        """Starts the scripting sequence"""
         self.run: bool = True
-        
+    
         self.logger: logging.Logger = logging.getLogger("Scripting")
-        self.formatter: logging.Formatter = logging.Formatter('%(asctime)s  %(message)s')
-        self.file_handler: logging.FileHandler = logging.FileHandler(f'{self._sequence_dir}//{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.log')
+        self.formatter: logging.Formatter = logging.Formatter('%(asctime)s,%(message)s')
+        self.file_handler: logging.FileHandler = logging.FileHandler(f'{self._sequence_dir}//{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.csv')
         self.logger.setLevel(logging.DEBUG)
         self.file_handler.setFormatter(self.formatter)
         self.logger.addHandler(self.file_handler)
@@ -707,66 +757,96 @@ class ScriptingTab(ttk.Frame):
         self.start_sequence()
         
     def set_run(self, state: bool) -> None:
+        """The sequence checks the run flag constantly, so this function
+        acts as a setter of that variable
+
+        Args:
+            state (bool): The to be setted state
+        """
         self.run = False
     
-    def highlight_line(self, i: int) -> None:
-        i += 1
+    def highlight_line(self, current_line: int) -> None:
+        """Function that highlights the current line of the sequence in the script editor
+        The argument current_line
+
+        Args:
+            current_line (int): current line in the script, that need to be highlighted
+        """
+        current_line += 1
         self.scripttext.tag_remove('currentLine', 1.0, "end")
-        self.scripttext.tag_add('currentLine', f"{i}.0", f"{i}.end")
+        self.scripttext.tag_add('currentLine', f"{current_line}.0", f"{current_line}.end")
         self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
     
     def start_sequence(self) -> None:
         """
         Starts the scripting sequence:
-        
         """
         self.commands: list[str] = []
         self.args_: list[str] = []
         self.loops: list[list[int]] = [[]]
         self.loop_index: int = 0
         
+        logger.info(f"Scriptingtab\tstarting Sequence")
+        
         # Try to parse the string from the textfield and get the data into ordered arrays
         # If it fails, the formatting supposedely is false, so an error is shown
         try:
             self.parse_commands(self.scripttext.get(1.0, tk.END))
+        
         except Exception as e:
             print(e)
             messagebox.showerror("Error in formatting", "It seems you've given commands or arguments in the wrong format")
             self.run: bool = False
         
-        i = 0
-        while i < len(self.commands) and self.run:
-            self.highlight_line(i)
+        line: int = 0
+        while line < len(self.commands) and self.run:
+            self.highlight_line(line)
             
-            if self.commands[i] == 'startloop':
+            if self.commands[line] == 'startloop':
                 
-                if bool(self.loops[i][1]) and isinstance(self.loops[i][1], int):
-                    self.loops[i][1] -= 1
-                    i += 1
-                elif self.loops[i][1] == 'inf':
-                    i += 1
+                logger.info(f"Scriptingtab\tfound startloop at\t{line}")
+                if self.loops[line][1] and isinstance(self.loops[line][1], int):
+                    logger.info(f"Scriptingtab\tStarting loop\tQuantifier of loop now {self.loops[line][1] = }")
+                    self.loops[line][1] -= 1
+                    line += 1
+                
+                elif self.loops[line][1] == 'inf':
+                    logger.info(f"Scriptingtab\tDetected infinite loop\tgoing to the next line")
+                    line += 1
+                
                 else:
-                    i = self.loops[i][2] + 1
+                    logger.info(f"Scriptingtab\tQuantifier is zero, going to index of first command after endloop\t {self.loops[line][2] = }")
+                    line: int = self.loops[line][2] + 1
             
-            elif self.commands[i] == 'endloop':
+            elif self.commands[line] == 'endloop':
                 
+                logger.info(f"ScriptingTab\tDetected endloop at\t{line}")
                 for loop in self.loops:
-                    if bool(loop) and loop[2] == i:
+                    if loop and loop[2] == line:
+                        
                         for j in range(loop[0]+1, loop[2]):
-                            if bool(self.loops[j]):
-                                self.loops[j][1] = int(self.args_[j][0])
-                        i = loop[0]
-            
+                            logger.info(f"Scriptingtab\tNow checking if nested loops should be reseted")
+                            if self.loops[j]:
+                                logger.info(f"ScriptingTab\tFound loop to be reseted\t {self.loops[j] = }")
+                                self.loops[j][1] = self.args_[j][0]
+                        
+                        line: int = loop[0]
+                        
             else:
-                self.exec_command(i)
-                i += 1
+                logger.info(f"Scriptingtab\tExecuting command at\t{line = }")
+                self.exec_command(line)
+                line += 1
 
         self.close_file()
-        
+
+    
     def status_handler(self) -> None:
         """Update the Root Window at the status frame to display the current data from the sequence"""
         try:
             self.status: Status = self.root.sonicamp.get_status()
+            logger.info(f"Scriptingtab\tGot status with data\t{self.status = }")
+            status_logger.info(f"{self.status.frequency}\t{self.status.gain}\t{self.status.signal}") 
+        
         except ValueError:
             pass
         
@@ -815,34 +895,30 @@ class ScriptingTab(ttk.Frame):
 
         if self.run:
             
+            logger.info(f"Scriptingtab\tExecuting command\t{self.commands[counter] = }")
+                        
             if self.commands[counter] == "frequency":
-                logger.info("executing frq command")
                 self.check_relay(int(argument))
                 self.serial.send_and_get(Command.SET_FRQ + argument)
             
             elif self.commands[counter] == "gain":
-                logger.info("executing gain")
                 self.serial.send_and_get(Command.SET_GAIN + argument)
             
             elif self.commands[counter] == "ramp":
-                logger.info("executing ramp command")
                 self.start_ramp(argument)
             
             elif self.commands[counter] == "hold":
-                logger.info("executing hold command")
                 self.hold(argument)
             
             elif self.commands[counter] == "on":
-                logger.info("executing on command")
                 self.serial.send_and_get(Command.SET_SIGNAL_ON)
             
             elif self.commands[counter] == "off":
-                logger.info("executing off command")
                 self.serial.send_and_get(Command.SET_SIGNAL_OFF)
 
             elif self.commands[counter] == "autotune":
-                logger.info("executing auto command")
                 self.serial.send_and_get(Command.SET_AUTO)
+                
             else:
                 messagebox.showerror("Wrong command", f"the command {self.commands[counter]} is not known, please use the correct commands in the correct syntax")
                 self.run: bool = False
@@ -861,12 +937,22 @@ class ScriptingTab(ttk.Frame):
             args_ (list[Union[str, int]]): _description_
         """
         now: datetime.datetime = datetime.datetime.now()
-        
         # Let us find out, what unit the delay should be in
-        if (len(args_) == 1) or (len(args_) > 1 and args_[1] == 's'):
+        if isinstance(args_, int):
+            logger.info(f"Scriptingtab\tNo unit given\tusing seconds")
+            target: datetime.datetime = now + datetime.timedelta(seconds=args_)
+        
+        elif (len(args_) > 1 and args_[1] == 's') or (len(args_) == 1):
+            logger.info(f"Scriptingtab\tunit given\t{args_[1] = }\tusing seconds")
             target: datetime.datetime = now + datetime.timedelta(seconds=args_[0])
+        
         elif len(args_) > 1 and args_[1] == 'ms':
+            logger.info(f"Scriptingtab\tunit given\t{args_[1] = }\tusing milliseconds")
             target: datetime.datetime = now + datetime.timedelta(milliseconds=args_[0])
+        
+        else:
+            logger.info(f"Scriptingtab\tno unit given\tusing seconds (else condition)")
+            target: datetime.datetime = now + datetime.timedelta(seconds=args_[0])
         
         # The actual execute of the delay
         while now < target and self.run:
@@ -881,12 +967,17 @@ class ScriptingTab(ttk.Frame):
         Args:
             frq (int): The frequency that should be set
         """
-        if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency < 1000000:
-            self.serial.send_and_get(Command.SET_MHZ)
-            self.serial.send_and_get(Command.SET_SIGNAL_ON)
-        elif frq < 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency >= 1000000:
-            self.serial.send_and_get(Command.SET_KHZ)
-            self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        if self.run:
+            
+            if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency < 1000000:
+                logger.info(f"Scriptingtab\tChecking relay\tSetting to MHz")
+                self.serial.send_and_get(Command.SET_MHZ)
+                self.serial.send_and_get(Command.SET_SIGNAL_ON)
+            
+            elif frq < 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency >= 1000000:
+                logger.info(f"Scriptingtab\tChecking relay\tSetting to kHz")
+                self.serial.send_and_get(Command.SET_KHZ)
+                self.serial.send_and_get(Command.SET_SIGNAL_ON)
         else:
             pass
     
@@ -901,7 +992,7 @@ class ScriptingTab(ttk.Frame):
             example:
             [1200000, 1900000, 10000, 100, 'ms']
         """
-        logger.info("starting ramp")
+        logger.info("Scriptingtb\tstarting ramp")
         
         # declaring variables for easier use
         start: int = args_[0]
@@ -936,7 +1027,7 @@ class ScriptingTab(ttk.Frame):
                 self.hold(hold_argument)
             else:
                 break
-
+    
     def parse_commands(self, text: str) -> None:
         """Parse a string and split it into data parts
         Conretely into:
@@ -949,7 +1040,7 @@ class ScriptingTab(ttk.Frame):
         Args:
             text (str): a str of text 
         """
-        logger.info("Parsing commands")
+        logger.info("Scriptingtab\tParsing commands")
         
         # The string becomes a list of strings, in which each item resembles a line
         line_list: list[str] = text.rstrip().splitlines()
@@ -1003,7 +1094,7 @@ class ScriptingTab(ttk.Frame):
             else:
                 self.loops.insert(i, [])
         
-        logger.info(f"after parsing: commands:{self.commands}  args:{self.args_}  loops:{self.loops}")
+        logger.info(f"Scriptingtab\tAfter parsing\t{self.commands = }\t{self.args_ = }\t{self.loops = }")
     
     def attach_data(self) -> None:
         pass
@@ -1278,53 +1369,67 @@ class ConnectionTab(ttk.Frame):
             width=12,
             command=self.root.publish_serial_monitor,)
         
-        logger.info("Initialized children and object connectiontab")
+        logger.info("Connectiontab\tInitialized children and object connectiontab")
     
+    @cache
     def attach_data(self) -> None:
-        logger.info("attaching data")
+        """Attaches data to the connectiontab"""
+        logger.info("Connectiontab\tattaching data")
         self.subtitle["text"] = "You are connected to"
         self.heading1["text"] = self.root.sonicamp.type_[:5]
         self.heading2["text"] = self.root.sonicamp.type_[5:]
+        
         self.connect_button.config(
             bootstyle="danger",
             text="Disconnect",
             command=self.disconnect,)
+        
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
         self.firmware_label["text"] = self.root.sonicamp.firmware_msg #* Treeview for future ideas
+        
         for child in self.flash_frame.children.values():
             child.configure(state=tk.NORMAL)
         
     def abolish_data(self) -> None:
-        logger.info("abolishing data")
+        """Abolishes data from the connectiontab"""
+        logger.info("Connectiontab\tabolishing data")
         self.subtitle["text"] = "Please connect to a SonicAmp system"
         self.heading1["text"] = "not"
         self.heading2["text"] = "connected"
+        
         self.connect_button.config(
             bootstyle="success",
             text="Connect",
             command=self.root.__reinit__,)
+        
         self.ports_menue.config(
             textvariable=self.root.port,
             values=self.root.serial.device_list,
             state=tk.NORMAL)
+        
         self.refresh_button.config(state=tk.NORMAL)
         self.firmware_label["text"] = ""
+        
         for child in self.flash_frame.children.values():
             child.configure(state=tk.DISABLED)
         self.root.sonicamp = None
 
     def refresh(self) -> None:
+        """Refreshes the potential ports"""
         self.ports_menue['values'] = self.root.serial.get_ports()
     
     def disconnect(self) -> None:
+        """Disconnects the soniccontrol with the current connection"""
+        logger.info(f"Connectiontab\tDisconnecting")
         self.root.thread.pause()
         self.abolish_data()
         self.root.serial.disconnect()
         self.root.publish_disconnected()
     
     def publish(self) -> None:
-        logger.info("Publishing connectiontab")
+        logger.info("Connectiontab\tPublishing connectiontab")
+        
         for child in self.children.values():
             child.pack()
         
@@ -1346,23 +1451,31 @@ class ConnectionTab(ttk.Frame):
         # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
     
     def hex_file_path_handler(self):
+        """Gets the file of a potential hex firmware file, and checks if it's even a hex file"""
         self.hex_file_path = filedialog.askopenfilename(defaultextension=".hex", filetypes=(("HEX File", "*.hex"),))
+        
         if self.hex_file_path[-4:] == ".hex":
             self.file_entry.config(style="success.TButton", text="File specified and validated")
+        
         else:
             messagebox.showerror("Wrong File", "The specified file is not a validated firmware file. Please try again with a file that ends with the format \".hex\"")
             self.file_entry.config(style="danger.TButton", text="File is not a firmware file")
 
+    @cache
     def upload_file(self):
+        """Upploads the hex file to the hardware via AVRDUDE"""
         if self.root.serial.is_connected:
+            
             if self.hex_file_path:
                 port = self.ser.port
                 self.ser.close()
                 cur_dir = os.getcwd()
                 # self.firmware_progress_text.pack(padx=10, pady=10)
+                
                 try:
                     command = f"\"{cur_dir}/avrdude/avrdude.exe\" -v -patmega328p -carduino -P{port} -b115200 -D -Uflash:w:\"{self.hex_file_path}\":i"
                     msgbox = messagebox.showwarning("Process about to start", "The program is about to flash a new firmware on your device, please do NOT disconnect or turn off your device during that process")
+                    
                     if msgbox:
                         output = subprocess.run(command, shell=True)
                         self.file_entry.configure(style="dark.TButton", text="Specify the path for the Firmware file")
@@ -1370,8 +1483,10 @@ class ConnectionTab(ttk.Frame):
                         self.connectPort(port)
                     else:
                         messagebox.showerror("Error", "Cancled the update")
+                
                 except WindowsError:
                     messagebox.showerror("Error", "Something went wrong, please try again. Maybe restart the device and the program")
+            
             else:
                 messagebox.showerror("Couldn't find file", "Please specify the path to the firmware file, before flashing your SonicAmp")
         else:
@@ -1424,10 +1539,11 @@ class InfoTab(ttk.Frame):
         #     command=self.root.publish_serial_monitor,
         #     style='outline.dark.TButton')
         
-        logger.info("Initialized children and object infotab")
+        logger.info("Infotab\tInitialized")
         
     def publish(self) -> None:
-        logger.info("publishing infotab")
+        """Publishes the object and children"""
+        logger.info("Infotab\tpublishing infotab")
         self.soniccontrol_logo1.grid(row=0, column=0)
         self.soniccontrol_logo2.grid(row=0, column=1)
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
@@ -1540,10 +1656,13 @@ class SonicMeasure(tk.Toplevel):
         self.publish()
         
     def on_closing(self) -> None:
+        """Function that will be executed if window closes"""
         self.stop()
         self.destroy()
         
     def start(self) -> None:
+        logger.info(f"SonicMeasure\tstarting measure")
+        
         self.run: bool = True
         self.start_btn.config(
             text='Stop',
@@ -1567,12 +1686,14 @@ class SonicMeasure(tk.Toplevel):
         self.start_sequence()
         
     def stop(self) -> None:
+        """Code tha will be executed if the Measure sequence is stopped"""
         self.start_btn.config(
             text='Run',
             style='success.TButton',
             image=self.root.play_img,
             command=self.start)
         self.save_btn.config(state=tk.NORMAL)
+        
         for child in self.frq_frame.children.values():
             child.config(state=tk.NORMAL)
         
@@ -1580,13 +1701,15 @@ class SonicMeasure(tk.Toplevel):
         self.root.thread.resume()
         
     def _create_csv(self) -> None:
+        """Create a csv for the current measurement"""
         with open(f"{self._spectra_dir}//{self.spectra_file}", "a", newline='') as f:
             f.write(f"{datetime.datetime.now()}\ngain = {self.root.sonicamp.status.gain}\ndate[Y-m-d]\ntime[H:m:s.ms]\nurms[mV]\nirms[mA]\nphase[degree]\n\n")
             csv_writer: csv.DictWriter = csv.DictWriter(
                 f, fieldnames=self.fieldnames)
             csv_writer.writeheader()
-        
+    
     def start_sequence(self) -> None:
+        """Starts the sequence and the measurement"""
         start: int = self.start_frq.get()
         stop: int = self.stop_frq.get()
         step: int = self.step_frq.get()
@@ -1606,19 +1729,24 @@ class SonicMeasure(tk.Toplevel):
             step = -abs(step)
                 
         for frq in range(start, stop, step):
+            
             try:
                 data: dict = self.get_data(frq)
                 self.protocol("WM_DELETE_WINDOW", self.on_closing)
                 print(data)
                 self.plot_data(data)
                 self.register_data(data)
+            
             except serial.SerialException:
                 self.root.__reinit__()
                 break
         
         self.stop()
     
+    @cache
     def plot_data(self, data: dict) -> None:
+        logger.info(f"SonicMeasure\tPlotting data\t{data = }")
+        
         self.frq_list.append(data["frequency"])
         self.urms_list.append(data["urms"])
         self.irms_list.append(data["irms"])
@@ -1644,34 +1772,67 @@ class SonicMeasure(tk.Toplevel):
         self.root.update()
             
     def register_data(self, data: dict) -> None:
+        """Register the measured data in a csv file"""
+        logger.info(f"SonicMeasrue\tRegistering data in a csv file\t{data = }")
+        
         with open(f"{self._spectra_dir}//{self.spectra_file}", "a", newline='') as f:
             csv_writer: csv.DictWriter = csv.DictWriter(
                 f, fieldnames=self.fieldnames)
             print(data)
             csv_writer.writerow(data)
             
-    def get_data(self, frq: int) -> None:
+    def get_data(self, frq: int) -> dict:
+        """Sets the passed freqeuency and gets the new data from the change
+        of state
+
+        Args:
+            frq (int): The frequency to be setted
+
+        Returns:
+            dict: The data with URMS, IRMS and PHASE
+        """     
+        logger.info(f"SonicMeasrue\tGetting data for\t{frq = }")
+        
         self.serial.send_and_get(Command.SET_FRQ + frq)
         data_list: list = self._get_sens()
-        print(data_list)
         data_dict: dict = self._list_to_dict(data_list)
+
+        logger.info(f"SonicMeasure\tGot data\t{data_dict = }")
         return data_dict
     
     def _list_to_dict(self, data_list: list) -> dict:
+        """Converts a list from the SonSens Module through the command ?sens
+        to a dictionary
+
+        Args:
+            data_list (list): The data in a list
+
+        Returns:
+            dict: The data in a dictionary with the following keywords:
+        """
         data_dict: dict = {
             'timestamp': datetime.datetime.now(),
             'frequency': data_list[0],
             'urms': data_list[1],
             'irms': data_list[2],
             'phase': data_list[3],}
+        
         return data_dict
     
+    @cache
     def _get_sens(self) -> list:
+        """Gets the current sensor data via the ?sens command
+
+        Returns:
+            list: The from the sonicamp returned sensor data
+        """
         data_str = self.serial.send_and_get(Command.GET_SENS)
-        print(data_str)
         data_list: list = [int(data) for data in data_str.split(' ') if data != None or data != '']
+        
+        # if the data wasn't fetched correctly, repeat until it works
         if len(data_list) < 3:
             return self._get_sens()
+        
         return data_list
     
     def save(self) -> None:
@@ -1742,5 +1903,6 @@ class MeasureCanvas(FigureCanvasTkAgg):
         self.ax_urms.legend(handles=[self.plot_urms, self.plot_irms, self.plot_phase])
         super().__init__(self.figure, parent)
     
+    @cache
     def update_axes(self, start_frq: int, stop_frq: int) -> None:
         self.ax_urms.set_xlim(start_frq, stop_frq)

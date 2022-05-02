@@ -1,3 +1,4 @@
+from http.client import CannotSendHeader
 import time
 import tkinter as tk
 from tkinter import messagebox
@@ -9,6 +10,7 @@ import ttkbootstrap as ttkb
 from tkinter import TclError, font
 from tkinter import filedialog
 from ttkbootstrap import Style
+from functools import cache
 from PIL.ImageTk import PhotoImage
 import pyglet
 from PIL import Image
@@ -17,7 +19,7 @@ from sonicpackage import Command, Status, SerialConnection, SonicAmp, SonicAmpBu
 from sonicpackage.threads import SonicThread
 from sonicpackage.amp_tools import serial
 from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab, HomeTabWipe, SonicMeasure
-from soniccontrol.helpers import logger
+from soniccontrol.helpers import logger, status_logger
 
 pyglet.font.add_file('QTypeOT-CondExtraLight.otf')
 pyglet.font.add_file('QTypeOT-CondLight.otf')
@@ -124,8 +126,7 @@ class Root(tk.Tk):
         self.status_frame_wipe: StatusFrameWipe = StatusFrameWipe(self.mainframe, self, style='dark.TFrame')
         self.serial_monitor: SerialMonitor = SerialMonitor(self)
         
-        logger.info("Root:initialized children and object")
-        
+        logger.info("Root\tinitialized Root")
         self.thread: SonicThread = SonicAgent(self)
         self.thread.setDaemon(True)
         self.thread.start()
@@ -139,26 +140,32 @@ class Root(tk.Tk):
         """
         self.serial.get_ports()
         try:
-            if self.serial.auto_connect():
-                logger.info("Root:autoconnected")
+            
+            # if self.serial.auto_connect():
+            #     logger.info(f"Root\tautoconnected\t{self.serial = }")
+            #     self.decide_action()
+            
+            if self.port.get() != '-' and self.serial.connect_to_port(self.port.get()):
+                logger.info("Root\tmanually connected\t{self.serial = }")
                 self.decide_action()
-            elif self.port.get() != '-' and self.serial.connect_to_port(self.port.get()):
-                logger.info("Root:manually connected")
-                self.decide_action()
+            
             else:
-                logger.info("Root:Did not detect connection")
+                logger.info("Root\tDid not detect connection\t{self.serial = }")
                 self.publish_disconnected()
+        
         except Exception as e:
-            logger.info(f"Root:Exception:{e}")
+            logger.info(f"Root\tException:{e}\t{self.serial = }")
             messagebox.showerror("Error during connection","Something went wrong during, please try again to connect")
             self.publish_disconnected()
-            
+    
     def attach_data(self) -> None:
         """Attaches new data to all children, so that this becomes visible"""
-        logger.info(f"Root:attaching data for:{self.sonicamp.type_}")
+        logger.info(f"Root\tattaching data\t{self.sonicamp.type_ = }\t{self.sonicamp = }")
         self.notebook.attach_data()
+        
         if self.sonicamp.type_ == 'soniccatch':
             self.status_frame_catch.attach_data()
+        
         elif self.sonicamp.type_ == 'sonicwipe':
             self.status_frame_wipe.attach_data()
     
@@ -169,10 +176,15 @@ class Root(tk.Tk):
         """
         while self.thread.queue.qsize():
             status: Status = self.thread.queue.get(0)
-            logger.info(f"Root:new status in Thread queue:{status}")
+            
+            logger.info(f"Root\tnew status in Thread queue\t{status = }")
+            status_logger.info(f"{status.frequency}\t{status.gain}\t{status.signal}")                          
+            
             self.sonicamp.status = status
+            
             self.update_idletasks()
             self.attach_data()
+            
         self.after(100, self.engine)
     
     def decide_action(self) -> None:
@@ -184,28 +196,36 @@ class Root(tk.Tk):
                                                            serial=self.serial)
         if self.sonicamp.type_ == 'soniccatch':
             self.publish_for_catch()
-        if self.sonicamp.type_ == 'sonicwipe':
+        
+        elif self.sonicamp.type_ == 'sonicwipe':
             self.publish_for_wipe()
         
         prtcl: str = self.serial.send_and_get(Command.GET_PROTOCOL)
-        if type(prtcl) is list:
+        if isinstance(prtcl, list):
             prtcl = ' '.join(prtcl)
         
         init_status: Status = self.sonicamp.get_status()
         init_dict: dict = self.sonicamp.get_overview()
+        print(f"{init_status = }, {init_dict = }")
+        
         self.frq.set(init_dict["frequency"])
         self.gain.set(init_status.gain)
         self.wipe_mode.set(init_status.wipe_mode)
         self.protocol.set(prtcl)
         self.frq_range.set(init_status.frq_range)
         
+        logger.info(f"Root\t{self.sonicamp = }\t{init_dict = }\t{init_status = }")
+        
         self.engine()
+        
         if self.thread.paused:
+            print("resuming thread in decide action")
             self.thread.resume()
     
     def publish_disconnected(self) -> None:
         """ Publishes children in case there is no connection """
-        logger.info("Root:publishing for disconnected")
+        logger.info("Root\tpublishing for disconnected")
+        
         self.notebook.publish_disconnected()
         self.status_frame_wipe.forget()
         self.status_frame_catch.publish()
@@ -214,11 +234,16 @@ class Root(tk.Tk):
         
         if self.winfo_width() == Root.MAX_WIDTH:
             self.adjust_dimensions()
+        
         try:
+            logger.info("Root\tdestroying sonicmeasure window because of no connection")
+            
             if tk.Toplevel.winfo_exists(self.notebook.hometab.sonicmeasure):
                 self.notebook.hometab.sonicmeasure.destroy()
+                
                 if self.thread.paused:
                     self.thread.resume()
+        # Undefind behaivour, nooby code
         except AttributeError:
             pass
     
@@ -252,6 +277,7 @@ class Root(tk.Tk):
         if self.winfo_width() == Root.MIN_WIDTH:
             self.geometry(f"{Root.MAX_WIDTH}x{Root.MIN_HEIGHT}")
             return True
+        
         else:
             self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
             return False
@@ -276,11 +302,12 @@ class NotebookMenu(ttk.Notebook):
         self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
         self.connectiontab: ConnectionTab = ConnectionTab(self, self.root)
         self.infotab: InfoTab = InfoTab(self, self.root)
-        logger.info("NotebookMenu:initialized children and object")
+        logger.info("NotebookMenu\tinitialized object")
         
     def attach_data(self) -> None:
         """Attaches data to the notebookmenue and its children"""
-        logger.info(f"NotebookMenu:attaching data")
+        logger.info(f"NotebookMenu\tattaching data")
+        
         for child in self.children.values():
             child.attach_data()
     
@@ -294,7 +321,7 @@ class NotebookMenu(ttk.Notebook):
     
     def publish_for_catch(self) -> None:
         """ Builds children and displayes menue for a soniccatch """
-        logger.info(f"NotebookMenu:publishing for catch")
+        logger.info(f"NotebookMenu\tpublishing for catch")
         self._publish()
         self.reorder_tabs()
         self.forget(self.hometabwipe)
@@ -306,7 +333,7 @@ class NotebookMenu(ttk.Notebook):
         
     def publish_for_wipe(self) -> None:
         """ Builds children and displayes menue for a sonicwipe """
-        logger.info(f"NotebookMenu:publishing for wipe")
+        logger.info(f"NotebookMenu\tpublishing for wipe")
         self._publish()
         self.reorder_tabs()
         self.forget(self.hometab)
@@ -318,7 +345,7 @@ class NotebookMenu(ttk.Notebook):
     
     def publish_disconnected(self) -> None:
         """Publishes children in the case that there is no connection"""
-        logger.info(f"NotebookMenu:publishing for disconnected")
+        logger.info(f"NotebookMenu\tpublishing for disconnected")
         self._publish()
         self.forget(self.hometabwipe)
         # self.hide('hometabcatch')
@@ -329,12 +356,15 @@ class NotebookMenu(ttk.Notebook):
         self.pack(padx=5, pady=5)
     
     def reorder_tabs(self) -> None:
+        """Just a function for making sure, that the tabs are ordered right"""
         if self.root.sonicamp.type_ == 'soniccatch':
             self.hometabwipe.forget()
             self.insert(0, self.hometab)
+        
         else:
             self.hometab.forget()
             self.insert(0, self.hometabwipe)
+        
         self.insert(1, self.scriptingtab)
         self.insert(2, self.connectiontab)
         self.insert(3, self.infotab)
@@ -347,16 +377,19 @@ class NotebookMenu(ttk.Notebook):
     def disable_children(self, focused_child: ttk.Frame) -> None:
         """ Disables childen and selects connection tab (case: not connected)"""
         for child in self.children.values():
+            
             try:
                 if child != focused_child:
-                    self.tab(child, state=tk.DISABLED)
+                    self.tab(child, state=tk.DISABLED)    
             except:
                 logger.info("something went wrong in disabling children")
+        
         self.select(focused_child)
     
     def enable_children(self) -> None:
         """ Enables all children for use """
         for child in self.children.values():
+            
             try:
                 self.tab(child, state=tk.NORMAL)
             except TclError:
@@ -446,9 +479,11 @@ class StatusFrameCatch(ttk.Frame):
             width=10,
             text=None)
         
+        logger.info(f"StatusFrameCatch\tinitialized")
+        
     def publish(self) -> None:
         """ Function to build the statusframe """
-        logger.info("StatusFrameCatch:publishing")
+        logger.info("StatusFrameCatch\tpublishing")
         self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.gain_meter.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.temp_meter.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
@@ -464,13 +499,14 @@ class StatusFrameCatch(ttk.Frame):
         """ Shows the errormessage in the overview frame"""
         for child in self.overview_frame.children.values():
             child.grid_forget()
+        
         self.overview_frame["style"] = "danger.TFrame"
         self.err_status_label["text"] = None #!Here
         self.err_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.CENTER)
     
     def abolish_data(self) -> None:
         """ Function to repeal setted values """
-        logger.info("StatusFrameCatch:abolishing data")
+        logger.info("StatusFrameCatch\tabolishing data because of no connection")
         self.frq_meter["amountused"] = 0
         self.gain_meter["amountused"] = 0
         # self.temp_meter["amountused"] = 0
@@ -483,7 +519,7 @@ class StatusFrameCatch(ttk.Frame):
         
     def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
-        logger.info("StatusFrameCatch:attaching data")
+        logger.info("StatusFrameCatch\tattaching data")
         self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000
         self.gain_meter["amountused"] = self.root.sonicamp.status.gain
         # self.temp_meter["amountused"] = 36 #!Here
@@ -494,6 +530,7 @@ class StatusFrameCatch(ttk.Frame):
         if self.root.sonicamp.status.signal:
             self.sig_status_label["text"] = "Signal ON"
             self.sig_status_label["image"] = self.root.led_green_img
+        
         else:
             self.sig_status_label["text"] = "Signal OFF"
             self.sig_status_label["image"] = self.root.led_red_img
@@ -594,6 +631,7 @@ class StatusFrameWipe(ttk.Frame):
             width=10,
             text=None)
         
+        logger.info(f"StatusFrameWipe\tinitialized")
         
     def publish(self) -> None:
         """ Function to build the statusframe """
@@ -625,7 +663,7 @@ class StatusFrameWipe(ttk.Frame):
     
     def attach_data(self) -> None:
         """ Function to configure objects to corresponding data """
-        logger.info("attaching data")
+        logger.info("SonicWipeFrame\tattaching data")
         self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000    
         
         self.con_status_label["image"] = self.root.led_green_img
@@ -634,6 +672,7 @@ class StatusFrameWipe(ttk.Frame):
         if self.root.sonicamp.status.signal:
             self.sig_status_label["text"] = "Signal ON"
             self.sig_status_label["image"] = self.root.led_green_img
+        
         else:
             self.sig_status_label["text"] = "Signal OFF"
             self.sig_status_label["image"] = self.root.led_red_img      
@@ -762,15 +801,19 @@ Here is a list for all commands:
         self.insert_text(f">>> {command}")
         
         if command == 'clear':
+            
             for child in self.scrollable_frame.children.values():
                 child.destroy()
+        
         elif command == 'help':
             self.insert_text(SerialMonitor.HELPTEXT)
+        
         elif command == 'exit':
             self.destroy()
+        
         else:
+           
             self.root.thread.pause()
-            # self.root.serial.serial.write(f"{command}\n".encode())
             answer: str = self.root.serial.send_and_get(f"{command}\n".encode())
             self.insert_text(answer)
             self.root.thread.resume()
@@ -782,6 +825,7 @@ Here is a list for all commands:
         """Inserts text in the output frame"""
         if text is list:
             text = ' '.join(text)
+        
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
         self.canvas.update()
     
@@ -798,6 +842,7 @@ Here is a list for all commands:
             self.index_history -= 1
             self.command_field.delete(0, tk.END)
             self.command_field.insert(0, self.command_history[self.index_history])
+        
         else:
             self.command_field.delete(0, tk.END)
             
@@ -990,20 +1035,30 @@ class SonicAgent(SonicThread):
     def __init__(self, root: Root) -> None:
         super().__init__()
         self._root: Root = root
-        
+    
     def run(self) -> None:
         while True:
             with self.pause_cond:
+                
                 while self.paused:
                     self.pause_cond.wait()
                 
                 try:
+                    
                     if self.root.serial.is_connected:
                         status: Status = self.root.sonicamp.get_status()
-                        if type(status) != bool and status != self.root.sonicamp.status:
+                        logger.info(f"SonicAgent\tchecking for new data")
+                        
+                        if not isinstance(status, bool) and status != self.root.sonicamp.status:
+                            logger.info(f"SonicAgent\tfound new data, updating\t{status = }")  
                             self.queue.put(status)
+                        
+                        else:
+                            logger.info(f"SonicAgent\tno new data available") 
+                            
                 except serial.SerialException:
                     self.root.__reinit__()
+                    
                 except Exception as e:
                     print("exception in thread")
-                    logger.info(f"SonicAgent:Exception:{e}")
+                    logger.info(f"SonicAgent\tException:{e}")
