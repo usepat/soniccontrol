@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Union
 
 if not os.path.exists("Logs"):
     os.mkdir('Logs')
@@ -19,4 +20,5 @@ status_formatter = logging.Formatter('%(asctime)s\t%(message)s')
 status_log_file_handler = logging.FileHandler('Logs//statuslog.csv')
 status_log_file_handler.setFormatter(status_formatter)
 status_logger.addHandler(status_log_file_handler)
+
     

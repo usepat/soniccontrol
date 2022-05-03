@@ -17,7 +17,7 @@ import time
 import csv
 import subprocess
 import os
-from sonicpackage import Command, SerialConnection, Status
+from sonicpackage import Command, SerialConnection, Status, SonicCatch#, SonicCatchOld
 from sonicpackage.amp_tools import serial
 from .helpers import logger, status_logger
 
@@ -704,15 +704,17 @@ class ScriptingTab(ttk.Frame):
     
     def close_file(self) -> None:
         """Function that closes the scripting sequence"""
+        self.run: bool = False
+        
         logger.info("Scriptingtab\tSequence ended\t")
         
-        self.run: bool = False
-        self.scripttext.tag_delete("currentLine", 1.0, tk.END)
         self.start_script_btn.configure(
             text='Run',
             style='success.TButton',
             image=self.root.play_img,
             command=self.read_file)
+        
+        self.scripttext.tag_delete("currentLine", 1.0, tk.END)
         self.sequence_status.stop()
         self.current_task.set("Idle")
         self.previous_task = "Idle"
@@ -723,7 +725,9 @@ class ScriptingTab(ttk.Frame):
         # self.save_log_btn.config(state=tk.NORMAL)
         self.script_guide_btn.config(state=tk.NORMAL)
         self.sequence_status.config(text=None)
+        
         self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        
         self.root.attach_data()
         self.root.thread.resume()
     
@@ -739,20 +743,22 @@ class ScriptingTab(ttk.Frame):
         self.logger.addHandler(self.file_handler)
         
         self.root.thread.pause()
+        
         self.start_script_btn.configure(
             text='Stop',
             style='danger.TButton',
             image=self.root.pause_img,
-            command=lambda: self.set_run(False))
+            command=self.close_file)
         
         self.sequence_status.start()
         self.root.notebook.disable_children(self)
         self.scripttext.config(state=tk.DISABLED)
         self.load_script_btn.config(state=tk.DISABLED)
         self.save_script_btn.config(state=tk.DISABLED)
-        # self.save_log_btn.config(state=tk.DISABLED)
         self.script_guide_btn.config(state=tk.DISABLED)
+        
         self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        
         self.status_handler()
         self.start_sequence()
         
@@ -763,7 +769,7 @@ class ScriptingTab(ttk.Frame):
         Args:
             state (bool): The to be setted state
         """
-        self.run = False
+        self.run: bool = state
     
     def highlight_line(self, current_line: int) -> None:
         """Function that highlights the current line of the sequence in the script editor
@@ -837,7 +843,11 @@ class ScriptingTab(ttk.Frame):
                 self.exec_command(line)
                 line += 1
 
-        self.close_file()
+        # So that the close_file function doesn't get called two times
+        if not self.run:
+            return
+        else:
+            self.close_file()
 
     
     def status_handler(self) -> None:
@@ -898,10 +908,11 @@ class ScriptingTab(ttk.Frame):
             logger.info(f"Scriptingtab\tExecuting command\t{self.commands[counter] = }")
                         
             if self.commands[counter] == "frequency":
-                self.check_relay(int(argument))
+                self.check_relay(frq=argument)
                 self.serial.send_and_get(Command.SET_FRQ + argument)
             
             elif self.commands[counter] == "gain":
+                self.check_relay(gain=argument)
                 self.serial.send_and_get(Command.SET_GAIN + argument)
             
             elif self.commands[counter] == "ramp":
@@ -959,27 +970,30 @@ class ScriptingTab(ttk.Frame):
             time.sleep(0.02)
             now = datetime.datetime.now()
             self.root.update()
-    
-    def check_relay(self, frq: int) -> None:
+                
+    def check_relay(self, frq: int = 0, gain: int = 0) -> None:
         """Function that checks the current relay setting in a soniccatch and changes
         the relay accordingly, so that the frequency set would be possible
 
         Args:
-            frq (int): The frequency that should be set
+            frq (int):  The frequency that should be set
+            gain (int): The gain that should be setted, if needed
         """
-        if self.run:
-            
-            if frq >= 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency < 1000000:
-                logger.info(f"Scriptingtab\tChecking relay\tSetting to MHz")
-                self.serial.send_and_get(Command.SET_MHZ)
-                self.serial.send_and_get(Command.SET_SIGNAL_ON)
-            
-            elif frq < 1000000 and self.root.sonicamp.type_ == 'soniccatch' and self.status.frequency >= 1000000:
-                logger.info(f"Scriptingtab\tChecking relay\tSetting to kHz")
-                self.serial.send_and_get(Command.SET_KHZ)
-                self.serial.send_and_get(Command.SET_SIGNAL_ON)
-        else:
-            pass
+        running_soniccatch: bool = self.run and (isinstance(self.root.sonicamp, SonicCatch))# or isinstance(self.root.sonicamp, SonicCatchOld))
+                
+        if (running_soniccatch and frq >= 1000000 and self.status.frequency < 1000000) or (running_soniccatch and gain and self.status.frequency >= 1000000):
+            logger.info(f"Scriptingtab\tChecking relay\tSetting to MHz")
+            self.serial.send_and_get(Command.SET_MHZ)
+            self.serial.send_and_get(Command.SET_SIGNAL_ON)
+    
+        elif running_soniccatch and  frq < 1000000 and self.status.frequency >= 1000000:
+            logger.info(f"Scriptingtab\tChecking relay\tSetting to kHz")
+            self.serial.send_and_get(Command.SET_KHZ)
+            self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        
+        elif running_soniccatch and gain and self.status.frequency < 1000000:
+            self.close_file()
+            messagebox.showerror("Semantic error", "Gain setting is not supported for frequencies under 1MHz. Please make sure that the frequency is over 1MHz when setting the gain")       
     
     def start_ramp(self, args_: list) -> None:
         """Starts the ramp process, and ramps up the frequency from a
@@ -1098,7 +1112,7 @@ class ScriptingTab(ttk.Frame):
     
     def attach_data(self) -> None:
         pass
-
+    
 
 
 class ScriptingGuide(tk.Toplevel):
@@ -1743,7 +1757,6 @@ class SonicMeasure(tk.Toplevel):
         
         self.stop()
     
-    @cache
     def plot_data(self, data: dict) -> None:
         logger.info(f"SonicMeasure\tPlotting data\t{data = }")
         
@@ -1819,7 +1832,6 @@ class SonicMeasure(tk.Toplevel):
         
         return data_dict
     
-    @cache
     def _get_sens(self) -> list:
         """Gets the current sensor data via the ?sens command
 
@@ -1848,7 +1860,7 @@ class SonicMeasure(tk.Toplevel):
         self.gain_frame.grid(row=0, column=2, padx=5, pady=5)
         
         self.start_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
-        self.save_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
+        # self.save_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
         
         # Frq Frame
         self.start_frq_label.grid(row=0, column=0, padx=3, pady=3)
@@ -1903,6 +1915,5 @@ class MeasureCanvas(FigureCanvasTkAgg):
         self.ax_urms.legend(handles=[self.plot_urms, self.plot_irms, self.plot_phase])
         super().__init__(self.figure, parent)
     
-    @cache
     def update_axes(self, start_frq: int, stop_frq: int) -> None:
         self.ax_urms.set_xlim(start_frq, stop_frq)

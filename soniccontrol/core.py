@@ -139,23 +139,25 @@ class Root(tk.Tk):
         and adapts the programm funtctions accordingly
         """
         self.serial.get_ports()
+        
         try:
             
+            # Deprecated code for development -> an automatic connection algorithm
             # if self.serial.auto_connect():
             #     logger.info(f"Root\tautoconnected\t{self.serial = }")
             #     self.decide_action()
             
-            if self.port.get() != '-' and self.serial.connect_to_port(self.port.get()):
-                logger.info("Root\tmanually connected\t{self.serial = }")
+            if len(self.port.get()) > 1 and self.serial.connect_to_port(self.port.get()):
+                logger.info(f"Root\tmanually connected\t{self.serial = }")
                 self.decide_action()
             
             else:
-                logger.info("Root\tDid not detect connection\t{self.serial = }")
+                logger.info(f"Root\tDid not detect connection\t{self.serial = }")
                 self.publish_disconnected()
         
         except Exception as e:
             logger.info(f"Root\tException:{e}\t{self.serial = }")
-            messagebox.showerror("Error during connection","Something went wrong during, please try again to connect")
+            messagebox.showerror("Error during connection",f"Something went wrong during, please try again to connect\n{e}")
             self.publish_disconnected()
     
     def attach_data(self) -> None:
