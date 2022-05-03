@@ -736,7 +736,7 @@ class ScriptingTab(ttk.Frame):
         self.run: bool = True
     
         self.logger: logging.Logger = logging.getLogger("Scripting")
-        self.formatter: logging.Formatter = logging.Formatter('%(asctime)s,%(message)s')
+        self.formatter: logging.Formatter = logging.Formatter('%(asctime)s\t%(message)s')
         self.file_handler: logging.FileHandler = logging.FileHandler(f'{self._sequence_dir}//{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}_sequence.csv')
         self.logger.setLevel(logging.DEBUG)
         self.file_handler.setFormatter(self.formatter)
@@ -1385,7 +1385,6 @@ class ConnectionTab(ttk.Frame):
         
         logger.info("Connectiontab\tInitialized children and object connectiontab")
     
-    @cache
     def attach_data(self) -> None:
         """Attaches data to the connectiontab"""
         logger.info("Connectiontab\tattaching data")
@@ -1475,7 +1474,6 @@ class ConnectionTab(ttk.Frame):
             messagebox.showerror("Wrong File", "The specified file is not a validated firmware file. Please try again with a file that ends with the format \".hex\"")
             self.file_entry.config(style="danger.TButton", text="File is not a firmware file")
 
-    @cache
     def upload_file(self):
         """Upploads the hex file to the hardware via AVRDUDE"""
         if self.root.serial.is_connected:
@@ -1553,6 +1551,10 @@ class InfoTab(ttk.Frame):
         #     command=self.root.publish_serial_monitor,
         #     style='outline.dark.TButton')
         
+        self.version_label: ttk.Label = ttk.Label(
+            self,
+            text=self.root.VERSION,)
+        
         logger.info("Infotab\tInitialized")
         
     def publish(self) -> None:
@@ -1565,6 +1567,8 @@ class InfoTab(ttk.Frame):
         self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
         # self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
         self.controlframe.pack()
+        
+        self.version_label.pack(anchor=tk.S, side=tk.BOTTOM, padx=10, pady=10)
     
     def open_manual(self) -> None:
         """Opens the helppage manual with the default pdf viewer"""
@@ -1675,9 +1679,11 @@ class SonicMeasure(tk.Toplevel):
         self.destroy()
         
     def start(self) -> None:
+        """WHat happens if the start button is being pressed"""
         logger.info(f"SonicMeasure\tstarting measure")
         
         self.run: bool = True
+        # Change the appearence of the start button -> to a stop button
         self.start_btn.config(
             text='Stop',
             style='danger.TButton',
@@ -1712,7 +1718,10 @@ class SonicMeasure(tk.Toplevel):
             child.config(state=tk.NORMAL)
         
         self.serial.send_and_get(Command.SET_SIGNAL_OFF)
-        self.root.thread.resume()
+        
+        # In case the thread was paused, resume. If statement to not resume the thread twice
+        if self.root.thread.paused:
+            self.root.thread.resume()
         
     def _create_csv(self) -> None:
         """Create a csv for the current measurement"""
@@ -1739,18 +1748,20 @@ class SonicMeasure(tk.Toplevel):
             messagebox.showinfo("Not supported values", "Please make sure that your frequency values are between 600000Hz and 6000000Hz")
             self.stop()
         
-        if start > stop:
+        # In case start value is higher than stop value and the sequence should be run decreasingly
+        elif start > stop:
             step = -abs(step)
                 
         for frq in range(start, stop, step):
             
             try:
                 data: dict = self.get_data(frq)
-                self.protocol("WM_DELETE_WINDOW", self.on_closing)
+                self.protocol("WM_DELETE_WINDOW", self.on_closing)      # tkinter protocol function to -> What function should be called when event (Window closes) happens
                 print(data)
                 self.plot_data(data)
                 self.register_data(data)
             
+            # What should be done, if connection suddelny disappears
             except serial.SerialException:
                 self.root.__reinit__()
                 break
@@ -1758,6 +1769,16 @@ class SonicMeasure(tk.Toplevel):
         self.stop()
     
     def plot_data(self, data: dict) -> None:
+        """Append the data to the plotted list and update
+        the plot accordingly 
+
+        Args:
+            data (dict): The data that needs to be plotted, specifically with the dict keys:
+                -> "frequency" (int)    : the current frequency
+                -> "urms" (int)         : the current Urms (Voltage)
+                -> "irms" (int)         : the current Irms (Amperage)
+                -> "phase" (int)        : the current phase (Degree)
+        """
         logger.info(f"SonicMeasure\tPlotting data\t{data = }")
         
         self.frq_list.append(data["frequency"])

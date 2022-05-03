@@ -59,6 +59,7 @@ class Root(tk.Tk):
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
+    VERSION: int = 1.03
     TITLE: str = "Soniccontrol"
     THEME: str = "sandstone"
     
@@ -141,8 +142,7 @@ class Root(tk.Tk):
         self.serial.get_ports()
         
         try:
-            
-            # Deprecated code for development -> an automatic connection algorithm
+            # Deprecated code for client usage (used for development) -> an automatic connection algorithm
             # if self.serial.auto_connect():
             #     logger.info(f"Root\tautoconnected\t{self.serial = }")
             #     self.decide_action()
