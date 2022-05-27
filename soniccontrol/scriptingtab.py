@@ -13,7 +13,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 from ttkbootstrap.tooltip import ToolTip
 
-from sonicpackage import Status, Command, SonicCatch, SonicWipeDuty
+from sonicpackage import Status, Command, SonicCatch, SonicWipeDuty, SonicWipe, SonicWipeOld, SonicCatchOld
 from soniccontrol.sonicamp import SerialConnection
 from soniccontrol.helpers import logger
 
@@ -24,7 +24,15 @@ if TYPE_CHECKING:
 
 
 class ScriptCommand(Enum):
+    """
+    The ScriptCommand class is an enumaration class
+    that has it's builtin constants of strings, those
+    are being used for the function helper to insert
+    scripting commands into the scripting text frame
     
+    Inheritance:
+        Enum (enum.Enum): the python enumaration class
+    """    
     SET_FRQ: str = "frequency XXXXXXXX\n"
     SET_GAIN: str = "gain XXX\n"
     SET_KHZ: str = "setkHz\n"
@@ -50,7 +58,6 @@ class ScriptingTab(ttk.Frame):
         return self._serial
     
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
-        """ Declare all children """
         super().__init__(parent, *args, **kwargs)
         
         self._root: Root = root
@@ -67,14 +74,15 @@ class ScriptingTab(ttk.Frame):
         self.previous_task: str = "Idle"
         
         self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
-                
+        
+        # Variables and functionality for the status_log of the scripting tab
         self._sequence_dir: str = 'ScriptingSequence'
         self.fieldnames: list = ['timestamp','command', 'argument', 'signal', 'frequency', 'gain']
         
         if not os.path.exists(self._sequence_dir):
             os.mkdir(self._sequence_dir)
         
-        ###### Building the tkinter gui for the tab #######
+        # Building the tkinter GUI for the Tab
         self.config(height=200, width=200)
         
         self.button_frame: ttk.Frame = ttk.Frame(self)
@@ -154,7 +162,9 @@ class ScriptingTab(ttk.Frame):
             style="dark.TProgressbar",)
     
     def publish(self):
-        """Method to publish every component and show the tab visually in the GUI"""
+        """
+        Method to publish every component and show the tab visually in the GUI
+        """
         # Button Frame
         self.button_frame.pack(anchor=tk.N, side=tk.LEFT, padx=5, pady=5)
         
@@ -168,7 +178,9 @@ class ScriptingTab(ttk.Frame):
         self.sequence_status.grid(row=2, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
     
     def load_file(self) -> None:
-        """Method to load a already existing script to the text frame"""
+        """
+        Method to load a already existing script to the text frame
+        """
         self.script_filepath = filedialog.askopenfilename(defaultextension='.txt', filetypes=self._filetypes)
         
         with open(self.script_filepath, 'r') as f:
@@ -176,22 +188,28 @@ class ScriptingTab(ttk.Frame):
             self.scripttext.insert(tk.INSERT, f.read())
     
     def save_file(self) -> None:
-        """Method to save the written script in the text frame to a txt file"""
+        """
+        Method to save the written script in the text frame to a txt file
+        """
         self.save_filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
         
         with open(self.save_filename, 'w') as f:
             f.write(self.scripttext.get(0, tk.END))
     
     def open_logfile(self) -> None:
-        """Method to change the saving location of the logfile"""
+        """
+        Method to change the saving location of the logfile
+        """
         self.logfilepath = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
     
     def close_sequence(self) -> None:
-        """Function that closes the scripting sequence
+        """
+        Function that closes the scripting sequence
         
         Direclty stops the sequence and changes the appearence 
         of the GUI. The start button now directs to the 
-        self.start_sequence method of the scripting tab"""
+        self.start_sequence method of the scripting tab
+        """
         self.run: bool = False
         
         self.logfilepath: str = None
@@ -224,14 +242,17 @@ class ScriptingTab(ttk.Frame):
             self.root.thread.resume()
     
     def _create_statuslog(self) -> None:
-        """Internal method to create the csv status log file"""
+        """
+        Internal method to create the csv status log file
+        """
         with open(self.logfilepath, "a") as statuslog:
             csv_writer: csv.DictWriter = csv.DictWriter(
                 statuslog, fieldnames=self.fieldnames)
             csv_writer.writeheader()
     
     def configure_for_sequence(self) -> None:
-        """Method that starts the scripting sequence
+        """
+        Method that starts the scripting sequence
         
         Gets the tab into a loop that checks if the self.run attribute 
         is set to true or false. True being further try to run the 
@@ -243,7 +264,7 @@ class ScriptingTab(ttk.Frame):
     
         if not self.logfilepath:
             tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            self.logfilepath: str = f"{self._sequence_dir}//{tmp_timestamp}_sequence.csv"
+            self.logfilepath: str = f"{self._sequence_dir}//{tmp_timestamp}_{self.root.sonicamp.type_}_sequence.csv"
             
         with open(self.logfilepath, "a", newline="") as logfile:
             csv_writer: csv.DictWriter = csv.DictWriter(
@@ -263,18 +284,18 @@ class ScriptingTab(ttk.Frame):
         self.root.notebook.disable_children(self)
         self.scripttext.config(state=tk.DISABLED)
         self.load_script_btn.config(state=tk.DISABLED)
+        self.save_log_btn.config(state=tk.DISABLED)
         self.save_script_btn.config(state=tk.DISABLED)
         self.script_guide_btn.config(state=tk.DISABLED)
         
         self.serial.send_and_get(Command.SET_SIGNAL_ON)
-        
-        logger.info("Initialized the scripting sequence")
-        
+                
         self.status_handler()
         self.start_sequence()
         
     def set_run(self, state: bool) -> None:
-        """The sequence checks the run flag constantly, so this function
+        """
+        The sequence checks the run flag constantly, so this function
         acts as a setter of that variable
 
         Args:
@@ -283,7 +304,8 @@ class ScriptingTab(ttk.Frame):
         self.run: bool = state
     
     def highlight_line(self, current_line: int) -> None:
-        """Function that highlights the current line of the sequence in the script editor
+        """
+        Function that highlights the current line of the sequence in the script editor
         The argument current_line
 
         Args:
@@ -366,49 +388,52 @@ class ScriptingTab(ttk.Frame):
 
     
     def status_handler(self) -> None:
-        """Update the Root Window at the status frame to display the current data from the sequence"""
+        """
+        Update the Root Window at the status frame to display the current data from the sequence
+        """
         try:
             
-            if self.root.sonicamp.type_ == 'soniccatch':
+            if not isinstance(self.root.sonicamp, SonicWipeDuty):
                 self.status: Status = self.root.sonicamp.get_status()
-                
-            elif isinstance(self.root.sonicamp, SonicWipeDuty):
-                self.status.frequency = 0
+            
+            else:                
+                self.status.frequency = 40000
             
             logger.info(f"Got status: {self.status}")
         
         except ValueError:
             pass
         
-        if self.root.sonicamp.type_ == 'soniccatch':
+        if isinstance(self.root.sonicamp, SonicCatch) or isinstance(self.root.sonicamp, SonicCatchOld):
             
-            self.root.status_frame_catch.gain_meter["amountused"] = self.status.gain
-            self.root.status_frame_catch.frq_meter["amountused"] = self.status.frequency / 1000
+            self.root.status_frame.gain_meter["amountused"] = self.status.gain
+            self.root.status_frame.frq_meter["amountused"] = self.status.frequency / 1000
 
             if self.status.signal:
-                self.root.status_frame_catch.sig_status_label["text"] = "Signal ON"
-                self.root.status_frame_catch.sig_status_label["image"] = self.root.led_green_img
+                self.root.status_frame.sig_status_label["text"] = "Signal ON"
+                self.root.status_frame.sig_status_label["image"] = self.root.led_green_img
             
             else:
-                self.root.status_frame_catch.sig_status_label["text"] = "Signal OFF"
-                self.root.status_frame_catch.sig_status_label["image"] = self.root.led_red_img
+                self.root.status_frame.sig_status_label["text"] = "Signal OFF"
+                self.root.status_frame.sig_status_label["image"] = self.root.led_red_img
         
-        elif self.root.sonicamp.type_ == 'sonicwipe':
+        elif isinstance(self.root.sonicamp, SonicWipe) or isinstance(self.root.sonicamp, SonicWipeOld):
             
-            self.root.status_frame_wipe.frq_meter["amountused"] = self.status.frequency / 1000
+            self.root.status_frame.frq_meter["amountused"] = self.status.frequency / 1000
 
             if self.status.signal:
-                self.root.status_frame_wipe.sig_status_label["text"] = "Signal ON"
-                self.root.status_frame_wipe.sig_status_label["image"] = self.root.led_green_img
+                self.root.status_frame.sig_status_label["text"] = "Signal ON"
+                self.root.status_frame.sig_status_label["image"] = self.root.led_green_img
             
             else:
-                self.root.status_frame_wipe.sig_status_label["text"] = "Signal OFF"
-                self.root.status_frame_wipe.sig_status_label["image"] = self.root.led_red_img
+                self.root.status_frame.sig_status_label["text"] = "Signal OFF"
+                self.root.status_frame.sig_status_label["image"] = self.root.led_red_img
 
         self.root.update()
 
     def exec_command(self, counter: int) -> None:
-        """This function manages the execution of functions
+        """
+        This function manages the execution of functions
         and manages the visualization of the execution
 
         Args:
@@ -480,7 +505,8 @@ class ScriptingTab(ttk.Frame):
             csv_writer.writerow(data_dict)
     
     def hold(self, args_: Union[list, int]) -> None:
-        """Holds the time during sequence, that was passed as an argument
+        """
+        Holds the time during sequence, that was passed as an argument
         The user has the ability to control in which time unit the delay should
         be executed. More concretly:
             trailing 's' -> seconds
@@ -493,7 +519,7 @@ class ScriptingTab(ttk.Frame):
         # Let us find out, what unit the delay should be in
         if isinstance(args_, int):
             # logger.info(f"Scriptingtab\tNo unit given\tusing seconds")
-            target: datetime.datetime = now + datetime.timedelta(seconds=args_)
+            target: datetime.datetime = now + datetime.timedelta(milliseconds=args_)
         
         elif (len(args_) > 1 and args_[1] == 's') or (len(args_) == 1):
             # logger.info(f"Scriptingtab\tunit given\t{args_[1] = }\tusing seconds")
@@ -505,7 +531,7 @@ class ScriptingTab(ttk.Frame):
         
         else:
             # logger.info(f"Scriptingtab\tno unit given\tusing seconds (else condition)")
-            target: datetime.datetime = now + datetime.timedelta(seconds=args_[0])
+            target: datetime.datetime = now + datetime.timedelta(milliseconds=args_[0])
         
         # The actual execute of the delay
         while now < target and self.run:
@@ -514,7 +540,8 @@ class ScriptingTab(ttk.Frame):
             self.root.update()
                 
     def check_relay(self, frq: int = 0, gain: int = 0) -> None:
-        """Function that checks the current relay setting in a soniccatch and changes
+        """
+        Function that checks the current relay setting in a soniccatch and changes
         the relay accordingly, so that the frequency set would be possible
 
         Args:
@@ -566,7 +593,8 @@ class ScriptingTab(ttk.Frame):
         
         
     def start_ramp(self, args_: list) -> None:
-        """Starts the ramp process, and ramps up the frequency from a
+        """
+        Starts the ramp process, and ramps up the frequency from a
         start value to a stop value. The resolution (step size) is also given
         from the passed argument. Additionally, a delay and the unit of that
         delay are also passed down.
@@ -628,7 +656,8 @@ class ScriptingTab(ttk.Frame):
                 break
     
     def parse_commands(self, text: str) -> None:
-        """Parse a string and split it into data parts
+        """
+        Parse a string and split it into data parts
         Conretely into:
             self.commands -> a list of strings indicating which action to execute
             self.args_ -> a list of numbers and values for the commands
@@ -638,9 +667,7 @@ class ScriptingTab(ttk.Frame):
 
         Args:
             text (str): a str of text 
-        """
-        # logger.info("Scriptingtab\tParsing commands")
-        
+        """        
         # The string becomes a list of strings, in which each item resembles a line
         line_list: list[str] = text.rstrip().splitlines()
 
@@ -650,11 +677,29 @@ class ScriptingTab(ttk.Frame):
             
             # Go through each word or number item of that line
             for i, part in enumerate(line):
+                
                 part = part.rstrip()                    # Clean the part from leading and trailing white-spaces
                 
                 # If the part is numeric, it should be resembled as an integer, not a string
                 if part.isnumeric():
                     line[i] = int(part)
+                    
+                elif ',' in part:
+                    part: list = part.split(',')
+                    
+                    for j, ramp_part in enumerate(part):
+                        if ramp_part.isnumeric():
+                            part[j] = int(ramp_part)
+                        
+                        elif ramp_part[-2:] == 'ms' and ramp_part[0].isdigit():
+                            part[j] = int(ramp_part[:-2])
+                            part.append(ramp_part[-2:])
+                
+                        elif ramp_part[-1:] == 's' and ramp_part[-2:] != 'ms' and ramp_part[0].isdigit():
+                            part[j] = int(ramp_part[:-1])
+                            part.append(ramp_part[-1:])
+                    
+                    line[i] = part
                 
                 # If part has no length, it's essentially a empty part, we don't need that
                 elif not len(part):
@@ -676,10 +721,16 @@ class ScriptingTab(ttk.Frame):
         for i, command in enumerate(self.commands):
         
             if command == "startloop":
+                
                 if self.args_[i] == 'inf':
                     loopdata: list = [i, 'inf']
-                else:    
+                
+                elif isinstance(self.args_[i], int):
                     loopdata: list = [i, self.args_[i][0]]
+                
+                else:    
+                    loopdata: list = [i, 'inf']
+                    
                 self.loops.insert(i, loopdata)
             
             elif command == "endloop":
@@ -737,7 +788,7 @@ class ScriptingGuide(tk.Toplevel):
         self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text="hold",
-            arg_text="[1-10000] in [seconds/ milliseconds] (depending on what you write e.g: 100ms, 5s, 123s)",
+            arg_text="[1-10^6] in [seconds/ milliseconds] (depending on what you write e.g: 100ms, 5s, nothing defaults to milliseconds)",
             desc_text=None,
             command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
         
@@ -806,7 +857,7 @@ class ScriptingGuide(tk.Toplevel):
         self.ramp_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text='ramp',
-            arg_text='<start f [Hz]> <stop f [Hz]> <step size [Hz]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, 3s, 234ms)',
+            arg_text='<start f [Hz]> <stop f [Hz]> <step size [Hz]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, nothing defaults to milliseconds)',
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_RAMP))
         self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)

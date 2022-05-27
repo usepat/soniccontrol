@@ -17,7 +17,8 @@ if TYPE_CHECKING:
 
 
 class StatusFrame(ttk.Frame):
-    """The parent object of Status Frames, here the main objects 
+    """
+    The parent object of Status Frames, here the main objects 
     and methods are defined. So that the code stays DRY
 
     Inheritance:
@@ -108,9 +109,7 @@ class StatusFrame(ttk.Frame):
             relief=tk.RIDGE,
             width=10,
             text=None)
-        
-        logger.info(f"initialized statusframe")
-        
+                
     def attach_data(self) -> None:
         """Method to attach new data to the object, so that the 
         object adapts itself accordingly

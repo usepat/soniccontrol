@@ -19,6 +19,21 @@ if TYPE_CHECKING:
 
 
 class HomeTab(ttk.Frame):
+    """
+    This is the Parent class of every other instance of object
+    that is used for the Home Tab. It has basic attributes and
+    methods, that every variation of Hometab should have:
+        
+        - A control frame, that has all the controls for the sonicamp
+        - An output frame, that shows the concrete answer from a sonicamp
+        - Buttons like: US ON, US OFF and serialmonitor
+        
+    And methods for the corrresponding objects that the Hometab has like
+    insert_feed() for inserting text into the output frame
+
+    Inheritance:
+        ttk (tkinter.ttk.Frame): the tkinter Frame
+    """
     
     @property
     def root(self) -> Root:
@@ -34,9 +49,37 @@ class HomeTab(ttk.Frame):
         self._root: Root = root
         self._serial: SerialConnection = root.serial
         
+        self.topframe: ttk.Frame = ttk.Frame(self)
+        self.control_frame: ttk.Labelframe = ttk.LabelFrame(self.topframe)
+        
+        self.serial_monitor_btn: ttk.Button = ttk.Button(
+            self.control_frame,
+            text='Serial Monitor',
+            style='secondary.TButton',
+            width=12,
+            command=self.root.publish_serial_monitor,)
+        
+        self.us_on_button: ttk.Button = ttk.Button(
+            self.control_frame,
+            text='ON',
+            style='success.TButton',
+            width=10,
+            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_SIGNAL_ON)))
+        
+        ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
+        
+        self.us_off_button: ttk.Button = ttk.Button(
+            self.control_frame,
+            text='OFF',
+            style='danger.TButton',
+            width=10,
+            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_SIGNAL_OFF)))
+        
+        ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
+        
+        # Bot Frame - Feedback Frame
         self.botframe: ttk.Frame = ttk.Frame(self)
         
-        # Feedback Frame
         self.output_frame: ttk.Frame = ttk.LabelFrame(self.botframe, text='Feedback')
         container: ttk.Frame = ttk.Frame(self.output_frame)
         self.canvas: tk.Canvas = tk.Canvas(container)
@@ -55,7 +98,8 @@ class HomeTab(ttk.Frame):
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
     def insert_feed(self, text: Union[str, list]) -> None:
-        """Function that inserts a string or a list into the feedback frame
+        """
+        Function that inserts a string or a list into the feedback frame
 
         Args:
             text (Union[str, list]): The text, that should be inserted
@@ -66,6 +110,15 @@ class HomeTab(ttk.Frame):
         ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1)
+        
+    def publish(self) -> None:
+        """
+        Publish method to show the children of the Hometab
+        Because every instance of the Hometab has a feedback
+        Frame, the said child is published here
+        """
+        self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
+        self.botframe.pack(side=tk.TOP)   
         
 
 
@@ -78,9 +131,8 @@ class HomeTabCatch(HomeTab):
         self.config(height=200, width=200)
         
         # Here follows the code regarding the TOPFRAME
-        self.topframe: ttk.Labelframe = ttk.Labelframe(self, text="Manual control")
-        self.control_frame: ttk.Frame = ttk.Frame(self.topframe)
-        
+        self.control_frame["text"] = 'Manual Control'
+                
         # Frq frame
         self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
         
@@ -132,7 +184,6 @@ class HomeTabCatch(HomeTab):
             orient=tk.HORIZONTAL,
             style="primary.TScale",
             variable=self.root.gain,)
-            #command=lambda: self.root.serial.send_get(Command.SET_GAIN + int(self.root.gain.get())))
         
         # kHz MHz Frame
         self.frq_rng_frame: ttk.Label = ttk.Label(self.control_frame)
@@ -200,7 +251,8 @@ class HomeTabCatch(HomeTab):
         ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
     
     def set_val(self) -> None:
-        """Function that will be called after pressing the <Set Frequency and Gain> Button
+        """
+        Function that will be called after pressing the <Set Frequency and Gain> Button
         It firstly checks if the values are supported under the current relay setting
         """
         frq: int = self.root.frq.get()
@@ -232,7 +284,8 @@ class HomeTabCatch(HomeTab):
                 "This frequency cannot be setted under the current frequency range mode. Please use the spinbox once again")
             
     def check_range(self, frq: int) -> bool:
-        """Checks the current setting of the relay on the sonicamp and 
+        """
+        Checks the current setting of the relay on the sonicamp and 
         returns true if the passed frequency is being supported under the
         current relay setting.
 
@@ -272,7 +325,9 @@ class HomeTabCatch(HomeTab):
         self.sonicmeasure: SonicMeasure = SonicMeasure(self.root)
         
     def publish(self) -> None:
-        """ Function to build children of this frame """
+        """ 
+        Function to build children of this frame 
+        """
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
@@ -296,14 +351,14 @@ class HomeTabCatch(HomeTab):
         self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
-        
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
 
-        self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
-        self.botframe.pack(side=tk.TOP)        
+        super().publish()
         
     def set_scrolldigit(self) -> None:
-        """ Function regarding the scroll digit combobox """
+        """ 
+        Function regarding the scroll digit combobox 
+        """
         self.frq_spinbox.config(
             increment = str(10 ** (int(self.scroll_digit.get())-1)))
         
@@ -311,15 +366,15 @@ class HomeTabCatch(HomeTab):
 
 
 class HomeTabWipe(HomeTab):
-    
+    """
+    Part of the ScNotebook object and resposible for
+    the manual control of a sonicwipe (pre-revision 2.1)
+
+    Inheritance:
+        HomeTab (ttk.Frame): the general HomeTab class 
+        that every Hometab inherites from
+    """
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
-        """
-        The Hometab is a child tab of the Notebook menu and is resonsible
-        for handling and updating its children
-        
-        The frame is, again, splittet up into two main frames that organize
-        its children
-        """
         super().__init__(parent, root, *args, **kwargs)
         
         self.config(height=200, width=200)
@@ -327,9 +382,6 @@ class HomeTabWipe(HomeTab):
         self.wipe_var: tk.IntVar = tk.IntVar(value=5)
         
         self.wipe_mode: tk.BooleanVar = tk.BooleanVar(value=True)
-        
-        # Here follows the code regarding the TOPFRAME
-        self.topframe: ttk.Frame = ttk.Frame(self)
         
         self.frq_control_frame: ttk.LabelFrame = ttk.LabelFrame(self.topframe, text='Set up frequency') 
         
@@ -416,25 +468,33 @@ class HomeTabWipe(HomeTab):
             style='primary.TButton',
             command=self.start_wiping)
         
-        self.us_off_button: object = ttk.Button(
+        self.us_off_button: ttk.Button = ttk.Button(
             self.topframe,
             text='OFF',
             style='danger.TButton',
             width=10,
             command=self.set_signal_off)
         
-        ToolTip(self.us_on_button, text="Turn the ultrasound signal off")
+        ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
         
     def set_frq(self) -> None:
-        """Sets the frequency of the sonicamp"""
+        """
+        Sets the frequency of the sonicamp
+        """
         self.serial.send_get(Command.SET_FRQ + self.root.frq.get())
     
     def set_signal_off(self) -> None:
+        """
+        What action to do after pressing the off button
+        """
         self.root.wipe_mode.set(0)
-        self.root.status_frame_wipe.wipe_progressbar.stop()
+        self.root.status_frame.wipe_progressbar.stop()
         self.insert_feed(self.serial.send_get(Command.SET_SIGNAL_OFF))
     
     def handle_wipe_mode(self) -> None:
+        """
+        Handles the definite/ indefinite WIPE modes
+        """
         # In case its set to definite
         if self.wipe_mode.get():
             self.wipe_spinbox.config(state=tk.NORMAL)
@@ -443,6 +503,10 @@ class HomeTabWipe(HomeTab):
             self.wipe_spinbox.config(state=tk.DISABLED)
     
     def start_wiping(self) -> None:
+        """
+        Method that handles what to do after pressing the
+        WIPE Button
+        """
         # In case its set to definite
         wipe_runs: int = self.wipe_mode.get()
         
@@ -452,7 +516,7 @@ class HomeTabWipe(HomeTab):
         else:
             self.insert_feed(self.serial.send_get(Command.SET_WIPE_INF))
             
-        self.root.status_frame_wipe.wipe_progressbar.start()
+        self.root.status_frame.wipe_progressbar.start()
         self.root.wipe_mode.set(1)
             
     def attach_data(self) -> None:
@@ -481,9 +545,7 @@ class HomeTabWipe(HomeTab):
         self.us_off_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
         
         self.topframe.pack(side=tk.TOP, padx=20, pady=20)
-        
-        self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
-        self.botframe.pack(side=tk.TOP)        
+        super().publish()       
             
     def set_scrolldigit(self) -> None:
         """ Function regarding the scroll digit combobox """
@@ -493,16 +555,22 @@ class HomeTabWipe(HomeTab):
 
 
 class HometabDutyWipe(HomeTab):
-    
+    """
+    The Hometab variation for the sonicwipe 40kHz Duty Cycle
+    amp. Instead of relying on a thread from the root, it handles
+    the GUI manually after pressing a button and getting a 
+    response from the sonicwipe
+
+    Args:
+        HomeTab (ttk.Frame): The HomeTab parent class
+    """
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
         
-        self.control_frame: ttk.Frame = ttk.Labelframe(self)
-        
-        self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
+        self.control_frame["text"] = 'Manual Control'
         
         self.gain_spinbox: ttk.Spinbox = ttk.Spinbox(
-            self.gain_frame,
+            self.control_frame,
             from_=0,
             increment=10,
             to=100,
@@ -513,31 +581,16 @@ class HometabDutyWipe(HomeTab):
         ToolTip(self.gain_spinbox, text="Configure the gain for your device")
         
         self.set_val_btn: ttk.Button = ttk.Button(
-            self.gain_frame,
+            self.control_frame,
             text='Set Gain',
             command=self.set_gain,
             bootstyle='dark.TButton',)
         
-        self.us_on_button: ttk.Button = ttk.Button(
-            self.gain_frame,
-            text='ON',
-            style='success.TButton',
-            width=10,
-            command=self.set_signal_on)
-        
-        ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
-        
-        self.us_off_button: ttk.Button = ttk.Button(
-            self.gain_frame,
-            text='OFF',
-            style='danger.TButton',
-            width=10,
-            command=self.set_signal_off)
-        
-        ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
-        
+        self.us_on_button["command"] = self.set_signal_on
+        self.us_off_button["command"] = self.set_signal_off
+                
         self.gain_scale: ttk.Scale = ttk.Scale(
-            self.control_frame,
+            self.topframe,
             from_=0,
             to=100,
             name='gainscale',
@@ -555,13 +608,12 @@ class HometabDutyWipe(HomeTab):
         self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
         self.us_off_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
         
-        self.gain_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         
-        self.control_frame.pack(side=tk.TOP, padx=10, pady=10)
+        self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         
-        self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
-        self.botframe.pack(side=tk.TOP)
+        super().publish()
         
     def set_gain(self) -> None:
         """
@@ -577,7 +629,7 @@ class HometabDutyWipe(HomeTab):
         if gain:
             
             self.insert_feed(f'Gain setted to {gain}%')
-            self.root.status_frame_dutywipe.gain_meter["amountused"] = gain
+            self.root.status_frame.gain_meter["amountused"] = gain
             
         else:
             messagebox.showwarning("Error", "Something went wrong, try again, or restart the application")
@@ -589,8 +641,8 @@ class HometabDutyWipe(HomeTab):
         if self.serial.send_and_get(Command.SET_SIGNAL_ON): 
         
             self.insert_feed('Signal ON')
-            self.root.status_frame_dutywipe.sig_status_label["text"] = "Signal ON"
-            self.root.status_frame_dutywipe.sig_status_label["image"] = self.root.led_green_img
+            self.root.status_frame.sig_status_label["text"] = "Signal ON"
+            self.root.status_frame.sig_status_label["image"] = self.root.led_green_img
         
         else:
             messagebox.showwarning("Error", "Something went wrong, try again, or restart the application")
@@ -602,8 +654,8 @@ class HometabDutyWipe(HomeTab):
         if self.serial.send_and_get(Command.SET_SIGNAL_OFF):
             
             self.insert_feed("Signal OFF")
-            self.root.status_frame_dutywipe.sig_status_label["text"] = "Signal OFF"
-            self.root.status_frame_dutywipe.sig_status_label["image"] = self.root.led_red_img
+            self.root.status_frame.sig_status_label["text"] = "Signal OFF"
+            self.root.status_frame.sig_status_label["image"] = self.root.led_red_img
             
         else:
             messagebox.showwarning("Error", "Something went wrong, try again, or restart the application")

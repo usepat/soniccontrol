@@ -107,12 +107,11 @@ class ConnectionTab(ttk.Frame):
             style='secondary.TButton',
             width=12,
             command=self.root.publish_serial_monitor,)
-        
-        # logger.info("Connectiontab\tInitialized children and object connectiontab")
-    
+            
     def attach_data(self) -> None:
-        """Attaches data to the connectiontab"""
-        # logger.info("Connectiontab\tattaching data")
+        """
+        Attaches data to the connectiontab
+        """
         self.subtitle["text"] = "You are connected to"
         self.heading1["text"] = self.root.sonicamp.type_[:5]
         self.heading2["text"] = self.root.sonicamp.type_[5:]
@@ -130,8 +129,9 @@ class ConnectionTab(ttk.Frame):
             child.configure(state=tk.NORMAL)
         
     def abolish_data(self) -> None:
-        """Abolishes data from the connectiontab"""
-        # logger.info("Connectiontab\tabolishing data")
+        """
+        Abolishes data from the connectiontab
+        """
         self.subtitle["text"] = "Please connect to a SonicAmp system"
         self.heading1["text"] = "not"
         self.heading2["text"] = "connected"
@@ -155,20 +155,27 @@ class ConnectionTab(ttk.Frame):
         self.root.sonicamp = None
 
     def refresh(self) -> None:
-        """Refreshes the potential ports"""
+        """
+        Refreshes the potential ports
+        """
         self.ports_menue['values'] = self.root.serial.get_ports()
     
     def disconnect(self) -> None:
-        """Disconnects the soniccontrol with the current connection"""
-        # logger.info(f"Connectiontab\tDisconnecting")
-        self.root.thread.pause()
+        """
+        Disconnects the soniccontrol with the current connection
+        """
+        if not self.root.thread.paused:
+            self.root.thread.pause()
+        
         self.abolish_data()
         self.root.serial.disconnect()
         self.root.publish_disconnected()
     
     def publish(self) -> None:
-        # logger.info("Connectiontab\tPublishing connectiontab")
-        
+        """
+        Method to publish the children of the Connection Tab
+        and for that itself too
+        """
         for child in self.children.values():
             child.pack()
         
@@ -185,6 +192,7 @@ class ConnectionTab(ttk.Frame):
         self.firmware_frame.grid(row=0, column=0, padx=10, pady=10)
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
+        
         # self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
         # self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
         # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)

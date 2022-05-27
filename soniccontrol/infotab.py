@@ -13,6 +13,15 @@ if TYPE_CHECKING:
 
 
 class InfoTab(ttk.Frame):
+    """
+    The InfoTab is the part of the ScNotebook and has the corresping
+    information about the SonicControl. Not only does it provide the 
+    version of the application. It can be used for opening the help
+    manual.
+
+    Inheritance:
+        ttk (tkinter.ttk.Frame): the basic Frame object
+    """
     
     INFOTEXT = (
         "Welcome to soniccontrol, a light-weight application to\n" 
@@ -54,33 +63,27 @@ class InfoTab(ttk.Frame):
             text='Help Manual',
             command=self.open_manual)
         
-        # self.dev_btn = ttk.Button(
-        #     self.controlframe,
-        #     text='I\'m a developer...',
-        #     command=self.root.publish_serial_monitor,
-        #     style='outline.dark.TButton')
-        
         self.version_label: ttk.Label = ttk.Label(
             self,
-            text=self.root.VERSION,)
-        
-        # logger.info("Infotab\tInitialized")
-        
+            text=f'Version: {self.root.VERSION}',)
+                
     def publish(self) -> None:
-        """Publishes the object and children"""
-        # logger.info("Infotab\tpublishing infotab")
+        """
+        Publishes the object and children
+        """
         self.soniccontrol_logo1.grid(row=0, column=0)
         self.soniccontrol_logo2.grid(row=0, column=1)
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
         self.info_label.pack()
         self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
-        # self.dev_btn.grid(row=0, column=1, padx=5, pady=10)
         self.controlframe.pack()
         
         self.version_label.pack(anchor=tk.S, side=tk.BOTTOM, padx=10, pady=10)
     
     def open_manual(self) -> None:
-        """Opens the helppage manual with the default pdf viewer"""
+        """
+        Opens the helppage manual with the default pdf viewer
+        """
         subprocess.Popen(['help_page.pdf'], shell=True)
     
     def attach_data(self) -> None:
