@@ -1,1 +1,1 @@
-from soniccontrol.core import *
+from soniccontrol.core import Root

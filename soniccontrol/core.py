@@ -1,25 +1,28 @@
-from http.client import CannotSendHeader
-import time
-import tkinter as tk
-from tkinter import messagebox
-from typing import Union
-import tkinter.ttk as ttk
-from matplotlib.figure import Figure
-from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import ttkbootstrap as ttkb
-from tkinter import TclError, font
-from tkinter import filedialog
-from ttkbootstrap import Style
-from functools import cache
-from PIL.ImageTk import PhotoImage
-import pyglet
-from PIL import Image
+from __future__ import annotations
 
-from sonicpackage import Command, Status, SerialConnection, SonicAmp, SonicAmpBuilder
-from sonicpackage.threads import SonicThread
-from sonicpackage.amp_tools import serial
-from soniccontrol.gui import HomeTabCatch, ScriptingTab, ConnectionTab, InfoTab, HomeTabWipe, SonicMeasure
-from soniccontrol.helpers import logger, status_logger
+import pyglet
+import tkinter as tk
+import tkinter.ttk as ttk
+import ttkbootstrap as ttkb
+import csv
+import datetime
+import os
+
+from PIL import Image
+from PIL.ImageTk import PhotoImage
+from tkinter import font
+from tkinter import messagebox
+
+from sonicpackage import SonicAmp, SonicThread, serial, Status, SonicAmpBuilder, SonicWipeDuty
+from soniccontrol.sonicamp import SerialConnectionGUI, SerialConnection
+from soniccontrol.statusframe import StatusFrameCatch, StatusFrameDutyWipe, StatusFrameWipe, StatusFrame
+from soniccontrol.serialmonitor import SerialMonitor
+from soniccontrol.sonicmeasure import SonicMeasure
+from soniccontrol._notebook import ScNotebook, ConnectionTab
+from soniccontrol.helpers import logger
+
+
+
 
 pyglet.font.add_file('QTypeOT-CondExtraLight.otf')
 pyglet.font.add_file('QTypeOT-CondLight.otf')
@@ -50,24 +53,60 @@ graph_img: Image = resize_img('graph.png', (100,100))
 led_green_img: Image = resize_img('led_green.png', (35,35))
 led_red_img: Image = resize_img('led_red.png', (35,35))
 
+
+
+
 class Root(tk.Tk):
-    """
-    The class Root defines the whole GUI application named soniccontrol. 
-    It composites all the tkinter objects of the window.
-    """
+    """The Root class is the main class of the Tkinter GUI.
+    Through this class every other compository object can get 
+    information about another object. When initializing, it
+    creates the attribute self.thread that represents the 
+    main SonicThread that asks the sonicamp about its status.
     
+    This thread then passed into the customized SerialConnection 
+    class for the GUI. So that the method SerialConnection.send_get()
+    pauses and resumes the thread automatically, so that none 
+    information interwienes with one another
+    
+    The data that the thread gets is then being passed into the
+    queue object of the thread and processed in the engine method
+
+    Antother useful method is the self.attach_data method, that
+    passes the newly arrived data to all tkinter compository 
+    objects, so that the GUI adapts itself as a whole to the
+    new status.
+    
+    Inheritance:
+        tk (tk.Tk): The main root class of tkinter, that the Root
+        class inherets from
+    """
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    VERSION: int = 1.03
+    VERSION: int = 1.051
     TITLE: str = "Soniccontrol"
     THEME: str = "sandstone"
     
     def __init__(self, *args, **kwargs) -> None:
+        """Here the Root class is being constructed and 
+        every needed child is being initialized, for instance
+        the self.thread object that the Root class is inherently
+        depended on. Further information above or in the Thread
+        itself
+        """
         super().__init__(*args, **kwargs)
         
-        self.serial: SerialConnection = SerialConnection()
+        self.serial: SerialConnection
         self.sonicamp: SonicAmp
+        self.thread: SonicThread
+        
+        # Children of Root
+        self.mainframe: ttk.Frame
+        self.notebook: ScNotebook
+        self.status_frame_catch: StatusFrame
+        self.status_frame_wipe: StatusFrame
+        self.serial_monitor: SerialMonitor
+        
         self.port: tk.StringVar = tk.StringVar()
         self.frq: tk.IntVar = tk.IntVar()
         self.gain: tk.IntVar = tk.IntVar()
@@ -75,19 +114,26 @@ class Root(tk.Tk):
         self.wipe_mode: tk.IntVar = tk.IntVar()
         self.protocol: tk.StringVar = tk.StringVar()
         
+        self.fieldnames: list = ["timestamp", "signal", "frequency", "gain"]
+        self.status_log_dir: str = "Status_Logs"
+        self.statuslog_filepath: str
+        
+        if not os.path.exists(self.status_log_dir):
+            os.mkdir(self.status_log_dir)
+        
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
         self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
         self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
         self.iconbitmap('welle.ico')
-        style = Style(theme=Root.THEME) 
-
+        style = ttkb.Style(theme=Root.THEME)
+        
         # default font in GUI and custom Fonts
         default_font: font.Font = font.nametofont("TkDefaultFont")
         default_font.configure(family='Arial', size=12) 
         self.option_add("*Font", default_font)
-
+        
         self.arial12: font.Font = font.Font(
             family="Arial", 
             size=12, 
@@ -105,8 +151,8 @@ class Root(tk.Tk):
         self.qtype30b: font.Font = font.Font(
             family="QTypeOT-CondBook",
             size=30,
-            weight=tk.font.BOLD)        
-
+            weight=tk.font.BOLD)
+        
         #Defining images
         self.refresh_img: PhotoImage = PhotoImage(refresh_img)
         self.home_img: PhotoImage = PhotoImage(home_img)
@@ -119,139 +165,175 @@ class Root(tk.Tk):
         self.graph_img: PhotoImage = PhotoImage(graph_img)
         self.led_green_img: PhotoImage = PhotoImage(led_green_img)
         self.led_red_img: PhotoImage = PhotoImage(led_red_img)
-
-        # Children of Root
-        self.mainframe: ttk.Frame = ttk.Frame(self)
-        self.notebook: NotebookMenu = NotebookMenu(self.mainframe, self)
-        self.status_frame_catch: StatusFrameCatch = StatusFrameCatch(self.mainframe, self, style='dark.TFrame')
-        self.status_frame_wipe: StatusFrameWipe = StatusFrameWipe(self.mainframe, self, style='dark.TFrame')
-        self.serial_monitor: SerialMonitor = SerialMonitor(self)
         
-        logger.info("Root\tinitialized Root")
+        # Building the thread and serialconnection
+        # First: initializing the thread
         self.thread: SonicThread = SonicAgent(self)
         self.thread.setDaemon(True)
+        
+        # Second: initializing the serial interface, with the information about the thread
+        self.serial: SerialConnectionGUI = SerialConnectionGUI(self.thread)
+        
         self.thread.start()
         self.thread.pause()
+        
+        self.mainframe: ttk.Frame = ttk.Frame(self)
+        self.notebook: ScNotebook = ScNotebook(self.mainframe, self)
+        
         self.__reinit__()
-    
+        
     def __reinit__(self) -> None:
-        """
-        This function initializes/ re-initializes the connection with a sonicamp,
-        and adapts the programm funtctions accordingly
+        """Method that initializes that collects that data what to do next as
+        a GUI, this is the beginnig node of everything. When a connection is 
+        being made, aswell as just publishing a GUI for making a potential
+        connection.
+        
+        The thread directs the root object to go to this node if a connection
+        suddenly interrupts
+        
+        In the Connection tab, the disconnect/ connect button directs to root
+        object to go to this node to reinitialize itself
+        
+        Of course when initializing the GUI itself and starting the application
+        for the first time it is being directed here
         """
         self.serial.get_ports()
         
         try:
-            # Deprecated code for client usage (used for development) -> an automatic connection algorithm
-            # if self.serial.auto_connect():
-            #     logger.info(f"Root\tautoconnected\t{self.serial = }")
-            #     self.decide_action()
             
-            if len(self.port.get()) > 1 and self.serial.connect_to_port(self.port.get()):
-                logger.info(f"Root\tmanually connected\t{self.serial = }")
+            if self.serial.connect_to_port(self.port.get()):
+                logger.info(f"Getting connected to {self.port.get()}")
                 self.decide_action()
             
             else:
-                logger.info(f"Root\tDid not detect connection\t{self.serial = }")
+                logger.info(f"No connection publishing for not connected")
                 self.publish_disconnected()
-        
+                
         except Exception as e:
-            logger.info(f"Root\tException:{e}\t{self.serial = }")
-            messagebox.showerror("Error during connection",f"Something went wrong during, please try again to connect\n{e}")
+            
+            logger.warning(f"{e}")
+            messagebox.showerror(
+                "Error",
+                "Connection error")
             self.publish_disconnected()
     
-    def attach_data(self) -> None:
-        """Attaches new data to all children, so that this becomes visible"""
-        logger.info(f"Root\tattaching data\t{self.sonicamp.type_ = }\t{self.sonicamp = }")
-        self.notebook.attach_data()
+    def decide_action(self) -> None:
+        """This method is being called when a succesfull connection
+        was being made. Through this method, a sonicamp object
+        is being created, narrowing the information and methods
+        to use with the device.
+        
+        Then this information is being setted to the tkinter variables
+        and further more the whole GUI is being published accordingly
+        """
+        try:
+            self.sonicamp: SonicAmp = SonicAmpBuilder.build_amp(self.serial)
+        except Exception as e:
+            logger.warning(f"{e}")
+        
+        logger.info(f"Built sonicamp {self.sonicamp}")
+        
+        # Children of Root
+        self.status_frame_catch: StatusFrame = StatusFrameCatch(self.mainframe, self)
+        self.status_frame_wipe: StatusFrame = StatusFrameWipe(self.mainframe, self)
+        self.status_frame_dutywipe: StatusFrame = StatusFrameDutyWipe(self.mainframe, self)
+        self.serial_monitor: SerialMonitor = SerialMonitor(self)
         
         if self.sonicamp.type_ == 'soniccatch':
-            self.status_frame_catch.attach_data()
+            self.publish_for_catch()
         
-        elif self.sonicamp.type_ == 'sonicwipe':
-            self.status_frame_wipe.attach_data()
+        elif self.sonicamp.type_ == 'sonicwipe' and not isinstance(self.sonicamp, SonicWipeDuty):
+            self.publish_for_wipe()
+        
+        elif isinstance(self.sonicamp, SonicWipeDuty):
+            self.publish_duty_wipe()
+        
+        else:
+            messagebox.showerror(
+                "Error",
+                "Not implemented the device")
+        
+        if not isinstance(self.sonicamp, SonicWipeDuty):
+            init_status: Status = self.sonicamp.get_status()
+            init_dict: dict = self.sonicamp.get_overview()
+
+            tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            self.statuslog_filepath: str = f"{self.status_log_dir}//statuslog_{tmp_timestamp}.csv"
+            self._create_statuslog()
+
+            self.frq.set(init_dict["frequency"])
+            self.gain.set(init_status.gain)
+            self.wipe_mode.set(init_status.wipe_mode)
+            self.frq_range.set(init_status.frq_range)
+
+            self.engine()
+
+            if self.thread.paused:
+                self.thread.resume()
     
     def engine(self) -> None:
-        """
-        Function that checks every 100ms if new data came in, and updates the root respectively
-        The Data itself is being transferred through the queue object of the sonicagent thread
+        """The engine method is automatically being 
+        called every 100ms to look for new data, that
+        the thread received. If the new data arrived,
+        the whole GUI adapts to it through this said
+        method
         """
         while self.thread.queue.qsize():
+            
             status: Status = self.thread.queue.get(0)
             
-            logger.info(f"Root\tnew status in Thread queue\t{status = }")
-            status_logger.info(f"{status.frequency}\t{status.gain}\t{status.signal}")                          
+            logger.info(f"Got status {status}")
             
             self.sonicamp.status = status
             
+            self.register_status_data(data=status)
+                        
             self.update_idletasks()
             self.attach_data()
             
         self.after(100, self.engine)
     
-    def decide_action(self) -> None:
+    def attach_data(self) -> None:
+        """The attach data method passes the newly 
+        arrived information about the sonicamp to all 
+        children of root. 
         """
-        Gets the information about the sonicamp through the sonicampbuilder and decides what children to pusblish
-        and what functions to use
-        """
-        self.sonicamp: SonicAmp = SonicAmpBuilder.get_type(init_dict=self.serial.init_dict,
-                                                           serial=self.serial)
+        logger.info(f"attaching data for {self.sonicamp}")
+        self.notebook.attach_data()
+        
         if self.sonicamp.type_ == 'soniccatch':
-            self.publish_for_catch()
+            self.status_frame_catch.attach_data()
         
-        elif self.sonicamp.type_ == 'sonicwipe':
-            self.publish_for_wipe()
-        
-        prtcl: str = self.serial.send_and_get(Command.GET_PROTOCOL)
-        if isinstance(prtcl, list):
-            prtcl = ' '.join(prtcl)
-        
-        init_status: Status = self.sonicamp.get_status()
-        init_dict: dict = self.sonicamp.get_overview()
-        print(f"{init_status = }, {init_dict = }")
-        
-        self.frq.set(init_dict["frequency"])
-        self.gain.set(init_status.gain)
-        self.wipe_mode.set(init_status.wipe_mode)
-        self.protocol.set(prtcl)
-        self.frq_range.set(init_status.frq_range)
-        
-        logger.info(f"Root\t{self.sonicamp = }\t{init_dict = }\t{init_status = }")
-        
-        self.engine()
-        
-        if self.thread.paused:
-            print("resuming thread in decide action")
-            self.thread.resume()
+        elif self.sonicamp.type_ == 'sonicwipe' and not isinstance(self.sonicamp, SonicWipeDuty):
+            self.status_frame_wipe.attach_data()     
     
     def publish_disconnected(self) -> None:
-        """ Publishes children in case there is no connection """
-        logger.info("Root\tpublishing for disconnected")
-        
+        """This method publishes the GUI for the case that 
+        there is no connection with a sonicamp.
+        """
+        logger.info(f"publshing for disconnected soniccontrol")
         self.notebook.publish_disconnected()
-        self.status_frame_wipe.forget()
-        self.status_frame_catch.publish()
-        self.status_frame_catch.abolish_data()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
         
         if self.winfo_width() == Root.MAX_WIDTH:
             self.adjust_dimensions()
-        
+            
         try:
-            logger.info("Root\tdestroying sonicmeasure window because of no connection")
             
             if tk.Toplevel.winfo_exists(self.notebook.hometab.sonicmeasure):
                 self.notebook.hometab.sonicmeasure.destroy()
                 
                 if self.thread.paused:
                     self.thread.resume()
+                    
         # Undefind behaivour, nooby code
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            logger.warning(f"{e}")
     
     def publish_for_catch(self) -> None:
-        """ Publishes children in case there is a connection to a soniccatch """
-        logger.info("Root:publishing for catch")
+        """This method published the GUI for the case that there
+        is a connection with a SonicCatch
+        """
         self.attach_data()
         self.notebook.publish_for_catch()
         self.status_frame_wipe.pack_forget()
@@ -259,22 +341,40 @@ class Root(tk.Tk):
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
     def publish_for_wipe(self) -> None:
-        """ Publishes children in case there is a connection to a sonicwipe """
-        logger.info("Root:publishing for wipe")
+        
+        self.attach_data()
         self.notebook.publish_for_wipe()
         self.status_frame_catch.pack_forget()
         self.status_frame_wipe.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        
+    def publish_duty_wipe(self) -> None:
+        
+        if not self.thread.paused:
+            self.thread.pause()
+        
+        self.notebook.publish_for_dutywipe()
+        self.status_frame_catch.pack_forget()
+        self.status_frame_wipe.pack_forget()
+        self.status_frame_dutywipe.publish()
+        
+        self.status_frame_dutywipe.con_status_label["image"] = self.led_green_img
+        self.status_frame_dutywipe.con_status_label["text"] = "connected"
+        
+        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
     
     def publish_serial_monitor(self) -> None:
-        """ Publishes the serial monitor """
+        
         if self.adjust_dimensions():
             self.serial_monitor.pack(anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH)
     
     def adjust_dimensions(self) -> bool:
-        """ 
-        Adjust heights and widths for the window 
-        Returns true, if the window is in smaller width usage mode
+        """A method to adjust the dimensions of the GUI
+        so that a serialmonitor can be viewed or not.
+
+        Returns:
+            bool: Returns True if the GUI is in a stated, where the 
+            maximum width is being held
         """
         if self.winfo_width() == Root.MIN_WIDTH:
             self.geometry(f"{Root.MAX_WIDTH}x{Root.MIN_HEIGHT}")
@@ -283,744 +383,35 @@ class Root(tk.Tk):
         else:
             self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
             return False
-            
+    
+    def _create_statuslog(self) -> None:
+        """Internal method to create the csv status log file"""
+        with open(self.statuslog_filepath, "a", newline="") as statuslog:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                statuslog, fieldnames=self.fieldnames)
+            csv_writer.writeheader()
+    
+    def register_status_data(self, data: Status) -> None:
+        """Method to register the current state of a sonicamp in a
+        csv log file. Takes in the Status object, that is normally
+        passed from the engine method
 
-
-class NotebookMenu(ttk.Notebook):
-
-    @property
-    def root(self) -> Root:
-        return self._root
-
-    def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
-        """ Notebook object """
-        super().__init__(parent, *args, **kwargs)
-        self._root: Root = root
-        self.config(height=560, width=540)
-        self['style'] = 'light.TNotebook'
-        
-        self.hometab: HomeTabCatch = HomeTabCatch(self, self.root, name='hometabcatch')
-        self.hometabwipe: HomeTabWipe = HomeTabWipe(self, self.root, name='hometabwipe')
-        self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
-        self.connectiontab: ConnectionTab = ConnectionTab(self, self.root)
-        self.infotab: InfoTab = InfoTab(self, self.root)
-        logger.info("NotebookMenu\tinitialized object")
-        
-    def attach_data(self) -> None:
-        """Attaches data to the notebookmenue and its children"""
-        logger.info(f"NotebookMenu\tattaching data")
-        
-        for child in self.children.values():
-            child.attach_data()
-    
-    def _publish(self) -> None:
-        """publishes default children of the notebook"""
-        self.add(self.hometab, state=tk.NORMAL, text="Home", image=self.root.home_img, compound=tk.TOP)
-        self.add(self.hometabwipe, state=tk.HIDDEN,text="Home", image=self.root.home_img, compound=tk.TOP)
-        self.add(self.scriptingtab, text="Scripting", image=self.root.script_img, compound=tk.TOP)
-        self.add(self.connectiontab, text="Connection", image=self.root.connection_img, compound=tk.TOP)
-        self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
-    
-    def publish_for_catch(self) -> None:
-        """ Builds children and displayes menue for a soniccatch """
-        logger.info(f"NotebookMenu\tpublishing for catch")
-        self._publish()
-        self.reorder_tabs()
-        self.forget(self.hometabwipe)
-        self.select(self.connectiontab)
-        self.enable_children()
-        self.connectiontab.attach_data()
-        self.publish_children()
-        self.pack(padx=5, pady=5)
-        
-    def publish_for_wipe(self) -> None:
-        """ Builds children and displayes menue for a sonicwipe """
-        logger.info(f"NotebookMenu\tpublishing for wipe")
-        self._publish()
-        self.reorder_tabs()
-        self.forget(self.hometab)
-        self.select(self.connectiontab)
-        self.enable_children()
-        self.connectiontab.attach_data()
-        self.publish_children()
-        self.pack(padx=5, pady=5)
-    
-    def publish_disconnected(self) -> None:
-        """Publishes children in the case that there is no connection"""
-        logger.info(f"NotebookMenu\tpublishing for disconnected")
-        self._publish()
-        self.forget(self.hometabwipe)
-        # self.hide('hometabcatch')
-        self.select(self.connectiontab)
-        self.connectiontab.abolish_data()
-        self.publish_children()
-        self.disable_children(self.connectiontab)
-        self.pack(padx=5, pady=5)
-    
-    def reorder_tabs(self) -> None:
-        """Just a function for making sure, that the tabs are ordered right"""
-        if self.root.sonicamp.type_ == 'soniccatch':
-            self.hometabwipe.forget()
-            self.insert(0, self.hometab)
-        
-        else:
-            self.hometab.forget()
-            self.insert(0, self.hometabwipe)
-        
-        self.insert(1, self.scriptingtab)
-        self.insert(2, self.connectiontab)
-        self.insert(3, self.infotab)
-    
-    def publish_children(self) -> None:
-        """ Publishes children """
-        for child in self.children.values():
-            child.publish()
-                
-    def disable_children(self, focused_child: ttk.Frame) -> None:
-        """ Disables childen and selects connection tab (case: not connected)"""
-        for child in self.children.values():
-            
-            try:
-                if child != focused_child:
-                    self.tab(child, state=tk.DISABLED)    
-            except:
-                logger.info("something went wrong in disabling children")
-        
-        self.select(focused_child)
-    
-    def enable_children(self) -> None:
-        """ Enables all children for use """
-        for child in self.children.values():
-            
-            try:
-                self.tab(child, state=tk.NORMAL)
-            except TclError:
-                logger.info("Something went wrong in enabling children")
-
-
-class StatusFrameCatch(ttk.Frame):
-    
-    @property
-    def root(self) -> tk.Tk:
-        return self._root
-    
-    def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
+        Args:
+            data (Status): the Status object containing the data
         """
-        Statusframe object, that is used in case the GUI is
-        connected to a SonicCatch
-        """
-        super().__init__(parent, *args, **kwargs)
-        self._root = root
+        data_dict: dict = {
+            "timestamp": datetime.datetime.now(),
+            "signal": data.signal,
+            "frequency": data.frequency,
+            "gain": data.gain            
+        }
         
-        # Is being splittet into two main frames
-        # Each organizes it's children through grid
-        self.meter_frame: ttk.Frame = ttk.Frame(self)
-        self.overview_frame: ttk.Frame = ttk.Frame(self, style="secondary.TFrame")
-        
-        # Meterframe objects
-        self.frq_meter: ttkb.Meter = ttkb.Meter(
-            self.meter_frame,
-            bootstyle='dark',
-            amounttotal=6000000 / 1000, 
-            amountused=0,
-            textright='kHz',
-            subtext='Current Frequency',
-            metersize=150)
-        
-        self.gain_meter: ttkb.Meter = ttkb.Meter(
-            self.meter_frame,
-            bootstyle='success',
-            amounttotal=150,
-            amountused=0,
-            textright='%',
-            subtext='Current Gain',
-            metersize=150)
-        
-        self.temp_meter: ttkb.Meter = ttkb.Meter(
-            self.meter_frame,
-            bootstyle='warning',
-            amounttotal=100,
-            amountused=None,
-            textright='°C',
-            subtext='Thermometer not found',
-            metersize=150)
-        
-        # Overview frame objects
-        self.con_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,0,5,0),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.LEFT,
-            width=15,
-            image=self.root.led_red_img,
-            bootstyle="inverse-secondary",
-            text="not connected")
-        
-        self.sig_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,0,5,0),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.LEFT,
-            width=10,
-            image=self.root.led_red_img,
-            bootstyle="inverse-secondary",
-            text="Signal OFF")
-        
-        self.err_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,5,5,5),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.CENTER,
-            relief=tk.RIDGE,
-            width=10,
-            text=None)
-        
-        logger.info(f"StatusFrameCatch\tinitialized")
-        
-    def publish(self) -> None:
-        """ Function to build the statusframe """
-        logger.info("StatusFrameCatch\tpublishing")
-        self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.gain_meter.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.temp_meter.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
-        
-        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        
-        self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10)
-        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
-    
-    def show_error(self) -> None:
-        """ Shows the errormessage in the overview frame"""
-        for child in self.overview_frame.children.values():
-            child.grid_forget()
-        
-        self.overview_frame["style"] = "danger.TFrame"
-        self.err_status_label["text"] = None #!Here
-        self.err_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.CENTER)
-    
-    def abolish_data(self) -> None:
-        """ Function to repeal setted values """
-        logger.info("StatusFrameCatch\tabolishing data because of no connection")
-        self.frq_meter["amountused"] = 0
-        self.gain_meter["amountused"] = 0
-        # self.temp_meter["amountused"] = 0
-        
-        self.con_status_label["image"] = self.root.led_red_img
-        self.con_status_label["text"] = "Not Connected"
-        
-        self.sig_status_label["image"] = self.root.led_red_img
-        self.sig_status_label["text"] = "Signal OFF"
-        
-    def attach_data(self) -> None:
-        """ Function to configure objects to corresponding data """
-        logger.info("StatusFrameCatch\tattaching data")
-        self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000
-        self.gain_meter["amountused"] = self.root.sonicamp.status.gain
-        # self.temp_meter["amountused"] = 36 #!Here
-        
-        self.con_status_label["image"] = self.root.led_green_img
-        self.con_status_label["text"] = "connected"
-        
-        if self.root.sonicamp.status.signal:
-            self.sig_status_label["text"] = "Signal ON"
-            self.sig_status_label["image"] = self.root.led_green_img
-        
-        else:
-            self.sig_status_label["text"] = "Signal OFF"
-            self.sig_status_label["image"] = self.root.led_red_img
-    
-
-
-
-class StatusFrameWipe(ttk.Frame):
-    
-    @property
-    def root(self) -> Root:
-        return self._root
-    
-    @property
-    def serial(self) -> SerialConnection:
-        return self._serial
-    
-    # @property
-    # def sonicamp(self) -> SonicAmp:
-    #     return self._sonicamp
-    
-    def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
-        """
-        Statusframe object, that is used in case the GUI is
-        connected to a SonicWipe
-        """
-        super().__init__(parent, *args, **kwargs)
-        self._root = root
-        self._serial = root.serial
-        # self._sonicamp = root.sonicamp
-        
-        # Is being splittet into two main frames
-        self.meter_frame: ttk.Frame = ttk.Frame(self)
-        self.overview_frame: ttk.Frame = ttk.Frame(self, style="secondary.TFrame")
-        
-        # meter frame
-        self.frq_meter: ttkb.Meter = ttkb.Meter(
-            self.meter_frame,
-            bootstyle='dark',
-            amounttotal=1200000 / 1000, 
-            amountused=0,
-            textright='kHz',
-            subtext='Current Frequency',
-            metersize=150)
-        
-        self.seperator: ttk.Separator = ttk.Separator(
-            self.meter_frame,
-            orient=tk.VERTICAL,
-            style="dark.TSeperator",)
-        
-        self.wipe_data_frame: ttk.Frame = ttk.Frame(self.meter_frame)
-        self.wipe_progressbar: ttkb.Floodgauge = ttkb.Floodgauge(
-            self.wipe_data_frame,
-            bootstyle='primary',
-            text='Wiping state',
-            mode=ttkb.INDETERMINATE,
-            font="Arial 15 bold",
-            orient=ttkb.VERTICAL,)
-        
-        self.protocol_status: ttk.Label = ttk.Label(
-            self.wipe_data_frame,
-            textvariable=self.root.protocol,
-            style="primary.TLabel",)
-        
-        # Overview Frame
-        self.con_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,0,5,0),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.LEFT,
-            width=15,
-            image=self.root.led_red_img,
-            bootstyle="inverse-secondary",
-            text="not connected")
-        
-        self.sig_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,0,5,0),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.LEFT,
-            width=10,
-            image=self.root.led_red_img,
-            bootstyle="inverse-secondary",
-            text="Signal OFF")
-        
-        self.err_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5,5,5,5),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.CENTER,
-            relief=tk.RIDGE,
-            width=10,
-            text=None)
-        
-        logger.info(f"StatusFrameWipe\tinitialized")
-        
-    def publish(self) -> None:
-        """ Function to build the statusframe """
-        self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.seperator.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.wipe_data_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
-        
-        self.wipe_progressbar.pack(side=tk.TOP, padx=5, pady=5, ipadx=5, ipady=5,)
-        self.protocol_status.pack(side=tk.TOP, padx=5, pady=5)
-        
-        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        
-        self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10)
-        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
-    
-    def abolish_data(self) -> None:
-        """ Function to repeal setted values """
-        self.frq_meter["amountused"] = 0
-        self.gain_meter["amountused"] = 0
-        self.temp_meter["amountused"] = 0
-        
-        self.con_status_label["image"] = self.root.led_red_img
-        self.con_status_label["text"] = "Not Connected"
-        
-        self.sig_status_label["image"] = self.root.led_red_img
-        self.sig_status_label["text"] = "Signal OFF"
-    
-    def attach_data(self) -> None:
-        """ Function to configure objects to corresponding data """
-        logger.info("SonicWipeFrame\tattaching data")
-        self.frq_meter["amountused"] = self.root.sonicamp.status.frequency / 1000    
-        
-        self.con_status_label["image"] = self.root.led_green_img
-        self.con_status_label["text"] = "connected"
-        
-        if self.root.sonicamp.status.signal:
-            self.sig_status_label["text"] = "Signal ON"
-            self.sig_status_label["image"] = self.root.led_green_img
-        
-        else:
-            self.sig_status_label["text"] = "Signal OFF"
-            self.sig_status_label["image"] = self.root.led_red_img      
-        
-
-
-class SerialMonitor(ttkb.Frame):
-    
-    HELPTEXT: str = '''
-Welcome to the Help Page for SonicAmp Systems!
-There are a variety  of commands to control your SonicAmp
-under you liking.  Typically, a  command that sets up the 
-SonicAmp System starts with an <!>, whereas commands that
-start  with a  <?> ask  the  System  about  something and 
-outputs this data.
-
-Here is a list for all commands:
-
-   COMMAND:          DESCRIPTION:
-   !SERIAL           Set your SonicAmp to the serial mode
-   !f=<Frequency>    Sets the frequency you want to operate on
-   !g=<Gain>         Sets the Gain to your liking
-   !cur1=<mAmpere>   Sets the current of the 1st Interface
-   !cur2=<mAmpere>   Sets the current of the 2nd Interface
-   !KHZ              Sets the Frequency range to KHz
-   !MHZ              Sets the Frequency range to MHz
-   !ON               Starts the output of the signal
-   !OFF              Ends the Output of the Signal, Auto 
-                     and Wipe
-   !WIPE             [WIPE ONLY] Starts the wiping process 
-                     with indefinite cycles
-   !WIPE=<Cycles>    [WIPE ONLY] Starts the wiping process 
-                     with definite cycles
-   !prot=<Protocol>  Sets the protocol of your liking
-   !rang=<Frequency> Sets the frequency range for protocols
-   !step=<Range>     Sets the step range for protocols
-   !sing=<Seconds>   Sets the time, the Signal should be 
-                     turned
-                     on during protocols
-   !paus=<Seconds>   Sets the time, the Signal shoudl be 
-                     turned off during protocols
-   !AUTO             Starts the Auto mode
-   !atf1=<Frequency> Sets the Frequency for the 1st protocol
-   !atf2=<Frequency> Sets the Frequency for the 2nd protocol
-   !atf3=<Frequency> Sets the Frequency for the 3rd protocol
-   !tust=<Hertz>     Sets the tuning steps in Hz
-   !tutm=<mseconds>  Sets the tuning pause in milliseconds
-   !scst=<Hertz>     Sets the scaning steps in Hz    
-   
-   ?                 Prints information on the progress State
-   ?info             Prints information on the software
-   ?type             Prints the type of the SonicAmp System
-   ?freq             Prints the current frequency
-   ?gain             Prints the current gain
-   ?temp             Prints the current temperature of the 
-                     PT100 element
-   ?tpcb             Prints the current temperature in the 
-                     case
-   ?cur1             Prints the Current of the 1st Interface                     
-   ?cur2             Prints the Current of the 2nd Interface
-   ?sens             Prints the values of the measurement chip
-   ?prot             Lists the current protocol
-   ?list             Lists all available protocols
-   ?atf1             Prints the frequency of the 1st protocol                     
-   ?atf2             Prints the frequency of the 2nd protocol                     
-   ?atf3             Prints the frequency of the 3rd protocol
-   ?pval             Prints values used for the protocol\n\n'''
-    
-    @property
-    def root(self) -> Root:
-        return self._root
-    
-    def __init__(self, root: Root, *args, **kwargs) -> None:
-        super().__init__(root, *args, **kwargs)
-        self._root: Root = root
-        
-        self.command_history: list[str] = []
-        self.index_history: int = -1
-        
-        self.output_frame: ttk.Frame = ttk.LabelFrame(self, text='OUTPUT')
-        
-        container: ttk.Frame = ttk.Frame(self.output_frame)
-        self.canvas: tk.Canvas = tk.Canvas(container)
-        scrollbar: ttk.Scrollbar = ttk.Scrollbar(container, orient=tk.VERTICAL, command=self.canvas.yview)
-        self.scrollable_frame: ttk.Frame = ttk.Frame(self.canvas)
-        
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda x: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
-        
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor=tk.NW)
-        self.canvas.configure(yscrollcommand=scrollbar.set)
-        
-        container.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
-        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        self.input_frame: ttk.Frame = ttk.LabelFrame(self, text='INPUT')
-        
-        self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style='dark.TEntry')
-        self.command_field.bind('<Return>', self.send_command)
-        self.command_field.bind('<Up>', self.history_up)
-        self.command_field.bind('<Down>', self.history_down)
-        
-        self.send_button: ttk.Button = ttk.Button(self.input_frame, text='Send', command=self.send_command, style='success.TButton')
-        self.send_button.bind('<Button-1>', self.send_command)
-        
-        self.command_field.pack(anchor=tk.S, padx=10, pady=10, fill=tk.X, expand=True, side=tk.LEFT)
-        self.send_button.pack(anchor=tk.S, padx=10, pady=10, side=tk.RIGHT)
-        
-        self.input_frame.pack(anchor=tk.S, fill=tk.X, side=tk.BOTTOM)
-        self.output_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP)
-        
-        # self.text_frame.pack_propagate(False)
-
-        self.insert_text('Type <help> to output the command-cheatsheet!')
-        self.insert_text('Type <clear> to clear the screen!')
-        self.insert_text(SerialMonitor.HELPTEXT)
-        
-        self.output_frame.pack_propagate(False)
-    
-    def send_command(self, event) -> None:
-        """Sends the command written in the input field"""
-        command: str = self.command_field.get()
-        self.command_history.insert(0, command)
-        self.insert_text(f">>> {command}")
-        
-        if command == 'clear':
-            
-            for child in self.scrollable_frame.children.values():
-                child.destroy()
-        
-        elif command == 'help':
-            self.insert_text(SerialMonitor.HELPTEXT)
-        
-        elif command == 'exit':
-            self.destroy()
-        
-        else:
-           
-            self.root.thread.pause()
-            answer: str = self.root.serial.send_and_get(f"{command}\n".encode())
-            self.insert_text(answer)
-            self.root.thread.resume()
-        
-        self.canvas.yview_moveto(1)
-        self.command_field.delete(0, tk.END)
-    
-    def insert_text(self, text: Union[str, list]) -> None:
-        """Inserts text in the output frame"""
-        if text is list:
-            text = ' '.join(text)
-        
-        ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
-        self.canvas.update()
-    
-    def history_up(self, event) -> None:
-        """function to go through the history of commands upwards"""
-        if self.index_history != len(self.command_history) - 1:
-            self.index_history += 1
-            self.command_field.delete(0, tk.END)
-            self.command_field.insert(0, self.command_history[self.index_history])
-            
-    def history_down(self, event) -> None:
-        """function to go through the history of commands downwards"""
-        if self.index_history !=  -1:
-            self.index_history -= 1
-            self.command_field.delete(0, tk.END)
-            self.command_field.insert(0, self.command_history[self.index_history])
-        
-        else:
-            self.command_field.delete(0, tk.END)
-            
+        with open(self.statuslog_filepath, 'a', newline="") as statuslog:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                statuslog, fieldnames=self.fieldnames)
+            csv_writer.writerow(data_dict)
             
 
-
-class SonicMeasure1(tk.Toplevel):
-    
-    @property
-    def root(self) -> Root:
-        return self._root
-    
-    @property
-    def serial(self) -> SerialConnection:
-        return self._serial
-    
-    def __init__(self, root: Root, *args, **kwargs) -> None:
-        super().__init__(root, *args, **kwargs)
-        self._root: Root = root
-        self._serial: SerialConnection = root.serial
-        self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
-        
-        self.title('SonicMeasure')
-        
-        self.start_frq: tk.IntVar = tk.IntVar(value=1900000)
-        self.stop_frq: tk.IntVar = tk.IntVar(value=2100000)
-        self.resolution: tk.IntVar = tk.IntVar(value=100)
-        self.gain: tk.IntVar = tk.IntVar(value=10)
-        
-        self.mainframe: ttk.Frame = ttk.Frame(self)
-        self.fig_frame: ttk.Frame = ttk.Frame(self.mainframe, height=450, width=700)
-        self.fig_frame.pack(anchor=tk.N, expand=True, fill=tk.X, padx=3, pady=3, side=tk.TOP)
-        
-        self.fig = Figure()
-        self.ax = self.fig.add_subplot(111)
-        self.fig.subplots_adjust(right=0.8)
-        
-        self.twin1 = self.ax.twinx()
-        self.twin2 = self.ax.twinx()
-        
-        self.twin2.spines['right'].set_position(("axes", 1.15))
-        
-        self.p1, = self.ax.plot([], [], "bo-", label="U$_{RMS}$ / mV")
-        self.p2, = self.twin1.plot([], [], "ro-", label="I$_{RMS}$ / mA")
-        self.p3, = self.twin2.plot([], [], "go-", label="Phase / °")
-        
-        self.ax.set_xlim(int(self.start_frq.get()), int(self.stop_frq.get()))
-        
-        self.ax.set_xlabel("Frequency / Hz")
-        self.ax.set_ylabel("U$_{RMS}$ / mV")
-        self.twin1.set_ylabel("I$_{RMS}$ / mA")
-        self.twin2.set_ylabel("Phase / °")
-        
-        self.ax.yaxis.label.set_color(self.p1.get_color())
-        self.twin1.yaxis.label.set_color(self.p2.get_color())
-        self.twin2.yaxis.label.set_color(self.p3.get_color())
-        
-        tkw = dict(size=4, width=1.5)
-        self.ax.tick_params(axis='y', colors=self.p1.get_color(), **tkw)
-        self.twin1.tick_params(axis='y', colors=self.p2.get_color(), **tkw)
-        self.twin2.tick_params(axis='y', colors=self.p3.get_color(), **tkw)
-        self.ax.tick_params(axis='x', **tkw)
-        
-        self.ax.legend(handles=[self.p1, self.p2, self.p3])
-
-
-        self.canvas = FigureCanvasTkAgg(self.fig, self.fig_frame)
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self.fig_frame)
-
-        self.canvas._tkcanvas.pack(fill=tk.BOTH, expand=1)
-        
-        self.button_frame = ttk.Frame(self.mainframe)
-        
-        self.start_frq_label = ttk.Label(self.button_frame, text='Start Freq. [Hz]')
-        self.start_frq_label.pack(side=tk.LEFT)
-        
-        self.start_frq_entry = ttk.Entry(self.button_frame, 
-                                         width=8, 
-                                         textvariable=self.start_frq)
-        self.start_frq_entry.pack(padx=10, side=tk.LEFT)
-        
-        self.stop_frq_label = ttk.Label(self.button_frame, text='Stop Freq. [Hz]')
-        self.stop_frq_label.pack(ipadx=2, side=tk.LEFT)
-        
-        self.stop_frq_entry = ttk.Entry(self.button_frame, width=8, textvariable=self.stop_frq)
-        self.stop_frq_entry.pack(padx=10, side=tk.LEFT)
-        
-        self.res_label = ttk.Label(self.button_frame, text='Res. [Hz]')
-        self.res_label.pack(ipadx=2, side=tk.LEFT)
-        
-        self.res_entry = ttk.Entry(self.button_frame, width=5, textvariable=self.resolution)
-        self.res_entry.pack(padx=10, side=tk.LEFT)
-        
-        self.gain_label = ttk.Label(self.button_frame, text='Gain [%]')
-        self.gain_label.pack(ipadx=2, side=tk.LEFT)
-        
-        self.gain_entry = ttk.Entry(self.button_frame, width=3, textvariable = self.gain)
-        self.gain_entry.pack(padx=10, side=tk.LEFT)
-        
-        self.logging = ttk.Button(self.button_frame, text='Save', command=self.save_spectrum)
-        self.logging.pack(side=tk.RIGHT)
-        
-        self.stop_measure_btn = ttk.Button(self.button_frame, text='Stop', command=self.stop_measure)
-        self.stop_measure_btn.pack(side=tk.BOTTOM)
-        
-        self.start_measure_btn = ttk.Button(self.button_frame, text='Start', command=self.start_measure)
-        self.start_measure_btn.pack(side=tk.BOTTOM)
-        # self.button_frame.config(height='200', width='600')
-        self.button_frame.pack(expand=True, fill=tk.X, padx=3, pady=3, side=tk.TOP)
-        # self.mainframe.config(height='500', width='600')
-        self.mainframe.pack(side=tk.TOP)
-    
-    def start_measure(self) -> None:
-        self.root.thread.pause()
-        self.run: bool = True
-        
-        start: int = self.start_frq.get()
-        stop: int = self.stop_frq.get()
-        step: int = self.resolution.get()
-        
-        self.frequencies: list[int] = []
-        self.u_rms: list[int] = []
-        self.i_rms: list[int] = []
-        self.phase: list[int] = []
-        
-        self.ax.set_xlim(int(start), int(stop))
-        self.serial.send_and_get(Command.SET_GAIN + self.gain.get())
-        self.serial.send_and_get(Command.SET_SIGNAL_ON)
-        self.serial.send_and_get(Command.SET_FLOW + f"{start};{stop};{step}")
-        
-        while self.run and self.serial.is_connected:
-            data_str: str = self.serial.get_answer()
-            if data_str == '':
-                continue
-            else:
-                data: list[int] = [int(val) for val in data_str.split(' ')]
-            print(data)
-            self.frequencies.append(data[0])
-            self.u_rms.append(data[1])
-            self.i_rms.append(data[2])
-            self.phase.append(data[3])
-            
-            self.p1.set_data(self.frequencies, self.u_rms)
-            self.p2.set_data(self.frequencies, self.i_rms)
-            self.p3.set_data(self.frequencies, self.phase)
-            self.fig.canvas.draw()
-            self.ax.set_ylim(
-                min(self.u_rms) - min(self.u_rms) * 0.4,
-                max(self.u_rms) + max(self.u_rms) * 0.2,)
-            self.twin1.set_ylim(
-                min(self.i_rms) - min(self.i_rms) * 0.4,
-                max(self.i_rms) + max(self.i_rms) * 0.2,)
-            self.twin2.set_ylim(
-                min(self.phase) - min(self.phase) * 0.4,
-                max(self.phase) + max(self.phase) * 0.2,)
-            self.fig.canvas.flush_events()
-            self.root.update()
-            time.sleep(0.1)     
-        
-        self.serial.send_and_get(Command.SET_SIGNAL_OFF)
-        self.root.thread.resume()
-        
-    def stop_measure(self) -> None:
-        self.run: bool = False   
-    
-    def save_spectrum(self):
-        self.filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
-        f = open(self.filename, 'w')
-        f.write("I-V-Phase Spectrum @ Gain: "+ self.gain.get() +" %\n")
-        f.write("Measurement time: "+self.measurementtime.isoformat()+"\n")
-        f.write("Frequency [Hz]"+"\t"+"Urms [V]"+"\t"+"Irms [mA]"+"\t"+"Phase [°]"+"\n")
-        for i in range(0, len(self.frequencies)):
-            f.write("{0}\t{1}\t{2}\t{3}\n".format(self.frequencies[i],self.u_rms[i], self.i_rms[i], self.phase[i]))
-        f.close()
-        
-        
 
 
 class SonicAgent(SonicThread):
@@ -1028,10 +419,12 @@ class SonicAgent(SonicThread):
     The SonicAgent sends the Command.GET_STATUS command to get the status data
     from a SonicAmp. It puts that data into the inhereted queue.
     Furthermore it has access to the serial connection through it's parameters
+    
+    It is also the source of a connection Interrupt. If that case arrives,
+    the __reinit__ method of root is being called so that the 
     """
     @property
     def root(self):
-        """ The serial communication object """
         return self._root
     
     def __init__(self, root: Root) -> None:
@@ -1039,28 +432,30 @@ class SonicAgent(SonicThread):
         self._root: Root = root
     
     def run(self) -> None:
+        """The core of the thread, the worker method that 
+        does the work.
+        """
         while True:
             with self.pause_cond:
                 
+                # This is the case when the thread is being paused
                 while self.paused:
                     self.pause_cond.wait()
                 
+                # This is the case when the thread is resumed
                 try:
                     
                     if self.root.serial.is_connected:
                         status: Status = self.root.sonicamp.get_status()
-                        logger.info(f"SonicAgent\tchecking for new data")
                         
                         if not isinstance(status, bool) and status != self.root.sonicamp.status:
-                            logger.info(f"SonicAgent\tfound new data, updating\t{status = }")  
                             self.queue.put(status)
-                        
-                        else:
-                            logger.info(f"SonicAgent\tno new data available") 
-                            
+                
+                # Case when a connection interrupt is happening          
                 except serial.SerialException:
                     self.root.__reinit__()
-                    
+                
+                # Undefined behaviour of the thread, so that the
+                # Thread is generally a bit "softer"
                 except Exception as e:
-                    print("exception in thread")
-                    logger.info(f"SonicAgent\tException:{e}")
+                    logger.warning(f"{e}")

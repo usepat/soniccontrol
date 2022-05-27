@@ -2,7 +2,7 @@
 from PyInstaller.utils.hooks import collect_submodules
 
 hiddenimports = []
-hiddenimports += collect_submodules('soniccontrol')
+hiddenimports += collect_submodules('.\soniccontrol')
 
 
 block_cipher = None
@@ -30,7 +30,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,  
           [],
-          name='SonicControl',
+          name='soniccontrol',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

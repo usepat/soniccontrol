@@ -1,24 +1,16 @@
 import logging
-import os
-from typing import Union
-
-if not os.path.exists("Logs"):
-    os.mkdir('Logs')
+import sys
 
 logger = logging.getLogger("soniccontrol")
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s\t%(name)s\t%(funcName)s\t%(message)s')
-file_handler = logging.FileHandler('Logs//soniccontrol.log')
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+
+file_handler = logging.FileHandler('soniccontrol.log')
 file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
-# def log_it(message: str) -> None:
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setFormatter(formatter)
 
-status_logger = logging.getLogger("statuslogger")
-status_logger.setLevel(logging.DEBUG)
-status_formatter = logging.Formatter('%(asctime)s\t%(message)s')
-status_log_file_handler = logging.FileHandler('Logs//statuslog.csv')
-status_log_file_handler.setFormatter(status_formatter)
-status_logger.addHandler(status_log_file_handler)
-
-    
+logger.addHandler(file_handler)        
+logger.addHandler(stream_handler)

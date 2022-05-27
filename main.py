@@ -2,19 +2,17 @@
 import soniccontrol as sc
 from ttkbootstrap.utility import enable_high_dpi_awareness
 
-#* 
-# enable_high_dpi_awareness(root=None, scaling=None)
-
 gui = sc.Root()
 gui.mainloop()
 
-
 # on
-# frequency 1000000
+# startloop 2
+# hold 5s
+# frequency 1200000
 # gain 100
-# hold 3s
-# startloop 3
-# ramp 1900000 2100000 10000 100ms
+# frequency 9000000
+# startloop 2
+# ramp 1200000 900000 10000 100ms
+# endloop
 # endloop
 # off
-
