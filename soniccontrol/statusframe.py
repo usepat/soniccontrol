@@ -249,3 +249,6 @@ class StatusFrameDutyWipe(StatusFrame):
         )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
+        
+    def attach_data(self) -> None:
+        pass
