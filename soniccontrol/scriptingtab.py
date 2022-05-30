@@ -588,19 +588,19 @@ class ScriptingTab(ttk.Frame):
         elif is_duty_wipe and gain:
             
             self.status.gain = gain
-            self.root.status_frame_dutywipe.gain_meter["amountused"] = gain
+            self.root.status_frame.gain_meter["amountused"] = gain
         
         elif is_duty_wipe and on and not off:
             
             self.status.signal = True
-            self.root.status_frame_dutywipe.sig_status_label["text"] = "Signal ON"
-            self.root.status_frame_dutywipe.sig_status_label["image"] = self.root.led_green_img
+            self.root.status_frame.sig_status_label["text"] = "Signal ON"
+            self.root.status_frame.sig_status_label["image"] = self.root.led_green_img
         
         elif is_duty_wipe and not on and off:
             
             self.status.signal = False
-            self.root.status_frame_dutywipe.sig_status_label["text"] = "Signal OFF"
-            self.root.status_frame_dutywipe.sig_status_label["image"] = self.root.led_red_img
+            self.root.status_frame.sig_status_label["text"] = "Signal OFF"
+            self.root.status_frame.sig_status_label["image"] = self.root.led_red_img
         
         
     def start_ramp(self, args_: list) -> None:
@@ -644,17 +644,21 @@ class ScriptingTab(ttk.Frame):
         for frq in frq_list:
             
             if self.run:
-                
-                self.current_task.set(f"Ramp is @ {frq/1000}kHz")
-                logger.info(f"Ramp is at {frq/1000}kHz")
-                
+
                 self.check_relay(frq)
                 
                 if isinstance(self.root.sonicamp, SonicWipeDuty):
+                    self.current_task.set(f"Ramp is @ {frq}%")
+                    logger.info(f"Ramp is at {frq}%")
+                    
                     self.serial.send_and_get(Command.SET_GAIN + frq)
                     self.check_for_duty_wipe(gain=frq)
                 
                 else:
+                    
+                    self.current_task.set(f"Ramp is @ {frq/1000}kHz")
+                    logger.info(f"Ramp is at {frq/1000}kHz")
+                    
                     self.serial.send_and_get(Command.SET_FRQ + frq)
                 
                 self.status_handler()
