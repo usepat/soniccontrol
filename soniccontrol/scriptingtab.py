@@ -370,7 +370,7 @@ class ScriptingTab(ttk.Frame):
                             
                             if self.loops[j]:
                                 logger.info(f"Found loop to be reseted: {self.loops[j]}")
-                                self.loops[j][1] = self.args_[j][0]
+                                self.loops[j][1] = self.args_[j]
                         
                         line: int = loop[0]
                         
@@ -510,7 +510,7 @@ class ScriptingTab(ttk.Frame):
                 logfile, fieldnames=self.fieldnames)
             csv_writer.writerow(data_dict)
     
-    def hold(self, args_: Union[list, int]) -> None:
+    def hold(self, args_: Union[list, int], ramp_mode: bool = False) -> None:
         """
         Holds the time during sequence, that was passed as an argument
         The user has the ability to control in which time unit the delay should
@@ -541,8 +541,13 @@ class ScriptingTab(ttk.Frame):
         
         # The actual execute of the delay
         while now < target and self.run:
+           
             time.sleep(0.02)
             now = datetime.datetime.now()
+            
+            if not ramp_mode:
+                self.current_task.set(f"Hold: {(target - now).seconds} seconds remaining")
+            
             self.root.update()
                 
     def check_relay(self, frq: int = 0, gain: int = 0) -> None:
@@ -656,7 +661,7 @@ class ScriptingTab(ttk.Frame):
                 
                 self.register_data(command="ramp", argument=args_)
                 
-                self.hold(hold_argument)
+                self.hold(hold_argument, ramp_mode=True)
             
             else:
                 break
