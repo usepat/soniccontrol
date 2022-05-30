@@ -662,4 +662,31 @@ class HometabDutyWipe(HomeTab):
     
     def attach_data(self) -> None:
         pass
+    
+
+
+class HomeTabCatchRev21(HomeTabCatch):
+    
+    def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
+        super().__init__(parent, root, *args, **kwargs)
+        
+    def publish(self) -> None:
+        return super().publish()
+    
+    def attach_data(self) -> None:
+        return super().attach_data()
+
+
+
+class HomeTabWipeRev21(HomeTabWipe):
+    
+    def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
+        super().__init__(parent, root, *args, **kwargs)
+        
+    def publish(self) -> None:
+        return super().publish()
+    
+    def attach_data(self) -> None:
+        return super().attach_data()
+    
         

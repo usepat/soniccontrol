@@ -7,7 +7,7 @@ import csv
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from typing import Tuple, Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING
 from enum import Enum
 from tkinter import messagebox
 from tkinter import filedialog
@@ -347,7 +347,7 @@ class ScriptingTab(ttk.Frame):
             
             if self.commands[line] == 'startloop':
                 
-                logger.debug(f"Found startloop command at {line = }, with the quantifier {self.loops[line][1]}")
+                logger.debug(f"Found startloop command at {line}, with the quantifier {self.loops[line][1]}")
                 if self.loops[line][1] and isinstance(self.loops[line][1], int):
                     self.loops[line][1] -= 1
                     line += 1
@@ -361,7 +361,7 @@ class ScriptingTab(ttk.Frame):
             
             elif self.commands[line] == 'endloop':
                 
-                logger.debug(f"Found endloop command at {line = }")
+                logger.debug(f"Found endloop command at {line}")
                 for loop in self.loops:
                     
                     if loop and loop[2] == line:
@@ -369,13 +369,13 @@ class ScriptingTab(ttk.Frame):
                         for j in range(loop[0]+1, loop[2]):
                             
                             if self.loops[j]:
-                                logger.info(f"Found loop to be reseted: {self.loops[j] = }")
+                                logger.info(f"Found loop to be reseted: {self.loops[j]}")
                                 self.loops[j][1] = self.args_[j][0]
                         
                         line: int = loop[0]
                         
             else:
-                logger.info(f"Executing command at\t{line = }")
+                logger.info(f"Executing command at\t{line}")
                 self.exec_command(line)
                 line += 1
 
@@ -447,15 +447,21 @@ class ScriptingTab(ttk.Frame):
             self.previous_task: str = f"{self.commands[counter-1]} {self.args_[counter-1]}"
 
         # Just for managing purposes
-        if len(self.args_[counter]) == 1:
-            argument: int = self.args_[counter][0]
+        if isinstance(self.args_[counter], list):
+            
+            if len(self.args_[counter]) == 1:
+                argument: int = self.args_[counter][0]
+            else:
+                argument: list = self.args_[counter]          
         
         else:
-            argument: list = self.args_[counter]
+            
+            argument: int = self.args_[counter]
+          
 
         if self.run:
             
-            logger.info(f"Executing command: {self.commands[counter] = }")
+            logger.info(f"Executing command: {self.commands[counter]}")
                         
             if self.commands[counter] == "frequency":
                 self.check_relay(frq=argument)
@@ -521,11 +527,11 @@ class ScriptingTab(ttk.Frame):
             # logger.info(f"Scriptingtab\tNo unit given\tusing seconds")
             target: datetime.datetime = now + datetime.timedelta(milliseconds=args_)
         
-        elif (len(args_) > 1 and args_[1] == 's') or (len(args_) == 1):
+        elif (len(args_) > 1 and args_[1] == 's'):
             # logger.info(f"Scriptingtab\tunit given\t{args_[1] = }\tusing seconds")
             target: datetime.datetime = now + datetime.timedelta(seconds=args_[0])
         
-        elif len(args_) > 1 and args_[1] == 'ms':
+        elif (len(args_) > 1 and args_[1] == 'ms') or (len(args_) == 1):
             # logger.info(f"Scriptingtab\tunit given\t{args_[1] = }\tusing milliseconds")
             target: datetime.datetime = now + datetime.timedelta(milliseconds=args_[0])
         
@@ -714,8 +720,15 @@ class ScriptingTab(ttk.Frame):
                     line[i] = int(part[:-1])
                     line.append(part[-1:])
             
+            # In case it"s a list with one element len() == 1
             self.commands.append(line[0])
-            self.args_.append(line[1:])
+            line.pop(0)
+                        
+            if len(line) == 1:
+                self.args_.append(line[0])
+            
+            else:
+                self.args_.append(line)                
         
         # We go through each command to look for loops
         for i, command in enumerate(self.commands):
@@ -726,7 +739,7 @@ class ScriptingTab(ttk.Frame):
                     loopdata: list = [i, 'inf']
                 
                 elif isinstance(self.args_[i], int):
-                    loopdata: list = [i, self.args_[i][0]]
+                    loopdata: list = [i, self.args_[i]]
                 
                 else:    
                     loopdata: list = [i, 'inf']
@@ -744,7 +757,7 @@ class ScriptingTab(ttk.Frame):
             else:
                 self.loops.insert(i, [])
         
-        logger.info(f"After parsing\t{self.commands = }\t{self.args_ = }\t{self.loops = }")
+        logger.info(f"After parsing\tcommands = {self.commands}\targuments = {self.args_}\t loops = {self.loops}")
     
     def attach_data(self) -> None:
         pass

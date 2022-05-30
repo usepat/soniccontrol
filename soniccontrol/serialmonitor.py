@@ -13,10 +13,9 @@ if TYPE_CHECKING:
     from soniccontrol.core import Root
 
 
-
 class SerialMonitor(ttkb.Frame):
-    
-    HELPTEXT: str = '''
+
+    HELPTEXT: str = """
 Welcome to the Help Page for SonicAmp Systems!
 There are a variety  of commands to control your SonicAmp
 under you liking.  Typically, a  command that sets up the 
@@ -74,115 +73,131 @@ Here is a list for all commands:
    ?atf1             Prints the frequency of the 1st protocol                     
    ?atf2             Prints the frequency of the 2nd protocol                     
    ?atf3             Prints the frequency of the 3rd protocol
-   ?pval             Prints values used for the protocol\n\n'''
-    
+   ?pval             Prints values used for the protocol\n\n"""
+
     @property
     def root(self) -> Root:
         return self._root
-    
+
     @property
     def serial(self) -> SerialConnectionGUI:
         return self._serial
-    
+
     def __init__(self, root: Root, *args, **kwargs) -> None:
         super().__init__(root, *args, **kwargs)
         self._root: Root = root
         self._serial: SerialConnectionGUI = root.serial
-        
+
         self.command_history: list[str] = []
         self.index_history: int = -1
-        
-        self.output_frame: ttk.Frame = ttk.LabelFrame(self, text='OUTPUT')
-        
+
+        self.output_frame: ttk.Frame = ttk.LabelFrame(self, text="OUTPUT")
+
         container: ttk.Frame = ttk.Frame(self.output_frame)
         self.canvas: tk.Canvas = tk.Canvas(container)
-        scrollbar: ttk.Scrollbar = ttk.Scrollbar(container, orient=tk.VERTICAL, command=self.canvas.yview)
+        scrollbar: ttk.Scrollbar = ttk.Scrollbar(
+            container, orient=tk.VERTICAL, command=self.canvas.yview
+        )
         self.scrollable_frame: ttk.Frame = ttk.Frame(self.canvas)
-        
+
         self.scrollable_frame.bind(
             "<Configure>",
-            lambda x: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
-        
+            lambda x: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)),
+        )
+
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor=tk.NW)
         self.canvas.configure(yscrollcommand=scrollbar.set)
-        
-        container.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
+
+        container.pack(
+            anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP
+        )
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        self.input_frame: ttk.Frame = ttk.LabelFrame(self, text='INPUT')
-        
-        self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style='dark.TEntry')
-        self.command_field.bind('<Return>', self.send_command)
-        self.command_field.bind('<Up>', self.history_up)
-        self.command_field.bind('<Down>', self.history_down)
-        
-        self.send_button: ttk.Button = ttk.Button(self.input_frame, text='Send', command=self.send_command, style='success.TButton')
-        self.send_button.bind('<Button-1>', self.send_command)
-        
-        self.command_field.pack(anchor=tk.S, padx=10, pady=10, fill=tk.X, expand=True, side=tk.LEFT)
+
+        self.input_frame: ttk.Frame = ttk.LabelFrame(self, text="INPUT")
+
+        self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style="dark.TEntry")
+        self.command_field.bind("<Return>", self.send_command)
+        self.command_field.bind("<Up>", self.history_up)
+        self.command_field.bind("<Down>", self.history_down)
+
+        self.send_button: ttk.Button = ttk.Button(
+            self.input_frame,
+            text="Send",
+            command=self.send_command,
+            style="success.TButton",
+        )
+        self.send_button.bind("<Button-1>", self.send_command)
+
+        self.command_field.pack(
+            anchor=tk.S, padx=10, pady=10, fill=tk.X, expand=True, side=tk.LEFT
+        )
         self.send_button.pack(anchor=tk.S, padx=10, pady=10, side=tk.RIGHT)
-        
+
         self.input_frame.pack(anchor=tk.S, fill=tk.X, side=tk.BOTTOM)
-        self.output_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP)
-        
+        self.output_frame.pack(
+            anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP
+        )
+
         # self.text_frame.pack_propagate(False)
 
-        self.insert_text('Type <help> to output the command-cheatsheet!')
-        self.insert_text('Type <clear> to clear the screen!')
+        self.insert_text("Type <help> to output the command-cheatsheet!")
+        self.insert_text("Type <clear> to clear the screen!")
         self.insert_text(SerialMonitor.HELPTEXT)
-        
+
         self.output_frame.pack_propagate(False)
-    
+
     def send_command(self, event) -> None:
         """Sends the command written in the input field"""
         command: str = self.command_field.get()
         self.command_history.insert(0, command)
         self.insert_text(f">>> {command}")
-        
-        if command == 'clear':
-            
+
+        if command == "clear":
+
             for child in self.scrollable_frame.children.values():
                 child.destroy()
-        
-        elif command == 'help':
+
+        elif command == "help":
             self.insert_text(SerialMonitor.HELPTEXT)
-        
-        elif command == 'exit':
+
+        elif command == "exit":
             self.destroy()
-        
+
         else:
-            
+
             if isinstance(self.root.sonicamp, SonicWipeDuty):
                 self.insert_text(self.serial.send_and_get(command))
-            
+
             else:
                 self.insert_text(self.serial.send_get(command))
-        
+
         self.canvas.yview_moveto(1)
         self.command_field.delete(0, tk.END)
-    
+
     def insert_text(self, text: Union[str, list]) -> None:
         """Inserts text in the output frame"""
         if text is list:
-            text = ' '.join(text)
-        
-        ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(fill=tk.X, side=tk.TOP, anchor=tk.W)
+            text = " ".join(text)
+
+        ttk.Label(self.scrollable_frame, text=text, font=("Consolas", 10)).pack(
+            fill=tk.X, side=tk.TOP, anchor=tk.W
+        )
         self.canvas.update()
-    
+
     def history_up(self, event) -> None:
         """function to go through the history of commands upwards"""
         if self.index_history != len(self.command_history) - 1:
             self.index_history += 1
             self.command_field.delete(0, tk.END)
             self.command_field.insert(0, self.command_history[self.index_history])
-            
+
     def history_down(self, event) -> None:
         """function to go through the history of commands downwards"""
-        if self.index_history !=  -1:
+        if self.index_history != -1:
             self.index_history -= 1
             self.command_field.delete(0, tk.END)
             self.command_field.insert(0, self.command_history[self.index_history])
-        
+
         else:
             self.command_field.delete(0, tk.END)
