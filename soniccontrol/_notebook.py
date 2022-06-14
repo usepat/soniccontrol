@@ -23,6 +23,12 @@ from soniccontrol.infotab import InfoTab
 from soniccontrol.helpers import logger
 
 
+
+
+###########################################################################
+#### SonicContorl Notebook Menue - Composits all the tabs from the GUI ####
+###########################################################################
+
 class ScNotebook(ttk.Notebook):
     """
     ScNotebook is a class that defines the ttk.Notebook

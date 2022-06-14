@@ -16,6 +16,11 @@ if TYPE_CHECKING:
     from soniccontrol._notebook import ScNotebook
 
 
+
+#######################
+#### Connectiontab ####
+#######################
+
 class ConnectionTab(ttk.Frame):
     @property
     def root(self) -> Root:

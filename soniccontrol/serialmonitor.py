@@ -139,12 +139,7 @@ Here is a list for all commands:
             anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP
         )
 
-        # self.text_frame.pack_propagate(False)
-
-        self.insert_text("Type <help> to output the command-cheatsheet!")
-        self.insert_text("Type <clear> to clear the screen!")
         self.insert_text(SerialMonitor.HELPTEXT)
-
         self.output_frame.pack_propagate(False)
 
     def send_command(self, event) -> None:
@@ -153,27 +148,30 @@ Here is a list for all commands:
         self.command_history.insert(0, command)
         self.insert_text(f">>> {command}")
 
+        if not self._internal_command(command=command):
+            self.insert_text(self.serial.send_get(command))
+        
+        self.canvas.yview_moveto(1)
+        self.command_field.delete(0, tk.END)
+        
+    def _internal_command(self, command: str) -> bool:
         if command == "clear":
 
             for child in self.scrollable_frame.children.values():
                 child.destroy()
 
+            return True
+
         elif command == "help":
             self.insert_text(SerialMonitor.HELPTEXT)
+            return True
 
         elif command == "exit":
             self.destroy()
+            return True
 
         else:
-
-            if isinstance(self.root.sonicamp, SonicWipeDuty):
-                self.insert_text(self.serial.send_and_get(command))
-
-            else:
-                self.insert_text(self.serial.send_get(command))
-
-        self.canvas.yview_moveto(1)
-        self.command_field.delete(0, tk.END)
+            return False
 
     def insert_text(self, text: Union[str, list]) -> None:
         """Inserts text in the output frame"""
@@ -201,3 +199,160 @@ Here is a list for all commands:
 
         else:
             self.command_field.delete(0, tk.END)
+     
+
+
+class SerialMonitorCatch(SerialMonitor):
+    
+    HELPTEXT: str = """
+Welcome to the Help Text for your SonicCatch!
+There  are a  variety  of  commands to control your 
+SonicCatch under you liking.  Typically, a  command that 
+sets up the SonicAmp System starts with an <!>, whereas 
+commands that start  with a  <?> ask  the  System  about
+something and outputs this data.
+
+Here is a list for all commands:
+
+COMMAND:          DESCRIPTION:
+!SERIAL           Set your SonicAmp to the serial mode
+!f=<Frequency>    Sets the frequency you want to operate on
+!g=<Gain>         Sets the Gain to your liking
+!cur1=<mAmpere>   Sets the current of the 1st Interface
+!cur2=<mAmpere>   Sets the current of the 2nd Interface
+!KHZ              Sets the Frequency range to KHz
+!MHZ              Sets the Frequency range to MHz
+!ON               Starts the output of the signal
+!OFF              Ends the Output of the Signal, Auto 
+                  and Wipe
+!rang=<Frequency> Sets the frequency range for protocols
+!step=<Range>     Sets the step range for protocols
+!sing=<Seconds>   Sets the time, the Signal should be 
+                  turned
+                  on during protocols
+!paus=<Seconds>   Sets the time, the Signal shoudl be 
+                  turned off during protocols
+!AUTO             Starts the Auto mode
+!atf1=<Frequency> Sets the Frequency for the 1st protocol
+!atf2=<Frequency> Sets the Frequency for the 2nd protocol
+!atf3=<Frequency> Sets the Frequency for the 3rd protocol
+!tust=<Hertz>     Sets the tuning steps in Hz
+!tutm=<mseconds>  Sets the tuning pause in milliseconds
+!scst=<Hertz>     Sets the scaning steps in Hz    
+
+?                 Prints information on the progress State
+?info             Prints information on the software
+?type             Prints the type of the SonicAmp System
+?freq             Prints the current frequency
+?gain             Prints the current gain
+?temp             Prints the current temperature of the 
+                  PT100 element
+?tpcb             Prints the current temperature in the 
+                  case
+?cur1             Prints the Current of the 1st Interface                     
+?cur2             Prints the Current of the 2nd Interface
+?sens             Prints the values of the measurement chip
+?prot             Lists the current protocol
+?list             Lists all available protocols
+?atf1             Prints the frequency of the 1st protocol                     
+?atf2             Prints the frequency of the 2nd protocol                     
+?atf3             Prints the frequency of the 3rd protocol
+?pval             Prints values used for the protocol\n\n"""
+
+
+
+class SerialMonitorWipe(SerialMonitor):
+    
+    HELPTEXT: str = """
+Welcome to the Help text for your SonicWipe!
+There are a variety of commands to control your SonicWipe
+under you liking.  Typically, a  command that sets up the 
+SonicWipe  starts  with  an  <!>,  whereas  commands that
+start  with a  <?> ask  the  System  about  something and 
+outputs this data.
+
+Here is a list for all commands:
+
+COMMAND:          DESCRIPTION:
+!SERIAL           Set your SonicWipe to the serial mode
+!f=<Frequency>    Sets the frequency you want to operate on
+!ON               Starts the output of the signal
+!OFF              Ends the Output of the Signal, Auto 
+                  and Wipe
+!WIPE             [WIPE ONLY] Starts the wiping process 
+                  with indefinite cycles
+!WIPE=<Cycles>    [WIPE ONLY] Starts the wiping process 
+                  with definite cycles
+!prot=<Protocol>  Sets the protocol of your liking
+?                 Prints information on the progress State
+?info             Prints information on the software
+?type             Prints the type of the SonicAmp System
+?freq             Prints the current frequency
+                  PT100 element
+?tpcb             Prints the current temperature in the 
+                  case
+?prot             Lists the current protocol
+?list             Lists all available protocols
+"""
+
+    def __init__(self, root: Root, *args, **kwargs) -> None:
+        super().__init__(root, *args, **kwargs)
+
+
+            
+class SerialMonitor40KHZ(SerialMonitor):
+    
+    HELPTEXT: str = """
+Welcome to the Help Page for the Serial Monitor!
+There are a variety of commands to control your SonicWipe
+under you liking.  Typically, a  command that   sets up a 
+SonicWipe  starts  with  an  <!>,  whereas  commands that
+start  with a  <?> ask  the  System  about  something and 
+outputs this data.
+
+Here is a list for all commands:
+
+COMMAND:          DESCRIPTION:
+!g=<Gain>         Sets the Gain to your liking
+!ON               Starts the output of the signal
+!OFF              Ends the Output of the Signal
+?info             Prints the version of the Firmware
+
+clear             Clears the screen of the console
+help              Prints out this help text
+exit              Exits the Serial Monitor"""
+    
+    def __init__(self, root: Root, *args, **kwargs) -> None:
+        super().__init__(root, *args, **kwargs)
+        
+    def send_command(self, event) -> None:
+        """
+        Sends the command written in the input field
+        """
+        command: str = self.command_field.get()
+        self.command_history.insert(0, command)
+        self.insert_text(f">>> {command}")
+
+        if not self._internal_command(command=command):
+            
+            answer: str = self.serial.send_and_get(command)
+            
+            if answer.isnumeric():
+                answer: int = int(answer)
+            
+            if command == "!ON" and answer == 1:
+                self.root.status_frame.signal_on()
+            
+            elif command == "!OFF" and answer == 1:
+                self.root.status_frame.signal_off()
+                
+            elif command[:3] == "!g=" and answer:
+                self.root.status_frame.change_values(gain=answer)
+            
+            else:
+                pass
+            
+            self.insert_text(answer)
+        
+        self.canvas.yview_moveto(1)
+        self.command_field.delete(0, tk.END)

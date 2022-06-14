@@ -1,5 +1,4 @@
 from __future__ import annotations
-from numpy import isin
 
 import pyglet
 import tkinter as tk
@@ -77,10 +76,10 @@ led_green_img: Image = resize_img("led_green.png", (35, 35))
 led_red_img: Image = resize_img("led_red.png", (35, 35))
 
 
+
 #############################################################
 #### The main GUI object itself - Root object from tk.Tk ####
 #############################################################
-
 
 class Root(tk.Tk):
     """The Root class is the main class of the Tkinter GUI.

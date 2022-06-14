@@ -629,7 +629,7 @@ class HometabDutyWipe(HomeTab):
         if gain:
             
             self.insert_feed(f'Gain setted to {gain}%')
-            self.root.status_frame.gain_meter["amountused"] = gain
+            self.root.status_frame.change_values(gain=gain)
             
         else:
             messagebox.showwarning("Error", "Something went wrong, try again, or restart the application")
@@ -641,8 +641,7 @@ class HometabDutyWipe(HomeTab):
         if self.serial.send_and_get(Command.SET_SIGNAL_ON): 
         
             self.insert_feed('Signal ON')
-            self.root.status_frame.sig_status_label["text"] = "Signal ON"
-            self.root.status_frame.sig_status_label["image"] = self.root.led_green_img
+            self.root.status_frame.signal_on()
         
         else:
             messagebox.showwarning("Error", "Something went wrong, try again, or restart the application")
@@ -654,8 +653,7 @@ class HometabDutyWipe(HomeTab):
         if self.serial.send_and_get(Command.SET_SIGNAL_OFF):
             
             self.insert_feed("Signal OFF")
-            self.root.status_frame.sig_status_label["text"] = "Signal OFF"
-            self.root.status_frame.sig_status_label["image"] = self.root.led_red_img
+            self.root.status_frame.signal_off()
             
         else:
             messagebox.showwarning("Error", "Something went wrong, try again, or restart the application")

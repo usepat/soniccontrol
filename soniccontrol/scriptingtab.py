@@ -779,9 +779,9 @@ class ScriptingGuide(tk.Toplevel):
         super().__init__(root, *args, **kwargs)
         self.title('Function Helper')
 
+        self.root: Root = root
         self.scripttext: tk.Text = scripttext
         
-        # Headings
         self.heading_frame: ttk.Frame = ttk.Frame(self)
         
         self.heading_command = ttk.Label(
@@ -792,7 +792,6 @@ class ScriptingGuide(tk.Toplevel):
             width=15,
             style="dark.TLabel",
             font="QTypeOT-CondMedium 15 bold",)
-        self.heading_command.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW)
         
         self.heading_arg = ttk.Label(
             self.heading_frame, 
@@ -803,19 +802,13 @@ class ScriptingGuide(tk.Toplevel):
             text='Arguments', 
             font="QTypeOT-CondMedium 15 bold",)
         
-        self.heading_arg.grid(row=0, column=1, padx=5, pady=5, sticky=tk.NSEW)
-        
-        self.heading_frame.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W, expand=True, fill=tk.X)
-        
         self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
             self,
             btn_text="hold",
             arg_text="[1-10^6] in [seconds/ milliseconds] (depending on what you write e.g: 100ms, 5s, nothing defaults to milliseconds)",
             desc_text=None,
             command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
-        
-        self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
-        
+                
         ToolTip(self.hold_btn, text="Hold the last state for X seconds/ milliseconds, depending on what unit you have given")
         
         self.frq_btn: ScriptingGuideRow = ScriptingGuideRow(
@@ -842,7 +835,6 @@ class ScriptingGuide(tk.Toplevel):
             arg_text=None,
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_ON))
-        self.on_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         ToolTip(self.on_btn, text='Activate US emission')
         
@@ -852,7 +844,6 @@ class ScriptingGuide(tk.Toplevel):
             arg_text=None,
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_OFF))
-        self.off_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         ToolTip(self.off_btn, text='Deactivate US emission')
         
@@ -862,7 +853,6 @@ class ScriptingGuide(tk.Toplevel):
             arg_text='[2-10.000] as an [integer]',
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.STARTLOOP))
-        self.startloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         ToolTip(self.startloop_btn, text='Start a loop for X times')
         
@@ -872,7 +862,6 @@ class ScriptingGuide(tk.Toplevel):
             arg_text=None,
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.ENDLOOP))
-        self.endloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         ToolTip(self.endloop_btn, text='End the loop here')
         
@@ -882,26 +871,37 @@ class ScriptingGuide(tk.Toplevel):
             arg_text='<start f [Hz]> <stop f [Hz]> <step size [Hz]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, nothing defaults to milliseconds)',
             desc_text=None,
             command = lambda: self.insert_command(ScriptCommand.SET_RAMP))
-        self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         ToolTip(self.ramp_btn, text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps\nExpamle: ramp 50000 1200000 1000 100ms')
-                
-        if root.sonicamp.type_ == 'soniccatch' or isinstance(root.sonicamp, SonicWipeDuty):
-            self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
-        
-        elif not isinstance(root.sonicamp, SonicWipeDuty):
-            self.frq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         
         self.disclaimer_label: ttk.Label = ttk.Label(
             self, 
             text='To insert a function at the cursor position, click on the respective button', 
             font=('TkDefaultFont', 11, 'bold'))
         
-        self.disclaimer_label.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)
+        self.publish()
         
     def insert_command(self, command: ScriptCommand) -> None:
         self.scripttext.insert(self.scripttext.index(tk.INSERT), command.value)
         
+    def publish(self) -> None:
+        self.heading_command.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW)
+        self.heading_arg.grid(row=0, column=1, padx=5, pady=5, sticky=tk.NSEW)
+        self.heading_frame.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W, expand=True, fill=tk.X)
+        self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.on_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.off_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.startloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.endloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        if self.root.sonicamp.type_ == 'soniccatch' or isinstance(self.root.sonicamp, SonicWipeDuty):
+            self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        elif not isinstance(self.root.sonicamp, SonicWipeDuty):
+            self.frq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.disclaimer_label.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)
         
         
 
