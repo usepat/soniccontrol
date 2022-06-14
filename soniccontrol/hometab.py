@@ -49,31 +49,128 @@ class HomeTab(ttk.Frame):
         self._root: Root = root
         self._serial: SerialConnection = root.serial
         
+        self._frq: tk.IntVar = tk.IntVar(self)
+        self._gain: tk.IntVar = tk.IntVar(self)
+        self._frq_mode: tk.BooleanVar = tk.BooleanVar(self)
+        self._is_on: bool = False
+        
         self.topframe: ttk.Frame = ttk.Frame(self)
-        self.control_frame: ttk.Labelframe = ttk.LabelFrame(self.topframe)
+        self.control_frame: ttk.Labelframe = ttk.LabelFrame(self.topframe, text='Manual Control')
+                
+        # Frq frame
+        self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
+        
+        self.frq_spinbox: ttk.Spinbox = ttk.Spinbox(
+            self.frq_frame,
+            from_=600000,
+            increment=100,
+            to=6000000,
+            textvariable=self._frq, 
+            width=16,
+            style='dark.TSpinbox',
+            command=self.set_frq)
+        
+        ToolTip(self.frq_spinbox, text="Configure the frequency of your device")
+        
+        self.scroll_digit: ttk.Spinbox = ttk.Spinbox(
+            self.frq_frame,
+            from_=1,
+            increment=1,
+            to=6,
+            validate=None,
+            width=5,
+            style='secondary.TSpinbox',
+            command=self.set_scrolldigit)
+        
+        ToolTip(self.scroll_digit, text="Set the digit you want to scroll in the Frequency field")
+        
+        # Gain Frame
+        self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
+        
+        self.gain_spinbox: ttk.Spinbox = ttk.Spinbox(
+            self.gain_frame,
+            from_=0,
+            increment=10,
+            to=150,
+            textvariable=self._gain,
+            width=5,
+            style='dark.TSpinbox',
+            command=self.set_gain)
+        
+        ToolTip(self.gain_frame, text="Configure the gain for your device")
+        
+        self.gain_scale: ttk.Scale = ttk.Scale(
+            self.gain_frame,
+            from_=0,
+            to=150,
+            name='gainscale',
+            length=180,
+            orient=tk.HORIZONTAL,
+            style="primary.TScale",
+            variable=self._gain,)
+        
+        # kHz MHz Frame
+        self.frq_mode_frame: ttk.Label = ttk.Label(self.control_frame)
+        
+        self.wipe_mode_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.frq_mode_frame,
+            text='Wipe mode',
+            value=False,
+            variable=self._frq_mode,
+            bootstyle='dark-outline-toolbutton',
+            width=12,
+            command=self.change_frq_mode)
+        
+        self.mhz_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.frq_mode_frame,
+            text='Catch mode',
+            value=True,
+            variable=self._frq_mode,
+            bootstyle='dark-outline-toolbutton',
+            width=12,
+            command=self.change_frq_mode) 
+        
+        # Other children of the control frame
+        self.set_val_btn: ttk.Button = ttk.Button(
+            self.control_frame,
+            text='Set Frequency and Gain',
+            command=self.set_val,
+            bootstyle='dark.TButton',)
+        
+        self.utils_frame: ttk.Frame = ttk.Frame(self.topframe)
+        
+        self.sonic_measure_button: ttk.Button = ttk.Button(
+            self.utils_frame,
+            text='Sonic measure',
+            style='dark.TButton',
+            image=self.root.graph_img,
+            compound=tk.TOP,
+            command=self.publish_sonicmeasure)
         
         self.serial_monitor_btn: ttk.Button = ttk.Button(
-            self.control_frame,
+            self.utils_frame,
             text='Serial Monitor',
             style='secondary.TButton',
             width=12,
             command=self.root.publish_serial_monitor,)
         
+        self.us_control_frame: ttk.Frame = ttk.Frame(self)
+        
         self.us_on_button: ttk.Button = ttk.Button(
-            self.control_frame,
+            self.us_control_frame,
             text='ON',
             style='success.TButton',
             width=10,
-            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_SIGNAL_ON)))
+            command=self.signal_on)
         
         ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
         
         self.us_off_button: ttk.Button = ttk.Button(
-            self.control_frame,
+            self.us_control_frame,
             text='OFF',
             style='danger.TButton',
             width=10,
-            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_SIGNAL_OFF)))
+            command=self.signal_off)
         
         ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
         
@@ -96,6 +193,96 @@ class HomeTab(ttk.Frame):
         container.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=5, pady=5, side=tk.TOP)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+    def set_frq(self) -> None:
+        """
+        Method that sets the given freqeuency value from 
+        the spinbox to the sonicamp
+        """
+        frq: int = self._frq.get()
+        answer: str = self.serial.send_and_get(Command.SET_FRQ + frq)
+        self.insert_feed(answer)
+    
+    def set_gain(self) -> None:
+        """
+        Method that sets the given gain value from the
+        gain spinbox to the sonicamp
+        """
+        gain: int = self._gain.get()
+        answer: str = self.serial.send_and_get(Command.SET_GAIN + gain)
+        self.insert_feed(answer)
+    
+    def change_frq_mode(self) -> None:
+        """
+        Method that sets the given frq mode value from the 
+        radioboxes to the soniccatch-amp
+        """
+        frq_mode: bool = self._frq_mode.get()
+        
+        if frq_mode:
+            answer: str = self.serial.send_and_get(Command.SET_KHZ)
+        
+        else:
+            answer: str = self.serial.send_and_get(Command.SET_MHZ)
+            
+        self.insert_feed(answer)
+    
+    def signal_on(self) -> None:
+        """
+        Method that changes the signal output from the sonicamp
+        to ON. If not, ignores the 
+        """    
+        answer: str = self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        self.insert_feed(answer)
+        self._is_on: bool = True
+    
+    def signal_off(self) -> None:
+        """
+        Method that changes the signal output from the wipe
+        according to the given value in the GUI
+        """ 
+        answer: str = self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        self.insert_feed(answer)
+        self._is_on: bool = True
+    
+    def set_val(self) -> None:
+        """
+        Function that will be called after pressing the <Set Frequency and Gain> Button
+        It firstly checks if the values are supported under the current relay setting
+        """
+        frq: int = self._frq.get()
+        gain: int = self._gain.get()
+                
+        if self.check_mode(frq):
+            
+            self.insert_feed(self.serial.send_get(Command.SET_GAIN + gain))
+            self.insert_feed(self.serial.send_get(Command.SET_FRQ + frq))
+        
+        else:
+            
+            messagebox.showwarning(
+                "Wrong Frequency Value", 
+                "This frequency cannot be setted under the current frequency range mode. Please use the spinbox once again")
+    
+    def check_mode(self, frq: int) -> bool:
+        """
+        Checks the current frq mode and compares the given frq to
+        the supported values at the currently connected sonicamp
+
+        Args:
+            frq (int): The frq to check, that it is possible to set that
+
+        Returns:
+            bool: The boolean value if it is supported. True for green light
+        """
+        if frq >= self.root.sonicamp.status.frq_range_start or frq <= self.root.sonicamp.status.frq_range_stop:
+            return True
+        
+        else:
+            return False
+    
+    def change_values(self, frq: int = None, gain: int = None, frq_mode: bool = None, signal: bool = None) -> None:
+        pass
         
     def insert_feed(self, text: Union[str, list]) -> None:
         """
@@ -130,125 +317,7 @@ class HomeTabCatch(HomeTab):
     
         self.config(height=200, width=200)
         
-        # Here follows the code regarding the TOPFRAME
-        self.control_frame["text"] = 'Manual Control'
-                
-        # Frq frame
-        self.frq_frame: ttk.Label = ttk.Label(self.control_frame)
         
-        self.frq_spinbox: ttk.Spinbox = ttk.Spinbox(
-            self.frq_frame,
-            from_=600000,
-            increment=100,
-            to=6000000,
-            textvariable=self.root.frq, 
-            width=16,
-            style='dark.TSpinbox',
-            command=self.set_frq)
-        
-        ToolTip(self.frq_spinbox, text="Configure the frequency of your device")
-        
-        self.scroll_digit: ttk.Spinbox = ttk.Spinbox(
-            self.frq_frame,
-            from_=1,
-            increment=1,
-            to=6,
-            validate=None,
-            width=5,
-            style='secondary.TSpinbox',
-            command=self.set_scrolldigit)
-        
-        ToolTip(self.scroll_digit, text="Set the digit you want to scroll in the Frequency field")
-        
-        # Gain Frame
-        self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
-        
-        self.gain_spinbox: ttk.Spinbox = ttk.Spinbox(
-            self.gain_frame,
-            from_=0,
-            increment=10,
-            to=150,
-            textvariable=self.root.gain,
-            width=5,
-            style='dark.TSpinbox',
-            command=lambda: self.insert_feed( self.serial.send_get(Command.SET_GAIN + self.gain_spinbox.get()) ))
-        
-        ToolTip(self.gain_frame, text="Configure the gain for your device")
-        
-        self.gain_scale: ttk.Scale = ttk.Scale(
-            self.gain_frame,
-            from_=0,
-            to=150,
-            name='gainscale',
-            length=180,
-            orient=tk.HORIZONTAL,
-            style="primary.TScale",
-            variable=self.root.gain,)
-        
-        # kHz MHz Frame
-        self.frq_rng_frame: ttk.Label = ttk.Label(self.control_frame)
-        
-        self.khz_button: ttkb.Radiobutton = ttkb.Radiobutton(
-            self.frq_rng_frame,
-            text='KHz',
-            value='khz',
-            variable=self.root.frq_range,
-            bootstyle='dark-outline-toolbutton',
-            width=12,
-            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_KHZ)))
-        
-        self.mhz_button: ttkb.Radiobutton = ttkb.Radiobutton(
-            self.frq_rng_frame,
-            text='MHz',
-            value='mhz',
-            variable=self.root.frq_range,
-            bootstyle='dark-outline-toolbutton',
-            width=12,
-            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_MHZ))) 
-        
-        # Other children of the control frame
-        self.set_val_btn: ttk.Button = ttk.Button(
-            self.control_frame,
-            text='Set Frequency and Gain',
-            command=self.set_val,
-            bootstyle='dark.TButton',)
-        
-        self.sonic_measure_frame: ttk.Frame = ttk.Frame(self.topframe)
-        
-        self.sonic_measure_button: ttk.Button = ttk.Button(
-            self.sonic_measure_frame,
-            text='Sonic measure',
-            style='dark.TButton',
-            image=self.root.graph_img,
-            compound=tk.TOP,
-            command=self.publish_sonicmeasure)
-        
-        self.serial_monitor_btn: ttk.Button = ttk.Button(
-            self.sonic_measure_frame,
-            text='Serial Monitor',
-            style='secondary.TButton',
-            width=12,
-            command=self.root.publish_serial_monitor,)
-        
-        self.us_control_frame: ttk.Frame = ttk.Frame(self)
-        
-        self.us_on_button: ttk.Button = ttk.Button(
-            self.us_control_frame,
-            text='ON',
-            style='success.TButton',
-            width=10,
-            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_SIGNAL_ON)))
-        
-        ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
-        
-        self.us_off_button: ttk.Button = ttk.Button(
-            self.us_control_frame,
-            text='OFF',
-            style='danger.TButton',
-            width=10,
-            command=lambda: self.insert_feed(self.serial.send_get(Command.SET_SIGNAL_OFF)))
-        
-        ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
     
     def set_val(self) -> None:
         """

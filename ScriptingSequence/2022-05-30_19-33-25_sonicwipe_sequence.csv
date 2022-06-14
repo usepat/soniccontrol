@@ -1,0 +1,4 @@
+timestamp,command,argument,signal,frequency,gain
+2022-05-30 19:33:26.756999,frequency,1000000,True,1000000,0
+2022-05-30 19:33:27.193107,frequency,1000000,True,1000000,0
+2022-05-30 19:33:27.634239,frequency,1000000,True,1000000,0

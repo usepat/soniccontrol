@@ -6,7 +6,6 @@ import ttkbootstrap as ttkb
 
 from typing import Union, TYPE_CHECKING
 
-from sonicpackage import SonicWipeDuty
 from soniccontrol.sonicamp import SerialConnectionGUI
 
 if TYPE_CHECKING:
@@ -259,6 +258,9 @@ COMMAND:          DESCRIPTION:
 ?atf3             Prints the frequency of the 3rd protocol
 ?pval             Prints values used for the protocol\n\n"""
 
+    def __init__(self, root: Root, *args, **kwargs) -> None:
+        super().__init__(root, *args, **kwargs)
+
 
 
 class SerialMonitorWipe(SerialMonitor):
@@ -279,10 +281,10 @@ COMMAND:          DESCRIPTION:
 !ON               Starts the output of the signal
 !OFF              Ends the Output of the Signal, Auto 
                   and Wipe
-!WIPE             [WIPE ONLY] Starts the wiping process 
-                  with indefinite cycles
-!WIPE=<Cycles>    [WIPE ONLY] Starts the wiping process 
-                  with definite cycles
+!WIPE             Starts the wiping process with indefinite
+                  cycles
+!WIPE=<Cycles>    Starts the wiping process with definite 
+                  cycles
 !prot=<Protocol>  Sets the protocol of your liking
 ?                 Prints information on the progress State
 ?info             Prints information on the software
@@ -348,9 +350,6 @@ exit              Exits the Serial Monitor"""
                 
             elif command[:3] == "!g=" and answer:
                 self.root.status_frame.change_values(gain=answer)
-            
-            else:
-                pass
             
             self.insert_text(answer)
         

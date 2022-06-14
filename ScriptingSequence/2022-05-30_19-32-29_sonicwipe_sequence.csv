@@ -1,0 +1,2 @@
+timestamp,command,argument,signal,frequency,gain
+2022-05-30 19:32:38.743900,hold,"[9, 's']",True,1019000,0
