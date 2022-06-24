@@ -239,12 +239,12 @@ class Hometab(ttk.Frame):
         self.feedback_frame.yview_moveto(1)
         
     def attach_data(self) -> None:
+        pass
+        
+    def publish(self) -> None:
         self.feedback_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH)
         self.botframe.pack(side=tk.TOP)
-        
-    def publish(self) -> None:
-        pass
     
 
 class HometabOldCatch(Hometab):
@@ -323,7 +323,7 @@ class HometabOldCatch(Hometab):
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
         
-        super().attach_data()
+        super().publish()
     
 
 class HometabOldWipe(Hometab):

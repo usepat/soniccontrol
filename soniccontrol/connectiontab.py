@@ -16,24 +16,44 @@ if TYPE_CHECKING:
     from soniccontrol._notebook import ScNotebook
 
 
-
-#######################
-#### Connectiontab ####
-#######################
-
 class ConnectionTab(ttk.Frame):
+    
     @property
     def root(self) -> Root:
         return self._root
-
+        
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
-
+        
         self._root: Root = root
-
+        
+        self.hex_file_path = tk.StringVar()
+        
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
+        self.botframe: ttk.Frame = ttk.Frame(self)
+        
+        self._initialize_topframe()
+        self._initialize_botframe()
+    
+    def _initialize_topframe(self) -> None:
+        self._initialize_heading()
+        self._initialize_control_frame()
+    
+    def _initialize_botframe(self) -> None:
+        self._initialize_firmware_info()
+        self._initialize_flash_frame()
+        
+        self.serial_monitor_btn: ttk.Button = ttk.Button(
+            self.botframe,
+            text="Serial Monitor",
+            style="secondary.TButton",
+            width=12,
+            state=tk.DISABLED,
+            command=self.root.publish_serial_monitor,
+        )
+    
+    def _initialize_heading(self) -> None:
         self.heading_frame: ttk.Frame = ttk.Frame(self.topframe)
-
         self.subtitle: ttk.Label = ttk.Label(self.heading_frame, padding=(0, 10, 0, 0))
 
         self.heading1: ttk.Label = ttk.Label(
@@ -49,7 +69,8 @@ class ConnectionTab(ttk.Frame):
             font=self.root.qtype30b,
             borderwidth=-2,
         )
-
+    
+    def _initialize_control_frame(self) -> None:
         self.control_frame: ttk.Frame = ttk.Frame(self.topframe)
 
         self.connect_button: ttk.Button = ttkb.Button(
@@ -59,7 +80,6 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue: ttk.Combobox = ttk.Combobox(
             master=self.control_frame,
             textvariable=self.root.port,
-            values=None,
             width=7,
             style="dark.TCombobox",
             state=tk.READABLE,
@@ -76,9 +96,8 @@ class ConnectionTab(ttk.Frame):
             image=self.root.refresh_img,
             command=self.refresh,
         )
-
-        self.botframe: ttk.Frame = ttk.Frame(self)
-
+    
+    def _initialize_firmware_info(self) -> None:
         self.firmware_frame: ttk.Labelframe = ttk.Labelframe(
             self.botframe,
             text="Firmware",
@@ -87,7 +106,8 @@ class ConnectionTab(ttk.Frame):
         self.firmware_label: ttk.Label = ttk.Label(
             self.firmware_frame, justify=tk.CENTER, style="dark.TLabel"
         )
-
+        
+    def _initialize_flash_frame(self) -> None:
         self.flash_frame = ttk.Labelframe(
             self.botframe,
             height=250,
@@ -104,8 +124,6 @@ class ConnectionTab(ttk.Frame):
             command=self.hex_file_path_handler,
         )
 
-        self.hex_file_path = tk.StringVar()
-
         self.upload_button = ttk.Button(
             self.flash_frame,
             style="dark.TButton",
@@ -113,15 +131,7 @@ class ConnectionTab(ttk.Frame):
             text="Upload Firmware",
             command=self.upload_file,
         )
-
-        self.serial_monitor_btn: ttk.Button = ttk.Button(
-            self.botframe,
-            text="Serial Monitor",
-            style="secondary.TButton",
-            width=12,
-            command=self.root.publish_serial_monitor,
-        )
-
+        
     def attach_data(self) -> None:
         """
         Attaches data to the connectiontab
@@ -138,13 +148,12 @@ class ConnectionTab(ttk.Frame):
 
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
-        self.firmware_label[
-            "text"
-        ] = self.root.sonicamp.firmware_msg  # * Treeview for future ideas
+        self.serial_monitor_btn.config(state=tk.NORMAL)
+        self.firmware_label["text"] = self.root.sonicamp.firmware_msg
 
         for child in self.flash_frame.children.values():
             child.configure(state=tk.NORMAL)
-
+            
     def abolish_data(self) -> None:
         """
         Abolishes data from the connectiontab
@@ -165,6 +174,7 @@ class ConnectionTab(ttk.Frame):
             state=tk.NORMAL,
         )
 
+        self.serial_monitor_btn.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.NORMAL)
         self.firmware_label["text"] = ""
 
@@ -172,13 +182,13 @@ class ConnectionTab(ttk.Frame):
             child.configure(state=tk.DISABLED)
 
         self.root.sonicamp = None
-
+        
     def refresh(self) -> None:
         """
         Refreshes the potential ports
         """
         self.ports_menue["values"] = self.root.serial.get_ports()
-
+        
     def disconnect(self) -> None:
         """
         Disconnects the soniccontrol with the current connection
@@ -189,39 +199,7 @@ class ConnectionTab(ttk.Frame):
         self.abolish_data()
         self.root.serial.disconnect()
         self.root.publish_disconnected()
-
-    def publish(self) -> None:
-        """
-        Method to publish the children of the Connection Tab
-        and for that itself too
-        """
-        for child in self.children.values():
-            child.pack()
-
-        self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
-        self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
-        self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
-        self.heading_frame.pack(padx=10, pady=20, expand=True)
-
-        self.ports_menue.grid(
-            row=0, column=0, columnspan=2, pady=10, padx=5, sticky=tk.NSEW
-        )
-        self.connect_button.grid(
-            row=0, column=2, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
-        )
-        self.refresh_button.grid(
-            row=0, column=3, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
-        )
-        self.control_frame.pack(padx=10, pady=20, expand=True)
-
-        self.firmware_frame.grid(row=0, column=0, padx=10, pady=10)
-        self.firmware_label.pack()
-        self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
-
-        # self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
-        # self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
-        # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
-
+        
     def hex_file_path_handler(self):
         """Gets the file of a potential hex firmware file, and checks if it's even a hex file"""
         self.hex_file_path = filedialog.askopenfilename(
@@ -286,3 +264,35 @@ class ConnectionTab(ttk.Frame):
                 "Error",
                 "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.",
             )
+    
+    def publish(self) -> None:
+        """
+        Method to publish the children of the Connection Tab
+        and for that itself too
+        """
+        for child in self.children.values():
+            child.pack()
+
+        self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
+        self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
+        self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
+        self.heading_frame.pack(padx=10, pady=20, expand=True)
+
+        self.ports_menue.grid(
+            row=0, column=0, columnspan=2, pady=10, padx=5, sticky=tk.NSEW
+        )
+        self.connect_button.grid(
+            row=0, column=2, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
+        )
+        self.refresh_button.grid(
+            row=0, column=3, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
+        )
+        self.control_frame.pack(padx=10, pady=20, expand=True)
+
+        self.firmware_frame.grid(row=0, column=0, padx=10, pady=10)
+        self.firmware_label.pack()
+        self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
+
+        # self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
+        # self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
+        # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)   
