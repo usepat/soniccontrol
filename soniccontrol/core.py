@@ -109,7 +109,7 @@ class Root(tk.Tk):
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    VERSION: int = 1.052
+    VERSION: int = 1.053
     TITLE: str = "Soniccontrol"
     THEME: str = "sandstone"
 
@@ -499,35 +499,20 @@ class SonicAgent(SonicThread):
         super().__init__()
         self._root: Root = root
 
-    def run(self) -> None:
-        """
-        The core of the thread, the worker method that
-        does the work.
-        """
-        while True:
-            with self.pause_cond:
-
-                # This is the case when the thread is being paused
-                while self.paused:
-                    self.pause_cond.wait()
-
-                # This is the case when the thread is resumed
-                try:
-
-                    if self.root.serial.is_connected:
-                        status: Status = self.root.sonicamp.get_status()
-
-                        if (
-                            not isinstance(status, bool)
-                            and status != self.root.sonicamp.status
-                        ):
-                            self.queue.put(status)
-
-                # Case when a connection interrupt is happening
-                except serial.SerialException:
-                    self.root.__reinit__()
-
-                # Undefined behaviour of the thread, so that the
-                # Thread is generally a bit "softer"
-                except Exception as e:
-                    logger.warning(f"{e}")
+    def worker(self) -> None:
+        # This is the case when the thread is resumed
+        try:
+            if self.root.serial.is_connected:
+                status: Status = self.root.sonicamp.get_status()
+                if (
+                    not isinstance(status, bool)
+                    and status != self.root.sonicamp.status
+                ):
+                    self.queue.put(status)
+        # Case when a connection interrupt is happening
+        except serial.SerialException:
+            self.root.__reinit__()
+        # Undefined behaviour of the thread, so that the
+        # Thread is generally a bit "softer"
+        except Exception as e:
+            logger.warning(f"{e}")

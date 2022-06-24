@@ -10,12 +10,12 @@ if TYPE_CHECKING:
     from soniccontrol.core import Root
 
 from soniccontrol.hometab import (
-    HomeTab,
-    HomeTabCatch,
-    HomeTabWipe,
+    Hometab,
+    HometabCatch,
+    HometabWipe,
     HometabDutyWipe,
-    HomeTabCatchRev21,
-    HomeTabWipeRev21,
+    HometabOldCatch,
+    HometabOldWipe,
 )
 from soniccontrol.scriptingtab import ScriptingTab
 from soniccontrol.connectiontab import ConnectionTab
@@ -58,7 +58,7 @@ class ScNotebook(ttk.Notebook):
         self.config(height=560, width=540)
         self["style"] = "light.TNotebook"
 
-        self.hometab: HomeTab = HomeTabCatch(self, self.root)
+        self.hometab: Hometab = Hometab(self, self.root)
         self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
         self.connectiontab: ConnectionTab = ConnectionTab(self, self.root)
         self.infotab: InfoTab = InfoTab(self, self.root)
@@ -110,7 +110,7 @@ class ScNotebook(ttk.Notebook):
         Builds children and displayes menue for a soniccatch
         """
         self.hometab.destroy()
-        self.hometab: HomeTab = HomeTabCatch(self, self.root)
+        self.hometab: Hometab = HometabOldCatch(self, self.root)
 
         self.config(height=560)
         self._publish()
@@ -123,7 +123,7 @@ class ScNotebook(ttk.Notebook):
         Builds children and displayes menue for a sonicwipe
         """
         self.hometab.destroy()
-        self.hometab: HomeTab = HomeTabWipe(self, self.root)
+        self.hometab: Hometab = HometabOldWipe(self, self.root)
 
         self.config(height=560)
         self._publish()
@@ -136,7 +136,7 @@ class ScNotebook(ttk.Notebook):
         Builds children and displayes menue for a sonicwipe 40kHz Duty Cycle amp
         """
         self.hometab.destroy()
-        self.hometab: HomeTab = HometabDutyWipe(self, self.root)
+        self.hometab: Hometab = HometabDutyWipe(self, self.root)
 
         self.config(height=560)
         self._publish()
@@ -149,7 +149,7 @@ class ScNotebook(ttk.Notebook):
         Publishing building method for SonicCatch Revision 2.1
         """
         self.hometab.destroy()
-        self.hometab: HomeTab = HomeTabCatchRev21(self, self.root)
+        self.hometab: Hometab = HometabCatch(self, self.root)
 
         self.config(height=560)
         self._publish()
@@ -162,7 +162,7 @@ class ScNotebook(ttk.Notebook):
         Publishing building method for SonicWipe Revision 2.1
         """
         self.hometab.destroy()
-        self.hometab: HomeTab = HomeTabWipeRev21(self, self.root)
+        self.hometab: Hometab = HometabWipe(self, self.root)
 
         self.config(height=560)
         self._publish()

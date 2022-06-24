@@ -23,13 +23,14 @@ class SerialConnectionGUI(SerialConnection):
         self, message: Union[str, Enum], delay: float = 0.3, flush: bool = True
     ) -> Union[str, list]:
         """A modified send_and_get function to manage the thread of the soniccontrol"""
-        return super().send_and_get(message, delay, flush)
-
-    def send_get(
-        self, message: Union[str, Enum], delay: float = 0.1, flush: bool = True
-    ) -> Union[str, list]:
-        """A modified send_and_get method for the sonicagent thread"""
-        self.thread.pause()
-        answer = super().send_and_get(message, delay, flush)
-        self.thread.resume()
+        if self.thread.paused:
+            answer: str = super().send_and_get(message, delay, flush)
+        else:
+            self.thread.pause()
+            answer: str = super().send_and_get(message, delay, flush)
+            self.thread.resume()
+        
         return answer
+    
+    def send_get_for_threads(self, message: Union[str, Enum], delay: float = 0.3, flush: bool = True) -> Union[str, list]:
+        return super().send_and_get(message, delay, flush)
