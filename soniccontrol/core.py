@@ -25,9 +25,9 @@ from sonicpackage import (
     SonicCatchOld,
     SonicWipe,
     SonicWipeOld,
+    SonicCatchAncient,
+    SonicWipeAncient,
     Command,
-    SonicCatchRev21,
-    SonicWipeRev21,
 )
 from soniccontrol.sonicamp import SerialConnectionGUI, SerialConnection
 from soniccontrol.statusframe import (
@@ -262,24 +262,24 @@ class Root(tk.Tk):
         # Children of Root
         self.serial_monitor: SerialMonitor = SerialMonitor(self)
 
-        if isinstance(self.sonicamp, SonicCatch) or isinstance(
-            self.sonicamp, SonicCatchOld
+        if isinstance(self.sonicamp, SonicCatchOld) or isinstance(
+            self.sonicamp, SonicCatchAncient
         ):
-            self.publish_for_catch()
+            self.publish_for_old_catch()
 
-        elif isinstance(self.sonicamp, SonicWipe) or isinstance(
+        elif isinstance(self.sonicamp, SonicWipeAncient) or isinstance(
             self.sonicamp, SonicWipeOld
         ):
-            self.publish_for_wipe()
+            self.publish_for_old_wipe()
 
         elif isinstance(self.sonicamp, SonicWipeDuty):
-            self.publish_duty_wipe()
+            self.publish_for_duty_wipe()
 
-        elif isinstance(self.sonicamp, SonicCatchRev21):
-            self.publish_catch_rev21()
+        elif isinstance(self.sonicamp, SonicCatch):
+            self.publish_for_catch()
 
-        elif isinstance(self.sonicamp, SonicWipeRev21):
-            self.publish_wipe_rev21()
+        elif isinstance(self.sonicamp, SonicWipe):
+            self.publish_for_wipe()
 
         else:
             messagebox.showerror("Error", "Not implemented the device")
@@ -297,12 +297,9 @@ class Root(tk.Tk):
         Method to get the data from the sonicamp to the Root tkinter
         variables, so the all objects can adapt to it
         """
-        init_status: Status = self.sonicamp.get_status()
-
-        self.frq.set(init_status.frequency)
-        self.gain.set(init_status.gain)
-        self.wipe_mode.set(init_status.wipe_mode)
-        self.frq_range.set(init_status.frq_range)
+        self.frq.set(self.sonicamp.status.frequency)
+        self.gain.set(self.sonicamp.status.gain)
+        self.wipe_mode.set(self.sonicamp.status.wipe_mode)
         self.protocol.set(self.serial.send_and_get(Command.GET_PROTOCOL))
 
         tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -365,7 +362,7 @@ class Root(tk.Tk):
         except AttributeError as e:
             logger.warning(f"{e}")
 
-    def publish_for_catch(self) -> None:
+    def publish_for_old_catch(self) -> None:
         """
         This method published the GUI for the case that there
         is a connection with a SonicCatch
@@ -378,7 +375,7 @@ class Root(tk.Tk):
         self.status_frame.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
-    def publish_for_wipe(self) -> None:
+    def publish_for_old_wipe(self) -> None:
         """
         This method published the GUI for the case that there
         is a connection with a SonicWipe
@@ -391,7 +388,7 @@ class Root(tk.Tk):
         self.status_frame.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
-    def publish_duty_wipe(self) -> None:
+    def publish_for_duty_wipe(self) -> None:
         """
         This method published the GUI for the case that there
         is a connection with a SonicWipe 40kHz DutyCycle Amp
@@ -404,16 +401,13 @@ class Root(tk.Tk):
 
         self.notebook.publish_for_dutywipe()
         self.status_frame.publish()
-        #!
-        self.status_frame.con_status_label["image"] = self.led_green_img
-        self.status_frame.con_status_label["text"] = "connected"
-        #!
+        self.status_frame.connection_on()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
-    def publish_catch_rev21(self) -> None:
+    def publish_for_catch(self) -> None:
         pass
 
-    def publish_wipe_rev21(self) -> None:
+    def publish_for_wipe(self) -> None:
         pass
 
     def publish_serial_monitor(self) -> None:

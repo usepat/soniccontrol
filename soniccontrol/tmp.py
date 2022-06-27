@@ -13,8 +13,18 @@ from tkinter import messagebox
 from tkinter import filedialog
 from ttkbootstrap.tooltip import ToolTip
 
-from sonicpackage import Status, Command, SonicCatch, SonicWipeDuty, SonicWipe, SonicWipeOld, SonicCatchOld
-from soniccontrol.sonicamp import SerialConnection, SerialConnectionGUI
+from sonicpackage import (
+    Status, 
+    Command, 
+    SonicCatch, 
+    SonicWipeDuty, 
+    SonicWipe, 
+    SonicWipeOld, 
+    SonicCatchOld, 
+    SonicCatchAncient, 
+    SonicWipeAncient
+)
+from soniccontrol.sonicamp import SerialConnection, SerialConnectionGUI, ValueNotSupported
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
@@ -60,6 +70,10 @@ class ScriptingTab(ttk.Frame):
     def sequence(self) -> Sequence:
         return self._sequence
     
+    @property
+    def file_handler(self) -> FileHandler:
+        return self._file_handler
+    
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
         self.config(height=200, width=200)
@@ -67,6 +81,7 @@ class ScriptingTab(ttk.Frame):
         self._root: Root = root
         self._serial: SerialConnectionGUI = root.serial
         self._sequence: Sequence = Sequence(self)
+        self._file_handler: FileHandler = FileHandler(self)
         
         self._initialize_button_frame()
         self._initialize_scripting_frame()
@@ -81,7 +96,7 @@ class ScriptingTab(ttk.Frame):
             width=11,
             image=self.root.play_img,
             compound=tk.RIGHT,
-            command=,
+            command=self.start_sequence,
         )
         
         self.load_script_btn: ttk.Button = ttk.Button(
@@ -89,7 +104,7 @@ class ScriptingTab(ttk.Frame):
             text='Open script file',
             style='dark.TButton',
             width=15,
-            command=
+            command=self.file_handler.load_file,
         )
         
         self.save_script_btn: ttk.Button = ttk.Button(
@@ -97,7 +112,7 @@ class ScriptingTab(ttk.Frame):
             text='Save script file',
             style='dark.TButton',
             width=15,
-            command=
+            command=self.file_handler.save_file
         )
         
         self.save_log_btn: ttk.Button = ttk.Button(
@@ -105,7 +120,7 @@ class ScriptingTab(ttk.Frame):
             text='Specify logfile path',
             style='dark.TButton',
             width=15,
-            command=
+            command=self.file_handler.open_logfile
         )
         
         self.script_guide_btn = ttk.Button(
@@ -174,6 +189,31 @@ class ScriptingTab(ttk.Frame):
         self.scripttext.tag_remove('currentLine', 1.0, "end")
         self.scripttext.tag_add('currentLine', f"{current_line}.0", f"{current_line}.end")
         self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
+        
+    def start_sequence(self) -> None:
+        if not self.root.thread.paused:
+            self.root.thread.pause()
+        
+        self.start_script_btn.configure(
+            text='Stop',
+            style='danger.TButton',
+            image=self.root.pause_img,
+            command=self.close_sequence)
+        
+        self.sequence_status.start()
+        self.root.notebook.disable_children(self)
+        self.scripttext.config(state=tk.DISABLED)
+        self.load_script_btn.config(state=tk.DISABLED)
+        self.save_log_btn.config(state=tk.DISABLED)
+        self.save_script_btn.config(state=tk.DISABLED)
+        self.script_guide_btn.config(state=tk.DISABLED)
+        
+    def status_handler(self) -> None:
+        if not isinstance(self.root.sonicamp, SonicWipeDuty):
+            self.root.status: Status = self.root.sonicamp.get_status()
+            self.root.attach_data()
+            self.root.register_status_data(data=self.root.status)
+            self.root.update_idletasks()
 
     def publish(self):
         """
@@ -295,32 +335,40 @@ class Sequence(object):
             
             argument: int = self.args_[counter]
           
+        try:
+            if self.run:
 
-        if self.run:
+                logger.info(f"Executing command: {self.commands[counter]}")
+
+                if self.commands[counter] == "frequency":
+                    self.serial.send_and_get(Command.SET_FRQ + argument)
+
+                elif self.commands[counter] == "gain":
+                    self.serial.send_and_get(Command.SET_GAIN + argument)
+
+                elif self.commands[counter] == "ramp":
+                    self.start_ramp(argument)
+
+                elif self.commands[counter] == "hold":
+                    self.hold(argument)
+
+                elif self.commands[counter] == "on":
+                    self.serial.send_and_get(Command.SET_SIGNAL_ON)
+
+                elif self.commands[counter] == "off":
+                    self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+
+                else:
+                    messagebox.showerror("Wrong command", f"the command {self.commands[counter]} is not known, please use the correct commands in the correct syntax")
+                    self.close_sequence()
+        
+        except ValueNotSupported as e:
             
-            logger.info(f"Executing command: {self.commands[counter]}")
-                        
-            if self.commands[counter] == "frequency":
-                self.serial.send_and_get(Command.SET_FRQ + argument)
-            
-            elif self.commands[counter] == "gain":
-                self.serial.send_and_get(Command.SET_GAIN + argument)
-            
-            elif self.commands[counter] == "ramp":
-                self.start_ramp(argument)
-            
-            elif self.commands[counter] == "hold":
-                self.hold(argument)
-            
-            elif self.commands[counter] == "on":
-                self.serial.send_and_get(Command.SET_SIGNAL_ON)
-            
-            elif self.commands[counter] == "off":
-                self.serial.send_and_get(Command.SET_SIGNAL_OFF)
-                
-            else:
-                messagebox.showerror("Wrong command", f"the command {self.commands[counter]} is not known, please use the correct commands in the correct syntax")
-                self.close_sequence()
+            messagebox.showerror(
+                "Wrong Valuue",
+                "The value you wanted to set is not possible, please check your syntax again"
+            )
+            self.close_sequence()
         
         self.status_handler()
         self.register_data(self.commands[counter], argument=argument)
@@ -527,3 +575,233 @@ class Sequence(object):
                 self.loops.insert(i, [])
         
         logger.info(f"After parsing\tcommands = {self.commands}\targuments = {self.args_}\t loops = {self.loops}")
+        
+
+
+class FileHandler(object):
+    
+    def __init__(self, gui: ScriptingTab) -> None:
+        self.gui: ScriptingTab = gui
+        
+        self.script_filepath: str
+        self.save_filename: str
+        self.logfilename: str
+        self.logfilepath: str = None
+        
+        self._filetypes: list[tuple] = [('Text', '*.txt'),('All files', '*'),]
+        self._sequence_dir: str = 'ScriptingSequence'
+        
+        self.fieldnames: list = ['timestamp','command', 'argument', 'signal', 'frequency', 'gain']
+        
+        if not os.path.exists(self._sequence_dir):
+            os.mkdir(self._sequence_dir)
+    
+    def load_file(self) -> None:
+        self.script_filepath: str = filedialog.askopenfilename(defaultextension='.txt', filetypes=self._filetypes)
+        
+        with open(self.script_filepath, 'r') as f:
+            self.gui.scripttext.delete(0, tk.END)
+            self.gui.scripttext.insert(tk.INSERT, f.read())
+            
+    def save_file(self) -> None:
+        self.save_filename = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
+        
+        with open(self.save_filename, 'w') as f:
+            f.write(self.gui.scripttext.get(0, tk.END))
+            
+    def open_logfile(self) -> None:
+        self.logfilepath = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=self._filetypes)
+        
+    def _create_statuslog(self) -> None:
+        """
+        Internal method to create the csv status log file
+        """
+        with open(self.logfilepath, "a") as statuslog:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                statuslog, fieldnames=self.fieldnames)
+            csv_writer.writeheader()
+            
+    def register_data(self, command: str, argument: Union[int, list], status: Status) -> None:
+        
+        data_dict: dict = {
+            "timestamp": datetime.datetime.now(),
+            "command": command,
+            "argument": argument,
+            "signal": status.signal,
+            "frequency": status.frequency,
+            "gain": status.gain,
+        }
+        
+        with open(self.logfilepath, "a", newline="") as logfile:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                logfile, fieldnames=self.fieldnames)
+            csv_writer.writerow(data_dict)
+            
+        
+class ScriptingGuide(tk.Toplevel):
+    def __init__(self, root: Root, scripttext: tk.Text, *args, **kwargs) -> None:
+        super().__init__(root, *args, **kwargs)
+        self.title('Function Helper')
+
+        self.root: Root = root
+        self.scripttext: tk.Text = scripttext
+        
+        self._initialize_frame()
+        self.publish()
+        
+    def _initialize_frame(self) -> None:
+        self.heading_frame: ttk.Frame = ttk.Frame(self)
+        
+        self.heading_command = ttk.Label(
+            self.heading_frame, 
+            anchor=tk.W, 
+            justify=tk.CENTER, 
+            text='Command',
+            width=15,
+            style="dark.TLabel",
+            font="QTypeOT-CondMedium 15 bold",)
+        
+        self.heading_arg = ttk.Label(
+            self.heading_frame, 
+            anchor=tk.W, 
+            justify=tk.CENTER,
+            width=15,
+            style="info.TLabel",
+            text='Arguments', 
+            font="QTypeOT-CondMedium 15 bold",)
+        
+        self.hold_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text="hold",
+            arg_text="[1-10^6] in [seconds/ milliseconds] (depending on what you write e.g: 100ms, 5s, nothing defaults to milliseconds)",
+            desc_text=None,
+            command=lambda: self.insert_command(ScriptCommand.SET_HOLD),)
+                
+        ToolTip(self.hold_btn, text="Hold the last state for X seconds/ milliseconds, depending on what unit you have given")
+        
+        self.frq_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='frequency',
+            arg_text='[50.000-6.000.000] in [Hz]',
+            desc_text=None,
+            command = lambda: self.insert_command(ScriptCommand.SET_FRQ))
+        
+        ToolTip(self.frq_btn, text='Change to the indicated frequency in Hz')
+        
+        self.gain_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='gain',
+            arg_text='[1-150] in [%]',
+            desc_text=None,
+            command = lambda: self.insert_command(ScriptCommand.SET_GAIN))
+        
+        ToolTip(self.gain_btn, text='Change to the selected gain in %')
+        
+        self.on_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='on',
+            arg_text=None,
+            desc_text=None,
+            command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_ON))
+        
+        ToolTip(self.on_btn, text='Activate US emission')
+        
+        self.off_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='off',
+            arg_text=None,
+            desc_text=None,
+            command = lambda: self.insert_command(ScriptCommand.SET_SIGNAL_OFF))
+        
+        ToolTip(self.off_btn, text='Deactivate US emission')
+        
+        self.startloop_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='startloop',
+            arg_text='[2-10.000] as an [integer]',
+            desc_text=None,
+            command = lambda: self.insert_command(ScriptCommand.STARTLOOP))
+        
+        ToolTip(self.startloop_btn, text='Start a loop for X times')
+        
+        self.endloop_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='endloop',
+            arg_text=None,
+            desc_text=None,
+            command = lambda: self.insert_command(ScriptCommand.ENDLOOP))
+        
+        ToolTip(self.endloop_btn, text='End the loop here')
+        
+        self.ramp_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text='ramp',
+            arg_text='<start f [Hz]> <stop f [Hz]> <step size [Hz]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, nothing defaults to milliseconds)',
+            desc_text=None,
+            command = lambda: self.insert_command(ScriptCommand.SET_RAMP))
+        
+        ToolTip(self.ramp_btn, text='Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps\nExpamle: ramp 50000 1200000 1000 100ms')
+        
+        self.disclaimer_label: ttk.Label = ttk.Label(
+            self, 
+            text='To insert a function at the cursor position, click on the respective button', 
+            font=('TkDefaultFont', 11, 'bold'))
+        
+    def insert_command(self, command: ScriptCommand) -> None:
+        self.scripttext.insert(self.scripttext.index(tk.INSERT), command.value)
+        
+    def publish(self) -> None:
+        self.heading_command.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW)
+        self.heading_arg.grid(row=0, column=1, padx=5, pady=5, sticky=tk.NSEW)
+        self.heading_frame.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W, expand=True, fill=tk.X)
+        self.hold_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.on_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.off_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.startloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.endloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        if (
+            not isinstance(self.root.sonicamp, SonicWipeOld)
+            or isinstance(self.root.sonicamp, SonicWipeAncient)
+        ):
+            self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        elif not isinstance(self.root.sonicamp, SonicWipeDuty):
+            self.frq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        
+        self.disclaimer_label.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)
+        
+            
+            
+class ScriptingGuideRow(ttk.Frame):
+    
+    def __init__(self, parent: ScriptingGuide, btn_text: str, arg_text: str, desc_text: str, command, *args, **kwargs) -> None:
+        super().__init__(parent, *args, **kwargs)
+        
+        self.command_btn: ttk.Button = ttk.Button(
+            self,
+            width=15,
+            style="dark.TButton",
+            text=btn_text,
+            command=command)
+        
+        self.command_btn.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW)
+        
+        if arg_text:
+            
+            self.arg_label: ttk.Label = ttk.Label(
+                self,
+                style='inverse.info.TLabel',
+                text=arg_text)
+            
+            self.arg_label.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)  
+        
+        if desc_text:
+            
+            self.desc_label: ttk.Label = ttk.Label(
+                self,
+                text=desc_text,
+                style='inverse.primary.TLabel')
+            
+            self.desc_label.grid(row=0, column=3, padx=5, pady=5, sticky=tk.NSEW)
