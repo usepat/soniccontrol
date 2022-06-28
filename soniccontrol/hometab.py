@@ -256,7 +256,7 @@ class HometabOldCatch(Hometab):
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
         
-        self._mode: str = "mhz"
+        self._mode.set("mhz")
 
     def _initialize_frq_frame(self) -> None:
         super()._initialize_frq_frame()
@@ -493,7 +493,7 @@ class HometabDutyWipe(Hometab):
             from_=0,
             increment=10,
             to=100,
-            textvariable=self.root.gain,
+            textvariable=self._gain,
             width=5,
             style="dark.TSpinbox",
         )
@@ -506,6 +506,24 @@ class HometabDutyWipe(Hometab):
             command=self.set_gain,
             bootstyle="dark.TButton",
         )
+        
+        self.us_on_button: ttk.Button = ttk.Button(
+            self.control_frame,
+            text='ON',
+            style='success.TButton',
+            width=10,
+            command=self.set_signal_on)
+        
+        ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
+        
+        self.us_off_button: ttk.Button = ttk.Button(
+            self.control_frame,
+            text='OFF',
+            style='danger.TButton',
+            width=10,
+            command=self.set_signal_off)
+        
+        ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
 
         self.gain_scale: ttk.Scale = ttk.Scale(
             self.topframe,
@@ -515,11 +533,11 @@ class HometabDutyWipe(Hometab):
             length=180,
             orient=tk.VERTICAL,
             style="primary.TScale",
-            variable=self.root.gain,
+            variable=self._gain,
         )
 
     def set_gain(self) -> None:
-        gain: int = super().set_gain()
+        gain: int = int(super().set_gain())
 
         if gain:
             self.insert_feed(f"Gain setted to {gain}%")
@@ -545,7 +563,7 @@ class HometabDutyWipe(Hometab):
         if self.serial.send_and_get(Command.SET_SIGNAL_OFF):
 
             self.insert_feed("Signal OFF")
-            self.root.status_frame.set_signal_off()
+            self.root.status_frame.signal_off()
 
         else:
             messagebox.showwarning(
@@ -565,6 +583,8 @@ class HometabDutyWipe(Hometab):
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
+        
+        super().publish()
 
 
 class HometabCatch(Hometab):

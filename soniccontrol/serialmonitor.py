@@ -138,7 +138,7 @@ Here is a list for all commands:
             anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP
         )
 
-        self.insert_text(SerialMonitor.HELPTEXT)
+        self.insert_text(self.HELPTEXT)
         self.output_frame.pack_propagate(False)
 
     def send_command(self, event) -> None:
@@ -343,15 +343,19 @@ exit              Exits the Serial Monitor"""
                 answer: int = int(answer)
             
             if command == "!ON" and answer == 1:
+                self.insert_text("Wipe signal set to ON")
                 self.root.status_frame.signal_on()
             
-            elif command == "!OFF" and answer == 1:
+            elif command == "!OFF" and answer == 0:
+                self.insert_text("Wipe signal set to OFF")
                 self.root.status_frame.signal_off()
                 
             elif command[:3] == "!g=" and answer:
+                self.insert_text(f"Gain set to {answer}")
                 self.root.status_frame.change_values(gain=answer)
-            
-            self.insert_text(answer)
+                
+            elif command[:5] == "!swf=" and answer:
+                self.insert_text(answer)
         
         self.canvas.yview_moveto(1)
         self.command_field.delete(0, tk.END)

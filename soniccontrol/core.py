@@ -36,7 +36,12 @@ from soniccontrol.statusframe import (
     StatusFrameWipe,
     StatusFrame,
 )
-from soniccontrol.serialmonitor import SerialMonitor
+from soniccontrol.serialmonitor import(
+    SerialMonitor, 
+    SerialMonitor40KHZ, 
+    SerialMonitorCatch, 
+    SerialMonitorWipe
+)
 from soniccontrol._notebook import ScNotebook
 from soniccontrol.helpers import logger
 
@@ -110,7 +115,7 @@ class Root(tk.Tk):
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    VERSION: int = 1.053
+    VERSION: int = 1.054
     TITLE: str = "Soniccontrol"
     THEME: str = "sandstone"
 
@@ -259,9 +264,6 @@ class Root(tk.Tk):
 
         logger.info(f"Built sonicamp {self.sonicamp}")
 
-        # Children of Root
-        self.serial_monitor: SerialMonitor = SerialMonitor(self)
-
         if isinstance(self.sonicamp, SonicCatchOld) or isinstance(
             self.sonicamp, SonicCatchAncient
         ):
@@ -367,6 +369,8 @@ class Root(tk.Tk):
         This method published the GUI for the case that there
         is a connection with a SonicCatch
         """
+        self.serial_monitor: SerialMonitor = SerialMonitorCatch(self)
+        
         self.status_frame.destroy()
         self.status_frame: StatusFrame = StatusFrameCatch(self.mainframe, self)
 
@@ -380,6 +384,8 @@ class Root(tk.Tk):
         This method published the GUI for the case that there
         is a connection with a SonicWipe
         """
+        self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
+        
         self.status_frame.destroy()
         self.status_frame: StatusFrame = StatusFrameWipe(self.mainframe, self)
 
@@ -395,6 +401,8 @@ class Root(tk.Tk):
         """
         if not self.thread.paused:
             self.thread.pause()
+            
+        self.serial_monitor: SerialMonitor = SerialMonitor40KHZ(self)
 
         self.status_frame.destroy()
         self.status_frame: StatusFrame = StatusFrameDutyWipe(self.mainframe, self)
