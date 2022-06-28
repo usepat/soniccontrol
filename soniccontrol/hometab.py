@@ -255,6 +255,8 @@ class Hometab(ttk.Frame):
 class HometabOldCatch(Hometab):
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
+        
+        self._mode: str = "mhz"
 
     def _initialize_frq_frame(self) -> None:
         super()._initialize_frq_frame()
@@ -295,8 +297,15 @@ class HometabOldCatch(Hometab):
 
         if mode == "khz":
             answer: str = self.root.sonicamp.set_mode(KhzMode())
+            
+            for child in self.gain_frame.children.values():
+                child.configure(state=tk.DISABLED)
+            
         elif mode == "mhz":
             answer: str = self.root.sonicamp.set_mode(MhzMode())
+            
+            for child in self.gain_frame.children.values():
+                child.configure(state=tk.NORMAL)
 
         self.insert_feed(answer)
 

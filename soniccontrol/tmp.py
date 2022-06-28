@@ -11,20 +11,27 @@ from typing import Union, TYPE_CHECKING
 from enum import Enum
 from tkinter import messagebox
 from tkinter import filedialog
+from numpy import isin
 from ttkbootstrap.tooltip import ToolTip
 
 from sonicpackage import (
     Status, 
     Command, 
+    SonicAmp,
     SonicCatch, 
     SonicWipeDuty, 
     SonicWipe, 
     SonicWipeOld, 
     SonicCatchOld, 
     SonicCatchAncient, 
-    SonicWipeAncient
+    SonicWipeAncient,
+    KhzMode,
+    MhzMode,
+    CatchMode,
+    WipeMode,
+    ValueNotSupported
 )
-from soniccontrol.sonicamp import SerialConnection, SerialConnectionGUI, ValueNotSupported
+from soniccontrol.sonicamp import SerialConnection, SerialConnectionGUI
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
@@ -80,8 +87,10 @@ class ScriptingTab(ttk.Frame):
         
         self._root: Root = root
         self._serial: SerialConnectionGUI = root.serial
-        self._sequence: Sequence = Sequence(self)
+        self._sequence: Sequence
         self._file_handler: FileHandler = FileHandler(self)
+        
+        self.current_task: tk.StringVar = tk.StringVar(value='Idle')
         
         self._initialize_button_frame()
         self._initialize_scripting_frame()
@@ -128,7 +137,7 @@ class ScriptingTab(ttk.Frame):
             text='Function Helper',
             style='info.TButton',
             width=15,
-            command=
+            command= lambda: ScriptingGuide()
         )
         
         ToolTip(
@@ -191,6 +200,9 @@ class ScriptingTab(ttk.Frame):
         self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
         
     def start_sequence(self) -> None:
+        self._file_handler: FileHandler = FileHandler(self)
+        self._sequence: Sequence = Sequence(self)
+        
         if not self.root.thread.paused:
             self.root.thread.pause()
         
@@ -198,7 +210,7 @@ class ScriptingTab(ttk.Frame):
             text='Stop',
             style='danger.TButton',
             image=self.root.pause_img,
-            command=self.close_sequence)
+            command=self.sequence.close_sequence)
         
         self.sequence_status.start()
         self.root.notebook.disable_children(self)
@@ -208,12 +220,51 @@ class ScriptingTab(ttk.Frame):
         self.save_script_btn.config(state=tk.DISABLED)
         self.script_guide_btn.config(state=tk.DISABLED)
         
-    def status_handler(self) -> None:
+        self.sequence.start()
+        
+    def end(self) -> None:
+        self.file_handler.logfilepath: str = None
+        self.start_script_btn.configure(
+            text='Run',
+            style='success.TButton',
+            image=self.root.play_img,
+            command=self.configure_for_sequence)
+        
+        # Changing GUI elemets so that everything looks different
+        self.scripttext.tag_delete("currentLine", 1.0, tk.END)
+        self.sequence_status.stop()
+        self.current_task.set("Idle")
+        self.previous_task = "Idle"
+        self.root.notebook.enable_children()
+        # Changing the state of the Buttons
+        self.scripttext.config(state=tk.NORMAL)
+        self.load_script_btn.config(state=tk.NORMAL)
+        self.save_script_btn.config(state=tk.NORMAL)
+        self.save_log_btn.config(state=tk.NORMAL)
+        self.script_guide_btn.config(state=tk.NORMAL)
+        self.sequence_status.config(text=None)
+        
+        self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        
+        self.root.attach_data()
+        
+        if not isinstance(self.root.sonicamp, SonicWipeDuty):
+            self.root.thread.resume()
+        
+    def status_handler(self, command: str, argument: int) -> None:
         if not isinstance(self.root.sonicamp, SonicWipeDuty):
             self.root.status: Status = self.root.sonicamp.get_status()
             self.root.attach_data()
             self.root.register_status_data(data=self.root.status)
+            self.file_handler.register_data(
+                command=command, 
+                argument=argument, 
+                status=self.root.status
+            )
             self.root.update_idletasks()
+            
+    def attach_data(self) -> None:
+        pass
 
     def publish(self):
         """
@@ -239,6 +290,7 @@ class Sequence(object):
         
         self.gui: ScriptingTab = gui
         self.serial: SerialConnectionGUI = gui.serial
+        self.sonicamp: SonicAmp = gui.root.sonicamp
         
         self.run: bool = False
         
@@ -317,11 +369,7 @@ class Sequence(object):
             counter (int): The index of the line
         """
         self.gui.highlight_line(counter)
-
-        # For the visual feedback of the sequence
-        self.current_task.set(f"{self.commands[counter]} {str(self.args_[counter])}")
-        if counter > 0:
-            self.previous_task: str = f"{self.commands[counter-1]} {self.args_[counter-1]}"
+        self.gui.current_task.set(f"{self.commands[counter]} {str(self.args_[counter])}")
 
         # Just for managing purposes
         if isinstance(self.args_[counter], list):
@@ -332,46 +380,84 @@ class Sequence(object):
                 argument: list = self.args_[counter]          
         
         else:
-            
             argument: int = self.args_[counter]
           
-        try:
-            if self.run:
-
-                logger.info(f"Executing command: {self.commands[counter]}")
-
-                if self.commands[counter] == "frequency":
-                    self.serial.send_and_get(Command.SET_FRQ + argument)
-
-                elif self.commands[counter] == "gain":
-                    self.serial.send_and_get(Command.SET_GAIN + argument)
-
-                elif self.commands[counter] == "ramp":
-                    self.start_ramp(argument)
-
-                elif self.commands[counter] == "hold":
-                    self.hold(argument)
-
-                elif self.commands[counter] == "on":
-                    self.serial.send_and_get(Command.SET_SIGNAL_ON)
-
-                elif self.commands[counter] == "off":
-                    self.serial.send_and_get(Command.SET_SIGNAL_OFF)
-
-                else:
-                    messagebox.showerror("Wrong command", f"the command {self.commands[counter]} is not known, please use the correct commands in the correct syntax")
-                    self.close_sequence()
         
-        except ValueNotSupported as e:
+        if self.run:
             
-            messagebox.showerror(
-                "Wrong Valuue",
-                "The value you wanted to set is not possible, please check your syntax again"
-            )
-            self.close_sequence()
+            logger.info(f"Executing command: {self.commands[counter]}")
+            
+            if self.commands[counter] == "frequency":
+                self.set_frq(argument)
+            
+            elif self.commands[counter] == "gain":
+                self.set_gain(argument)
+            
+            elif self.commands[counter] == "ramp":
+                self.start_ramp(argument)
+            
+            elif self.commands[counter] == "hold":
+                self.hold(argument)
+            
+            elif self.commands[counter] == "on":
+                self.serial.send_and_get(Command.SET_SIGNAL_ON)
+            
+            elif self.commands[counter] == "off":
+                self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+            
+            else:
+                messagebox.showerror("Wrong command", f"the command {self.commands[counter]} is not known, please use the correct commands in the correct syntax")
+                self.close_sequence()
         
-        self.status_handler()
-        self.register_data(self.commands[counter], argument=argument)
+        self.gui.status_handler(self.commands[counter], argument=argument)
+        
+    def set_frq(self, frq: int) -> None:
+        
+        if not self.sonicamp.values_supported(frq=frq):
+            if not self.manage_relay():
+                messagebox.showerror(
+                    "Wrong frequency value",
+                    "The frequency value, you wanted to set, is not possible. Please take a look at the syntax again"
+                )
+                self.close_sequence()
+        
+        self.sonicamp.set_frq(frq=frq)
+        
+    def set_gain(self, gain: int) -> None:
+        
+        if not self.sonicamp.values_supported(gain=gain):
+            if not self.manage_relay():
+                messagebox.showerror(
+                    "Wrong gain value",
+                    "The gain value, you wanted to set, is not possible. Please take a look at the syntax again"
+                )
+                self.close_sequence()
+        
+        self.sonicamp.set_gain(gain=gain)
+        
+    def manage_relay(self) -> bool:
+        
+        if (
+            isinstance(self.sonicamp, SonicCatchOld)
+            or isinstance(self.sonicamp, SonicCatchAncient)
+        ):
+            if self.sonicamp.mode == KhzMode():
+                self.sonicamp.set_mode(MhzMode())
+            else:
+                self.sonicamp.set_mode(KhzMode())
+            
+            return True
+        
+        elif isinstance(self.sonicamp, SonicCatch):
+            if self.sonicamp.mode == WipeMode():
+                self.sonicamp.set_mode(CatchMode())
+            else:
+                self.sonicamp.set_mode(WipeMode())
+            
+            return True
+            
+        else:
+            return False
         
     def start_ramp(self, args_: list) -> None:
         """
@@ -415,24 +501,19 @@ class Sequence(object):
             
             if self.run:
                 
-                if isinstance(self.root.sonicamp, SonicWipeDuty):
+                if isinstance(self.sonicamp, SonicWipeDuty):
                     self.gui.current_task.set(f"Ramp is @ {frq}%")
                     logger.info(f"Ramp is at {frq}%")
-                    
-                    self.serial.send_and_get(Command.SET_GAIN + frq)
-                    self.check_for_duty_wipe(gain=frq)
+                    self.set_frq(frq)
                 
                 else:
                     
                     self.current_task.set(f"Ramp is @ {frq/1000}kHz")
                     logger.info(f"Ramp is at {frq/1000}kHz")
                     
-                    self.serial.send_and_get(Command.SET_FRQ + frq)
+                    self.set_frq(frq)
                 
-                self.status_handler()
-                
-                self.register_data(command="ramp", argument=args_)
-                
+                self.gui.status_handler(command="ramp", argument=args_)
                 self.hold(hold_argument, ramp_mode=True)
             
             else:
@@ -576,6 +657,12 @@ class Sequence(object):
         
         logger.info(f"After parsing\tcommands = {self.commands}\targuments = {self.args_}\t loops = {self.loops}")
         
+    def close_sequence(self) -> None:
+        
+        if not self.run:
+            self.run: bool = False
+            
+        self.gui.end()
 
 
 class FileHandler(object):
@@ -595,6 +682,9 @@ class FileHandler(object):
         
         if not os.path.exists(self._sequence_dir):
             os.mkdir(self._sequence_dir)
+            
+        tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.logfilepath: str = f"{self._sequence_dir}//{tmp_timestamp}_{self.gui.root.sonicamp.type_}_sequence.csv"
     
     def load_file(self) -> None:
         self.script_filepath: str = filedialog.askopenfilename(defaultextension='.txt', filetypes=self._filetypes)

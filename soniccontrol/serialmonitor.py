@@ -148,7 +148,7 @@ Here is a list for all commands:
         self.insert_text(f">>> {command}")
 
         if not self._internal_command(command=command):
-            self.insert_text(self.serial.send_get(command))
+            self.insert_text(self.serial.send_and_get(command))
         
         self.canvas.yview_moveto(1)
         self.command_field.delete(0, tk.END)
