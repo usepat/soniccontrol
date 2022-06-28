@@ -13,7 +13,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 from ttkbootstrap.tooltip import ToolTip
 
-from sonicpackage import Status, Command, SonicCatch, SonicWipeDuty, SonicWipe, SonicWipeOld, SonicCatchOld
+from sonicpackage import Status, Command, SonicCatch, SonicWipeDuty, SonicWipe, SonicWipeOld, SonicCatchOld, SonicCatchAncient
 from soniccontrol.sonicamp import SerialConnection
 from soniccontrol.helpers import logger
 
@@ -559,7 +559,7 @@ class ScriptingTab(ttk.Frame):
             frq (int):  The frequency that should be set
             gain (int): The gain that should be setted, if needed
         """
-        running_soniccatch: bool = self.run and (isinstance(self.root.sonicamp, SonicCatch))# or isinstance(self.root.sonicamp, SonicCatchOld))
+        running_soniccatch: bool = self.run and (isinstance(self.root.sonicamp, SonicCatchOld) or isinstance(self.root.sonicamp, SonicCatchAncient))
         
         if (running_soniccatch and frq >= 1000000 and self.status.frequency < 1000000) or (running_soniccatch and gain and self.status.frequency >= 1000000):
             
