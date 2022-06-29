@@ -73,22 +73,14 @@ class ScriptingTab(ttk.Frame):
     def serial(self) -> SerialConnectionGUI:
         return self._serial
     
-    @property
-    def sequence(self) -> Sequence:
-        return self._sequence
-    
-    @property
-    def file_handler(self) -> FileHandler:
-        return self._file_handler
-    
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
         self.config(height=200, width=200)
         
         self._root: Root = root
         self._serial: SerialConnectionGUI = root.serial
-        self._sequence: Sequence
-        self._file_handler: FileHandler = FileHandler(self)
+        self.sequence: Sequence
+        self.file_handler: FileHandler = FileHandler(self)
         
         self.current_task: tk.StringVar = tk.StringVar(value='Idle')
         
@@ -200,8 +192,8 @@ class ScriptingTab(ttk.Frame):
         self.scripttext.tag_configure('currentLine', background="#3e3f3a", foreground="#dfd7ca")
         
     def start_sequence(self) -> None:
-        self._file_handler: FileHandler = FileHandler(self)
-        self._sequence: Sequence = Sequence(self)
+        self.sequence: Sequence = Sequence(self)
+        self.f
         
         if not self.root.thread.paused:
             self.root.thread.pause()
@@ -682,10 +674,13 @@ class FileHandler(object):
         
         if not os.path.exists(self._sequence_dir):
             os.mkdir(self._sequence_dir)
-            
+    
+    def decide_logfile_name(self) -> None:
         tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.logfilepath: str = f"{self._sequence_dir}//{tmp_timestamp}_{self.gui.root.sonicamp.type_}_sequence.csv"
-    
+
+        self._create_statuslog()
+        
     def load_file(self) -> None:
         self.script_filepath: str = filedialog.askopenfilename(defaultextension='.txt', filetypes=self._filetypes)
         

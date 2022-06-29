@@ -166,7 +166,7 @@ Here is a list for all commands:
             return True
 
         elif command == "exit":
-            self.destroy()
+            self.root.publish_serial_monitor()
             return True
 
         else:
