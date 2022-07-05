@@ -375,7 +375,7 @@ class Root(tk.Tk):
         self.status_frame: StatusFrame = StatusFrameCatch(self.mainframe, self)
 
         self.attach_data()
-        self.notebook.publish_for_catch()
+        self.notebook.publish_for_old_catch()
         self.status_frame.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
@@ -390,7 +390,7 @@ class Root(tk.Tk):
         self.status_frame: StatusFrame = StatusFrameWipe(self.mainframe, self)
 
         self.attach_data()
-        self.notebook.publish_for_wipe()
+        self.notebook.publish_for_old_wipe()
         self.status_frame.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
@@ -413,10 +413,26 @@ class Root(tk.Tk):
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
     def publish_for_catch(self) -> None:
-        pass
+        self.serial_monitor: SerialMonitor = SerialMonitorCatch(self)
+        
+        self.status_frame.destroy()
+        self.status_frame: StatusFrame = StatusFrameCatch(self.mainframe, self)
+
+        self.attach_data()
+        self.notebook.publish_for_catch()
+        self.status_frame.publish()
+        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
     def publish_for_wipe(self) -> None:
-        pass
+        self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
+        
+        self.status_frame.destroy()
+        self.status_frame: StatusFrame = StatusFrameCatch(self.mainframe, self)
+
+        self.attach_data()
+        self.notebook.publish_for_wipe()
+        self.status_frame.publish()
+        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
     def publish_serial_monitor(self) -> None:
         """

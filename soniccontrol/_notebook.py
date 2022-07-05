@@ -70,7 +70,7 @@ class ScNotebook(ttk.Notebook):
         for child in self.children.values():
             child.attach_data()
 
-    def _publish(self) -> None:
+    def _add_children(self) -> None:
         """
         publishes default children of the notebook
         """
@@ -95,6 +95,13 @@ class ScNotebook(ttk.Notebook):
         )
         self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
 
+    def _publish(self) -> None:
+        self.config(height=560)
+        self._add_children()
+        self.enable_children()
+        self.connectiontab.attach_data()
+        self._after_publish()
+
     def _after_publish(self) -> None:
         """
         Internal method that does the needed work for publishing
@@ -105,31 +112,23 @@ class ScNotebook(ttk.Notebook):
         self.select(self.connectiontab)
         self.pack(padx=5, pady=5)
 
-    def publish_for_catch(self) -> None:
+    def publish_for_old_catch(self) -> None:
         """
         Builds children and displayes menue for a soniccatch
         """
         self.hometab.destroy()
         self.hometab: Hometab = HometabOldCatch(self, self.root)
 
-        self.config(height=560)
         self._publish()
-        self.enable_children()
-        self.connectiontab.attach_data()
-        self._after_publish()
 
-    def publish_for_wipe(self) -> None:
+    def publish_for_old_wipe(self) -> None:
         """
         Builds children and displayes menue for a sonicwipe
         """
         self.hometab.destroy()
         self.hometab: Hometab = HometabOldWipe(self, self.root)
 
-        self.config(height=560)
         self._publish()
-        self.enable_children()
-        self.connectiontab.attach_data()
-        self._after_publish()
 
     def publish_for_dutywipe(self) -> None:
         """
@@ -138,44 +137,32 @@ class ScNotebook(ttk.Notebook):
         self.hometab.destroy()
         self.hometab: Hometab = HometabDutyWipe(self, self.root)
 
-        self.config(height=560)
         self._publish()
-        self.enable_children()
-        self.connectiontab.attach_data()
-        self._after_publish()
 
-    def publish_for_catch_rev_21(self) -> None:
+    def publish_for_catch(self) -> None:
         """
         Publishing building method for SonicCatch Revision 2.1
         """
         self.hometab.destroy()
         self.hometab: Hometab = HometabCatch(self, self.root)
 
-        self.config(height=560)
         self._publish()
-        self.enable_children()
-        self.connectiontab.attach_data()
-        self._after_publish()
 
-    def publish_for_wipe_rev_21(self) -> None:
+    def publish_for_wipe(self) -> None:
         """
         Publishing building method for SonicWipe Revision 2.1
         """
         self.hometab.destroy()
         self.hometab: Hometab = HometabWipe(self, self.root)
 
-        self.config(height=560)
         self._publish()
-        self.enable_children()
-        self.connectiontab.attach_data()
-        self._after_publish()
 
     def publish_disconnected(self) -> None:
         """
         Publishes children in the case that there is no connection
         """
         self.config(height=850)
-        self._publish()
+        self._add_children()
         self.select(self.connectiontab)
         self.connectiontab.abolish_data()
         self.disable_children(self.connectiontab)
