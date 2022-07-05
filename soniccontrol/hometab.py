@@ -590,26 +590,212 @@ class HometabDutyWipe(Hometab):
 class HometabCatch(Hometab):
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
+        
+        self._mode.set('catch')
+        
+    def _initialize_frq_frame(self) -> None:
+        super()._initialize_frq_frame()
+        
+        self.frq_spinbox.configure(
+            from_=self.root.sonicamp.mode.frq_start, to=self.root.sonicamp.mode.frq_stop
+        )
+        
+    def _initialize_gain_frame(self) -> None:
+        super()._initialize_gain_frame()
+        
+        self.gain_spinbox.configure(from_=0, to=150)
+        self.gain_scale.configure(from_=0, to=150)
+        
+    def _initialize_mode_frame(self) -> None:
+        super()._initialize_mode_frame()
+        
+        self.wipemode_button.configure(value='wipe')
+        self.catchmode_button.configure(value='catch')
 
     def change_mode(self) -> None:
-        return super().change_mode()
+        mode: str = self._mode.get()
+
+        if mode == "wipe":
+            answer: str = self.root.sonicamp.set_mode(KhzMode())
+            
+        elif mode == "catch":
+            answer: str = self.root.sonicamp.set_mode(MhzMode())
+                
+        self.insert_feed(answer)
 
     def attach_data(self) -> None:
-        return super().attach_data()
+        self.frq_spinbox.configure(
+            from_=self.root.sonicamp.mode.frq_start, to=self.root.sonicamp.mode.frq_stop
+        )
 
     def publish(self) -> None:
+        self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+
+        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+
+        self.wipemode_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.catchmode_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+
+        self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
+        self.serial_monitor_btn.pack(
+            side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH
+        )
+
+        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.utils_frame.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
+
+        self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+
+        self.topframe.pack(side=tk.TOP, padx=10, pady=10)
+        self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
+        
         return super().publish()
 
 
 class HometabWipe(Hometab):
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
+        
+        self._initialize_wipeframe()
+        
+        self.us_on_button: ttk.Button = ttk.Button(
+            self.frq_control_frame,
+            text="ON",
+            style="success.TButton",
+            width=10,
+            command=self.set_signal_on,
+        )
+
+        ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
+
+        self.us_off_button: ttk.Button = ttk.Button(
+            self.topframe,
+            text="OFF",
+            style="danger.TButton",
+            width=10,
+            command=self.set_signal_off,
+        )
+
+        ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
+    
+    def _initialize_frq_frame(self) -> None:
+        super()._initialize_frq_frame()
+        
+        self.frq_spinbox.configure(
+            from_=self.root.sonicamp.mode.frq_start, to=self.root.sonicamp.mode.frq_stop
+        )
+        
+    def _initialize_gain_frame(self) -> None:
+        super()._initialize_gain_frame()
+        
+        self.gain_spinbox.configure(from_=0, to=150)
+        self.gain_scale.configure(from_=0, to=150)     
+        
+    def _initialize_wipeframe(self) -> None:
+        self.wipe_frame: ttk.LabelFrame = ttk.LabelFrame(
+            self.topframe, text="Set up wiping"
+        )
+
+        self.wipe_spinbox: ttk.Spinbox = ttk.Spinbox(
+            self.wipe_frame,
+            from_=1,
+            increment=5,
+            to=100,
+            textvariable=self.wipe_var,
+            width=16,
+            style="dark.TSpinbox",
+        )
+
+        ToolTip(self.wipe_spinbox, text="Set up wipe cycles")
+
+        self.wipe_mode_frame: ttk.Label = ttk.Label(self.wipe_frame)
+
+        self.def_wipe_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.wipe_mode_frame,
+            text="Definite",
+            value=True,
+            variable=self._wipe_inf_or_def,
+            bootstyle="dark-outline-toolbutton",
+            width=6,
+            command=self.handle_wipe_mode,
+        )
+
+        self.inf_wipe_button: ttkb.Radiobutton = ttkb.Radiobutton(
+            self.wipe_mode_frame,
+            text="Infinite",
+            value=False,
+            variable=self._wipe_inf_or_def,
+            bootstyle="dark-outline-toolbutton",
+            width=6,
+            command=self.handle_wipe_mode,
+        )
+
+        self.start_wipe_button: ttk.Button = ttk.Button(
+            self.wipe_frame,
+            text="WIPE",
+            style="primary.TButton",
+            command=self.start_wiping,
+        )
+        
+    def start_wiping(self) -> None:
+        wipe_runs: int = self.wipe_mode.get()
+
+        if wipe_runs:
+            self.insert_feed(
+                self.serial.send_get(Command.SET_WIPE_DEF + self.wipe_var.get())
+            )
+
+        else:
+            self.insert_feed(self.serial.send_get(Command.SET_WIPE_INF))
+        
+    def handle_wipe_mode(self) -> None:
+        if self.wipe_mode.get():
+            self.wipe_spinbox.config(state=tk.NORMAL)
+
+        else:
+            self.wipe_spinbox.config(state=tk.DISABLED)
 
     def attach_data(self) -> None:
         return super().attach_data()
 
     def publish(self) -> None:
-        return super().publish()
+        """Function to build children of this frame"""
+        self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        
+        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        
+        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+
+        self.wipe_spinbox.pack(side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X)
+        self.inf_wipe_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.def_wipe_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipe_mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.start_wipe_button.pack(
+            side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X
+        )
+
+        self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+
+        self.us_off_button.grid(
+            row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
+        )
+
+        self.topframe.pack(side=tk.TOP, padx=20, pady=20)
+
+        super().publish()
 
 
 # from __future__ import annotations
