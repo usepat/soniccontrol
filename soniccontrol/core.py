@@ -117,7 +117,7 @@ class Root(tk.Tk):
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    VERSION: int = 1.054
+    VERSION: int = 1.055
     TITLE: str = "Soniccontrol"
     THEME: str = "sandstone"
 

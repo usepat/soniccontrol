@@ -343,7 +343,7 @@ class SonicMeasure(tk.Toplevel):
         Returns:
             list: The from the sonicamp returned sensor data
         """
-        data_str = self.serial.send_and_get(Command.GET_SENS)
+        data_str = self.serial.send_and_get(Command.GET_SENS, delay=0.5)
 
         if not len(data_str):
             return self._get_sens()
