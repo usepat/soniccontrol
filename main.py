@@ -13,6 +13,6 @@ gui.mainloop()
 # frequency 9000000
 # startloop 2
 # ramp 1200000 900000 10000 100ms
-# endloop
+# endloopz``
 # endloop
 # off

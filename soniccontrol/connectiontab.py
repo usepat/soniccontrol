@@ -145,11 +145,17 @@ class ConnectionTab(ttk.Frame):
             text="Disconnect",
             command=self.disconnect,
         )
+        
+        fwmsg: Union[str, list] = self.root.sonicamp.firmware_msg
+        
+        if isinstance(fwmsg, list):
+            fwmsg.insert(int(len(fwmsg)/2), '\n')
+            fwmsg: str = " ".join(fwmsg)
 
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
         self.serial_monitor_btn.config(state=tk.NORMAL)
-        self.firmware_label["text"] = self.root.sonicamp.firmware_msg
+        self.firmware_label["text"] = fwmsg
 
         for child in self.flash_frame.children.values():
             child.configure(state=tk.NORMAL)

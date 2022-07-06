@@ -4,6 +4,7 @@ from typing import Union, TYPE_CHECKING
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from numpy import insert
 import ttkbootstrap as ttkb
 
 from tkinter import messagebox
@@ -227,7 +228,7 @@ class Hometab(ttk.Frame):
         self.feedback_frame: ScrolledFrame = ScrolledFrame(
             self.output_frame,
             height=200,
-            width=300,
+            width=475,
         )
 
     def insert_feed(self, text: str) -> None:
@@ -352,7 +353,7 @@ class HometabOldWipe(Hometab):
         self._initialize_wipeframe()
 
         self.us_on_button: ttk.Button = ttk.Button(
-            self.frq_control_frame,
+            self.control_frame,
             text="ON",
             style="success.TButton",
             width=10,
@@ -373,7 +374,7 @@ class HometabOldWipe(Hometab):
 
     def _initialize_frq_frame(self) -> None:
         super()._initialize_frq_frame()
-        self.frq_spinbox.configure(from_=50000, to=1200000)
+        self.frq_spinbox.configure(from_=50000, to=1200000, width=10)
 
     def _initialize_wipeframe(self) -> None:
         self.wipe_frame: ttk.LabelFrame = ttk.LabelFrame(
@@ -385,7 +386,7 @@ class HometabOldWipe(Hometab):
             from_=1,
             increment=5,
             to=100,
-            textvariable=self.wipe_var,
+            textvariable=self._wipe_var,
             width=16,
             style="dark.TSpinbox",
         )
@@ -422,7 +423,7 @@ class HometabOldWipe(Hometab):
         )
 
     def handle_wipe_mode(self) -> None:
-        if self.wipe_mode.get():
+        if self._wipe_inf_or_def.get():
             self.wipe_spinbox.config(state=tk.NORMAL)
 
         else:
@@ -430,28 +431,29 @@ class HometabOldWipe(Hometab):
 
     def set_frq(self) -> None:
         return super().set_frq()
+    
+    def set_val(self) -> None:
+        self.insert_feed(self.set_frq())
 
     def set_signal_on(self) -> None:
         return super().set_signal_on()
 
     def set_signal_off(self) -> None:
-        self.root.wipe_mode.set(0)
         self.root.status_frame.wipe_progressbar.stop()
         return super().set_signal_off()
 
     def start_wiping(self) -> None:
-        wipe_runs: int = self.wipe_mode.get()
+        wipe_runs: int = self._wipe_inf_or_def.get()
 
         if wipe_runs:
             self.insert_feed(
-                self.serial.send_get(Command.SET_WIPE_DEF + self.wipe_var.get())
+                self.serial.send_and_get(Command.SET_WIPE_DEF + self._wipe_var.get())
             )
 
         else:
-            self.insert_feed(self.serial.send_get(Command.SET_WIPE_INF))
+            self.insert_feed(self.serial.send_and_get(Command.SET_WIPE_INF))
 
         self.root.status_frame.wipe_progressbar.start()
-        self.root.wipe_mode.set(1)
 
     def attach_data(self) -> None:
         return super().attach_data()
@@ -536,6 +538,10 @@ class HometabDutyWipe(Hometab):
             variable=self._gain,
         )
 
+    def _initialize_botframe(self) -> None:
+        super()._initialize_botframe()
+        self.feedback_frame.config(width=200)
+    
     def set_gain(self) -> None:
         gain: int = int(super().set_gain())
 
@@ -666,7 +672,7 @@ class HometabWipe(Hometab):
         self._initialize_wipeframe()
         
         self.us_on_button: ttk.Button = ttk.Button(
-            self.frq_control_frame,
+            self.control_frame,
             text="ON",
             style="success.TButton",
             width=10,
@@ -708,7 +714,7 @@ class HometabWipe(Hometab):
             from_=1,
             increment=5,
             to=100,
-            textvariable=self.wipe_var,
+            textvariable=self._wipe_var,
             width=16,
             style="dark.TSpinbox",
         )
@@ -745,18 +751,18 @@ class HometabWipe(Hometab):
         )
         
     def start_wiping(self) -> None:
-        wipe_runs: int = self.wipe_mode.get()
+        wipe_runs: int = self._wipe_inf_or_def.get()
 
         if wipe_runs:
             self.insert_feed(
-                self.serial.send_get(Command.SET_WIPE_DEF + self.wipe_var.get())
+                self.serial.send_and_get(Command.SET_WIPE_DEF + self._wipe_var.get())
             )
 
         else:
-            self.insert_feed(self.serial.send_get(Command.SET_WIPE_INF))
+            self.insert_feed(self.serial.send_and_get(Command.SET_WIPE_INF))
         
     def handle_wipe_mode(self) -> None:
-        if self.wipe_mode.get():
+        if self._wipe_inf_or_def.get():
             self.wipe_spinbox.config(state=tk.NORMAL)
 
         else:

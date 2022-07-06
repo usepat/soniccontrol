@@ -64,6 +64,26 @@ class ScriptCommand(Enum):
 
 
 class ScriptingTab(ttk.Frame):
+    """
+    The Scriptingtab is an element of the GUI with that
+    the user can control an SonicAmp through running a 
+    simple script in a very light weight syntax.
+    
+    The logic of the Scripitng Tab is splitted up into 3 
+    classes. Firstly the ScriptingTab class, that handles 
+    everything regarding the GUI. Every visual aspect of the 
+    Scripting tab are being managed here.
+    
+    Secondly the Sequence class, that handles the conrete logic
+    to control an sonicamp
+    
+    Thirdly, the FileHandler. Given the name, that class handles
+    filepaths and log files
+    
+    Inheritance:
+        ttk (ttk.Frame): inherets from the ttk.Frame object in 
+        the Tkinter library
+    """
     @property
     def root(self) -> Root:
         return self._root
@@ -73,6 +93,17 @@ class ScriptingTab(ttk.Frame):
         return self._serial
 
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
+        """
+        When initialized, the composit elements of the ScriptingTab 
+        are initialized. Mainly the sequence and filehandler objects
+        
+        Furhtermore, the creation of the GUI children is being held 
+        in the internal initialize methods
+
+        Args:
+            parent (ScNotebook): The tkinter parent of the ScriptingTab
+            root (Root): The root instance
+        """
         super().__init__(parent, *args, **kwargs)
         self.config(height=200, width=200)
 
@@ -87,6 +118,10 @@ class ScriptingTab(ttk.Frame):
         self._initialize_scripting_frame()
 
     def _initialize_button_frame(self) -> None:
+        """
+        Given the name, this method create GUI children
+        for the button frame
+        """
         self.button_frame: ttk.Frame = ttk.Frame(self)
 
         self.start_script_btn = ttk.Button(
@@ -128,12 +163,16 @@ class ScriptingTab(ttk.Frame):
             text="Function Helper",
             style="info.TButton",
             width=15,
-            command=lambda: ScriptingGuide(),
+            command=lambda: ScriptingGuide(self.root, self.scripttext),
         )
 
         ToolTip(self.script_guide_btn, text="Help regarding the scripting commands")
 
     def _initialize_scripting_frame(self) -> None:
+        """
+        Given the name, this method creates the composit children
+        regarding the scripting frame
+        """
         self.scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self,
             text="Script Editor",
@@ -190,12 +229,24 @@ class ScriptingTab(ttk.Frame):
         )
 
     def start_sequence(self) -> None:
+        """
+        This method configures everything in the GUI so that 
+        a new sequence can be initialized. A new Sequence instance
+        is being created
+        
+        A log file for this sequence is being created
+        
+        The SonicAgent Thread is paused so that the Scripting tab
+        is now responsible for updating the GUI to the new state 
+        of the sonicamp
+        """
         self.sequence: Sequence = Sequence(self)
         self.file_handler.decide_logfile_name()
 
         if not self.root.thread.paused:
             self.root.thread.pause()
 
+        # GUI children to manage the appearance
         self.start_script_btn.configure(
             text="Stop",
             style="danger.TButton",
@@ -214,6 +265,11 @@ class ScriptingTab(ttk.Frame):
         self.sequence.start()
 
     def end(self) -> None:
+        """
+        Similar to the start_sequence method, this method
+        ends the sequence with configuring everything for 
+        normal usage again.
+        """
         self.file_handler.logfilepath: str = None
         self.start_script_btn.configure(
             text="Run",
@@ -228,6 +284,7 @@ class ScriptingTab(ttk.Frame):
         self.current_task.set("Idle")
         self.previous_task = "Idle"
         self.root.notebook.enable_children()
+        
         # Changing the state of the Buttons
         self.scripttext.config(state=tk.NORMAL)
         self.load_script_btn.config(state=tk.NORMAL)
@@ -237,13 +294,20 @@ class ScriptingTab(ttk.Frame):
         self.sequence_status.config(text=None)
 
         self.serial.send_and_get(Command.SET_SIGNAL_OFF)
-
         self.root.attach_data()
 
         if not isinstance(self.root.sonicamp, SonicWipeDuty):
             self.root.thread.resume()
 
     def status_handler(self, command: str, argument: int) -> None:
+        """
+        The builtin status handler method of the ScriptingTab class
+        It baisically resembles the engine method of Root
+
+        Args:
+            command (str): The command, that currently is being executed
+            argument (int): The argument for that command
+        """
         if not isinstance(self.root.sonicamp, SonicWipeDuty):
             self.root.sonicamp.status: Status = self.root.sonicamp.get_status()
             self.root.attach_data()
@@ -279,9 +343,48 @@ class ScriptingTab(ttk.Frame):
         )
 
 
-class Sequence(object):
-    def __init__(self, gui: ScriptingTab) -> None:
+class Sequence:
+    """
+    The Sequecne class is the core logic of the Scripting tab.
+    This class is responsible for controlling the sonicamp based
+    on the commands and arguments that were passed into the scripttext
+    from the ScriptingTab
+    
+    The main attributes of the sequence class are:
+        self.commands (list) -> List of string commands from the scripttext
+        self.args_ (list) -> list of arguments for commands from the scripttext
+        self.loops (list) -> list of lists where one can find data, that describes
+            a loop block.
+            
+        The above lists have the same lenght, so that the index information can 
+        be used to identify the command for the concrete argument
+        
+        Element of the self.loops list:
+        [
+            <index of the startloop command for the concrete block>,
+            <quantifier for the loop block (how often should this block be run)>,
+            <index of the endloop command for the concrete block>
+        ]
+        
+        Example for an self.loops list:
+        [[],[],[2, 5, 6],[3, 3, 5], [], [], []]
+        
+        This list tells the programm, that on line 3 there is a startloop 5 with an
+        endloop command on line 7. Furthermore, there is a nested loop with an 
+        startloop 3 on line 4 and a endloop command on line 6
 
+    """
+    def __init__(self, gui: ScriptingTab) -> None:
+        """
+        Every attribute is being initialized.
+        The main attributes are the commands, args_ and loops
+        
+        Furthermore there is self.run, that is being used
+        for indicating if the sequence is currently running
+
+        Args:
+            gui (ScriptingTab): the ScriptingTab class from above
+        """
         self.gui: ScriptingTab = gui
         self.serial: SerialConnectionGUI = gui.serial
         self.sonicamp: SonicAmp = gui.root.sonicamp
@@ -293,6 +396,9 @@ class Sequence(object):
         self.loops: list = []
 
     def start(self) -> None:
+        """
+        This method uses
+        """
 
         self.run: bool = True
 
@@ -404,9 +510,15 @@ class Sequence(object):
 
             elif self.commands[counter] == "on":
                 self.serial.send_and_get(Command.SET_SIGNAL_ON)
+                
+                if isinstance(self.sonicamp, SonicWipeDuty):
+                    self.gui.root.status_frame.signal_on()
 
             elif self.commands[counter] == "off":
                 self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+                
+                if isinstance(self.sonicamp, SonicWipeDuty):
+                    self.gui.root.status_frame.signal_off()
 
             else:
                 messagebox.showerror(
@@ -441,6 +553,9 @@ class Sequence(object):
             self.close_sequence()
 
         self.sonicamp.set_gain(gain=gain)
+        
+        if isinstance(self.sonicamp, SonicWipeDuty):
+            self.gui.root.status_frame.change_values(gain=gain)
 
     def manage_relay(self) -> bool:
 
@@ -720,7 +835,7 @@ class FileHandler(object):
         )
 
         with open(self.script_filepath, "r") as f:
-            self.gui.scripttext.delete(0, tk.END)
+            self.gui.scripttext.delete(1.0, tk.END)
             self.gui.scripttext.insert(tk.INSERT, f.read())
 
     def save_file(self) -> None:
@@ -729,7 +844,7 @@ class FileHandler(object):
         )
 
         with open(self.save_filename, "w") as f:
-            f.write(self.gui.scripttext.get(0, tk.END))
+            f.write(self.gui.scripttext.get(1.0, tk.END))
 
     def open_logfile(self) -> None:
         self.logfilepath = filedialog.asksaveasfilename(
@@ -740,30 +855,32 @@ class FileHandler(object):
         """
         Internal method to create the csv status log file
         """
-        with open(self.logfilepath, "a") as statuslog:
-            csv_writer: csv.DictWriter = csv.DictWriter(
-                statuslog, fieldnames=self.fieldnames
-            )
-            csv_writer.writeheader()
+        if not isinstance(self.gui.root.sonicamp, SonicWipeDuty):
+            with open(self.logfilepath, "a") as statuslog:
+                csv_writer: csv.DictWriter = csv.DictWriter(
+                    statuslog, fieldnames=self.fieldnames
+                )
+                csv_writer.writeheader()
 
     def register_data(
         self, command: str, argument: Union[int, list], status: Status
     ) -> None:
+        
+        if not isinstance(self.gui.root.sonicamp, SonicWipeDuty):
+            data_dict: dict = {
+                "timestamp": datetime.datetime.now(),
+                "command": command,
+                "argument": argument,
+                "signal": status.signal,
+                "frequency": status.frequency,
+                "gain": status.gain,
+            }
 
-        data_dict: dict = {
-            "timestamp": datetime.datetime.now(),
-            "command": command,
-            "argument": argument,
-            "signal": status.signal,
-            "frequency": status.frequency,
-            "gain": status.gain,
-        }
-
-        with open(self.logfilepath, "a", newline="") as logfile:
-            csv_writer: csv.DictWriter = csv.DictWriter(
-                logfile, fieldnames=self.fieldnames
-            )
-            csv_writer.writerow(data_dict)
+            with open(self.logfilepath, "a", newline="") as logfile:
+                csv_writer: csv.DictWriter = csv.DictWriter(
+                    logfile, fieldnames=self.fieldnames
+                )
+                csv_writer.writerow(data_dict)
 
 
 class ScriptingGuide(tk.Toplevel):
