@@ -217,6 +217,7 @@ class Root(tk.Tk):
         self.mainframe: ttk.Frame = ttk.Frame(self)
         self.notebook: ScNotebook = ScNotebook(self.mainframe, self)
         self.status_frame: ttk.Frame = ttk.Frame(self.mainframe)
+        self.serial_monitor: ttk.Frame = ttk.Frame(self.mainframe)
 
         self.__reinit__()
 
@@ -393,6 +394,7 @@ class Root(tk.Tk):
         Specifically for all SonicCatches that were developed
         pre Revision 2.1 (firmware 1.0)
         """
+        self.serial_monitor.destroy()
         self.serial_monitor: SerialMonitor = SerialMonitorCatch(self)
         
         self.status_frame.destroy()
@@ -411,6 +413,7 @@ class Root(tk.Tk):
         Specifically for all SonicWipes that were developed
         pre Revision 2.1 (firmware 1.0)
         """
+        self.serial_monitor.destroy()
         self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
         
         self.status_frame.destroy()
@@ -432,6 +435,7 @@ class Root(tk.Tk):
         if not self.thread.paused:
             self.thread.pause()
             
+        self.serial_monitor.destroy()
         self.serial_monitor: SerialMonitor = SerialMonitor40KHZ(self)
 
         self.status_frame.destroy()
@@ -447,6 +451,7 @@ class Root(tk.Tk):
         Method that publishes everything for the SonicCatch
         Revision 2.1 (firmware 1.0)
         """
+        self.serial_monitor.destroy()
         self.serial_monitor: SerialMonitor = SerialMonitorCatch(self)
         
         self.status_frame.destroy()
@@ -462,6 +467,7 @@ class Root(tk.Tk):
         Method that publishes everything for the SonicWipe
         Revision 2.1 (firmware 1.0)
         """
+        self.serial_monitor.destroy()
         self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
         
         self.status_frame.destroy()

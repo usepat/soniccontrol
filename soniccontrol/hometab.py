@@ -545,14 +545,8 @@ class HometabDutyWipe(Hometab):
     def set_gain(self) -> None:
         gain: int = int(super().set_gain())
 
-        if gain:
-            self.insert_feed(f"Gain setted to {gain}%")
-            self.root.status_frame.change_values(gain=gain)
-
-        else:
-            messagebox.showwarning(
-                "Error", "Something went wrong, try again, or restart the application"
-            )
+        self.insert_feed(f"Gain setted to {gain}%")
+        self.root.status_frame.change_values(gain=gain)
 
     def set_signal_on(self) -> None:
         if self.serial.send_and_get(Command.SET_SIGNAL_ON):
