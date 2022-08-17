@@ -1,0 +1,3371 @@
+('C:\\Users\\Ilja '
+ 'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\build\\SonicControl-155\\PYZ-00.pyz',
+ [('tempfile',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tempfile.py',
+   'PYMODULE'),
+  ('random',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\random.py',
+   'PYMODULE'),
+  ('_strptime',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_strptime.py',
+   'PYMODULE'),
+  ('datetime',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\datetime.py',
+   'PYMODULE'),
+  ('calendar',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\calendar.py',
+   'PYMODULE'),
+  ('argparse',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\argparse.py',
+   'PYMODULE'),
+  ('textwrap',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\textwrap.py',
+   'PYMODULE'),
+  ('copy',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\copy.py',
+   'PYMODULE'),
+  ('gettext',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\gettext.py',
+   'PYMODULE'),
+  ('struct',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\struct.py',
+   'PYMODULE'),
+  ('statistics',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\statistics.py',
+   'PYMODULE'),
+  ('decimal',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\decimal.py',
+   'PYMODULE'),
+  ('_pydecimal',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_pydecimal.py',
+   'PYMODULE'),
+  ('contextvars',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\contextvars.py',
+   'PYMODULE'),
+  ('fractions',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\fractions.py',
+   'PYMODULE'),
+  ('numbers',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\numbers.py',
+   'PYMODULE'),
+  ('hashlib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\hashlib.py',
+   'PYMODULE'),
+  ('logging',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\logging\\__init__.py',
+   'PYMODULE'),
+  ('pickle',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pickle.py',
+   'PYMODULE'),
+  ('pprint',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pprint.py',
+   'PYMODULE'),
+  ('_compat_pickle',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_compat_pickle.py',
+   'PYMODULE'),
+  ('threading',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\threading.py',
+   'PYMODULE'),
+  ('_threading_local',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_threading_local.py',
+   'PYMODULE'),
+  ('contextlib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\contextlib.py',
+   'PYMODULE'),
+  ('string',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\string.py',
+   'PYMODULE'),
+  ('bisect',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\bisect.py',
+   'PYMODULE'),
+  ('shutil',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\shutil.py',
+   'PYMODULE'),
+  ('zipfile',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\zipfile.py',
+   'PYMODULE'),
+  ('py_compile',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\py_compile.py',
+   'PYMODULE'),
+  ('ntpath',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ntpath.py',
+   'PYMODULE'),
+  ('genericpath',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\genericpath.py',
+   'PYMODULE'),
+  ('importlib.machinery',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\importlib\\machinery.py',
+   'PYMODULE'),
+  ('importlib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\importlib\\__init__.py',
+   'PYMODULE'),
+  ('importlib.abc',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\importlib\\abc.py',
+   'PYMODULE'),
+  ('typing',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\typing.py',
+   'PYMODULE'),
+  ('importlib._bootstrap',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\importlib\\_bootstrap.py',
+   'PYMODULE'),
+  ('importlib._bootstrap_external',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\importlib\\_bootstrap_external.py',
+   'PYMODULE'),
+  ('importlib.metadata',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\importlib\\metadata.py',
+   'PYMODULE'),
+  ('configparser',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\configparser.py',
+   'PYMODULE'),
+  ('pathlib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pathlib.py',
+   'PYMODULE'),
+  ('urllib.parse',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\urllib\\parse.py',
+   'PYMODULE'),
+  ('urllib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\urllib\\__init__.py',
+   'PYMODULE'),
+  ('email',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\__init__.py',
+   'PYMODULE'),
+  ('email.parser',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\parser.py',
+   'PYMODULE'),
+  ('email._policybase',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\_policybase.py',
+   'PYMODULE'),
+  ('email.utils',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\utils.py',
+   'PYMODULE'),
+  ('email._parseaddr',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\_parseaddr.py',
+   'PYMODULE'),
+  ('socket',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\socket.py',
+   'PYMODULE'),
+  ('selectors',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\selectors.py',
+   'PYMODULE'),
+  ('email.feedparser',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\feedparser.py',
+   'PYMODULE'),
+  ('email.message',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\message.py',
+   'PYMODULE'),
+  ('email.policy',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\policy.py',
+   'PYMODULE'),
+  ('email.contentmanager',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\contentmanager.py',
+   'PYMODULE'),
+  ('email.quoprimime',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\quoprimime.py',
+   'PYMODULE'),
+  ('email.headerregistry',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\headerregistry.py',
+   'PYMODULE'),
+  ('email.iterators',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\iterators.py',
+   'PYMODULE'),
+  ('email.generator',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\generator.py',
+   'PYMODULE'),
+  ('email._encoded_words',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\_encoded_words.py',
+   'PYMODULE'),
+  ('base64',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\base64.py',
+   'PYMODULE'),
+  ('getopt',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\getopt.py',
+   'PYMODULE'),
+  ('quopri',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\quopri.py',
+   'PYMODULE'),
+  ('uu',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\uu.py',
+   'PYMODULE'),
+  ('optparse',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\optparse.py',
+   'PYMODULE'),
+  ('email._header_value_parser',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\_header_value_parser.py',
+   'PYMODULE'),
+  ('email.header',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\header.py',
+   'PYMODULE'),
+  ('email.base64mime',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\base64mime.py',
+   'PYMODULE'),
+  ('email.charset',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\charset.py',
+   'PYMODULE'),
+  ('email.encoders',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\encoders.py',
+   'PYMODULE'),
+  ('email.errors',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\email\\errors.py',
+   'PYMODULE'),
+  ('csv',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\csv.py',
+   'PYMODULE'),
+  ('posixpath',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\posixpath.py',
+   'PYMODULE'),
+  ('importlib.util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\importlib\\util.py',
+   'PYMODULE'),
+  ('tarfile',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tarfile.py',
+   'PYMODULE'),
+  ('gzip',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\gzip.py',
+   'PYMODULE'),
+  ('_compression',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_compression.py',
+   'PYMODULE'),
+  ('lzma',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\lzma.py',
+   'PYMODULE'),
+  ('bz2',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\bz2.py',
+   'PYMODULE'),
+  ('fnmatch',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\fnmatch.py',
+   'PYMODULE'),
+  ('stat',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\stat.py',
+   'PYMODULE'),
+  ('os',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\os.py',
+   'PYMODULE'),
+  ('subprocess',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\subprocess.py',
+   'PYMODULE'),
+  ('signal',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\signal.py',
+   'PYMODULE'),
+  ('pkg_resources',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\__init__.py',
+   'PYMODULE'),
+  ('packaging.__about__',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\__about__.py',
+   'PYMODULE'),
+  ('packaging.markers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\markers.py',
+   'PYMODULE'),
+  ('pyparsing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\__init__.py',
+   'PYMODULE'),
+  ('pyparsing.common',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\common.py',
+   'PYMODULE'),
+  ('pyparsing.testing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\testing.py',
+   'PYMODULE'),
+  ('pyparsing.unicode',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\unicode.py',
+   'PYMODULE'),
+  ('pyparsing.helpers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\helpers.py',
+   'PYMODULE'),
+  ('html.entities',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\html\\entities.py',
+   'PYMODULE'),
+  ('html',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\html\\__init__.py',
+   'PYMODULE'),
+  ('pyparsing.results',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\results.py',
+   'PYMODULE'),
+  ('pyparsing.core',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\core.py',
+   'PYMODULE'),
+  ('pyparsing.diagram',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\diagram\\__init__.py',
+   'PYMODULE'),
+  ('pdb',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pdb.py',
+   'PYMODULE'),
+  ('pydoc',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pydoc.py',
+   'PYMODULE'),
+  ('webbrowser',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\webbrowser.py',
+   'PYMODULE'),
+  ('http.server',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\http\\server.py',
+   'PYMODULE'),
+  ('http',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\http\\__init__.py',
+   'PYMODULE'),
+  ('socketserver',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\socketserver.py',
+   'PYMODULE'),
+  ('mimetypes',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\mimetypes.py',
+   'PYMODULE'),
+  ('http.client',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\http\\client.py',
+   'PYMODULE'),
+  ('ssl',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ssl.py',
+   'PYMODULE'),
+  ('pydoc_data.topics',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pydoc_data\\topics.py',
+   'PYMODULE'),
+  ('pydoc_data',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pydoc_data\\__init__.py',
+   'PYMODULE'),
+  ('tty',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tty.py',
+   'PYMODULE'),
+  ('runpy',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\runpy.py',
+   'PYMODULE'),
+  ('shlex',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\shlex.py',
+   'PYMODULE'),
+  ('glob',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\glob.py',
+   'PYMODULE'),
+  ('code',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\code.py',
+   'PYMODULE'),
+  ('codeop',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\codeop.py',
+   'PYMODULE'),
+  ('__future__',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\__future__.py',
+   'PYMODULE'),
+  ('dis',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\dis.py',
+   'PYMODULE'),
+  ('opcode',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\opcode.py',
+   'PYMODULE'),
+  ('bdb',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\bdb.py',
+   'PYMODULE'),
+  ('cmd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\cmd.py',
+   'PYMODULE'),
+  ('pyparsing.actions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\actions.py',
+   'PYMODULE'),
+  ('pyparsing.exceptions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\exceptions.py',
+   'PYMODULE'),
+  ('pyparsing.util',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyparsing\\util.py',
+   'PYMODULE'),
+  ('packaging.version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\version.py',
+   'PYMODULE'),
+  ('packaging._musllinux',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\_musllinux.py',
+   'PYMODULE'),
+  ('packaging.specifiers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\specifiers.py',
+   'PYMODULE'),
+  ('packaging._manylinux',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\_manylinux.py',
+   'PYMODULE'),
+  ('ctypes',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\__init__.py',
+   'PYMODULE'),
+  ('ctypes._endian',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\_endian.py',
+   'PYMODULE'),
+  ('packaging',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\__init__.py',
+   'PYMODULE'),
+  ('packaging._structures',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\_structures.py',
+   'PYMODULE'),
+  ('packaging.requirements',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\requirements.py',
+   'PYMODULE'),
+  ('packaging.utils',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\utils.py',
+   'PYMODULE'),
+  ('packaging.tags',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\packaging\\tags.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.requirements',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\requirements.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\version.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.tags',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\tags.py',
+   'PYMODULE'),
+  ('distutils.util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\util.py',
+   'PYMODULE'),
+  ('distutils.filelist',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\filelist.py',
+   'PYMODULE'),
+  ('distutils.debug',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\debug.py',
+   'PYMODULE'),
+  ('distutils.file_util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\file_util.py',
+   'PYMODULE'),
+  ('distutils.dir_util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\dir_util.py',
+   'PYMODULE'),
+  ('distutils.sysconfig',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\sysconfig.py',
+   'PYMODULE'),
+  ('distutils.text_file',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\text_file.py',
+   'PYMODULE'),
+  ('_osx_support',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_osx_support.py',
+   'PYMODULE'),
+  ('_aix_support',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_aix_support.py',
+   'PYMODULE'),
+  ('_bootsubprocess',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_bootsubprocess.py',
+   'PYMODULE'),
+  ('distutils.log',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\log.py',
+   'PYMODULE'),
+  ('distutils',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\__init__.py',
+   'PYMODULE'),
+  ('distutils.archive_util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\archive_util.py',
+   'PYMODULE'),
+  ('distutils.ccompiler',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\ccompiler.py',
+   'PYMODULE'),
+  ('distutils.fancy_getopt',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\fancy_getopt.py',
+   'PYMODULE'),
+  ('distutils.spawn',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\spawn.py',
+   'PYMODULE'),
+  ('distutils.dep_util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\dep_util.py',
+   'PYMODULE'),
+  ('distutils.errors',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\distutils\\errors.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.markers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\markers.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging._typing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_typing.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging._compat',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_compat.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__init__.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.pyparsing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\pyparsing.py',
+   'PYMODULE'),
+  ('uuid',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\uuid.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging._structures',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_structures.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.utils',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\utils.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.__about__',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__about__.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.specifiers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\specifiers.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.appdirs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\appdirs.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\_vendor\\__init__.py',
+   'PYMODULE'),
+  ('sysconfig',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\sysconfig.py',
+   'PYMODULE'),
+  ('pkg_resources.extern',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pkg_resources\\extern\\__init__.py',
+   'PYMODULE'),
+  ('imp',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\imp.py',
+   'PYMODULE'),
+  ('inspect',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\inspect.py',
+   'PYMODULE'),
+  ('token',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\token.py',
+   'PYMODULE'),
+  ('ast',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ast.py',
+   'PYMODULE'),
+  ('plistlib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\plistlib.py',
+   'PYMODULE'),
+  ('xml.parsers.expat',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\parsers\\expat.py',
+   'PYMODULE'),
+  ('xml.parsers',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\parsers\\__init__.py',
+   'PYMODULE'),
+  ('xml',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\__init__.py',
+   'PYMODULE'),
+  ('xml.sax.expatreader',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\sax\\expatreader.py',
+   'PYMODULE'),
+  ('xml.sax.saxutils',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\sax\\saxutils.py',
+   'PYMODULE'),
+  ('urllib.request',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\urllib\\request.py',
+   'PYMODULE'),
+  ('getpass',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\getpass.py',
+   'PYMODULE'),
+  ('nturl2path',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\nturl2path.py',
+   'PYMODULE'),
+  ('ftplib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ftplib.py',
+   'PYMODULE'),
+  ('netrc',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\netrc.py',
+   'PYMODULE'),
+  ('http.cookiejar',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\http\\cookiejar.py',
+   'PYMODULE'),
+  ('urllib.response',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\urllib\\response.py',
+   'PYMODULE'),
+  ('urllib.error',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\urllib\\error.py',
+   'PYMODULE'),
+  ('xml.sax',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\sax\\__init__.py',
+   'PYMODULE'),
+  ('xml.sax.handler',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\sax\\handler.py',
+   'PYMODULE'),
+  ('xml.sax._exceptions',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\sax\\_exceptions.py',
+   'PYMODULE'),
+  ('xml.sax.xmlreader',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xml\\sax\\xmlreader.py',
+   'PYMODULE'),
+  ('platform',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\platform.py',
+   'PYMODULE'),
+  ('pkgutil',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\pkgutil.py',
+   'PYMODULE'),
+  ('zipimport',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\zipimport.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_spawn_posix',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\popen_spawn_posix.py',
+   'PYMODULE'),
+  ('multiprocessing.resource_tracker',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\resource_tracker.py',
+   'PYMODULE'),
+  ('multiprocessing.util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\util.py',
+   'PYMODULE'),
+  ('multiprocessing.forkserver',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\forkserver.py',
+   'PYMODULE'),
+  ('multiprocessing.connection',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\connection.py',
+   'PYMODULE'),
+  ('multiprocessing.resource_sharer',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\resource_sharer.py',
+   'PYMODULE'),
+  ('xmlrpc.client',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xmlrpc\\client.py',
+   'PYMODULE'),
+  ('xmlrpc',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\xmlrpc\\__init__.py',
+   'PYMODULE'),
+  ('hmac',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\hmac.py',
+   'PYMODULE'),
+  ('multiprocessing.process',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\process.py',
+   'PYMODULE'),
+  ('multiprocessing.context',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\context.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_forkserver',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\popen_forkserver.py',
+   'PYMODULE'),
+  ('multiprocessing.sharedctypes',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\sharedctypes.py',
+   'PYMODULE'),
+  ('multiprocessing.heap',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\heap.py',
+   'PYMODULE'),
+  ('multiprocessing.pool',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\pool.py',
+   'PYMODULE'),
+  ('multiprocessing.dummy',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\dummy\\__init__.py',
+   'PYMODULE'),
+  ('multiprocessing.dummy.connection',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\dummy\\connection.py',
+   'PYMODULE'),
+  ('queue',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\queue.py',
+   'PYMODULE'),
+  ('multiprocessing.queues',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\queues.py',
+   'PYMODULE'),
+  ('multiprocessing.synchronize',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\synchronize.py',
+   'PYMODULE'),
+  ('multiprocessing.managers',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\managers.py',
+   'PYMODULE'),
+  ('multiprocessing.shared_memory',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\shared_memory.py',
+   'PYMODULE'),
+  ('secrets',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\secrets.py',
+   'PYMODULE'),
+  ('multiprocessing.reduction',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\reduction.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_fork',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\popen_fork.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_spawn_win32',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\popen_spawn_win32.py',
+   'PYMODULE'),
+  ('multiprocessing.spawn',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\spawn.py',
+   'PYMODULE'),
+  ('multiprocessing',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\multiprocessing\\__init__.py',
+   'PYMODULE'),
+  ('soniccontrol.statusframe',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\statusframe.py',
+   'PYMODULE'),
+  ('sonicpackage',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\__init__.py',
+   'PYMODULE'),
+  ('sonicpackage.exceptions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\exceptions.py',
+   'PYMODULE'),
+  ('sonicpackage.helpers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\helpers.py',
+   'PYMODULE'),
+  ('sonicpackage.threads',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\threads.py',
+   'PYMODULE'),
+  ('sonicpackage.amp',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\amp.py',
+   'PYMODULE'),
+  ('sonicpackage.serial_interface',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\serial_interface.py',
+   'PYMODULE'),
+  ('serial.tools.list_ports',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\tools\\list_ports.py',
+   'PYMODULE'),
+  ('serial.tools',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\tools\\__init__.py',
+   'PYMODULE'),
+  ('serial.tools.list_ports_common',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\tools\\list_ports_common.py',
+   'PYMODULE'),
+  ('serial.tools.list_ports_posix',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\tools\\list_ports_posix.py',
+   'PYMODULE'),
+  ('serial.tools.list_ports_osx',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\tools\\list_ports_osx.py',
+   'PYMODULE'),
+  ('serial.tools.list_ports_linux',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\tools\\list_ports_linux.py',
+   'PYMODULE'),
+  ('serial.tools.list_ports_windows',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\tools\\list_ports_windows.py',
+   'PYMODULE'),
+  ('serial.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\win32.py',
+   'PYMODULE'),
+  ('ctypes.wintypes',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\wintypes.py',
+   'PYMODULE'),
+  ('serial',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\__init__.py',
+   'PYMODULE'),
+  ('serial.serialjava',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\serialjava.py',
+   'PYMODULE'),
+  ('serial.serialposix',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\serialposix.py',
+   'PYMODULE'),
+  ('serial.serialwin32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\serialwin32.py',
+   'PYMODULE'),
+  ('serial.serialcli',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\serialcli.py',
+   'PYMODULE'),
+  ('serial.serialutil',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\serial\\serialutil.py',
+   'PYMODULE'),
+  ('sonicpackage.basic_amp_classes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\basic_amp_classes.py',
+   'PYMODULE'),
+  ('dataclasses',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\dataclasses.py',
+   'PYMODULE'),
+  ('sonicpackage.devices',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\devices.py',
+   'PYMODULE'),
+  ('sonicpackage.sonicdata',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\sonicpackage\\sonicdata.py',
+   'PYMODULE'),
+  ('ttkbootstrap',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\__init__.py',
+   'PYMODULE'),
+  ('tkinter.scrolledtext',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\scrolledtext.py',
+   'PYMODULE'),
+  ('tkinter.constants',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\constants.py',
+   'PYMODULE'),
+  ('ttkbootstrap.window',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\window.py',
+   'PYMODULE'),
+  ('ttkbootstrap.icons',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\icons.py',
+   'PYMODULE'),
+  ('ttkbootstrap.constants',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\constants.py',
+   'PYMODULE'),
+  ('ttkbootstrap.widgets',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\widgets.py',
+   'PYMODULE'),
+  ('PIL.ImageDraw',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageDraw.py',
+   'PYMODULE'),
+  ('PIL.ImageDraw2',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageDraw2.py',
+   'PYMODULE'),
+  ('PIL.ImagePath',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImagePath.py',
+   'PYMODULE'),
+  ('PIL.ImageFont',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageFont.py',
+   'PYMODULE'),
+  ('PIL._util',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\_util.py',
+   'PYMODULE'),
+  ('PIL.ImageColor',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageColor.py',
+   'PYMODULE'),
+  ('colorsys',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\colorsys.py',
+   'PYMODULE'),
+  ('PIL.ImageTk',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageTk.py',
+   'PYMODULE'),
+  ('PIL.Image',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\Image.py',
+   'PYMODULE'),
+  ('PIL.XpmImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\XpmImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImageFile',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageFile.py',
+   'PYMODULE'),
+  ('PIL.SunImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\SunImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MpoImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\MpoImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.WebPImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\WebPImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FpxImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\FpxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.GbrImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\GbrImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.XVThumbImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\XVThumbImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MspImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\MspImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.DdsImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\DdsImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PcxImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PcxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FitsStubImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\FitsStubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FliImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\FliImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PdfImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PdfImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PdfParser',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PdfParser.py',
+   'PYMODULE'),
+  ('PIL.ImageSequence',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageSequence.py',
+   'PYMODULE'),
+  ('PIL.Hdf5StubImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\Hdf5StubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.SpiderImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\SpiderImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.TgaImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\TgaImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.BufrStubImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\BufrStubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.Jpeg2KImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\Jpeg2KImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.WmfImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\WmfImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.IcnsImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\IcnsImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.features',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\features.py',
+   'PYMODULE'),
+  ('PIL.ImImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImtImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImtImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.BlpImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\BlpImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PsdImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PsdImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MicImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\MicImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.DcxImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\DcxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PalmImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PalmImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MpegImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\MpegImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.CurImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\CurImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.SgiImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\SgiImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.EpsImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\EpsImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PcdImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PcdImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PixarImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PixarImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.XbmImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\XbmImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.McIdasImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\McIdasImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.IptcImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\IptcImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.GribStubImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\GribStubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.IcoImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\IcoImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FtexImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\FtexImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.TiffImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\TiffImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImageOps',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageOps.py',
+   'PYMODULE'),
+  ('PIL.ImageShow',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageShow.py',
+   'PYMODULE'),
+  ('PIL.ImageQt',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageQt.py',
+   'PYMODULE'),
+  ('PIL.ImageFilter',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageFilter.py',
+   'PYMODULE'),
+  ('PIL.PyAccess',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PyAccess.py',
+   'PYMODULE'),
+  ('numpy',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\__init__.py',
+   'PYMODULE'),
+  ('numpy.core._dtype_ctypes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_dtype_ctypes.py',
+   'PYMODULE'),
+  ('numpy.version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\version.py',
+   'PYMODULE'),
+  ('numpy._version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_version.py',
+   'PYMODULE'),
+  ('json',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\json\\__init__.py',
+   'PYMODULE'),
+  ('json.encoder',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\json\\encoder.py',
+   'PYMODULE'),
+  ('json.decoder',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\json\\decoder.py',
+   'PYMODULE'),
+  ('json.scanner',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\json\\scanner.py',
+   'PYMODULE'),
+  ('numpy._pytesttester',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_pytesttester.py',
+   'PYMODULE'),
+  ('numpy.testing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\__init__.py',
+   'PYMODULE'),
+  ('numpy.testing._private.nosetester',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\_private\\nosetester.py',
+   'PYMODULE'),
+  ('doctest',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\doctest.py',
+   'PYMODULE'),
+  ('difflib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\difflib.py',
+   'PYMODULE'),
+  ('numpy.testing._private.noseclasses',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\_private\\noseclasses.py',
+   'PYMODULE'),
+  ('numpy.testing._private.decorators',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\_private\\decorators.py',
+   'PYMODULE'),
+  ('numpy.testing._private.parameterized',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\_private\\parameterized.py',
+   'PYMODULE'),
+  ('numpy.testing._private.extbuild',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\_private\\extbuild.py',
+   'PYMODULE'),
+  ('numpy.testing._private',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\_private\\__init__.py',
+   'PYMODULE'),
+  ('numpy.testing._private.utils',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\testing\\_private\\utils.py',
+   'PYMODULE'),
+  ('numpy.core.fromnumeric',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\fromnumeric.py',
+   'PYMODULE'),
+  ('numpy.core._methods',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_methods.py',
+   'PYMODULE'),
+  ('numpy.lib.stride_tricks',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\stride_tricks.py',
+   'PYMODULE'),
+  ('numpy.core.numeric',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\numeric.py',
+   'PYMODULE'),
+  ('numpy.core._asarray',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_asarray.py',
+   'PYMODULE'),
+  ('numpy.core.arrayprint',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\arrayprint.py',
+   'PYMODULE'),
+  ('numpy.core._ufunc_config',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_ufunc_config.py',
+   'PYMODULE'),
+  ('numpy.core.shape_base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\shape_base.py',
+   'PYMODULE'),
+  ('numpy.core._exceptions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_exceptions.py',
+   'PYMODULE'),
+  ('numpy.core.umath',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\umath.py',
+   'PYMODULE'),
+  ('numpy.core.overrides',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\overrides.py',
+   'PYMODULE'),
+  ('numpy.compat._inspect',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\compat\\_inspect.py',
+   'PYMODULE'),
+  ('numpy.core.multiarray',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\multiarray.py',
+   'PYMODULE'),
+  ('numpy.core.numerictypes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\numerictypes.py',
+   'PYMODULE'),
+  ('numpy.core._dtype',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_dtype.py',
+   'PYMODULE'),
+  ('numpy.core._type_aliases',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_type_aliases.py',
+   'PYMODULE'),
+  ('numpy.core._string_helpers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_string_helpers.py',
+   'PYMODULE'),
+  ('unittest.case',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\case.py',
+   'PYMODULE'),
+  ('unittest._log',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\_log.py',
+   'PYMODULE'),
+  ('unittest.util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\util.py',
+   'PYMODULE'),
+  ('unittest.result',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\result.py',
+   'PYMODULE'),
+  ('unittest',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\__init__.py',
+   'PYMODULE'),
+  ('unittest.async_case',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\async_case.py',
+   'PYMODULE'),
+  ('asyncio',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\__init__.py',
+   'PYMODULE'),
+  ('asyncio.unix_events',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\unix_events.py',
+   'PYMODULE'),
+  ('asyncio.log',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\log.py',
+   'PYMODULE'),
+  ('asyncio.windows_events',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\windows_events.py',
+   'PYMODULE'),
+  ('asyncio.windows_utils',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\windows_utils.py',
+   'PYMODULE'),
+  ('asyncio.selector_events',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\selector_events.py',
+   'PYMODULE'),
+  ('asyncio.proactor_events',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\proactor_events.py',
+   'PYMODULE'),
+  ('asyncio.base_subprocess',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\base_subprocess.py',
+   'PYMODULE'),
+  ('asyncio.threads',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\threads.py',
+   'PYMODULE'),
+  ('asyncio.subprocess',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\subprocess.py',
+   'PYMODULE'),
+  ('asyncio.streams',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\streams.py',
+   'PYMODULE'),
+  ('asyncio.queues',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\queues.py',
+   'PYMODULE'),
+  ('asyncio.runners',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\runners.py',
+   'PYMODULE'),
+  ('asyncio.base_events',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\base_events.py',
+   'PYMODULE'),
+  ('concurrent.futures',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\concurrent\\futures\\__init__.py',
+   'PYMODULE'),
+  ('concurrent.futures.thread',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\concurrent\\futures\\thread.py',
+   'PYMODULE'),
+  ('concurrent.futures.process',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\concurrent\\futures\\process.py',
+   'PYMODULE'),
+  ('concurrent.futures._base',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\concurrent\\futures\\_base.py',
+   'PYMODULE'),
+  ('concurrent',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\concurrent\\__init__.py',
+   'PYMODULE'),
+  ('asyncio.trsock',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\trsock.py',
+   'PYMODULE'),
+  ('asyncio.staggered',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\staggered.py',
+   'PYMODULE'),
+  ('asyncio.tasks',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\tasks.py',
+   'PYMODULE'),
+  ('asyncio.base_tasks',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\base_tasks.py',
+   'PYMODULE'),
+  ('asyncio.locks',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\locks.py',
+   'PYMODULE'),
+  ('asyncio.sslproto',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\sslproto.py',
+   'PYMODULE'),
+  ('asyncio.transports',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\transports.py',
+   'PYMODULE'),
+  ('asyncio.protocols',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\protocols.py',
+   'PYMODULE'),
+  ('asyncio.futures',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\futures.py',
+   'PYMODULE'),
+  ('asyncio.exceptions',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\exceptions.py',
+   'PYMODULE'),
+  ('asyncio.events',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\events.py',
+   'PYMODULE'),
+  ('asyncio.coroutines',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\coroutines.py',
+   'PYMODULE'),
+  ('asyncio.base_futures',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\base_futures.py',
+   'PYMODULE'),
+  ('asyncio.format_helpers',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\format_helpers.py',
+   'PYMODULE'),
+  ('asyncio.constants',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\asyncio\\constants.py',
+   'PYMODULE'),
+  ('unittest.signals',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\signals.py',
+   'PYMODULE'),
+  ('unittest.main',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\main.py',
+   'PYMODULE'),
+  ('unittest.runner',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\runner.py',
+   'PYMODULE'),
+  ('unittest.loader',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\loader.py',
+   'PYMODULE'),
+  ('unittest.suite',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\unittest\\suite.py',
+   'PYMODULE'),
+  ('numpy.matrixlib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\matrixlib\\__init__.py',
+   'PYMODULE'),
+  ('numpy.matrixlib.defmatrix',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\matrixlib\\defmatrix.py',
+   'PYMODULE'),
+  ('numpy.ma',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\ma\\__init__.py',
+   'PYMODULE'),
+  ('numpy.ma.extras',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\ma\\extras.py',
+   'PYMODULE'),
+  ('numpy.lib.index_tricks',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\index_tricks.py',
+   'PYMODULE'),
+  ('numpy.lib.function_base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\function_base.py',
+   'PYMODULE'),
+  ('numpy.lib.histograms',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\histograms.py',
+   'PYMODULE'),
+  ('numpy.lib.twodim_base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\twodim_base.py',
+   'PYMODULE'),
+  ('numpy.core.function_base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\function_base.py',
+   'PYMODULE'),
+  ('numpy.ma.core',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\ma\\core.py',
+   'PYMODULE'),
+  ('numpy.ctypeslib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\ctypeslib.py',
+   'PYMODULE'),
+  ('numpy.core._internal',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_internal.py',
+   'PYMODULE'),
+  ('numpy.random',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\random\\__init__.py',
+   'PYMODULE'),
+  ('numpy.random._pickle',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\random\\_pickle.py',
+   'PYMODULE'),
+  ('numpy.polynomial',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\__init__.py',
+   'PYMODULE'),
+  ('numpy.polynomial._polybase',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\_polybase.py',
+   'PYMODULE'),
+  ('numpy.polynomial.laguerre',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\laguerre.py',
+   'PYMODULE'),
+  ('numpy.polynomial.hermite_e',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\hermite_e.py',
+   'PYMODULE'),
+  ('numpy.polynomial.hermite',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\hermite.py',
+   'PYMODULE'),
+  ('numpy.polynomial.legendre',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\legendre.py',
+   'PYMODULE'),
+  ('numpy.polynomial.chebyshev',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\chebyshev.py',
+   'PYMODULE'),
+  ('numpy.polynomial.polynomial',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\polynomial.py',
+   'PYMODULE'),
+  ('numpy.polynomial.polyutils',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\polynomial\\polyutils.py',
+   'PYMODULE'),
+  ('numpy.fft',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\fft\\__init__.py',
+   'PYMODULE'),
+  ('numpy.fft.helper',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\fft\\helper.py',
+   'PYMODULE'),
+  ('numpy.fft._pocketfft',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\fft\\_pocketfft.py',
+   'PYMODULE'),
+  ('numpy.linalg',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\linalg\\__init__.py',
+   'PYMODULE'),
+  ('numpy.linalg.linalg',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\linalg\\linalg.py',
+   'PYMODULE'),
+  ('numpy.lib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\__init__.py',
+   'PYMODULE'),
+  ('numpy.lib._version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\_version.py',
+   'PYMODULE'),
+  ('numpy.lib.arraypad',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\arraypad.py',
+   'PYMODULE'),
+  ('numpy.lib.arrayterator',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\arrayterator.py',
+   'PYMODULE'),
+  ('numpy.lib.npyio',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\npyio.py',
+   'PYMODULE'),
+  ('numpy.ma.mrecords',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\ma\\mrecords.py',
+   'PYMODULE'),
+  ('numpy.core.records',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\records.py',
+   'PYMODULE'),
+  ('numpy.lib._iotools',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\_iotools.py',
+   'PYMODULE'),
+  ('numpy.lib._datasource',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\_datasource.py',
+   'PYMODULE'),
+  ('numpy.lib.format',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\format.py',
+   'PYMODULE'),
+  ('numpy.lib.arraysetops',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\arraysetops.py',
+   'PYMODULE'),
+  ('numpy.lib.utils',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\utils.py',
+   'PYMODULE'),
+  ('numpy.lib.polynomial',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\polynomial.py',
+   'PYMODULE'),
+  ('numpy.lib.ufunclike',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\ufunclike.py',
+   'PYMODULE'),
+  ('numpy.lib.shape_base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\shape_base.py',
+   'PYMODULE'),
+  ('numpy.lib.nanfunctions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\nanfunctions.py',
+   'PYMODULE'),
+  ('numpy.lib.type_check',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\type_check.py',
+   'PYMODULE'),
+  ('numpy.core.getlimits',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\getlimits.py',
+   'PYMODULE'),
+  ('numpy.core._machar',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_machar.py',
+   'PYMODULE'),
+  ('numpy.lib.scimath',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\scimath.py',
+   'PYMODULE'),
+  ('numpy.lib.mixins',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\lib\\mixins.py',
+   'PYMODULE'),
+  ('numpy.compat',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\compat\\__init__.py',
+   'PYMODULE'),
+  ('numpy.compat.py3k',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\compat\\py3k.py',
+   'PYMODULE'),
+  ('numpy.compat._pep440',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\compat\\_pep440.py',
+   'PYMODULE'),
+  ('numpy.core',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\__init__.py',
+   'PYMODULE'),
+  ('numpy.core._add_newdocs_scalars',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_add_newdocs_scalars.py',
+   'PYMODULE'),
+  ('numpy.core._add_newdocs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\_add_newdocs.py',
+   'PYMODULE'),
+  ('numpy.core.einsumfunc',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\einsumfunc.py',
+   'PYMODULE'),
+  ('numpy.core.memmap',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\memmap.py',
+   'PYMODULE'),
+  ('numpy.core.defchararray',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\core\\defchararray.py',
+   'PYMODULE'),
+  ('numpy._distributor_init',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_distributor_init.py',
+   'PYMODULE'),
+  ('numpy.__config__',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\__config__.py',
+   'PYMODULE'),
+  ('numpy.array_api',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\__init__.py',
+   'PYMODULE'),
+  ('numpy.array_api._utility_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_utility_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._array_object',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_array_object.py',
+   'PYMODULE'),
+  ('numpy.typing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\typing\\__init__.py',
+   'PYMODULE'),
+  ('numpy._typing._add_docstring',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_add_docstring.py',
+   'PYMODULE'),
+  ('numpy._typing._generic_alias',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_generic_alias.py',
+   'PYMODULE'),
+  ('numpy._typing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\__init__.py',
+   'PYMODULE'),
+  ('numpy._typing._array_like',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_array_like.py',
+   'PYMODULE'),
+  ('numpy._typing._dtype_like',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_dtype_like.py',
+   'PYMODULE'),
+  ('numpy._typing._shape',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_shape.py',
+   'PYMODULE'),
+  ('numpy._typing._scalars',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_scalars.py',
+   'PYMODULE'),
+  ('numpy._typing._char_codes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_char_codes.py',
+   'PYMODULE'),
+  ('numpy._typing._nbit',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_nbit.py',
+   'PYMODULE'),
+  ('numpy._typing._nested_sequence',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_typing\\_nested_sequence.py',
+   'PYMODULE'),
+  ('numpy.array_api._typing',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_typing.py',
+   'PYMODULE'),
+  ('numpy.array_api._statistical_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_statistical_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._sorting_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_sorting_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._set_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_set_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._searching_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_searching_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._manipulation_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_manipulation_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api.linalg',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\linalg.py',
+   'PYMODULE'),
+  ('numpy.array_api._elementwise_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_elementwise_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._dtypes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_dtypes.py',
+   'PYMODULE'),
+  ('numpy.array_api._data_type_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_data_type_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._creation_functions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_creation_functions.py',
+   'PYMODULE'),
+  ('numpy.array_api._constants',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\array_api\\_constants.py',
+   'PYMODULE'),
+  ('numpy._globals',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\numpy\\_globals.py',
+   'PYMODULE'),
+  ('PIL.ImagePalette',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImagePalette.py',
+   'PYMODULE'),
+  ('PIL.PaletteFile',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PaletteFile.py',
+   'PYMODULE'),
+  ('PIL.GimpPaletteFile',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\GimpPaletteFile.py',
+   'PYMODULE'),
+  ('PIL.GimpGradientFile',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\GimpGradientFile.py',
+   'PYMODULE'),
+  ('PIL.PngImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PngImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImageChops',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageChops.py',
+   'PYMODULE'),
+  ('PIL.PpmImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\PpmImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.JpegImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\JpegImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.JpegPresets',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\JpegPresets.py',
+   'PYMODULE'),
+  ('PIL.GifImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\GifImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.BmpImagePlugin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\BmpImagePlugin.py',
+   'PYMODULE'),
+  ('PIL._binary',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\_binary.py',
+   'PYMODULE'),
+  ('PIL.TiffTags',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\TiffTags.py',
+   'PYMODULE'),
+  ('PIL.ImageMode',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageMode.py',
+   'PYMODULE'),
+  ('PIL',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\__init__.py',
+   'PYMODULE'),
+  ('PIL.ImageGrab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\ImageGrab.py',
+   'PYMODULE'),
+  ('PIL._version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\PIL\\_version.py',
+   'PYMODULE'),
+  ('ttkbootstrap.dialogs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\dialogs\\__init__.py',
+   'PYMODULE'),
+  ('ttkbootstrap.dialogs.dialogs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\dialogs\\dialogs.py',
+   'PYMODULE'),
+  ('ttkbootstrap.dialogs.colorchooser',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\dialogs\\colorchooser.py',
+   'PYMODULE'),
+  ('ttkbootstrap.tooltip',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\tooltip.py',
+   'PYMODULE'),
+  ('ttkbootstrap.dialogs.colordropper',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\dialogs\\colordropper.py',
+   'PYMODULE'),
+  ('ttkbootstrap.validation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\validation.py',
+   'PYMODULE'),
+  ('tkinter.font',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\font.py',
+   'PYMODULE'),
+  ('ttkbootstrap.style',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\style.py',
+   'PYMODULE'),
+  ('ttkbootstrap.themes.user',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\themes\\user.py',
+   'PYMODULE'),
+  ('ttkbootstrap.themes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\themes\\__init__.py',
+   'PYMODULE'),
+  ('ttkbootstrap.publisher',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\publisher.py',
+   'PYMODULE'),
+  ('ttkbootstrap.themes.standard',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\themes\\standard.py',
+   'PYMODULE'),
+  ('ttkbootstrap.localization',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\localization\\__init__.py',
+   'PYMODULE'),
+  ('ttkbootstrap.localization.msgcat',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\localization\\msgcat.py',
+   'PYMODULE'),
+  ('ttkbootstrap.localization.msgs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\localization\\msgs.py',
+   'PYMODULE'),
+  ('ttkbootstrap.colorutils',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\colorutils.py',
+   'PYMODULE'),
+  ('tkinter.ttk',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\ttk.py',
+   'PYMODULE'),
+  ('tkinter',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\__init__.py',
+   'PYMODULE'),
+  ('tkinter.messagebox',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\messagebox.py',
+   'PYMODULE'),
+  ('tkinter.commondialog',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\commondialog.py',
+   'PYMODULE'),
+  ('soniccontrol.__main__',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\__main__.py',
+   'PYMODULE'),
+  ('soniccontrol.helpers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\helpers.py',
+   'PYMODULE'),
+  ('soniccontrol.connectiontab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\connectiontab.py',
+   'PYMODULE'),
+  ('tkinter.filedialog',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\filedialog.py',
+   'PYMODULE'),
+  ('tkinter.simpledialog',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\simpledialog.py',
+   'PYMODULE'),
+  ('tkinter.dialog',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\dialog.py',
+   'PYMODULE'),
+  ('soniccontrol.sonicmeasure',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\sonicmeasure.py',
+   'PYMODULE'),
+  ('matplotlib.backends.backend_tkagg',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backends\\backend_tkagg.py',
+   'PYMODULE'),
+  ('matplotlib.backends.backend_agg',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backends\\backend_agg.py',
+   'PYMODULE'),
+  ('matplotlib.transforms',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\transforms.py',
+   'PYMODULE'),
+  ('matplotlib.path',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\path.py',
+   'PYMODULE'),
+  ('matplotlib.hatch',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\hatch.py',
+   'PYMODULE'),
+  ('matplotlib.bezier',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\bezier.py',
+   'PYMODULE'),
+  ('matplotlib.mathtext',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\mathtext.py',
+   'PYMODULE'),
+  ('matplotlib._mathtext_data',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_mathtext_data.py',
+   'PYMODULE'),
+  ('matplotlib._mathtext',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_mathtext.py',
+   'PYMODULE'),
+  ('matplotlib.afm',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\afm.py',
+   'PYMODULE'),
+  ('matplotlib.font_manager',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\font_manager.py',
+   'PYMODULE'),
+  ('matplotlib.rcsetup',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\rcsetup.py',
+   'PYMODULE'),
+  ('cycler',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\cycler.py',
+   'PYMODULE'),
+  ('matplotlib._enums',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_enums.py',
+   'PYMODULE'),
+  ('matplotlib.pyplot',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\pyplot.py',
+   'PYMODULE'),
+  ('matplotlib.patheffects',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\patheffects.py',
+   'PYMODULE'),
+  ('matplotlib.ticker',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\ticker.py',
+   'PYMODULE'),
+  ('matplotlib.widgets',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\widgets.py',
+   'PYMODULE'),
+  ('matplotlib.backend_tools',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backend_tools.py',
+   'PYMODULE'),
+  ('matplotlib.patches',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\patches.py',
+   'PYMODULE'),
+  ('matplotlib.text',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\text.py',
+   'PYMODULE'),
+  ('matplotlib.offsetbox',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\offsetbox.py',
+   'PYMODULE'),
+  ('matplotlib.textpath',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\textpath.py',
+   'PYMODULE'),
+  ('matplotlib.texmanager',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\texmanager.py',
+   'PYMODULE'),
+  ('matplotlib.dviread',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\dviread.py',
+   'PYMODULE'),
+  ('matplotlib._text_helpers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_text_helpers.py',
+   'PYMODULE'),
+  ('matplotlib.lines',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\lines.py',
+   'PYMODULE'),
+  ('matplotlib.markers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\markers.py',
+   'PYMODULE'),
+  ('matplotlib.cm',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\cm.py',
+   'PYMODULE'),
+  ('matplotlib._cm_listed',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_cm_listed.py',
+   'PYMODULE'),
+  ('matplotlib._cm',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_cm.py',
+   'PYMODULE'),
+  ('matplotlib.scale',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\scale.py',
+   'PYMODULE'),
+  ('matplotlib.mlab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\mlab.py',
+   'PYMODULE'),
+  ('matplotlib.projections',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\projections\\__init__.py',
+   'PYMODULE'),
+  ('mpl_toolkits.mplot3d',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\mpl_toolkits\\mplot3d\\__init__.py',
+   'PYMODULE'),
+  ('mpl_toolkits', '-', 'PYMODULE'),
+  ('mpl_toolkits.mplot3d.axes3d',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\mpl_toolkits\\mplot3d\\axes3d.py',
+   'PYMODULE'),
+  ('matplotlib.tri.triangulation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\triangulation.py',
+   'PYMODULE'),
+  ('matplotlib.tri',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib.tri.triplot',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\triplot.py',
+   'PYMODULE'),
+  ('matplotlib.tri.tripcolor',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\tripcolor.py',
+   'PYMODULE'),
+  ('matplotlib.tri.trirefine',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\trirefine.py',
+   'PYMODULE'),
+  ('matplotlib.tri.triinterpolate',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\triinterpolate.py',
+   'PYMODULE'),
+  ('matplotlib.tri.tritools',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\tritools.py',
+   'PYMODULE'),
+  ('matplotlib.tri.tricontour',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\tricontour.py',
+   'PYMODULE'),
+  ('matplotlib.contour',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\contour.py',
+   'PYMODULE'),
+  ('matplotlib.tri.trifinder',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tri\\trifinder.py',
+   'PYMODULE'),
+  ('matplotlib.axes._base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\axes\\_base.py',
+   'PYMODULE'),
+  ('matplotlib.table',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\table.py',
+   'PYMODULE'),
+  ('matplotlib.spines',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\spines.py',
+   'PYMODULE'),
+  ('matplotlib.axis',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\axis.py',
+   'PYMODULE'),
+  ('dateutil.tz',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\tz\\__init__.py',
+   'PYMODULE'),
+  ('dateutil.tz.tz',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\tz\\tz.py',
+   'PYMODULE'),
+  ('dateutil.zoneinfo',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\zoneinfo\\__init__.py',
+   'PYMODULE'),
+  ('dateutil.rrule',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\rrule.py',
+   'PYMODULE'),
+  ('dateutil.easter',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\easter.py',
+   'PYMODULE'),
+  ('dateutil._common',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\_common.py',
+   'PYMODULE'),
+  ('dateutil.parser._parser',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\parser\\_parser.py',
+   'PYMODULE'),
+  ('dateutil.parser',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\parser\\__init__.py',
+   'PYMODULE'),
+  ('dateutil.parser.isoparser',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\parser\\isoparser.py',
+   'PYMODULE'),
+  ('dateutil.relativedelta',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\relativedelta.py',
+   'PYMODULE'),
+  ('dateutil.tz.win',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\tz\\win.py',
+   'PYMODULE'),
+  ('dateutil.tz._factories',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\tz\\_factories.py',
+   'PYMODULE'),
+  ('dateutil.tz._common',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\tz\\_common.py',
+   'PYMODULE'),
+  ('six',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\six.py',
+   'PYMODULE'),
+  ('dateutil',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\__init__.py',
+   'PYMODULE'),
+  ('dateutil._version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\dateutil\\_version.py',
+   'PYMODULE'),
+  ('matplotlib.units',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\units.py',
+   'PYMODULE'),
+  ('matplotlib.container',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\container.py',
+   'PYMODULE'),
+  ('matplotlib.collections',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\collections.py',
+   'PYMODULE'),
+  ('mpl_toolkits.mplot3d.axis3d',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\mpl_toolkits\\mplot3d\\axis3d.py',
+   'PYMODULE'),
+  ('mpl_toolkits.mplot3d.art3d',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\mpl_toolkits\\mplot3d\\art3d.py',
+   'PYMODULE'),
+  ('mpl_toolkits.mplot3d.proj3d',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\mpl_toolkits\\mplot3d\\proj3d.py',
+   'PYMODULE'),
+  ('matplotlib.projections.polar',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\projections\\polar.py',
+   'PYMODULE'),
+  ('matplotlib.projections.geo',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\projections\\geo.py',
+   'PYMODULE'),
+  ('matplotlib.axes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\axes\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib.axes._axes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\axes\\_axes.py',
+   'PYMODULE'),
+  ('matplotlib.axes._secondary_axes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\axes\\_secondary_axes.py',
+   'PYMODULE'),
+  ('matplotlib.streamplot',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\streamplot.py',
+   'PYMODULE'),
+  ('matplotlib.stackplot',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\stackplot.py',
+   'PYMODULE'),
+  ('matplotlib.quiver',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\quiver.py',
+   'PYMODULE'),
+  ('matplotlib.legend',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\legend.py',
+   'PYMODULE'),
+  ('matplotlib.legend_handler',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\legend_handler.py',
+   'PYMODULE'),
+  ('matplotlib.dates',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\dates.py',
+   'PYMODULE'),
+  ('matplotlib.category',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\category.py',
+   'PYMODULE'),
+  ('matplotlib.axes._subplots',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\axes\\_subplots.py',
+   'PYMODULE'),
+  ('matplotlib.artist',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\artist.py',
+   'PYMODULE'),
+  ('matplotlib.gridspec',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\gridspec.py',
+   'PYMODULE'),
+  ('matplotlib.tight_layout',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tight_layout.py',
+   'PYMODULE'),
+  ('matplotlib._pylab_helpers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_pylab_helpers.py',
+   'PYMODULE'),
+  ('matplotlib.image',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\image.py',
+   'PYMODULE'),
+  ('matplotlib.colorbar',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\colorbar.py',
+   'PYMODULE'),
+  ('matplotlib.docstring',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\docstring.py',
+   'PYMODULE'),
+  ('matplotlib.fontconfig_pattern',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\fontconfig_pattern.py',
+   'PYMODULE'),
+  ('matplotlib.backend_bases',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backend_bases.py',
+   'PYMODULE'),
+  ('matplotlib.backend_managers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backend_managers.py',
+   'PYMODULE'),
+  ('matplotlib.tight_bbox',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\tight_bbox.py',
+   'PYMODULE'),
+  ('matplotlib.colors',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\colors.py',
+   'PYMODULE'),
+  ('matplotlib._color_data',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_color_data.py',
+   'PYMODULE'),
+  ('matplotlib.cbook',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\cbook\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib._api.deprecation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_api\\deprecation.py',
+   'PYMODULE'),
+  ('matplotlib._api',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_api\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib.backends._backend_tk',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backends\\_backend_tk.py',
+   'PYMODULE'),
+  ('matplotlib.backends',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backends\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib.backends.backend_webagg',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backends\\backend_webagg.py',
+   'PYMODULE'),
+  ('matplotlib.backends.backend_webagg_core',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\backends\\backend_webagg_core.py',
+   'PYMODULE'),
+  ('matplotlib.figure',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\figure.py',
+   'PYMODULE'),
+  ('matplotlib._constrained_layout',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_constrained_layout.py',
+   'PYMODULE'),
+  ('matplotlib._layoutgrid',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_layoutgrid.py',
+   'PYMODULE'),
+  ('kiwisolver',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\kiwisolver\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib._blocking_input',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_blocking_input.py',
+   'PYMODULE'),
+  ('matplotlib.style',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\style\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib.style.core',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\style\\core.py',
+   'PYMODULE'),
+  ('matplotlib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\__init__.py',
+   'PYMODULE'),
+  ('matplotlib._version',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\matplotlib\\_version.py',
+   'PYMODULE'),
+  ('soniccontrol.sonicamp',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\sonicamp.py',
+   'PYMODULE'),
+  ('soniccontrol._notebook',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\_notebook.py',
+   'PYMODULE'),
+  ('soniccontrol.infotab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\infotab.py',
+   'PYMODULE'),
+  ('soniccontrol.serialmonitor',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\serialmonitor.py',
+   'PYMODULE'),
+  ('soniccontrol.scriptingtab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\scriptingtab.py',
+   'PYMODULE'),
+  ('soniccontrol.tmp',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\tmp.py',
+   'PYMODULE'),
+  ('soniccontrol.hometab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\hometab.py',
+   'PYMODULE'),
+  ('ttkbootstrap.scrolled',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\scrolled.py',
+   'PYMODULE'),
+  ('soniccontrol.core',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\core.py',
+   'PYMODULE'),
+  ('pyglet',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.window',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.window.xlib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\xlib\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.libs.x11.xsync',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\x11\\xsync.py',
+   'PYMODULE'),
+  ('pyglet.libs.x11.cursorfont',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\x11\\cursorfont.py',
+   'PYMODULE'),
+  ('pyglet.libs.x11.xlib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\x11\\xlib.py',
+   'PYMODULE'),
+  ('pyglet.libs.x11',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\x11\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.libs.x11.xinput',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\x11\\xinput.py',
+   'PYMODULE'),
+  ('pyglet.libs.x11.xinerama',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\x11\\xinerama.py',
+   'PYMODULE'),
+  ('pyglet.libs.x11.xf86vmode',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\x11\\xf86vmode.py',
+   'PYMODULE'),
+  ('pyglet.libs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.canvas.xlib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\canvas\\xlib.py',
+   'PYMODULE'),
+  ('pyglet.canvas.xlib_vidmoderestore',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\canvas\\xlib_vidmoderestore.py',
+   'PYMODULE'),
+  ('pyglet.canvas.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\canvas\\base.py',
+   'PYMODULE'),
+  ('pyglet.app.xlib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\app\\xlib.py',
+   'PYMODULE'),
+  ('pyglet.app.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\app\\base.py',
+   'PYMODULE'),
+  ('pyglet.window.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\win32\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.libs.win32.types',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\win32\\types.py',
+   'PYMODULE'),
+  ('pyglet.libs.win32.winkey',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\win32\\winkey.py',
+   'PYMODULE'),
+  ('pyglet.libs.win32.constants',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\win32\\constants.py',
+   'PYMODULE'),
+  ('pyglet.libs.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\win32\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.libs.win32.libwintab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\win32\\libwintab.py',
+   'PYMODULE'),
+  ('pyglet.libs.win32.dinput',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\win32\\dinput.py',
+   'PYMODULE'),
+  ('pyglet.canvas.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\canvas\\win32.py',
+   'PYMODULE'),
+  ('pyglet.window.cocoa',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\cocoa\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.window.cocoa.pyglet_view',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\cocoa\\pyglet_view.py',
+   'PYMODULE'),
+  ('pyglet.libs.darwin.quartzkey',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\darwin\\quartzkey.py',
+   'PYMODULE'),
+  ('pyglet.window.cocoa.pyglet_window',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\cocoa\\pyglet_window.py',
+   'PYMODULE'),
+  ('pyglet.window.cocoa.pyglet_textview',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\cocoa\\pyglet_textview.py',
+   'PYMODULE'),
+  ('pyglet.window.cocoa.pyglet_delegate',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\cocoa\\pyglet_delegate.py',
+   'PYMODULE'),
+  ('pyglet.window.cocoa.systemcursor',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\cocoa\\systemcursor.py',
+   'PYMODULE'),
+  ('pyglet.libs.darwin.cocoapy',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\darwin\\cocoapy\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.libs.darwin.cocoapy.cocoalibs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\darwin\\cocoapy\\cocoalibs.py',
+   'PYMODULE'),
+  ('ctypes.util',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\util.py',
+   'PYMODULE'),
+  ('ctypes._aix',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\_aix.py',
+   'PYMODULE'),
+  ('ctypes.macholib.dyld',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\macholib\\dyld.py',
+   'PYMODULE'),
+  ('ctypes.macholib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\macholib\\__init__.py',
+   'PYMODULE'),
+  ('ctypes.macholib.dylib',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\macholib\\dylib.py',
+   'PYMODULE'),
+  ('ctypes.macholib.framework',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\ctypes\\macholib\\framework.py',
+   'PYMODULE'),
+  ('pyglet.libs.darwin.cocoapy.cocoatypes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\darwin\\cocoapy\\cocoatypes.py',
+   'PYMODULE'),
+  ('pyglet.libs.darwin.cocoapy.runtime',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\darwin\\cocoapy\\runtime.py',
+   'PYMODULE'),
+  ('pyglet.libs.darwin',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\darwin\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.canvas.cocoa',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\canvas\\cocoa.py',
+   'PYMODULE'),
+  ('pyglet.window.headless',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\headless\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.canvas.headless',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\canvas\\headless.py',
+   'PYMODULE'),
+  ('pyglet.libs.egl.eglext',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\egl\\eglext.py',
+   'PYMODULE'),
+  ('pyglet.libs.egl.lib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\egl\\lib.py',
+   'PYMODULE'),
+  ('pyglet.libs.egl.egl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\egl\\egl.py',
+   'PYMODULE'),
+  ('pyglet.libs.egl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\libs\\egl\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.util',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\util.py',
+   'PYMODULE'),
+  ('pyglet.window.event',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\event.py',
+   'PYMODULE'),
+  ('pyglet.window.mouse',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\mouse.py',
+   'PYMODULE'),
+  ('pyglet.window.key',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\window\\key.py',
+   'PYMODULE'),
+  ('pyglet.text',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.text.formats.attributed',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\formats\\attributed.py',
+   'PYMODULE'),
+  ('pyglet.text.formats.html',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\formats\\html.py',
+   'PYMODULE'),
+  ('pyglet.text.formats.structured',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\formats\\structured.py',
+   'PYMODULE'),
+  ('html.parser',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\html\\parser.py',
+   'PYMODULE'),
+  ('_markupbase',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_markupbase.py',
+   'PYMODULE'),
+  ('pyglet.text.formats.plaintext',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\formats\\plaintext.py',
+   'PYMODULE'),
+  ('pyglet.text.formats',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\formats\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.text.caret',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\caret.py',
+   'PYMODULE'),
+  ('pyglet.text.document',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\document.py',
+   'PYMODULE'),
+  ('pyglet.text.layout',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\layout.py',
+   'PYMODULE'),
+  ('pyglet.font.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\base.py',
+   'PYMODULE'),
+  ('pyglet.text.runlist',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\text\\runlist.py',
+   'PYMODULE'),
+  ('pyglet.shapes',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\shapes.py',
+   'PYMODULE'),
+  ('pyglet.sprite',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\sprite.py',
+   'PYMODULE'),
+  ('pyglet.resource',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\resource.py',
+   'PYMODULE'),
+  ('pyglet.model',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\model\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.model.codecs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\model\\codecs\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.model.codecs.obj',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\model\\codecs\\obj.py',
+   'PYMODULE'),
+  ('pyglet.media',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.synthesis',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\synthesis.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\base.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.ffmpeg_lib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\ffmpeg_lib\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.ffmpeg_lib.libswscale',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\ffmpeg_lib\\libswscale.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.ffmpeg_lib.libswresample',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\ffmpeg_lib\\libswresample.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.ffmpeg_lib.libavformat',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\ffmpeg_lib\\libavformat.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.ffmpeg_lib.libavcodec',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\ffmpeg_lib\\libavcodec.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.ffmpeg_lib.libavutil',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\ffmpeg_lib\\libavutil.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.ffmpeg',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\ffmpeg.py',
+   'PYMODULE'),
+  ('pyglet.media.events',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\events.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.wmf',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\wmf.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.gstreamer',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\gstreamer.py',
+   'PYMODULE'),
+  ('pyglet.media.codecs.wave',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\codecs\\wave.py',
+   'PYMODULE'),
+  ('wave',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\wave.py',
+   'PYMODULE'),
+  ('chunk',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\chunk.py',
+   'PYMODULE'),
+  ('pyglet.media.player',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\player.py',
+   'PYMODULE'),
+  ('pyglet.media.buffered_logger',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\buffered_logger.py',
+   'PYMODULE'),
+  ('pyglet.media.exceptions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\exceptions.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.silent',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\silent\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.silent.adaptation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\silent\\adaptation.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.listener',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\listener.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\base.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.openal',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\openal\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.openal.adaptation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\openal\\adaptation.py',
+   'PYMODULE'),
+  ('pyglet.media.mediathreads',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\mediathreads.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.openal.interface',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\openal\\interface.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.openal.lib_alc',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\openal\\lib_alc.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.openal.lib_openal',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\openal\\lib_openal.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.directsound',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\directsound\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.directsound.exceptions',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\directsound\\exceptions.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.directsound.adaptation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\directsound\\adaptation.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.directsound.interface',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\directsound\\interface.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.directsound.lib_dsound',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\directsound\\lib_dsound.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.xaudio2',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\xaudio2\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.xaudio2.adaptation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\xaudio2\\adaptation.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.xaudio2.interface',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\xaudio2\\interface.py',
+   'PYMODULE'),
+  ('pyglet.media.devices',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\devices\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.devices.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\devices\\win32.py',
+   'PYMODULE'),
+  ('pyglet.media.devices.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\devices\\base.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.xaudio2.lib_xaudio2',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\xaudio2\\lib_xaudio2.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.pulse',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\pulse\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.pulse.adaptation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\pulse\\adaptation.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.pulse.interface',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\pulse\\interface.py',
+   'PYMODULE'),
+  ('pyglet.media.drivers.pulse.lib_pulseaudio',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\media\\drivers\\pulse\\lib_pulseaudio.py',
+   'PYMODULE'),
+  ('pyglet.math',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\math.py',
+   'PYMODULE'),
+  ('pyglet.input',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.input.darwin_hid',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\darwin_hid.py',
+   'PYMODULE'),
+  ('pyglet.input.wintab',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\wintab.py',
+   'PYMODULE'),
+  ('pyglet.input.directinput',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\directinput.py',
+   'PYMODULE'),
+  ('pyglet.input.evdev',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\evdev.py',
+   'PYMODULE'),
+  ('pyglet.input.evdev_constants',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\evdev_constants.py',
+   'PYMODULE'),
+  ('pyglet.input.x11_xinput_tablet',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\x11_xinput_tablet.py',
+   'PYMODULE'),
+  ('pyglet.input.x11_xinput',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\x11_xinput.py',
+   'PYMODULE'),
+  ('pyglet.input.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\input\\base.py',
+   'PYMODULE'),
+  ('pyglet.gui',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gui\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.gui.frame',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gui\\frame.py',
+   'PYMODULE'),
+  ('pyglet.gui.widgets',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gui\\widgets.py',
+   'PYMODULE'),
+  ('pyglet.font',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.font.freetype',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\freetype.py',
+   'PYMODULE'),
+  ('pyglet.font.freetype_lib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\freetype_lib.py',
+   'PYMODULE'),
+  ('pyglet.font.fontconfig',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\fontconfig.py',
+   'PYMODULE'),
+  ('pyglet.font.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\win32.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.gdiplus',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\gdiplus.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.bmp',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\bmp.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.png',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\png.py',
+   'PYMODULE'),
+  ('pyglet.extlibs.png',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\extlibs\\png.py',
+   'PYMODULE'),
+  ('pyglet.extlibs',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\extlibs\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.pil',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\pil.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.gdkpixbuf2',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\gdkpixbuf2.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.gif',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\gif.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.wic',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\wic.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.quartz',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\quartz.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.dds',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\dds.py',
+   'PYMODULE'),
+  ('pyglet.image.codecs.s3tc',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\codecs\\s3tc.py',
+   'PYMODULE'),
+  ('pyglet.gl.gl_info',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\gl_info.py',
+   'PYMODULE'),
+  ('pyglet.gl.glext_arb',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\glext_arb.py',
+   'PYMODULE'),
+  ('pyglet.gl.lib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\lib.py',
+   'PYMODULE'),
+  ('pyglet.gl.lib_glx',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\lib_glx.py',
+   'PYMODULE'),
+  ('pyglet.gl.lib_agl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\lib_agl.py',
+   'PYMODULE'),
+  ('pyglet.gl.lib_wgl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\lib_wgl.py',
+   'PYMODULE'),
+  ('pyglet.gl.gl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\gl.py',
+   'PYMODULE'),
+  ('pyglet.font.win32query',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\win32query.py',
+   'PYMODULE'),
+  ('pyglet.font.directwrite',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\directwrite.py',
+   'PYMODULE'),
+  ('pyglet.font.quartz',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\font\\quartz.py',
+   'PYMODULE'),
+  ('pyglet.canvas',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\canvas\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.app',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\app\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.app.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\app\\win32.py',
+   'PYMODULE'),
+  ('pyglet.app.cocoa',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\app\\cocoa.py',
+   'PYMODULE'),
+  ('pyglet.image',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.image.atlas',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\atlas.py',
+   'PYMODULE'),
+  ('pyglet.image.animation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\image\\animation.py',
+   'PYMODULE'),
+  ('pyglet.graphics',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\graphics\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.graphics.vertexdomain',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\graphics\\vertexdomain.py',
+   'PYMODULE'),
+  ('pyglet.graphics.allocation',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\graphics\\allocation.py',
+   'PYMODULE'),
+  ('pyglet.graphics.vertexattribute',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\graphics\\vertexattribute.py',
+   'PYMODULE'),
+  ('pyglet.graphics.vertexbuffer',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\graphics\\vertexbuffer.py',
+   'PYMODULE'),
+  ('pyglet.gl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\__init__.py',
+   'PYMODULE'),
+  ('pyglet.gl.cocoa',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\cocoa.py',
+   'PYMODULE'),
+  ('pyglet.gl.agl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\agl.py',
+   'PYMODULE'),
+  ('pyglet.gl.xlib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\xlib.py',
+   'PYMODULE'),
+  ('pyglet.gl.glxext_mesa',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\glxext_mesa.py',
+   'PYMODULE'),
+  ('pyglet.gl.glx_info',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\glx_info.py',
+   'PYMODULE'),
+  ('pyglet.gl.glxext_arb',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\glxext_arb.py',
+   'PYMODULE'),
+  ('pyglet.gl.glx',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\glx.py',
+   'PYMODULE'),
+  ('pyglet.gl.win32',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\win32.py',
+   'PYMODULE'),
+  ('pyglet.gl.wgl_info',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\wgl_info.py',
+   'PYMODULE'),
+  ('pyglet.gl.wglext_arb',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\wglext_arb.py',
+   'PYMODULE'),
+  ('pyglet.gl.wgl',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\wgl.py',
+   'PYMODULE'),
+  ('pyglet.gl.headless',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\headless.py',
+   'PYMODULE'),
+  ('pyglet.gl.base',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\base.py',
+   'PYMODULE'),
+  ('pyglet.gl.glu_info',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\glu_info.py',
+   'PYMODULE'),
+  ('pyglet.gl.glu',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\gl\\glu.py',
+   'PYMODULE'),
+  ('pyglet.com',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\com.py',
+   'PYMODULE'),
+  ('pyglet.event',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\event.py',
+   'PYMODULE'),
+  ('pyglet.clock',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\clock.py',
+   'PYMODULE'),
+  ('pyglet.lib',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\pyglet\\lib.py',
+   'PYMODULE'),
+  ('_py_abc',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\_py_abc.py',
+   'PYMODULE'),
+  ('stringprep',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\stringprep.py',
+   'PYMODULE'),
+  ('tracemalloc',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.9_3.9.3568.0_x64__qbz5n2kfra8p0\\lib\\tracemalloc.py',
+   'PYMODULE'),
+  ('ttkbootstrap.utility',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\venv\\lib\\site-packages\\ttkbootstrap\\utility.py',
+   'PYMODULE'),
+  ('soniccontrol',
+   'C:\\Users\\Ilja '
+   'Golovanov\\Documents\\dev\\SonicControl_new\\soniccontrol_new\\soniccontrol\\__init__.py',
+   'PYMODULE')])

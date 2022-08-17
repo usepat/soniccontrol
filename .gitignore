@@ -50,5 +50,18 @@ Thumbs.db
 
 #myfiles
 CleanTheCode/
-venv
+build/
+dist/
+ScriptingSequence/
+SonicMeasure/
+Status_Logs/
+venv/
+__pycache__/
+.vscode/
+
+*.tmp
+*.csv
+*.spec
+*.log
+~*
 
