@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from numpy import insert
 import ttkbootstrap as ttkb
 
 from tkinter import messagebox
@@ -132,7 +131,7 @@ class Hometab(ttk.Frame):
             answer: str = self.root.sonicamp.set_frq(self._frq.get())
             return answer
 
-        except ValueNotSupported as e:
+        except ValueNotSupported:
             messagebox.showwarning(
                 "Value out of supported range",
                 f"The value of frequency, you want to set is not supported under the current configurtation. The supported range is currently from {self.root.sonicamp.mode.frq_start} to {self.root.sonicamp.mode.frq_stop}",
@@ -169,7 +168,7 @@ class Hometab(ttk.Frame):
             answer: str = self.root.sonicamp.set_gain(self._gain.get())
             return answer
     
-        except ValueNotSupported as e:
+        except ValueNotSupported:
                 messagebox.showwarning(
                     "Value out of supported range",
                     f"The value of gain, you want to set is not supported under the current configurtation. The supported range is currently from {self.root.sonicamp.mode.gain_start} to {self.root.sonicamp.mode.gain_stop}",

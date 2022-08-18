@@ -4,7 +4,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from sonicpackage import SonicAmp
 from soniccontrol.sonicamp import SerialConnection

@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from sonicpackage import SerialConnection, SonicThread
 from sonicpackage import Enum
 from sonicpackage import Union

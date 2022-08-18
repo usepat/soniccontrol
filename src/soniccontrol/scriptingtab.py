@@ -11,7 +11,6 @@ from typing import Union, TYPE_CHECKING
 from enum import Enum
 from tkinter import messagebox
 from tkinter import filedialog
-from numpy import isin
 from ttkbootstrap.tooltip import ToolTip
 
 from sonicpackage import (
@@ -31,7 +30,7 @@ from sonicpackage import (
     WipeMode,
     ValueNotSupported,
 )
-from soniccontrol.sonicamp import SerialConnection, SerialConnectionGUI
+from soniccontrol.sonicamp import SerialConnectionGUI
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:

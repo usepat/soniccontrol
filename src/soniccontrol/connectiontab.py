@@ -244,7 +244,7 @@ class ConnectionTab(ttk.Frame):
                     )
 
                     if msgbox:
-                        output = subprocess.run(command, shell=True)
+                        subprocess.run(command, shell=True)
                         self.file_entry.configure(
                             style="dark.TButton",
                             text="Specify the path for the Firmware file",

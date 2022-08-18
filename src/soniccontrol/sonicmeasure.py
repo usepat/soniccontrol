@@ -6,7 +6,7 @@ import csv
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from tkinter import messagebox
 from matplotlib import style
 from matplotlib.figure import Figure
