@@ -88,7 +88,7 @@ class InfoTab(ttk.Frame):
         """
         Opens the helppage manual with the default pdf viewer
         """
-        subprocess.Popen(["help_page.pdf"], shell=True)
+        subprocess.Popen(["src//soniccontrol//resources//help_page.pdf"], shell=True)
 
     def attach_data(self) -> None:
         pass

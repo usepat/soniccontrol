@@ -113,7 +113,7 @@ class Root(tk.Tk):
 
         # Status Log configuration
         self.fieldnames: list = ["timestamp", "signal", "frequency", "gain"]
-        self.status_log_dir: str = "Status_Logs"
+        self.status_log_dir: str = "Logs"
         self.statuslog_filepath: str
 
         if not os.path.exists(self.status_log_dir):
@@ -501,11 +501,6 @@ class Root(tk.Tk):
                     statuslog, fieldnames=self.fieldnames
                 )
                 csv_writer.writerow(data_dict)
-
-
-#####################################################################################
-#### The threading.Thread SonicThread object that handles the data communication ####
-#####################################################################################
 
 
 class SonicAgent(SonicThread):
