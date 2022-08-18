@@ -6,6 +6,8 @@ import tkinter.ttk as ttk
 
 from typing import TYPE_CHECKING
 
+import soniccontrol.constants as const
+
 if TYPE_CHECKING:
     from soniccontrol.core import Root
     from soniccontrol._notebook import ScNotebook
@@ -66,7 +68,7 @@ class InfoTab(ttk.Frame):
 
         self.version_label: ttk.Label = ttk.Label(
             self,
-            text=f"Version: {self.root.VERSION}",
+            text=f"Version: {const.VERSION}",
         )
 
     def publish(self) -> None:

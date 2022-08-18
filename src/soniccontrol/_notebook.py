@@ -78,22 +78,22 @@ class ScNotebook(ttk.Notebook):
             self.hometab,
             state=tk.NORMAL,
             text="Home",
-            image=self.root.home_img,
+            image=self.root.HOME_IMG,
             compound=tk.TOP,
         )
         self.add(
             self.scriptingtab,
             text="Scripting",
-            image=self.root.script_img,
+            image=self.root.SCRIPT_IMG,
             compound=tk.TOP,
         )
         self.add(
             self.connectiontab,
             text="Connection",
-            image=self.root.connection_img,
+            image=self.root.CONNECTION_IMG,
             compound=tk.TOP,
         )
-        self.add(self.infotab, text="Info", image=self.root.info_img, compound=tk.TOP)
+        self.add(self.infotab, text="Info", image=self.root.INFO_IMG, compound=tk.TOP)
 
     def _publish(self) -> None:
         self.config(height=560)

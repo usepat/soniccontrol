@@ -46,23 +46,7 @@ from soniccontrol.serialmonitor import(
 from soniccontrol._notebook import ScNotebook
 from soniccontrol.helpers import logger, resize_img
 
-
-refresh_img: Image = resize_img("src//soniccontrol//pictures//refresh_icon.png", (20, 20))
-home_img: Image = resize_img("src//soniccontrol//pictures//home_icon.png", (30, 30))
-script_img: Image = resize_img("src//soniccontrol//pictures//script_icon.png", (30, 30))
-connection_img: Image = resize_img("src//soniccontrol//pictures//connection_icon.png", (30, 30))
-info_img: Image = resize_img("src//soniccontrol//pictures//info_icon.png", (30, 30))
-play_img: Image = resize_img("src//soniccontrol//pictures//play_icon.png", (30, 30))
-pause_img: Image = resize_img("src//soniccontrol//pictures//pause_icon.png", (30, 30))
-wave_bg: Image = resize_img("src//soniccontrol//pictures//wave_bg.png", (540, 440))
-graph_img: Image = resize_img("src//soniccontrol//pictures//graph.png", (100, 100))
-led_green_img: Image = resize_img("src//soniccontrol//pictures//led_green.png", (35, 35))
-led_red_img: Image = resize_img("src//soniccontrol//pictures//led_red.png", (35, 35))
-
-
-#############################################################
-#### The main GUI object itself - Root object from tk.Tk ####
-#############################################################
+import soniccontrol.constants as const
 
 class Root(tk.Tk):
     """
@@ -90,10 +74,10 @@ class Root(tk.Tk):
         class inherets from
     """
 
+    # GUI specific constants
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    VERSION: int = 1.055
     TITLE: str = "Soniccontrol"
     THEME: str = "sandstone"
 
@@ -140,8 +124,10 @@ class Root(tk.Tk):
         self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
         self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
-        self.iconbitmap("src//soniccontrol//pictures//welle.ico")
         style: ttkb.Style = ttkb.Style(theme=Root.THEME)
+
+        if os.sys.platform == 'Windows':
+            self.iconbitmap("src//soniccontrol//pictures//welle.ico")
 
         # default font in GUI and custom Fonts
         default_font: font.Font = font.nametofont("TkDefaultFont")
@@ -166,17 +152,17 @@ class Root(tk.Tk):
         )
 
         # Defining images
-        self.refresh_img: PhotoImage = PhotoImage(refresh_img)
-        self.home_img: PhotoImage = PhotoImage(home_img)
-        self.script_img: PhotoImage = PhotoImage(script_img)
-        self.connection_img: PhotoImage = PhotoImage(connection_img)
-        self.info_img: PhotoImage = PhotoImage(info_img)
-        self.play_img: PhotoImage = PhotoImage(play_img)
-        self.pause_img: PhotoImage = PhotoImage(pause_img)
-        self.wave_bg: PhotoImage = PhotoImage(wave_bg)
-        self.graph_img: PhotoImage = PhotoImage(graph_img)
-        self.led_green_img: PhotoImage = PhotoImage(led_green_img)
-        self.led_red_img: PhotoImage = PhotoImage(led_red_img)
+        self.REFRESH_IMG: PhotoImage = PhotoImage(const.REFRESH_RAW_IMG)
+        self.HOME_IMG: PhotoImage = PhotoImage(const.HOME_RAW_IMG)
+        self.SCRIPT_IMG: PhotoImage = PhotoImage(const.SCRIPT_RAW_IMG)
+        self.CONNECTION_IMG: PhotoImage = PhotoImage(const.CONNECTION_RAW_IMG)
+        self.INFO_IMG: PhotoImage = PhotoImage(const.INFO_RAW_IMG)
+        self.PLAY_IMG: PhotoImage = PhotoImage(const.PLAY_RAW_IMG)
+        self.PAUSE_IMG: PhotoImage = PhotoImage(const.PAUSE_RAW_IMG)
+        self.WAVE_IMG: PhotoImage = PhotoImage(const.WAVE_RAW_IMG)
+        self.GRAPH_IMG: PhotoImage = PhotoImage(const.GRAPH_RAW_IMG)
+        self.LED_GREEN_IMG: PhotoImage = PhotoImage(const.LED_GREEN_RAW_IMG)
+        self.LED_RED_IMG: PhotoImage = PhotoImage(const.LED_RED_RAW_IMG)
 
         # Building the thread and serialconnection
         # First: initializing the thread

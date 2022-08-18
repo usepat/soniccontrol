@@ -206,7 +206,7 @@ class Hometab(ttk.Frame):
             self.utils_frame,
             text="Sonic measure",
             style="dark.TButton",
-            image=self.root.graph_img,
+            image=self.root.GRAPH_IMG,
             compound=tk.TOP,
             command=self.publish_sonicmeasure,
         )
@@ -942,7 +942,7 @@ class HometabWipe(Hometab):
 #             self.utils_frame,
 #             text='Sonic measure',
 #             style='dark.TButton',
-#             image=self.root.graph_img,
+#             image=self.root.GRAPH_IMG,
 #             compound=tk.TOP,
 #             command=self.publish_sonicmeasure)
 

@@ -96,7 +96,7 @@ class StatusFrame(ttk.Frame):
             anchor=tk.CENTER,
             compound=tk.LEFT,
             width=15,
-            image=self.root.led_red_img,
+            image=self.root.LED_RED_IMG,
             bootstyle="inverse-secondary",
             text=self.NOT_CONN_TXT,
         )
@@ -109,7 +109,7 @@ class StatusFrame(ttk.Frame):
             anchor=tk.CENTER,
             compound=tk.LEFT,
             width=10,
-            image=self.root.led_red_img,
+            image=self.root.LED_RED_IMG,
             bootstyle="inverse-secondary",
             text=self.OFF_TXT,
         )
@@ -133,7 +133,7 @@ class StatusFrame(ttk.Frame):
         """
         if not self._is_on:
             
-            self.sig_status_label["image"] = self.root.led_green_img
+            self.sig_status_label["image"] = self.root.LED_GREEN_IMG
             self.sig_status_label["text"] = self.ON_TXT
             
             self._is_on: bool = True
@@ -145,7 +145,7 @@ class StatusFrame(ttk.Frame):
         """ 
         if self._is_on:
             
-            self.sig_status_label["image"] = self.root.led_red_img
+            self.sig_status_label["image"] = self.root.LED_RED_IMG
             self.sig_status_label["text"] = self.OFF_TXT
             
             self._is_on: bool = False
@@ -157,7 +157,7 @@ class StatusFrame(ttk.Frame):
         """
         if self._is_connected:
             
-            self.con_status_label["image"] = self.root.led_red_img
+            self.con_status_label["image"] = self.root.LED_RED_IMG
             self.con_status_label["text"] = self.NOT_CONN_TXT
             
             self._is_connected: bool = False
@@ -169,7 +169,7 @@ class StatusFrame(ttk.Frame):
         """
         if not self._is_connected:
             
-            self.con_status_label["image"] = self.root.led_green_img
+            self.con_status_label["image"] = self.root.LED_GREEN_IMG
             self.con_status_label["text"] = self.CONN_TXT
             
             self._is_connected: bool = True

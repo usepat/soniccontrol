@@ -129,7 +129,7 @@ class ScriptingTab(ttk.Frame):
             text="Run",
             style="success.TButton",
             width=11,
-            image=self.root.play_img,
+            image=self.root.PLAY_IMG,
             compound=tk.RIGHT,
             command=self.start_sequence,
         )
@@ -250,7 +250,7 @@ class ScriptingTab(ttk.Frame):
         self.start_script_btn.configure(
             text="Stop",
             style="danger.TButton",
-            image=self.root.pause_img,
+            image=self.root.PAUSE_IMG,
             command=self.sequence.close_sequence,
         )
 
@@ -274,7 +274,7 @@ class ScriptingTab(ttk.Frame):
         self.start_script_btn.configure(
             text="Run",
             style="success.TButton",
-            image=self.root.play_img,
+            image=self.root.PLAY_IMG,
             command=self.start_sequence,
         )
 
@@ -1164,7 +1164,7 @@ class ScriptingGuideRow(ttk.Frame):
 #             text='Run',
 #             style='success.TButton',
 #             width=11,
-#             image=self.root.play_img,
+#             image=self.root.PLAY_IMG,
 #             compound=tk.RIGHT,
 #             command=self.configure_for_sequence,)
 
@@ -1289,7 +1289,7 @@ class ScriptingGuideRow(ttk.Frame):
 #         self.start_script_btn.configure(
 #             text='Run',
 #             style='success.TButton',
-#             image=self.root.play_img,
+#             image=self.root.PLAY_IMG,
 #             command=self.configure_for_sequence)
 
 #         # Changing GUI elemets so that everything looks different
@@ -1349,7 +1349,7 @@ class ScriptingGuideRow(ttk.Frame):
 #         self.start_script_btn.configure(
 #             text='Stop',
 #             style='danger.TButton',
-#             image=self.root.pause_img,
+#             image=self.root.PAUSE_IMG,
 #             command=self.close_sequence)
 
 #         self.sequence_status.start()

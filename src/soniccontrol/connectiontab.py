@@ -93,7 +93,7 @@ class ConnectionTab(ttk.Frame):
         self.refresh_button: ttk.Button = ttkb.Button(
             self.control_frame,
             bootstyle="secondary-outline",
-            image=self.root.refresh_img,
+            image=self.root.REFRESH_IMG,
             command=self.refresh,
         )
     
