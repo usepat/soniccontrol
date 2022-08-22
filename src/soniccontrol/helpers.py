@@ -1,5 +1,6 @@
 import logging
 import sys
+import json
 from PIL import Image
 
 import sonicpackage as sp
@@ -35,3 +36,15 @@ def resize_img(image_path: str, maxsize: tuple) -> Image:
     newsize = (int(image.size[0] / ratio), int(image.size[1] / ratio))
     image = image.resize(newsize, Image.ANTIALIAS)
     return image
+
+def read_json() -> dict:
+    with open("src//soniccontrol//resources//config.json", "r") as file_json:
+        data: dict = json.load(file_json)
+        return data
+
+
+if __name__ == "__main__":
+    data = read_json()
+    print(data)
+    print(data["transducer"])
+    print(list(data.keys())[1])

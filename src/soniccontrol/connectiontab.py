@@ -27,7 +27,8 @@ class ConnectionTab(ttk.Frame):
         
         self._root: Root = root
         
-        self.hex_file_path = tk.StringVar()
+        self.hex_file_path: tk.StringVar = tk.StringVar()
+        self.transducer_active: tk.StringVar = tk.StringVar()
         
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
         self.botframe: ttk.Frame = ttk.Frame(self)
@@ -42,6 +43,7 @@ class ConnectionTab(ttk.Frame):
     def _initialize_botframe(self) -> None:
         self._initialize_firmware_info()
         self._initialize_flash_frame()
+        self._initialize_transducer_menue()
         
         self.serial_monitor_btn: ttk.Button = ttk.Button(
             self.botframe,
@@ -132,6 +134,42 @@ class ConnectionTab(ttk.Frame):
             command=self.upload_file,
         )
         
+    def _initialize_transducer_menue(self) -> None:
+        
+        transducer_names: list = list(self.root.transducer.keys())
+        
+        self.transducer_frame: ttk.Frame = ttk.Frame(self.botframe)
+        self.transducer_menuebutton: ttkb.Menubutton = ttkb.Menubutton(
+            self.transducer_frame,
+            compound=tk.CENTER,
+            style=ttkb.DARK,
+            text="Pick Transducer",
+            state=tk.DISABLED,
+        )
+        
+        self.transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
+        
+        for name in transducer_names:
+            self.transducer_menue.add_radiobutton(
+                label=name,
+                value=name,
+                variable=self.transducer_active,
+                command=self.set_atf,
+            )
+
+        self.transducer_menuebutton["menu"] = self.transducer_menue
+        
+    def set_atf(self) -> None:
+        command: str = self.root.transducer[
+            self.transducer_active.get()
+        ][0]
+        
+        frq: int = self.root.transducer[
+            self.transducer_active.get()
+        ][1]
+        
+        self.root.serial.send_and_get(f"!{command}={frq}")
+        
     def attach_data(self) -> None:
         """
         Attaches data to the connectiontab
@@ -155,6 +193,7 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
         self.serial_monitor_btn.config(state=tk.NORMAL)
+        self.transducer_menuebutton.config(state=tk.NORMAL)
         self.firmware_label["text"] = fwmsg
 
         for child in self.flash_frame.children.values():
@@ -295,9 +334,13 @@ class ConnectionTab(ttk.Frame):
         )
         self.control_frame.pack(padx=10, pady=20, expand=True)
 
-        self.firmware_frame.grid(row=0, column=0, padx=10, pady=10)
+        self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
+        
+        if self.root.transducer:
+            self.transducer_menuebutton.pack()
+            self.transducer_frame.grid(row=1, column=1, padx=10, pady=10)
 
         # self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
         # self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
