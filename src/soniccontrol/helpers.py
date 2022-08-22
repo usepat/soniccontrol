@@ -11,10 +11,10 @@ formatter = logging.Formatter(
     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
 )
 
-file_handler = logging.FileHandler("Logs//soniccontrol.log")
+file_handler = logging.FileHandler("logs//soniccontrol.log")
 file_handler.setFormatter(formatter)
 
-file_handler_sp = logging.FileHandler("Logs//sonicpackage.log")
+file_handler_sp = logging.FileHandler("logs//sonicpackage.log")
 file_handler_sp.setFormatter(formatter)
 
 stream_handler = logging.StreamHandler(sys.stdout)

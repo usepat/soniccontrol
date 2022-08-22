@@ -45,6 +45,7 @@ from soniccontrol.helpers import logger
 
 import soniccontrol.constants as const
 
+
 class Root(tk.Tk):
     """
     The Root class is the main class of the Tkinter GUI.
@@ -121,7 +122,7 @@ class Root(tk.Tk):
         self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
         self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
-        ttkb.Style = ttkb.Style(theme=Root.THEME)
+        ttkb.Style(theme=Root.THEME)
 
         if os.sys.platform == 'Windows':
             self.iconbitmap("src//soniccontrol//pictures//welle.ico")
