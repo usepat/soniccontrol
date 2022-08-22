@@ -41,7 +41,7 @@ from soniccontrol.serialmonitor import(
     SerialMonitorWipe
 )
 from soniccontrol._notebook import ScNotebook
-from soniccontrol.helpers import logger
+from soniccontrol.helpers import logger, read_json
 
 import soniccontrol.constants as const
 
@@ -111,11 +111,14 @@ class Root(tk.Tk):
 
         # Status Log configuration
         self.fieldnames: list = ["timestamp", "signal", "frequency", "gain"]
-        self.status_log_dir: str = "Logs"
+        self.status_log_dir: str = "logs"
         self.statuslog_filepath: str
 
         if not os.path.exists(self.status_log_dir):
             os.mkdir(self.status_log_dir)
+
+        self.config_data: dict = read_json()
+        self.transducer: dict = self.config_data["transducer"]
 
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")

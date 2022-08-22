@@ -52,8 +52,8 @@ class Hometab(ttk.Frame):
 
         self._initialize_topframe()
         self._initialize_botframe()
-
-    def _initialize_topframe(self) -> None:
+    
+    def _initialize_topframe(self) -> None:                
         self.control_frame: ttk.LabelFrame = ttk.LabelFrame(
             self.topframe, text="Manual Control"
         )
@@ -245,6 +245,9 @@ class Hometab(ttk.Frame):
         pass
 
     def publish(self) -> None:
+        pass
+        
+    def after_publish(self) -> None:
         self.feedback_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.output_frame.pack(
             anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH
@@ -315,6 +318,7 @@ class HometabOldCatch(Hometab):
         )
 
     def publish(self) -> None:
+        super().publish()
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
@@ -333,16 +337,16 @@ class HometabOldCatch(Hometab):
             side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH
         )
 
-        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.utils_frame.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
-
+        self.control_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.utils_frame.grid(row=1, column=1, padx=20, pady=20, sticky=tk.NSEW)
+        
         self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
 
-        super().publish()
+        super().after_publish()
 
 
 class HometabOldWipe(Hometab):
@@ -459,6 +463,7 @@ class HometabOldWipe(Hometab):
 
     def publish(self) -> None:
         """Function to build children of this frame"""
+        super().publish()
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
@@ -474,7 +479,7 @@ class HometabOldWipe(Hometab):
         )
 
         self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=1, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.us_off_button.grid(
             row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
@@ -482,7 +487,7 @@ class HometabOldWipe(Hometab):
 
         self.topframe.pack(side=tk.TOP, padx=20, pady=20)
 
-        super().publish()
+        super().after_publish()
 
 
 class HometabDutyWipe(Hometab):
@@ -573,17 +578,18 @@ class HometabDutyWipe(Hometab):
         """
         Method to publish children for the SonicWipe 40kHz Duty Cycle amp
         """
+        super().publish()
         self.gain_spinbox.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
         self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
         self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
         self.us_off_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
 
-        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         
-        super().publish()
+        super().after_publish()
 
 
 class HometabCatch(Hometab):
@@ -628,6 +634,7 @@ class HometabCatch(Hometab):
         )
 
     def publish(self) -> None:
+        super().publish()
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
@@ -646,8 +653,8 @@ class HometabCatch(Hometab):
             side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH
         )
 
-        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.utils_frame.grid(row=0, column=1, padx=20, pady=20, sticky=tk.NSEW)
+        self.control_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.utils_frame.grid(row=1, column=1, padx=20, pady=20, sticky=tk.NSEW)
 
         self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
@@ -655,7 +662,7 @@ class HometabCatch(Hometab):
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
         
-        return super().publish()
+        return super().after_publish()
 
 
 class HometabWipe(Hometab):
@@ -766,6 +773,7 @@ class HometabWipe(Hometab):
 
     def publish(self) -> None:
         """Function to build children of this frame"""
+        super().publish()
         self.frq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.frq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
@@ -785,8 +793,8 @@ class HometabWipe(Hometab):
             side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X
         )
 
-        self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipe_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=1, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.us_off_button.grid(
             row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
@@ -794,7 +802,7 @@ class HometabWipe(Hometab):
 
         self.topframe.pack(side=tk.TOP, padx=20, pady=20)
 
-        super().publish()
+        super().after_publish()
 
 
 # from __future__ import annotations

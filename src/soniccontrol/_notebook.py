@@ -188,14 +188,15 @@ class ScNotebook(ttk.Notebook):
         """
         Disables childen and selects connection tab (case: not connected)
         """
-        for child in self.children.values():
+        if not self.root.config_data['dev_mode']:
+            for child in self.children.values():
 
-            try:
-                if child != focused_child:
-                    self.tab(child, state=tk.DISABLED)
+                try:
+                    if child != focused_child:
+                        self.tab(child, state=tk.DISABLED)
 
-            except Exception as e:
-                logger.info(f"{e}")
+                except Exception as e:
+                    logger.info(f"{e}")
 
         self.select(focused_child)
 

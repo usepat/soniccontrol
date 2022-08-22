@@ -59,7 +59,7 @@ class SonicMeasure(tk.Toplevel):
             self.util_ctrl_frame,
             text="Start",
             style="success.TButton",
-            image=root.play_img,
+            image=root.PLAY_IMG,
             compound=tk.RIGHT,
             command=self.start,
         )
@@ -160,7 +160,7 @@ class SonicMeasure(tk.Toplevel):
         self.start_btn.config(
             text="Stop",
             style="danger.TButton",
-            image=self.root.pause_img,
+            image=self.root.PAUSE_IMG,
             command=self.stop,
         )
 
@@ -184,7 +184,7 @@ class SonicMeasure(tk.Toplevel):
         self.start_btn.config(
             text="Run",
             style="success.TButton",
-            image=self.root.play_img,
+            image=self.root.PLAY_IMG,
             command=self.start,
         )
         self.save_btn.config(state=tk.NORMAL)
