@@ -98,7 +98,7 @@ class ConnectionTab(ttk.Frame):
             image=self.root.REFRESH_IMG,
             command=self.refresh,
         )
-    
+
     def _initialize_firmware_info(self) -> None:
         self.firmware_frame: ttk.Labelframe = ttk.Labelframe(
             self.botframe,
@@ -108,7 +108,7 @@ class ConnectionTab(ttk.Frame):
         self.firmware_label: ttk.Label = ttk.Label(
             self.firmware_frame, justify=tk.CENTER, style="dark.TLabel"
         )
-        
+
     def _initialize_flash_frame(self) -> None:
         self.flash_frame = ttk.Labelframe(
             self.botframe,
