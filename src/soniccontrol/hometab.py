@@ -479,7 +479,7 @@ class HometabOldWipe(Hometab):
         )
 
         self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.control_frame.grid(row=1, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.us_off_button.grid(
             row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
