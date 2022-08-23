@@ -6,7 +6,7 @@ Here are some screenshots to get a better understanding:
 
 #### Connectiontab
 The connection tab is the interface you are greeted with, here you can connect to a SonicAmp and inspect the already established connection.
-![alt text](https://../docs/pictures/connectiontab.png)
+![alt text](docs/pictures/connectiontab.png)
 
 #### Hometab
 The home tab is the main interface to control a SonicAmp manually. Here you can set certain values and validate, that everything works fine. Additionally, here lies the button to take you to the SonicMeasure window or to open the Serial Monitor for configuring your SonicAmp through a command-line expirience.
