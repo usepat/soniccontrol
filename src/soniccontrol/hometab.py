@@ -82,6 +82,16 @@ class Hometab(ttk.Frame):
 
         ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
 
+        self.us_auto_button: ttk.Button = ttk.Button(
+            self.us_control_frame,
+            text="AUTO",
+            style="primary.TButton",
+            width=10,
+            command=self.set_signal_auto,
+        )
+        
+        ToolTip(self.us_auto_button, text="Turn on the AUTO mode")
+
         self.us_off_button: ttk.Button = ttk.Button(
             self.us_control_frame,
             text="OFF",
@@ -98,6 +108,9 @@ class Hometab(ttk.Frame):
 
     def set_signal_on(self) -> None:
         self.insert_feed(self.serial.send_and_get(Command.SET_SIGNAL_ON))
+        
+    def set_signal_auto(self) -> None:
+        self.insert_feed(self.serial.send_and_get(Command.SET_AUTO))
 
     def set_signal_off(self) -> None:
         self.insert_feed(self.serial.send_and_get(Command.SET_SIGNAL_OFF))
@@ -341,7 +354,8 @@ class HometabOldCatch(Hometab):
         self.utils_frame.grid(row=1, column=1, padx=20, pady=20, sticky=tk.NSEW)
         
         self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
@@ -657,7 +671,8 @@ class HometabCatch(Hometab):
         self.utils_frame.grid(row=1, column=1, padx=20, pady=20, sticky=tk.NSEW)
 
         self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_off_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
