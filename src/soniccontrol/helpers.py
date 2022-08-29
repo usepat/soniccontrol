@@ -12,12 +12,6 @@ import sonicpackage as sp
 # Logger configuration #
 ########################
 
-if not os.path.isdir("logs/"):
-    os.mkdir("logs/")
-
-if os.path.isfile("sonicpackage.log"):
-    os.remove("sonicpackage.log")
-
 logger = logging.getLogger("soniccontrol")
 logger.setLevel(logging.DEBUG)
 
@@ -40,6 +34,13 @@ logger.addHandler(stream_handler)
 sp.logger.removeHandler(sp.file_handler)
 sp.logger.addHandler(file_handler_sp)
 sp.logger.addHandler(stream_handler)
+
+if not os.path.isdir("logs/"):
+    os.mkdir("logs/")
+
+#! Change maybe somehow that stuff with logs....
+# if os.path.isfile("sonicpackage.log"):
+#     os.remove("sonicpackage.log")
 
 ##################################
 # Helper Functions Configuration #

@@ -7,6 +7,7 @@ import ttkbootstrap as ttkb
 import csv
 import datetime
 import os
+import serial
 
 from PIL.ImageTk import PhotoImage
 from tkinter import font
@@ -15,7 +16,6 @@ from tkinter import messagebox
 from sonicpackage import (
     SonicAmp,
     SonicThread,
-    serial,
     Status,
     SonicAmpBuilder,
     SonicWipeDuty,

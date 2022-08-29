@@ -63,6 +63,7 @@ __pycache__/
 *.csv
 *.spec
 *.log
+*.json
 ~*
 
 # Byte-compiled / optimized / DLL files
