@@ -76,7 +76,7 @@ def read_json() -> dict:
     RETURNS:
         data (dict): the dictionary data of the config.json file
     """
-    with open("src//soniccontrol//resources//config.json", "r") as file_json:
+    with open("config.json", "r") as file_json:
         data: dict = json.load(file_json)
         return data
 
@@ -87,11 +87,5 @@ class ToolTip(TT):
             super().__init__(*args, **kwargs)
         
 
-
-
 if __name__ == "__main__":
     data = read_json()
-    print(data)
-    print(data["transducer"])
-    print(list(data.keys())[1])
-
