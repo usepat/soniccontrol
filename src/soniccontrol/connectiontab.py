@@ -160,15 +160,11 @@ class ConnectionTab(ttk.Frame):
         self.transducer_menuebutton["menu"] = self.transducer_menue
         
     def set_atf(self) -> None:
-        command: str = self.root.transducer[
-            self.transducer_active.get()
-        ][0]
         
-        frq: int = self.root.transducer[
-            self.transducer_active.get()
-        ][1]
+        transducer: dict = self.root.transducer[self.transducer_active.get()]
         
-        self.root.serial.send_and_get(f"!{command}={frq}")
+        for atf in transducer:
+            self.root.serial.send_and_get(f"!{atf}={transducer[atf]}")
         
     def attach_data(self) -> None:
         """

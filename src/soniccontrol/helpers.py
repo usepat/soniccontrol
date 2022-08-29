@@ -38,13 +38,17 @@ def resize_img(image_path: str, maxsize: tuple) -> Image:
     return image
 
 def read_json() -> dict:
-    with open("src//soniccontrol//resources//config.json", "r") as file_json:
+    with open("config.json", "r") as file_json:
         data: dict = json.load(file_json)
         return data
 
 
 if __name__ == "__main__":
     data = read_json()
-    print(data)
-    print(data["transducer"])
-    print(list(data.keys())[1])
+    
+    transducers: dict = data["transducer"]
+    charlie: dict = transducers["Charlie1"]
+    
+    for key in charlie:
+        print(f"!{key}={charlie[key]}")
+        
