@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import datetime
 import csv
 import tkinter as tk
@@ -18,6 +19,9 @@ from soniccontrol.sonicamp import SerialConnection
 if TYPE_CHECKING:
     from soniccontrol.core import Root
 
+if sys.platform == 'darwin':
+    import matplotlib
+    matplotlib.use('TkAgg')
 
 class SonicMeasure(tk.Toplevel):
     @property

@@ -7,7 +7,6 @@ import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 
 from tkinter import messagebox
-from ttkbootstrap.tooltip import ToolTip
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from sonicpackage import (
@@ -20,6 +19,7 @@ from sonicpackage import (
     ValueNotSupported,
 )
 from soniccontrol.sonicmeasure import SonicMeasure
+from soniccontrol.helpers import ToolTip
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
@@ -52,8 +52,8 @@ class Hometab(ttk.Frame):
 
         self._initialize_topframe()
         self._initialize_botframe()
-    
-    def _initialize_topframe(self) -> None:                
+
+    def _initialize_topframe(self) -> None:
         self.control_frame: ttk.LabelFrame = ttk.LabelFrame(
             self.topframe, text="Manual Control"
         )
