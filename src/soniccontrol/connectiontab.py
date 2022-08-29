@@ -9,7 +9,9 @@ import ttkbootstrap as ttkb
 from typing import Union, TYPE_CHECKING
 from tkinter import filedialog
 from tkinter import messagebox
-from ttkbootstrap.tooltip import ToolTip
+# from ttkbootstrap.tooltip import ToolTip
+
+from soniccontrol.helpers import ToolTip
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
