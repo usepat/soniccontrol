@@ -49,6 +49,8 @@ if __name__ == "__main__":
     transducers: dict = data["transducer"]
     charlie: dict = transducers["Charlie1"]
     
+    print(len(transducers))
+    
     for key in charlie:
         print(f"!{key}={charlie[key]}")
         

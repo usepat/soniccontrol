@@ -116,9 +116,8 @@ class Root(tk.Tk):
 
         if not os.path.exists(self.status_log_dir):
             os.mkdir(self.status_log_dir)
-
-        self.config_data: dict = read_json()
-        self.transducer: dict = self.config_data["transducer"]
+            
+        self.config_file_algorithm()
 
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -277,6 +276,9 @@ class Root(tk.Tk):
         self.gain.set(self.sonicamp.status.gain)
         self.wipe_mode.set(self.sonicamp.status.wipe_mode)
         self.protocol.set(self.serial.send_and_get(Command.GET_PROTOCOL))
+        
+        if len(self.transducer) == 1:
+            self.set_atf(list(self.transducer.keys())[0])
 
         tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.statuslog_filepath: str = f"{self.status_log_dir}//statuslog_{self.sonicamp.type_}_{tmp_timestamp}.csv"
@@ -502,6 +504,18 @@ class Root(tk.Tk):
                     statuslog, fieldnames=self.fieldnames
                 )
                 csv_writer.writerow(data_dict)
+                
+    def config_file_algorithm(self) -> None:
+        
+        self.config_data: dict = read_json()
+        self.transducer: dict = self.config_data["transducer"]
+                
+    def set_atf(self, transducer_name: str) -> None:
+        
+        transducer: dict = self.transducer[transducer_name]
+        
+        for atf in transducer:
+            self.serial.send_and_get(f"!{atf}={transducer[atf]}")
 
 
 class SonicAgent(SonicThread):
