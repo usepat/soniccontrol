@@ -154,21 +154,10 @@ class ConnectionTab(ttk.Frame):
                 label=name,
                 value=name,
                 variable=self.transducer_active,
-                command=self.set_atf,
+                command=lambda: self.root.set_atf(self.transducer_active.get()),
             )
 
         self.transducer_menuebutton["menu"] = self.transducer_menue
-        
-    def set_atf(self) -> None:
-        command: str = self.root.transducer[
-            self.transducer_active.get()
-        ][0]
-        
-        frq: int = self.root.transducer[
-            self.transducer_active.get()
-        ][1]
-        
-        self.root.serial.send_and_get(f"!{command}={frq}")
         
     def attach_data(self) -> None:
         """
@@ -338,7 +327,7 @@ class ConnectionTab(ttk.Frame):
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
         
-        if self.root.transducer:
+        if len(self.root.transducer) > 1:
             self.transducer_menuebutton.pack()
             self.transducer_frame.grid(row=1, column=1, padx=10, pady=10)
 
