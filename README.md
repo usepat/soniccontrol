@@ -52,7 +52,9 @@ The scripting tab is used to automate certain repetetive behaviours of a SonicAm
 
 ###### Commands:
 - ```frequency <Hz>```
+  
 ⋅⋅⋅Sets the frequency of a SonicAmp to the passed number, if it is possible
+
 - ```gain <percent>```
   Sets the gain of a SonicAmp tp the passed number, if it is possible
 - ```hold <seconds or milliseconds>```
