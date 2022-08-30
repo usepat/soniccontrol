@@ -1,0 +1,11 @@
+{
+    "dev_mode": true,
+    "hexflash": false,
+    "transducer": {
+        "Charlie1": {
+            "atf1": 1000000,
+            "atf2": 2000000,
+            "atf3": 3000000
+        }
+    }
+}
