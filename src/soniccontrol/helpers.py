@@ -77,9 +77,12 @@ def read_json() -> dict:
     RETURNS:
         data (dict): the dictionary data of the config.json file
     """
-    with open("config.json", "r") as file_json:
-        data: dict = json.load(file_json)
-        return data
+    try:
+        with open("config.json", "r") as file_json:
+            data: dict = json.load(file_json)
+            return data
+    except Exception:
+        return {}
 
 
 class ToolTip(TT):

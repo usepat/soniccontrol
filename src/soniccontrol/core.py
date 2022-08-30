@@ -508,7 +508,12 @@ class Root(tk.Tk):
     def config_file_algorithm(self) -> None:
         
         self.config_data: dict = read_json()
-        self.transducer: dict = self.config_data["transducer"]
+        
+        if self.config_data:
+            self.transducer: dict = self.config_data["transducer"]
+        else:
+            self.transducer: dict = {}
+            
                 
     def set_atf(self, transducer_name: str) -> None:
         
