@@ -2,7 +2,26 @@
 
 SonicControl is a python based light-weighted graphical user interface for controlling a SonicAmp. The GUI uses can be run on any platform and uses the serial interface to communicate with the device. Furthermore, SonicControl offers a simple scripting language to control a SonicAmp automatically for a certain duration.
 
-Here are some screenshots to get a better understanding:
+## Installation
+
+The installation of SonicControl is done by cloning the repository and installing the application while being in the folder through using the
+```bash
+$ git clone https://github.com/usepat/soniccontrol.git
+$ cd sonicontrol
+$ python -m pip install -e .
+```
+
+## Update
+```bash
+$ cd <path/to/soniccontrol>
+$ git pull
+$ python -m pip install -e .
+```
+
+## Usage
+```bash
+$ python -m soniccontrol
+```
 
 #### Connectiontab
 The connection tab is the interface you are greeted with, here you can connect to a SonicAmp and inspect the already established connection.
@@ -21,35 +40,26 @@ The scripting tab is used to automate certain repetetive behaviours of a SonicAm
 
 ###### Commands:
 - ```frequency <Hz>```
+  Sets the frequency of a SonicAmp to the passed number, if it is possible
 - ```gain <percent>```
+  Sets the gain of a SonicAmp tp the passed number, if it is possible
 - ```hold <seconds or milliseconds>```
+  Holds the state of things for the passed amount of time. The time unit defaults to milliseconds, whereas if you pass the time unit explicitly, seconds can be used:
+    ``hold 10s`` -> holds for 10 seconds
+    ``hold 100ms`` -> holfs for 100 milliseconds
 - ```on```
+  Turns the SonicAmp ultrasound signal output to ON
 - ```off```
+  Turns the SonicAmp ultrasound signal output to OFF
 - ```startloop <number>```
+  Declares the beginning of a loop with the passed quantifier, that declares how much cycles should the loop have
 - ```endloop```
+  Declares the end of a loop, it is mandatory for every loop to have an ``endloop`` statement
 - ```ramp <start Hz> <stop Hz> <resolution in Hz> <delay in s or ms>```
+  Sets a certain range of frequencies to the SonicAmp, starts with the ``<start Hz>`` parameter, goes until the ``<stop Hz>`` parameter and goes in ``<resolution in Hz>`` big steps. Furthermore, it waits ``<delay in s or ms>`` between the settings of frequencies. The delay paramter behaves like a hold parameter, so the time unit can also be passed.
 
 ![alt text](docs/pictures/scriptingtab.png)
 
 #### Infotab and Serial-Monitor
 The infotab gives you access to a help page document for further help for the application and tells you the version of the SonicControl itself. Likewise, the Serial Monitor gives you a quick briefing about possible commands to configure your SonicAmp.
 ![alt text](docs/pictures/infotab_serialmonitor.png)
-
-## Installation
-```bash
-$ git clone https://github.com/usepat/soniccontrol.git
-$ cd sonicontrol
-$ python -m pip install -e .
-```
-
-## Usage
-```bash
-$ python -m soniccontrol
-```
-
-## Update
-```bash
-$ cd <path/to/soniccontrol>
-$ git pull
-$ python -m pip install -e .
-```
