@@ -4,7 +4,7 @@ SonicControl is a python based light-weighted graphical user interface for contr
 
 ## Installation
 
-The installation of SonicControl is done by cloning the repository and installing the application while being in the folder through using the
+The installation of SonicControl is done by cloning the repository and installing the application while being in the folder through using the python package manager pip:
 ```bash
 $ git clone https://github.com/usepat/soniccontrol.git
 $ cd sonicontrol
@@ -12,9 +12,18 @@ $ python -m pip install -e .
 ```
 
 ## Update
+To update soniccontrol, navigate to the cloned repository on your device and pull the new version. Proceed with installing the new souce code to the python path with using pip:
 ```bash
 $ cd <path/to/soniccontrol>
 $ git pull
+$ python -m pip install -e .
+```
+
+#### Changing version
+If you wish to change to a certain verison of the application, you can gladly do so by checking out the release and installing the source code to the python path using pip:
+```bash
+$ cd <path/to/soniccontrol>
+$ git checkout <release tag>
 $ python -m pip install -e .
 ```
 
@@ -25,14 +34,17 @@ $ python -m soniccontrol
 
 #### Connectiontab
 The connection tab is the interface you are greeted with, here you can connect to a SonicAmp and inspect the already established connection.
+
 ![alt text](docs/pictures/connectiontab.png)
 
 #### Hometab
 The home tab is the main interface to control a SonicAmp manually. Here you can set certain values and validate, that everything works fine. Additionally, here lies the button to take you to the SonicMeasure window or to open the Serial Monitor for configuring your SonicAmp through a command-line expirience.
+
 ![alt text](docs/pictures/hometab.png)
 
 #### SonicMeasure
 The SonicMeasure window is used to collect data regarding the electrical signature of a SonicAmp through-out a certain time in a configured range of frequencies. Each data point that was collected is instantly being plotted.
+
 ![alt text](docs/pictures/sonicmeasure.png)
 
 #### Scriptingtab
@@ -40,7 +52,7 @@ The scripting tab is used to automate certain repetetive behaviours of a SonicAm
 
 ###### Commands:
 - ```frequency <Hz>```
-  Sets the frequency of a SonicAmp to the passed number, if it is possible
+⋅⋅⋅Sets the frequency of a SonicAmp to the passed number, if it is possible
 - ```gain <percent>```
   Sets the gain of a SonicAmp tp the passed number, if it is possible
 - ```hold <seconds or milliseconds>```
@@ -62,4 +74,5 @@ The scripting tab is used to automate certain repetetive behaviours of a SonicAm
 
 #### Infotab and Serial-Monitor
 The infotab gives you access to a help page document for further help for the application and tells you the version of the SonicControl itself. Likewise, the Serial Monitor gives you a quick briefing about possible commands to configure your SonicAmp.
+
 ![alt text](docs/pictures/infotab_serialmonitor.png)
