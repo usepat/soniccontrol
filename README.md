@@ -53,23 +53,36 @@ The scripting tab is used to automate certain repetetive behaviours of a SonicAm
 ###### Commands:
 - ```frequency <Hz>```
   
-⋅⋅⋅Sets the frequency of a SonicAmp to the passed number, if it is possible
+  Sets the frequency of a SonicAmp to the passed number, if it is possible
 
 - ```gain <percent>```
+
   Sets the gain of a SonicAmp tp the passed number, if it is possible
+
 - ```hold <seconds or milliseconds>```
+  
   Holds the state of things for the passed amount of time. The time unit defaults to milliseconds, whereas if you pass the time unit explicitly, seconds can be used:
-    ``hold 10s`` -> holds for 10 seconds
-    ``hold 100ms`` -> holfs for 100 milliseconds
+    - ``hold 10s`` -> holds for 10 seconds
+    - ``hold 100ms`` -> holfs for 100 milliseconds
+
 - ```on```
+
   Turns the SonicAmp ultrasound signal output to ON
+
 - ```off```
+
   Turns the SonicAmp ultrasound signal output to OFF
+
 - ```startloop <number>```
+
   Declares the beginning of a loop with the passed quantifier, that declares how much cycles should the loop have
+
 - ```endloop```
+
   Declares the end of a loop, it is mandatory for every loop to have an ``endloop`` statement
+
 - ```ramp <start Hz> <stop Hz> <resolution in Hz> <delay in s or ms>```
+
   Sets a certain range of frequencies to the SonicAmp, starts with the ``<start Hz>`` parameter, goes until the ``<stop Hz>`` parameter and goes in ``<resolution in Hz>`` big steps. Furthermore, it waits ``<delay in s or ms>`` between the settings of frequencies. The delay paramter behaves like a hold parameter, so the time unit can also be passed.
 
 ![alt text](docs/pictures/scriptingtab.png)
