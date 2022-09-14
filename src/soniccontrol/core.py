@@ -1,4 +1,5 @@
 from __future__ import annotations
+import time
 
 import traceback
 import tkinter as tk
@@ -201,6 +202,8 @@ class Root(tk.Tk):
 
             if self.serial.connect_to_port(self.port.get()):
                 logger.info(f"Getting connected to {self.port.get()}")
+                self.serial.send_and_get(Command.SET_SERIAL)
+                time.sleep(0.5)
                 self.decide_action()
 
             else:
@@ -250,7 +253,9 @@ class Root(tk.Tk):
             self.publish_for_wipe()
 
         else:
-            messagebox.showerror("Error", "Not implemented the device")
+            messagebox.showerror("Error", "Either your device is not set for external control or your device was not implemented. Please check if your device is in 'External Control Mode' or 'Serial Mode'")
+            print(self.sonicamp)
+            self.serial.disconnect()
 
         self.initialize_amp_data()
 
@@ -264,6 +269,10 @@ class Root(tk.Tk):
 
     def initialize_amp_data(self) -> None:
         """
+        Makes sure that data from the config file is being read and
+        updated. So that one can just reset the connection to update
+        the data
+        
         Method to get the data from the sonicamp to the Root tkinter
         variables, so the all objects can adapt to it
         
@@ -272,6 +281,8 @@ class Root(tk.Tk):
         
         Every new connection creates a needed logfile
         """
+        self.config_file_algorithm()
+        
         self.frq.set(self.sonicamp.status.frequency)
         self.gain.set(self.sonicamp.status.gain)
         self.wipe_mode.set(self.sonicamp.status.wipe_mode)
