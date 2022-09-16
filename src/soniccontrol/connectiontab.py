@@ -149,22 +149,41 @@ class ConnectionTab(ttk.Frame):
             state=tk.DISABLED,
         )
         
-        self.transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
+        transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
         
         for name in transducer_names:
-            self.transducer_menue.add_radiobutton(
+            transducer_menue.add_radiobutton(
                 label=name,
                 value=name,
                 variable=self.transducer_active,
                 command=lambda: self.root.set_atf(self.transducer_active.get()),
             )
 
-        self.transducer_menuebutton["menu"] = self.transducer_menue
+        self.transducer_menuebutton["menu"] = transducer_menue
+        
+    def _update_transducer_menue(self) -> None:
+        self.root.config_file_algorithm()
+        
+        transducer_names: list = list(self.root.transducer.keys())
+        transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
+        
+        for name in transducer_names:
+            transducer_menue.add_radiobutton(
+                label=name,
+                value=name,
+                variable=self.transducer_active,
+                command=lambda: self.root.set_atf(self.transducer_active.get()),
+            )
+
+        self.transducer_menuebutton["menu"] = transducer_menue
+        
         
     def attach_data(self) -> None:
         """
         Attaches data to the connectiontab
         """
+        self._update_transducer_menue()
+        
         self.subtitle["text"] = "You are connected to"
         self.heading1["text"] = self.root.sonicamp.type_[:5]
         self.heading2["text"] = self.root.sonicamp.type_[5:]
@@ -211,6 +230,7 @@ class ConnectionTab(ttk.Frame):
         )
 
         self.serial_monitor_btn.config(state=tk.DISABLED)
+        self.transducer_menuebutton.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.NORMAL)
         self.firmware_label["text"] = ""
 
