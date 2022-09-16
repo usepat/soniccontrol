@@ -342,20 +342,29 @@ exit              Exits the Serial Monitor"""
             if answer.isnumeric():
                 answer: int = int(answer)
             
-            if command == "!ON" and answer == 1:
-                self.insert_text("Wipe signal set to ON")
-                self.root.status_frame.signal_on()
-            
-            elif command == "!OFF" and answer == 0:
-                self.insert_text("Wipe signal set to OFF")
-                self.root.status_frame.signal_off()
-                
-            elif command[:3] == "!g=" and answer:
-                self.insert_text(f"Gain set to {answer}")
-                self.root.status_frame.change_values(gain=answer)
-                
-            elif command[:5] == "!swf=" and answer:
+                if command == "!ON" and answer == 1:
+                    self.insert_text("Wipe signal set to ON")
+                    self.root.status_frame.signal_on()
+
+                elif command == "!OFF" and answer == 0:
+                    self.insert_text("Wipe signal set to OFF")
+                    self.root.status_frame.signal_off()
+
+                elif command[:3] == "!g=" and answer:
+                    self.insert_text(f"Gain set to {answer}")
+                    self.root.status_frame.change_values(gain=answer)
+                    
+            else:
                 self.insert_text(answer)
+                
+                if command == "!ON":
+                    self.root.status_frame.signal_on()
+
+                elif command == "!OFF":
+                    self.root.status_frame.signal_off()
+
+                elif command[:3] == "!g=":
+                    self.root.status_frame.change_values(gain=answer)
         
         self.canvas.yview_moveto(1)
         self.command_field.delete(0, tk.END)

@@ -27,6 +27,7 @@ from sonicpackage import (
     SonicCatchAncient,
     SonicWipeAncient,
     Command,
+    Transducer
 )
 from soniccontrol.sonicamp import SerialConnectionGUI, SerialConnection
 from soniccontrol.statusframe import (
@@ -202,8 +203,6 @@ class Root(tk.Tk):
 
             if self.serial.connect_to_port(self.port.get()):
                 logger.info(f"Getting connected to {self.port.get()}")
-                self.serial.send_and_get(Command.SET_SERIAL)
-                time.sleep(0.5)
                 self.decide_action()
 
             else:

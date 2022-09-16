@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -562,13 +562,18 @@ class HometabDutyWipe(Hometab):
     
     def set_gain(self) -> None:
         gain: int = int(super().set_gain())
-
+        
         self.insert_feed(f"Gain setted to {gain}%")
         self.root.status_frame.change_values(gain=gain)
 
     def set_signal_on(self) -> None:
-        if self.serial.send_and_get(Command.SET_SIGNAL_ON):
+        is_on: Union[str, bool] = self.serial.send_and_get(Command.SET_SIGNAL_ON)
 
+        if isinstance(is_on, str):
+            self.insert_feed(is_on)
+            self.root.status_frame.signal_on()
+            
+        elif isinstance(is_on, bool):
             self.insert_feed("Signal ON")
             self.root.status_frame.signal_on()
 
@@ -598,7 +603,7 @@ class HometabDutyWipe(Hometab):
         self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
         self.us_off_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
 
-        self.control_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
