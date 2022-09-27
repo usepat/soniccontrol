@@ -5,6 +5,7 @@ import os
 import sys
 import datetime
 import csv
+import time
 import tkinter as tk
 import tkinter.ttk as ttk
 
@@ -42,6 +43,7 @@ class SonicMeasureWindow(tk.Toplevel):
         
         # Window configuration
         self.title('Sonic Measure')
+        self.protocol("WM_DELETE_WINDOW", self.gui.on_closing())
         
         # Figure Frame
         self.fig_frame: ttk.Frame = ttk.Frame(self)
@@ -108,6 +110,8 @@ class SonicMeasureWindow(tk.Toplevel):
             self.meta_data_frame, textvariable=self.comment_tk, style='dark.TEntry'
         )
         
+        self.publish()
+        
     def save(self) -> None:
         pass
         
@@ -161,8 +165,9 @@ class SonicMeasureControlUnit(object):
     def serial(self) -> SerialConnectionGUI:
         return self._serial
     
-    def __init__(self, sonicamp: SonicAmp) -> None:
+    def __init__(self, gui: SonicMeasureWindow, sonicamp: SonicAmp) -> None:
         
+        self.gui: SonicMeasureWindow = gui
         self._sonicamp: SonicAmp = sonicamp
         self._serial: SerialConnection = sonicamp.serial
         
@@ -172,20 +177,57 @@ class SonicMeasureControlUnit(object):
         self.start_frq: int
         self.step_frq: int
         
-    def get_sens(self) -> dict:
-        pass
+    def get_sens(self) -> MeasureData:
+        if self.sonicamp.status.signal:
+            data: MeasureData = MeasureData.construct_from_str(
+                self.serial.send_and_get(Command.GET_SENS)
+            )
+            self.collected_data.append(data)
+            return data
+    
+    def sequence(self) -> None:
+        
+        for frq in range(self.start_frq, self.stop_frq, self.step_frq):
+            
+            try: 
+                self.sonicamp.set_frq(frq)
+                data: MeasureData = self.get_sens()
+                
+                self.gui.plot_data(data)
+                self.gui.filehandler.register_data(data)
+                    
+            except AssertionError:
+                print('something went wrong')
+                self.gui.stop()
+                
+            except serial.SerialException:
+                self.gui.stop()
+                self.gui.root.__reinit__()
+                break
     
     
-@dataclass
+@dataclass(frozen=True)
 class MeasureData(object):
     
+    TIMESTAMP: int
     URMS: int
     IRMS: int
     PHASE: int
     FRQ: int
     GAIN: int
+    
+    @classmethod
+    def construct_from_str(cls, data_string: str) -> MeasureData:
+        assert len(data_string)
         
+        timestamp: datetime.datetime = datetime.datetime.now()
+        data_list: list = [int(data) for data in data_string.split(" ")]
         
+        obj: MeasureData = cls(timestamp, data_list[0], data_list[1], data_list[2], data_list[3])
+        
+        return obj
+    
+    
 class MeasureCanvas(FigureCanvasTkAgg):
     
     def __init__(self, parent: ttk.Frame, start_frq: int, stop_frq: int) -> None:
