@@ -71,7 +71,7 @@ class SonicMeasureWindow(tk.Toplevel):
         self.start_btn: ttk.Button = ttk.Button(
             self.util_ctrl_frame,
             text='Start',
-            style='succes.TButton',
+            style='success.TButton',
             image=self.root.PLAY_IMG,
             compound=tk.RIGHT,
             command=self.start,
@@ -403,6 +403,15 @@ class FileHandler(object):
 
         self.save_filepath: str = ""
         self.logfilepath: str = ""
+        
+        self.preamble: str = f"""
+# Datetime: {datetime.datetime.now()}
+# Gain: {self.gui.gain_tk.get()} in [%]
+# Frequency in [Hz]
+# Urms in []
+# Irms in []
+# Phase in []
+# Comment: {self.gui.comment_tk.get()}"""
 
         self._filetypes: list[tuple] = [
             ("Text", "*.txt"),
@@ -445,6 +454,8 @@ class FileHandler(object):
         Internal method to create the csv status log file
         """
         with open(self.logfilepath, "a", newline="") as logfile:
+            logfile.write(self.preamble)
+            
             csv_writer: csv.DictWriter = csv.DictWriter(
                 logfile, fieldnames=self.fieldnames
             )
@@ -452,6 +463,8 @@ class FileHandler(object):
         
         if self.save_filepath:
             with open(self.save_filepath, "a", newline="") as savefile:
+                savefile.write(self.preamble)
+                
                 csv_writer: csv.DictWriter = csv.DictWriter(
                     savefile, fieldnames=self.fieldnames
                 )
