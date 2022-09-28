@@ -411,7 +411,7 @@ class FileHandler(object):
 # Urms in []
 # Irms in []
 # Phase in []
-# Comment: {self.gui.comment_tk.get()}"""
+# Comment: {self.gui.comment_tk.get()}\n"""
 
         self._filetypes: list[tuple] = [
             ("Text", "*.txt"),
