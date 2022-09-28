@@ -18,6 +18,7 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk, FigureCanvas
 
 from sonicpackage import Command, serial, SonicAmp
 from soniccontrol.sonicamp import SerialConnection, SerialConnectionGUI
+from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
@@ -27,32 +28,31 @@ if sys.platform == 'darwin':
     matplotlib.use('TkAgg')
 
 
-data_logger: logging.Logger = logging.getLogger('sonicmeasure')
-data_logger.setLevel(logging.DEBUG)
-
-formatter: logging.Formatter = logging.Formatter(
-    "%(message)s"
-)
-
-
-
 class SonicMeasureWindow(tk.Toplevel):
     
     def __init__(self, root: Root, *args, **kwargs):
         super().__init__(master=root, *args, **kwargs)
         
         self.root: Root = root
-        self.control_unit: SonicMeasureControlUnit = SonicMeasureControlUnit(gui=self, sonicamp=root.sonicamp)
-        self.filehandler: FileHandler = FileHandler(self)
+        self.control_unit: SonicMeasureControlUnit
+        self.filehandler: FileHandler
         
+        # Data array for plotting
+        self.frq_list: list = []
+        self.urms_list: list = []
+        self.irms_list: list = []
+        self.phase_list: list = []
+        
+        # Tkinter variables
         self.start_frq_tk: tk.IntVar = tk.IntVar(value=1900000)
-        self.stop_frq_tk: tk.IntVar = tk.IntVar(value=1900000)
-        self.step_frq_tk: tk.IntVar = tk.IntVar(value=1900000)
+        self.stop_frq_tk: tk.IntVar = tk.IntVar(value=2100000)
+        self.step_frq_tk: tk.IntVar = tk.IntVar(value=1000)
         self.gain_tk: tk.IntVar = tk.IntVar(value=100)
         self.comment_tk: tk.StringVar = tk.StringVar()
         
         # Window configuration
         self.title('Sonic Measure')
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
         # Figure Frame
         self.fig_frame: ttk.Frame = ttk.Frame(self)
@@ -143,30 +143,82 @@ class SonicMeasureWindow(tk.Toplevel):
         pass
         
     def start(self) -> None:
+        if self.start_frq_tk.get() < 600000 or self.stop_frq_tk.get() < 600000:
+            messagebox.showinfo(
+                "Not supported values",
+                "Please make sure that your frequency values are between 600000Hz and 6000000Hz",
+            )
+            self.stop()
+        
+        make_copy_answer: Union[bool, None] = messagebox.askyesnocancel(
+            "Specify save path?", 
+            "Do you want to specify a save path for the stored data? \nNote that a copy will be stored under SonicControl/SonicMeasue regardless")
+        
+        if make_copy_answer is None:
+            return None
+        
+        self.filehandler: FileHandler = FileHandler(self, make_copy_answer)
+        self.control_unit: SonicMeasureControlUnit = SonicMeasureControlUnit(
+            self, 
+            self.root.sonicamp,
+        )
         
         self.start_btn.config(
             text='Stop',
             style='danger.TButton',
             image=self.root.PAUSE_IMG,
-            command=self.stop
+            command=self.control_unit.stop
         )
         
         for child in self.frq_frame.winfo_children():
             child.config(state=tk.DISABLED)
             
-        self.filehandler._create_datafile()
         self.root.thread.pause()
-        
-        self.control_unit: SonicMeasureControlUnit = SonicMeasureControlUnit(
-            self, 
-            self.root.sonicamp,
-        ).start()
+        self.control_unit.start()
     
     def stop(self) -> None:
-        pass
+        self.start_btn.config(
+            text="Run",
+            style="success.TButton",
+            image=self.root.PLAY_IMG,
+            command=self.start,
+        )
+
+        for child in self.frq_frame.children.values():
+            child.config(state=tk.NORMAL)
+
+        # In case the thread was paused, resume. If statement to not resume the thread twice
+        if self.root.thread.paused:
+            self.root.thread.resume()
     
-    def plot_data(self) -> None:
-        pass
+    def plot_data(self, data: MeasureData) -> None:
+        
+        self.frq_list.append(data.FRQ)
+        self.urms_list.append(data.URMS)
+        self.irms_list.append(data.IRMS)
+        self.phase_list.append(data.PHASE)
+
+        self.fig_canvas.plot_urms.set_data(self.frq_list, self.urms_list)
+        self.fig_canvas.plot_irms.set_data(self.frq_list, self.irms_list)
+        self.fig_canvas.plot_phase.set_data(self.frq_list, self.phase_list)
+
+        self.fig_canvas.draw()
+
+        self.fig_canvas.ax_urms.set_ylim(
+            min(self.urms_list) - min(self.urms_list) * 0.4,
+            max(self.urms_list) + max(self.urms_list) * 0.2,
+        )
+        self.fig_canvas.ax_irms.set_ylim(
+            min(self.irms_list) - min(self.irms_list) * 0.4,
+            max(self.irms_list) + max(self.irms_list) * 0.2,
+        )
+        self.fig_canvas.ax_phase.set_ylim(
+            min(self.phase_list) - min(self.phase_list) * 0.4,
+            max(self.phase_list) + max(self.phase_list) * 0.2,
+        )
+
+        self.fig_canvas.flush_events()
+        self.root.update()
     
     def publish(self) -> None:
         self.fig_frame.pack(fill=tk.BOTH, expand=True)
@@ -219,61 +271,93 @@ class SonicMeasureControlUnit(object):
         
         self.collected_data: list = []
         
-        self.stop_frq: int
-        self.start_frq: int
-        self.step_frq: int
+        self.start_frq: int = self.gui.start_frq_tk.get()
+        self.stop_frq: int = self.gui.stop_frq_tk.get()
+        
+        if self.start_frq > self.stop_frq:
+            self.step_frq: int = -abs(self.gui.step_frq_tk.get())
+        else:
+            self.step_frq: int = self.gui.step_frq_tk.get()
+        
+        logger.info(f"{self.start_frq}{self.stop_frq}{self.step_frq}")
         
     def get_sens(self) -> MeasureData:
         if self.sonicamp.status.signal:
             data: MeasureData = MeasureData.construct_from_str(
-                self.serial.send_and_get(Command.GET_SENS)
+                self.serial.send_and_get(Command.GET_SENS),
+                self.sonicamp.status.gain
             )
             self.collected_data.append(data)
+            logger.info(data)
             return data
+        
+    def stop(self) -> None:
+        if not self.run:
+            self.run: bool = False
+            
+        self.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        self.gui.stop()
     
     def sequence(self) -> None:
         
         for frq in range(self.start_frq, self.stop_frq, self.step_frq):
+            if self.run:    
+                try: 
+                    logger.debug(f"At {frq}")
+                    self.serial.send_and_get(Command.SET_FRQ + frq)
+                    data: MeasureData = self.get_sens()
+
+                    logger.info(data)
+
+                    self.gui.plot_data(data)
+                    self.gui.filehandler.register_data(data)
+
+                except AssertionError:
+                    logger.warning("Something went wrong ASSERTIONERROR")
+                    self.gui.stop()
+
+                except serial.SerialException:
+                    self.gui.stop()
+                    self.gui.root.__reinit__()
+                    break
+                
+                else:
+                    logger.warning('Something went terribly wrong')
             
-            try: 
-                self.sonicamp.set_frq(frq)
-                data: MeasureData = self.get_sens()
-                
-                self.gui.protocol("WM_DELETE_WINDOW", self.gui.on_closing())
-                self.gui.plot_data(data)
-                self.gui.filehandler.register_data(data)
-                    
-            except AssertionError:
-                print('something went wrong')
-                self.gui.stop()
-                
-            except serial.SerialException:
-                self.gui.stop()
-                self.gui.root.__reinit__()
+            else:
                 break
+        
+        self.stop()
             
     def start(self):
-        print("\n\n\n\n\nHALOOOOOOOOOOOOOOOOOOO\n\n\n\n\n")
+        self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        self.serial.send_and_get(Command.SET_GAIN + self.gui.gain_tk.get())
+        
+        self.sonicamp.status.signal = True
+        self.sonicamp.status.gain = self.gui.gain_tk.get()
+        
+        self.run: bool = True
+        self.sequence()
     
     
 @dataclass(frozen=True)
 class MeasureData(object):
     
     TIMESTAMP: int
+    FRQ: int
+    GAIN: int
     URMS: int
     IRMS: int
     PHASE: int
-    FRQ: int
-    GAIN: int
     
     @classmethod
-    def construct_from_str(cls, data_string: str) -> MeasureData:
+    def construct_from_str(cls, data_string: str, gain: int) -> MeasureData:
         assert len(data_string)
         
         timestamp: datetime.datetime = datetime.datetime.now()
         data_list: list = [int(data) for data in data_string.split(" ")]
         
-        obj: MeasureData = cls(timestamp, data_list[0], data_list[1], data_list[2], data_list[3])
+        obj: MeasureData = cls(timestamp, data_list[0], gain, data_list[1], data_list[2], data_list[3])
         
         return obj
     
@@ -313,13 +397,12 @@ class MeasureCanvas(FigureCanvasTkAgg):
         
 
 class FileHandler(object):
-    def __init__(self, gui: SonicMeasureWindow) -> None:
+    def __init__(self, gui: SonicMeasureWindow, make_copy: bool) -> None:
+        
         self.gui: SonicMeasureWindow = gui
 
-        self.save_filepath: str
-        self.save_filename: str
-        self.logfilename: str = "lmao"
-        self.logfilepath: str = f"{os.curdir}/SonicMeasure/{self.logfilename}"
+        self.save_filepath: str = ""
+        self.logfilepath: str = ""
 
         self._filetypes: list[tuple] = [
             ("Text", "*.txt"),
@@ -328,29 +411,36 @@ class FileHandler(object):
         self._save_dir: str = "SonicMeasure"
 
         self.fieldnames: list = [
-            "timestamp",
-            "frequency",
-            "gain",
-            "urms",
-            "irms",
-            "phase"
+            "TIMESTAMP",
+            "FRQ",
+            "GAIN",
+            "URMS",
+            "IRMS",
+            "PHASE"
         ]
 
         if not os.path.exists(self._save_dir):
             os.mkdir(self._save_dir)
+        
+        self.decide_logfile_name(make_copy)
 
-    def decide_logfile_name(self) -> None:
+    def decide_logfile_name(self, make_copy: bool) -> None:
         tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.logfilepath: str = f"{self._save_dir}//{tmp_timestamp}_{self.gui.root.sonicamp.type_}_SonicMeasure.csv"
-
-        self._create_statuslog()
+        
+        if make_copy:
+            self.save_filepath: str = filedialog.asksaveasfilename(
+                defaultextension='.txt', filetypes=self._filetypes
+            )
+        
+        self._create_datafiles()
 
     def save_file(self) -> None:
         self.save_filename = filedialog.asksaveasfilename(
             defaultextension=".txt", filetypes=self._filetypes
         )
 
-    def _create_datafile(self) -> None:
+    def _create_datafiles(self) -> None:
         """
         Internal method to create the csv status log file
         """
@@ -360,11 +450,12 @@ class FileHandler(object):
             )
             csv_writer.writeheader()
         
-        with open(self.save_filepath, "a", newline="") as savefile:
-            csv_writer: csv.DictWriter = csv.DictWriter(
-                savefile, fieldnames=self.fieldnames
-            )
-            csv_writer.writeheader()
+        if self.save_filepath:
+            with open(self.save_filepath, "a", newline="") as savefile:
+                csv_writer: csv.DictWriter = csv.DictWriter(
+                    savefile, fieldnames=self.fieldnames
+                )
+                csv_writer.writeheader()
 
     def register_data(self, data: MeasureData) -> None:
         
@@ -375,12 +466,13 @@ class FileHandler(object):
                 logfile, fieldnames=self.fieldnames
             )
             csv_writer.writerow(data_dict)
-            
-        with open(self.save_filepath, "a", newline="") as savefile:
-            csv_writer: csv.DictWriter = csv.DictWriter(
-                savefile, fieldnames=self.fieldnames
-            )
-            csv_writer.writerow(data_dict)
+        
+        if self.save_filepath:
+            with open(self.save_filepath, "a", newline="") as savefile:
+                csv_writer: csv.DictWriter = csv.DictWriter(
+                    savefile, fieldnames=self.fieldnames
+                )
+                csv_writer.writerow(data_dict)
 
 # from __future__ import annotations
 
@@ -637,45 +729,45 @@ class FileHandler(object):
 
 #         self.stop()
 
-#     def plot_data(self, data: dict) -> None:
-#         """Append the data to the plotted list and update
-#         the plot accordingly
+    # def plot_data(self, data: dict) -> None:
+    #     """Append the data to the plotted list and update
+    #     the plot accordingly
 
-#         Args:
-#             data (dict): The data that needs to be plotted, specifically with the dict keys:
-#                 -> "frequency" (int)    : the current frequency
-#                 -> "urms" (int)         : the current Urms (Voltage)
-#                 -> "irms" (int)         : the current Irms (Amperage)
-#                 -> "phase" (int)        : the current phase (Degree)
-#         """
-#         # logger.info(f"SonicMeasure\tPlotting data\t{data = }")
+    #     Args:
+    #         data (dict): The data that needs to be plotted, specifically with the dict keys:
+    #             -> "frequency" (int)    : the current frequency
+    #             -> "urms" (int)         : the current Urms (Voltage)
+    #             -> "irms" (int)         : the current Irms (Amperage)
+    #             -> "phase" (int)        : the current phase (Degree)
+    #     """
+    #     # logger.info(f"SonicMeasure\tPlotting data\t{data = }")
 
-#         self.frq_list.append(data["frequency"])
-#         self.urms_list.append(data["urms"])
-#         self.irms_list.append(data["irms"])
-#         self.phase_list.append(data["phase"])
+    #     self.frq_list.append(data["frequency"])
+    #     self.urms_list.append(data["urms"])
+    #     self.irms_list.append(data["irms"])
+    #     self.phase_list.append(data["phase"])
 
-#         self.figure_canvas.plot_urms.set_data(self.frq_list, self.urms_list)
-#         self.figure_canvas.plot_irms.set_data(self.frq_list, self.irms_list)
-#         self.figure_canvas.plot_phase.set_data(self.frq_list, self.phase_list)
+    #     self.figure_canvas.plot_urms.set_data(self.frq_list, self.urms_list)
+    #     self.figure_canvas.plot_irms.set_data(self.frq_list, self.irms_list)
+    #     self.figure_canvas.plot_phase.set_data(self.frq_list, self.phase_list)
 
-#         self.figure_canvas.draw()
+    #     self.figure_canvas.draw()
 
-#         self.figure_canvas.ax_urms.set_ylim(
-#             min(self.urms_list) - min(self.urms_list) * 0.4,
-#             max(self.urms_list) + max(self.urms_list) * 0.2,
-#         )
-#         self.figure_canvas.ax_irms.set_ylim(
-#             min(self.irms_list) - min(self.irms_list) * 0.4,
-#             max(self.irms_list) + max(self.irms_list) * 0.2,
-#         )
-#         self.figure_canvas.ax_phase.set_ylim(
-#             min(self.phase_list) - min(self.phase_list) * 0.4,
-#             max(self.phase_list) + max(self.phase_list) * 0.2,
-#         )
+    #     self.figure_canvas.ax_urms.set_ylim(
+    #         min(self.urms_list) - min(self.urms_list) * 0.4,
+    #         max(self.urms_list) + max(self.urms_list) * 0.2,
+    #     )
+    #     self.figure_canvas.ax_irms.set_ylim(
+    #         min(self.irms_list) - min(self.irms_list) * 0.4,
+    #         max(self.irms_list) + max(self.irms_list) * 0.2,
+    #     )
+    #     self.figure_canvas.ax_phase.set_ylim(
+    #         min(self.phase_list) - min(self.phase_list) * 0.4,
+    #         max(self.phase_list) + max(self.phase_list) * 0.2,
+    #     )
 
-#         self.figure_canvas.flush_events()
-#         self.root.update()
+    #     self.figure_canvas.flush_events()
+    #     self.root.update()
 
 #     def register_data(self, data: dict) -> None:
 #         """Register the measured data in a csv file"""
