@@ -18,7 +18,7 @@ from sonicpackage import (
     WipeMode,
     ValueNotSupported,
 )
-from soniccontrol.sonicmeasure import SonicMeasure
+from soniccontrol.sonicmeasure import SonicMeasureWindow
 from soniccontrol.helpers import ToolTip
 
 if TYPE_CHECKING:
@@ -232,7 +232,7 @@ class Hometab(ttk.Frame):
         )
 
     def publish_sonicmeasure(self) -> None:
-        self.sonicmeasure: SonicMeasure = SonicMeasure(self.root)
+        self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self.root)
 
     def _initialize_botframe(self) -> None:
         self.output_frame: ttk.Frame = ttk.LabelFrame(self.botframe, text="Feedback")

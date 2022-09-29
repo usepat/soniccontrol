@@ -1,178 +1,340 @@
 from __future__ import annotations
+from dataclasses import dataclass
 
+import os
+import sys
+import datetime
+import csv
+import time
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 
-from typing import Union, TYPE_CHECKING
-from ttkbootstrap.scrolled import ScrolledFrame
+from typing import TYPE_CHECKING, Union
+from tkinter import messagebox, filedialog
+from matplotlib import style
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk, FigureCanvasTkAgg
+
+from sonicpackage import Command, serial, SonicAmp
 from soniccontrol.sonicamp import SerialConnection, SerialConnectionGUI
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
 
+if sys.platform == 'darwin':
+    import matplotlib
+    matplotlib.use('TkAgg')
 
-class SerialMonitor(ttkb.Frame):
 
-    HELPTEXT: str = ''
+class SonicMeasureWindow(tk.Toplevel):
+    
+    def __init__(self, root: Root, sonicamp: SonicAmp, *args, **kwargs):
+        super().__init__(master=root, *args, **kwargs)
+        
+        self.root: Root = root
+        self.control_unit: SonicMeasureControlUnit = SonicMeasureControlUnit(sonicamp=sonicamp)
+        self.filehandler: FileHandler = FileHandler(self)
+        
+        self.start_frq_tk: tk.IntVar = tk.IntVar(value=1900000)
+        self.stop_frq_tk: tk.IntVar = tk.IntVar(value=1900000)
+        self.step_frq_tk: tk.IntVar = tk.IntVar(value=1900000)
+        self.gain_tk: tk.IntVar = tk.IntVar(value=100)
+        self.comment_tk: tk.StringVar = tk.StringVar()
+        
+        # Window configuration
+        self.title('Sonic Measure')
+        self.protocol("WM_DELETE_WINDOW", self.gui.on_closing())
+        
+        # Figure Frame
+        self.fig_frame: ttk.Frame = ttk.Frame(self)
+        self.fig_canvas: MeasureCanvas = MeasureCanvas()
+        self.toolbar: NavigationToolbar2Tk = NavigationToolbar2Tk(self.fig_canvas, self.fig_frame)
+        
+        # Control Frame
+        self.control_frame: ttk.Frame = ttk.Frame(self)
+        
+        # Control Frame - Utility frame
+        self.util_ctrl_frame: ttk.Frame = ttk.Frame(self.control_frame)
+        self.start_button: ttk.Button(
+            self.util_ctrl_frame,
+            text='Start',
+            style='succes.TButton',
+            image=self.root.PLAY_IMG,
+            compound=tk.RIGHT,
+            command=self.start,
+        )
+        
+        # Control Frame - Frequency and Gain configuration Frame
+        self.frq_frame: ttk.LabelFrame = ttk.LabelFrame(
+            self.control_frame, text='Set up Frequency', style='secondary.TLabelframe',
+        )
+        self.start_frq_label: ttk.Label = ttk.Label(
+            self.frq_frame, text='Start frequency [Hz]',
+        )
+        self.start_frq_entry: ttk.Entry = ttk.Entry(
+            self.frq_frame,
+            textvariable=self.start_frq,
+            style="dark.TEntry",
+        )
+        self.stop_frq_label: ttk.Label = ttk.Label(
+            self.frq_frame, text="Stop frequency [Hz]"
+        )
+        self.stop_frq_entry: ttk.Entry = ttk.Entry(
+            self.frq_frame,
+            textvariable=self.stop_frq,
+            style="dark.TEntry",
+        )
+        self.step_frq_label: ttk.Label = ttk.Label(
+            self.frq_frame, text="Resolution [Hz]"
+        )
+        self.step_frq_entry: ttk.Entry = ttk.Entry(
+            self.frq_frame, textvariable=self.step_frq, style="dark.TEntry"
+        )
+        self.gain_label: ttk.Label = ttk.Label(
+            self.frq_frame, text='Configure Gain [%]'
+        )
+        self.gain_entry: ttk.Entry = ttk.Entry(
+            self.frq_frame,
+            textvariable=self.start_gain,
+            style="dark.TEntry",
+        )
+        
+        # Control Frame - Meta data Frame
+        self.meta_data_frame: ttk.LabelFrame = ttk.LabelFrame(
+            self.control_frame, text='Set up Metadata', style='secondary.TLabelframe',
+        )
+        self.meta_comment_label: ttk.Label = ttk.Label(
+            self.meta_data_frame, text= 'Comment',
+        )
+        self.meta_comment: ttk.Entry = ttk.Entry(
+            self.meta_data_frame, textvariable=self.comment_tk, style='dark.TEntry'
+        )
+        
+        self.publish()
+        
+    def save(self) -> None:
+        pass
+        
+    def start(self) -> None:
+        pass
+    
+    def stop(self) -> None:
+        pass
+    
+    def plot_data(self) -> None:
+        pass
+    
+    def publish(self) -> None:
+        self.fig_frame.pack(fill=tk.BOTH, expand=True)
+        self.fig_canvas._tkcanvas.pack(fill=tk.BOTH, expand=True)
+        self.control_frame.pack()
 
+        self.util_ctrl_frame.grid(row=0, column=0, padx=5, pady=5)
+        self.frq_frame.grid(row=0, column=1, padx=5, pady=5)
+        self.gain_frame.grid(row=0, column=2, padx=5, pady=5)
+
+        self.start_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
+        # self.save_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
+
+        # Frq Frame
+        self.start_frq_label.grid(row=0, column=0, padx=3, pady=3)
+        self.start_frq_entry.grid(row=0, column=1, padx=3, pady=3)
+
+        self.stop_frq_label.grid(row=1, column=0, padx=3, pady=3)
+        self.stop_frq_entry.grid(row=1, column=1, padx=3, pady=3)
+
+        self.step_frq_label.grid(row=2, column=0, padx=3, pady=3)
+        self.step_frq_entry.grid(row=2, column=1, padx=3, pady=3)
+
+        # Gain Frame
+        self.start_gain_label.grid(row=0, column=0, padx=3, pady=3)
+        self.start_gain_entry.grid(row=0, column=1, padx=3, pady=3)
+        
+    def on_closing(self) -> None:
+        self.stop()
+        self.destroy()
+        
+        
+class SonicMeasureControlUnit(object):
+    
     @property
-    def root(self) -> Root:
-        return self._root
-
+    def sonicamp(self) -> SonicAmp:
+        return self._sonicamp
+    
     @property
     def serial(self) -> SerialConnectionGUI:
         return self._serial
-
-    def __init__(self, root: Root, *args, **kwargs) -> None:
-        super().__init__(root, *args, **kwargs)
-        
-        self._root: Root = root
-        self._serial: SerialConnectionGUI = root.serial
-
-        self.command_history: list = [""]
-        self.index_history: int = 0
-
-        self.output_frame: ttk.Frame = ttk.LabelFrame(self, text='OUTPUT')
-        self.scrolled_frame: ScrolledFrame = ScrolledFrame(self, bootstyle=ttkb.PRIMARY)
-
-        self.input_frame: ttk.LabelFrame = ttk.LabelFrame(self, text='INPUT')
-        self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style='dark.TEntry')
-        
-        self.command_field.bind('<Return>', self.send_command)
-        self.command_field.bind('<Up>', self.history_up)
-        self.command_field.bind('<Down>', self.hsitory_down)
-
-        self.send_button: ttkb.Button = ttkb.Button(
-            self.input_frame,
-            text='Send',
-            command=self.send_command,
-            style='success.TButton',
-        )
-        
-        self.insert_text(self.HELPTEXT)
-        self.publish()
-        
-    def publish(self) -> None:
-        self.command_field.pack(anchor=tk.S, padx=10, pady=10, fill=tk.X, expand=True, side=tk.LEFT)
-        self.send_button.pack(anchor=tk.S, padx=10, pady=10, side=tk.RIGHT)
-        self.scrolled_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=10, pady=10, side=tk.TOP)
-
-        self.input_frame.pack(anchor=tk.S, fill=tk.X, side=tk.BOTTOM)
-        self.output_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP)
-
-    def send_command(self, event) -> None:
-        command: str = self.command_field.get()
-        self.command_history.append(command)
-
-        self.insert_text(f">>> {command}")
-
-        if not self.is_internal_command(command=command):
-            self.insert_text(self.serial.send_and_get(command))
-
-        self.scrolled_frame.yview_moveto(1)
-        self.command_field.delete(0, tk.END)
-
-    def is_internal_command(self, command: str) -> bool:
-
-        if command == "clear":
-            for child in self.scrolled_frame.children.values():
-                child.destroy()
-
-        elif command == "help":
-            self.insert_text(self.HELPTEXT)
-
-        elif command == "exit":
-            self.root.publish_serial_monitor()
-        
-        else:
-            return False
-        
-        return True
-
-    def insert_text(self, text: Union[str, list]) -> None:
-        if text is list:
-            text = " ".join(text)
-        
-        ttk.Label(self.scrolled_frame, text=text, font=("Consolas", 10)).pack(
-            fill=tk.X, side=tk.TOP, anchor=tk.W
-        )
-        self.scrolled_frame.update()
-
-    def history_up(self, event) -> None:
-        if self.index_history != len(self.command_history):
-            self.index_history += 1
-            self.command_field.delete(0, tk.END)
-            self.command_field.insert(0, self.command_history[self.index_history])
     
-    def history_down(self, event) -> None:
-        if self.index_history:
-            self.index_history -= 1
-            self.command_field.delete(0, tk.END)
-            self.command_field.insert(0, self.command_history[self.index_history])
-
-
-class SerialMonitorCatch(SerialMonitor):
-
-    HELPTEXT: str = ''
-
-    def __init__(self, root: Root, *args, **kwargs) -> None:
-        super().__init__(root, *args, **kwargs)
-
-
-class SerialMonitorWipe(SerialMonitor):
+    def __init__(self, gui: SonicMeasureWindow, sonicamp: SonicAmp) -> None:
+        
+        self.gui: SonicMeasureWindow = gui
+        self._sonicamp: SonicAmp = sonicamp
+        self._serial: SerialConnection = sonicamp.serial
+        
+        self.collected_data: list = []
+        
+        self.stop_frq: int
+        self.start_frq: int
+        self.step_frq: int
+        
+    def get_sens(self) -> MeasureData:
+        if self.sonicamp.status.signal:
+            data: MeasureData = MeasureData.construct_from_str(
+                self.serial.send_and_get(Command.GET_SENS)
+            )
+            self.collected_data.append(data)
+            return data
     
-    HELPTEXT: str = ''
-
-    def __init__(self, root: Root, *args, **kwargs) -> None:
-        super().__init__(root, *args, **kwargs)
-
-
-class SerialMonitor40KHZ(SerialMonitor):
-    
-    HELPTEXT: str = ''
-
-    def __init__(self, root: Root, *args, **kwargs) -> None:
-        super().__init__(root, *args, **kwargs)
-
-    def send_command(self, event) -> None:
-        command: str = self.command_field.get()
-        self.command_history.insert(0, command)
-        self.insert_text(f">>> {command}")
-
-        if not self._internal_command(command=command):
+    def sequence(self) -> None:
+        
+        for frq in range(self.start_frq, self.stop_frq, self.step_frq):
             
-            answer: str = self.serial.send_and_get(command)
-            
-            if answer.isnumeric():
-                answer: int = int(answer)
-            
-                if command == "!ON" and answer == 1:
-                    self.insert_text("Wipe signal set to ON")
-                    self.root.status_frame.signal_on()
-
-                elif command == "!OFF" and answer == 0:
-                    self.insert_text("Wipe signal set to OFF")
-                    self.root.status_frame.signal_off()
-
-                elif command[:3] == "!g=" and answer:
-                    self.insert_text(f"Gain set to {answer}")
-                    self.root.status_frame.change_values(gain=answer)
-                    
-            else:
-                self.insert_text(answer)
+            try: 
+                self.sonicamp.set_frq(frq)
+                data: MeasureData = self.get_sens()
                 
-                if command == "!ON":
-                    self.root.status_frame.signal_on()
-
-                elif command == "!OFF":
-                    self.root.status_frame.signal_off()
-
-                elif command[:3] == "!g=":
-                    self.root.status_frame.change_values(gain=answer)
+                self.gui.plot_data(data)
+                self.gui.filehandler.register_data(data)
+                    
+            except AssertionError:
+                print('something went wrong')
+                self.gui.stop()
+                
+            except serial.SerialException:
+                self.gui.stop()
+                self.gui.root.__reinit__()
+                break
+    
+    
+@dataclass(frozen=True)
+class MeasureData(object):
+    
+    TIMESTAMP: int
+    URMS: int
+    IRMS: int
+    PHASE: int
+    FRQ: int
+    GAIN: int
+    
+    @classmethod
+    def construct_from_str(cls, data_string: str) -> MeasureData:
+        assert len(data_string)
         
-        self.scrolled_frame.yview_moveto(1)
-        self.command_field.delete(0, tk.END)
+        timestamp: datetime.datetime = datetime.datetime.now()
+        data_list: list = [int(data) for data in data_string.split(" ")]
+        
+        obj: MeasureData = cls(timestamp, data_list[0], data_list[1], data_list[2], data_list[3])
+        
+        return obj
+    
+    
+class MeasureCanvas(FigureCanvasTkAgg):
+    
+    def __init__(self, parent: ttk.Frame, start_frq: int, stop_frq: int) -> None:
+        self.figure: Figure = Figure()
+        style.use("seaborn")
+
+        self.ax_urms = self.figure.add_subplot(111)
+        self.figure.subplots_adjust(right=0.8)
+
+        self.ax_irms = self.ax_urms.twinx()
+        self.ax_phase = self.ax_urms.twinx()
+        self.ax_phase.spines["right"].set_position(("axes", 1.15))
+
+        (self.plot_urms,) = self.ax_urms.plot([], [], "bo-", label="U$_{RMS}$ / mV")
+        (self.plot_irms,) = self.ax_irms.plot([], [], "ro-", label="I$_{RMS}$ / mA")
+        (self.plot_phase,) = self.ax_phase.plot([], [], "go-", label="Phase / °")
+
+        self.ax_urms.set_xlim(start_frq, stop_frq)
+        self.ax_urms.set_xlabel("Frequency / Hz")
+        self.ax_urms.set_ylabel("U$_{RMS}$ / mV")
+        self.ax_irms.set_ylabel("I$_{RMS}$ / mA")
+        self.ax_phase.set_ylabel("Phase / °")
+
+        self.ax_urms.yaxis.label.set_color(self.plot_urms.get_color())
+        self.ax_irms.yaxis.label.set_color(self.plot_irms.get_color())
+        self.ax_phase.yaxis.label.set_color(self.plot_phase.get_color())
+
+        self.ax_urms.legend(handles=[self.plot_urms, self.plot_irms, self.plot_phase])
+        super().__init__(self.figure, parent)
+
+    def update_axes(self, start_frq: int, stop_frq: int) -> None:
+        self.ax_urms.set_xlim(start_frq, stop_frq)
+        
+
+class FileHandler(object):
+    def __init__(self, gui: SonicMeasureWindow) -> None:
+        self.gui: SonicMeasureWindow = gui
+
+        self.save_filepath: str
+        self.save_filename: str
+        self.logfilename: str
+        self.logfilepath: str = None
+
+        self._filetypes: list[tuple] = [
+            ("Text", "*.txt"),
+            ("All files", "*"),
+        ]
+        self._save_dir: str = "SonicMeasure"
+
+        self.fieldnames: list = [
+            "timestamp",
+            "frequency",
+            "gain",
+            "urms",
+            "irms",
+            "phase"
+        ]
+
+        if not os.path.exists(self._save_dir):
+            os.mkdir(self._save_dir)
+
+    def decide_logfile_name(self) -> None:
+        tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.logfilepath: str = f"{self._save_dir}//{tmp_timestamp}_{self.gui.root.sonicamp.type_}_SonicMeasure.csv"
+
+        self._create_statuslog()
+
+    def save_file(self) -> None:
+        self.save_filename = filedialog.asksaveasfilename(
+            defaultextension=".txt", filetypes=self._filetypes
+        )
+
+    def _create_datafile(self) -> None:
+        """
+        Internal method to create the csv status log file
+        """
+        with open(self.logfilepath, "a", newline="") as logfile:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                logfile, fieldnames=self.fieldnames
+            )
+            csv_writer.writeheader()
+        
+        with open(self.save_filepath, "a", newline="") as savefile:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                savefile, fieldnames=self.fieldnames
+            )
+            csv_writer.writeheader()
+
+    def register_data(self, data: MeasureData) -> None:
+        
+        data_dict: dict = data.__dict__
+        
+        with open(self.logfilepath, "a", newline="") as logfile:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                logfile, fieldnames=self.fieldnames
+            )
+            csv_writer.writerow(data_dict)
+            
+        with open(self.save_filepath, "a", newline="") as savefile:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                savefile, fieldnames=self.fieldnames
+            )
+            csv_writer.writerow(data_dict)
+        
+        
+
 
 # from __future__ import annotations
 
