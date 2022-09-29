@@ -121,8 +121,13 @@ class SonicMeasureWindow(tk.Toplevel):
         self.meta_comment_label: ttk.Label = ttk.Label(
             self.meta_data_frame, text= 'Comment',
         )
-        self.meta_comment: ttk.Entry = ttk.Entry(
-            self.meta_data_frame, textvariable=self.comment_tk, style='dark.TEntry'
+        self.meta_comment: tk.Text = tk.Text(
+            self.meta_data_frame,
+            autoseparators=False,
+            background='white',
+            setgrid=False,
+            width=30,
+            height=7,
         )
         self.material_comment_label: ttk.Label = ttk.Label(
             self.meta_data_frame, text= 'Material',
@@ -138,9 +143,6 @@ class SonicMeasureWindow(tk.Toplevel):
         )
         
         self.publish()
-        
-    def save(self) -> None:
-        pass
         
     def start(self) -> None:
         if self.start_frq_tk.get() < 600000 or self.stop_frq_tk.get() < 600000:
@@ -245,7 +247,7 @@ class SonicMeasureWindow(tk.Toplevel):
         self.gain_label.grid(row=3, column=0, padx=3, pady=3)
         self.gain_entry.grid(row=3, column=1, padx=3, pady=3)
         
-        self.meta_comment_label.grid(row=0, column=0, padx=3, pady=3)
+        # self.meta_comment_label.grid(row=0, column=0, padx=3, pady=3)
         self.meta_comment.grid(row=0, column=1, padx=3, pady=3)
         
     def on_closing(self) -> None:
@@ -408,10 +410,12 @@ class FileHandler(object):
 # Datetime: {datetime.datetime.now()}
 # Gain: {self.gui.gain_tk.get()} in [%]
 # Frequency in [Hz]
-# Urms in []
-# Irms in []
-# Phase in []
-# Comment: {self.gui.comment_tk.get()}\n"""
+# Urms in [mV]
+# Irms in [mA]
+# Phase in [deg]
+#
+# Comment:
+# {self.insert_text_as_comment()}\n"""
 
         self._filetypes: list[tuple] = [
             ("Text", "*.txt"),
@@ -432,6 +436,16 @@ class FileHandler(object):
             os.mkdir(self._save_dir)
         
         self.decide_logfile_name(make_copy)
+
+    def insert_text_as_comment(self) -> str:
+        
+        text: str = self.gui.meta_comment.get(2.0, tk.END)
+        output_text: str = f"{self.gui.meta_comment.get(1.0, '1.end')}\n"
+        
+        for line in text.splitlines():
+            output_text += f"# {line}\n"
+
+        return output_text
 
     def decide_logfile_name(self, make_copy: bool) -> None:
         tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
