@@ -9,7 +9,8 @@ import platform
 if platform.system() == 'Windows':
     enable_high_dpi_awareness()
     gui = sc.Root()
-if platform.system() == 'Linux':
+    
+elif platform.system() == 'Linux':
     gui = sc.Root()
     enable_high_dpi_awareness(gui, scaling=1.6)
 
