@@ -8,6 +8,7 @@ import csv
 import time
 import tkinter as tk
 import tkinter.ttk as ttk
+import ttkbootstrap as ttkb
 
 from typing import TYPE_CHECKING, Union
 from tkinter import messagebox, filedialog
