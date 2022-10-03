@@ -116,7 +116,7 @@ class SonicMeasureWindow(tk.Toplevel):
         
         # Control Frame - Meta data Frame
         self.meta_data_frame: ttk.LabelFrame = ttk.LabelFrame(
-            self.control_frame, text='Set up Metadata', style='secondary.TLabelframe',
+            self.control_frame, text='Comment', style='secondary.TLabelframe',
         )
         self.meta_comment_label: ttk.Label = ttk.Label(
             self.meta_data_frame, text= 'Comment',

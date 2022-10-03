@@ -69,7 +69,7 @@ class ConnectionTab(ttk.Frame):
 
         self.heading2: ttk.Label = ttk.Label(
             self.heading_frame,
-            padding=(0, 0, 10, 10),
+            padding=(0, 0, 5, 10),
             font=self.root.qtype30b,
             borderwidth=-2,
         )
@@ -161,12 +161,32 @@ class ConnectionTab(ttk.Frame):
 
         self.transducer_menuebutton["menu"] = transducer_menue
         
+        self.transducer_preview: ttk.LabelFrame = ttk.LabelFrame(
+            self.botframe,
+            text='Currently configured transducer',
+            style='secondary.TLabelframe'
+        )
+        self.transducer_preview_label: ttk.Label = ttk.Label(
+            self.transducer_preview,
+            text=''
+        )
+        
+    def config_file_str(self) -> str:
+        string: str = ""
+        
+        for item in self.root.transducer[self.transducer_active.get()]:
+            if not (item == "atf1" or  item == "atf2" or item == "atf3"):
+                string += item + ":\t" + str(self.root.transducer[self.transducer_active.get()][item]) + "\n"
+                print(string)
+        
+        return string
+        
     def _update_transducer_menue(self) -> None:
         self.root.config_file_algorithm()
-        
+
         transducer_names: list = list(self.root.transducer.keys())
         transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
-        
+
         for name in transducer_names:
             transducer_menue.add_radiobutton(
                 label=name,
@@ -176,8 +196,8 @@ class ConnectionTab(ttk.Frame):
             )
 
         self.transducer_menuebutton["menu"] = transducer_menue
-        
-        
+
+
     def attach_data(self) -> None:
         """
         Attaches data to the connectiontab
@@ -233,6 +253,8 @@ class ConnectionTab(ttk.Frame):
         self.transducer_menuebutton.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.NORMAL)
         self.firmware_label["text"] = ""
+        self.transducer_menuebutton['text'] = 'Pick Transducer'
+        self.transducer_preview_label['text'] = ''
 
         for child in self.flash_frame.children.values():
             child.configure(state=tk.DISABLED)
@@ -332,7 +354,7 @@ class ConnectionTab(ttk.Frame):
         self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
         self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
         self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
-        self.heading_frame.pack(padx=10, pady=20, expand=True)
+        self.heading_frame.pack(padx=10, pady=10, expand=True)
 
         self.ports_menue.grid(
             row=0, column=0, columnspan=2, pady=10, padx=5, sticky=tk.NSEW
@@ -343,7 +365,7 @@ class ConnectionTab(ttk.Frame):
         self.refresh_button.grid(
             row=0, column=3, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
         )
-        self.control_frame.pack(padx=10, pady=20, expand=True)
+        self.control_frame.pack(padx=10, pady=10, expand=True)
 
         self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
         self.firmware_label.pack()
@@ -353,6 +375,9 @@ class ConnectionTab(ttk.Frame):
             self.transducer_menuebutton.pack()
             self.transducer_frame.grid(row=1, column=1, padx=10, pady=10)
 
+            self.transducer_preview.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+            self.transducer_preview_label.pack()
+
         # self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
         # self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
-        # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)   
+        # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)

@@ -531,6 +531,9 @@ class Root(tk.Tk):
         
         for atf in transducer:
             self.serial.send_and_get(f"!{atf}={transducer[atf]}")
+        
+        self.notebook.connectiontab.transducer_menuebutton['text'] = transducer_name
+        self.notebook.connectiontab.transducer_preview_label['text'] = self.notebook.connectiontab.config_file_str()
 
 
 class SonicAgent(SonicThread):
