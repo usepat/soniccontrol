@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import os
 import tkinter as tk
 import tkinter.ttk as ttk
 
@@ -84,11 +85,17 @@ class InfoTab(ttk.Frame):
 
         self.version_label.pack(anchor=tk.S, side=tk.BOTTOM, padx=10, pady=10)
 
-    def open_manual(self) -> None:
+    @staticmethod
+    def open_manual() -> None:
         """
         Opens the helppage manual with the default pdf viewer
         """
-        subprocess.Popen(["src//soniccontrol//resources//help_page.pdf"], shell=True)
+        path: str = r'src\\soniccontrol\\resources\\help_page.pdf'
+        subprocess.Popen([path], shell=True)
 
     def attach_data(self) -> None:
         pass
+    
+    
+if __name__ == "__main__":
+    InfoTab.open_manual()
