@@ -112,7 +112,7 @@ class Root(tk.Tk):
         self.protocol: tk.StringVar = tk.StringVar(value=0)
 
         # Status Log configuration
-        self.fieldnames: list = ["timestamp", "signal", "frequency", "gain"]
+        self.fieldnames: list = ["timestamp", "signal", "frequency", "gain", "urms", "irms", "phase"]
         self.status_log_dir: str = "logs"
         self.statuslog_filepath: str
 
@@ -139,6 +139,7 @@ class Root(tk.Tk):
         self.arial12: font.Font = font.Font(
             family="Arial", size=12, weight=tk.font.BOLD
         )
+
 
         self.qtype12: font.Font = font.Font(
             family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD
@@ -507,6 +508,9 @@ class Root(tk.Tk):
                 "signal": data.signal,
                 "frequency": data.frequency,
                 "gain": data.gain,
+                "urms": data.urms,
+                "irms": data.irms,
+                "phase": data.phase,
             }
 
             with open(self.statuslog_filepath, "a", newline="") as statuslog:
@@ -581,3 +585,4 @@ class SonicAgent(SonicThread):
         # Thread is generally a bit "softer"
         except Exception as e:
             logger.warning(f"{e}")
+            # traceback.print_tb()

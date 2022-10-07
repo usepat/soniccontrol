@@ -52,9 +52,13 @@ class StatusFrame(ttk.Frame):
         self._gain_using: int = 0
         self._frq_using: int = 0
         self._temp_using: int = 0
+        self._urms_using: int = None
+        self._irms_using: int = None
+        self._phase_using: int = None
 
         self.meter_frame: ttk.Frame = ttk.Frame(self)
         self.overview_frame: ttk.Frame = ttk.Frame(self, style="secondary.TFrame")
+        self.sonsens_frame: ttk.Frame = ttk.Frame(self)
 
         # Meter Frame
         self.frq_meter: ttkb.Meter = ttkb.Meter(
@@ -85,6 +89,29 @@ class StatusFrame(ttk.Frame):
             textright="°C",
             subtext="Thermometer not found",
             metersize=150,
+        )
+        
+        # SonSens Frame
+        self.urms_label: ttk.Label = ttk.Label(
+            self.sonsens_frame, 
+            font=self.root.qtype12, 
+            anchor=tk.CENTER,
+            style='primary.TLabel',
+            padding=(5, 0, 20, 0),
+        )
+        self.irms_label: ttk.Label = ttk.Label(
+            self.sonsens_frame, 
+            font=self.root.qtype12, 
+            anchor=tk.CENTER,
+            style='danger.TLabel',
+            padding=(20, 0, 20, 0),
+        )        
+        self.phase_label: ttk.Label = ttk.Label(
+            self.sonsens_frame, 
+            font=self.root.qtype12, 
+            anchor=tk.CENTER,
+            style='success.TLabel',
+            padding=(20, 0, 5, 0),
         )
 
         # Overview Frame
@@ -186,7 +213,15 @@ class StatusFrame(ttk.Frame):
         self.err_status_label["text"] = None  #!Here
         self.err_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.CENTER)
     
-    def change_values(self, frq: int = None, gain: int = None, temp: int = None) -> None:
+    def change_values(
+        self, 
+        frq: int = None, 
+        gain: int = None, 
+        temp: int = None, 
+        urms: int = None, 
+        irms: int = None, 
+        phase: int = None
+    ) -> None:
         """
         Method that changes the values of the meter frame so that the passed
         values are indicated. Only those values that, are passed are updated,
@@ -211,6 +246,21 @@ class StatusFrame(ttk.Frame):
             
             self.temp_meter["amountused"] = temp
             self._temp_using: int = temp
+            
+        if isinstance(urms, int) and urms != self._urms_using:
+            
+            self.urms_label["text"] = f"Urms: {urms}mV"
+            self._urms_using: int = urms
+        
+        if isinstance(irms, int) and irms != self._irms_using:
+            
+            self.irms_label["text"] = f"Irms: {irms}mA"
+            self._irms_using: int = irms
+        
+        if isinstance(phase, int) and phase != self._phase_using:
+            
+            self.phase_label["text"] = f"Phase: {phase}˚"
+            self._phase_using: int = phase    
 
     def attach_data(self) -> None:
         """
@@ -220,6 +270,9 @@ class StatusFrame(ttk.Frame):
         self.change_values(
             frq=self.sonicamp.status.frequency,
             gain=self.sonicamp.status.gain,
+            urms=self.sonicamp.status.urms,
+            irms=self.sonicamp.status.irms,
+            phase=self.sonicamp.status.phase,
         )
 
         self.connection_on()
@@ -307,16 +360,19 @@ class StatusFrameCatch(StatusFrame):
         self.frq_meter["amounttotal"] = 6000000 / 1000
 
     def publish(self) -> None:
-        self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.gain_meter.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.temp_meter.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        self.frq_meter.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
+        self.gain_meter.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
+        self.temp_meter.grid(row=0, column=2, padx=10, sticky=tk.NSEW)
+
+        self.urms_label.grid(row=0, column=0, sticky=tk.NSEW)
+        self.irms_label.grid(row=0, column=1, sticky=tk.NSEW)
+        self.phase_label.grid(row=0, column=2, sticky=tk.NSEW)
 
         self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
-        self.meter_frame.pack(
-            side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10
-        )
+        self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
+        self.sonsens_frame.pack(side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER)
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
 

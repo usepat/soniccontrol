@@ -164,7 +164,8 @@ class ConnectionTab(ttk.Frame):
         self.transducer_preview: ttk.LabelFrame = ttk.LabelFrame(
             self.botframe,
             text='Currently configured transducer',
-            style='secondary.TLabelframe'
+            style='secondary.TLabelframe',
+            padding=(5,5,5,5)
         )
         self.transducer_preview_label: ttk.Label = ttk.Label(
             self.transducer_preview,
