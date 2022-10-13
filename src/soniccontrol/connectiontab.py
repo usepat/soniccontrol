@@ -304,9 +304,10 @@ class ConnectionTab(ttk.Frame):
         if self.root.serial.is_connected:
 
             if self.hex_file_path:
-                port = self.ser.port
-                self.ser.close()
+                port = self.root.serial.port
+                self.root.serial.disconnect()
                 cur_dir = os.getcwd()
+                print(cur_dir)
                 # self.firmware_progress_text.pack(padx=10, pady=10)
 
                 try:
@@ -368,7 +369,6 @@ class ConnectionTab(ttk.Frame):
         )
         self.control_frame.pack(padx=10, pady=10, expand=True)
 
-        self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
         
@@ -379,6 +379,11 @@ class ConnectionTab(ttk.Frame):
             self.transducer_preview.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
             self.transducer_preview_label.pack()
 
-        # self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
-        # self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
-        # self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
+        # if self.root.config_data["hexflash"]:
+        #     self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
+        #     self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
+        #     self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
+        #     self.firmware_frame.grid(row=0, column=0, columnspan=1, padx=10, pady=10) 
+        
+        self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+            

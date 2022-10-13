@@ -169,7 +169,7 @@ class Root(tk.Tk):
 
         # Building the thread and serialconnection
         # First: initializing the thread
-        self.thread: SonicThread = SonicAgent(self)
+        self.thread: SonicThread = SonicAgent(self) 
         self.thread.setDaemon(True)
 
         # Second: initializing the serial interface, with the information about the thread
@@ -291,7 +291,7 @@ class Root(tk.Tk):
         if len(self.transducer) == 1:
             self.set_atf(list(self.transducer.keys())[0])
 
-        tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d")
         self.statuslog_filepath: str = f"{self.status_log_dir}//statuslog_{self.sonicamp.type_}_{tmp_timestamp}.csv"
         self._create_statuslog()
 

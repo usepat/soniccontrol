@@ -9,6 +9,7 @@ import time
 import tkinter as tk
 import tkinter.ttk as ttk
 import logging
+import traceback
 
 from typing import TYPE_CHECKING, Union
 from tkinter import messagebox, filedialog
@@ -174,8 +175,16 @@ class SonicMeasureWindow(tk.Toplevel):
         
         for child in self.frq_frame.winfo_children():
             child.config(state=tk.DISABLED)
+        
+        self.root.serial.send_and_get(Command.SET_SIGNAL_ON)
+        self.root.serial.send_and_get(Command.SET_GAIN + self.gain_tk.get())
+        
+        time.sleep(1)
+        
+        if not self.root.thread.paused:
+            logging.debug("pausing thread")
+            self.root.thread.pause()
             
-        self.root.thread.pause()
         self.control_unit.start()
     
     def stop(self) -> None:
@@ -194,6 +203,7 @@ class SonicMeasureWindow(tk.Toplevel):
             self.root.thread.resume()
     
     def plot_data(self, data: MeasureData) -> None:
+        assert isinstance(data, MeasureData)
         
         self.frq_list.append(data.FRQ)
         self.urms_list.append(data.URMS)
@@ -284,14 +294,16 @@ class SonicMeasureControlUnit(object):
         logger.info(f"{self.start_frq}{self.stop_frq}{self.step_frq}")
         
     def get_sens(self) -> MeasureData:
-        if self.sonicamp.status.signal:
-            data: MeasureData = MeasureData.construct_from_str(
-                self.serial.send_and_get(Command.GET_SENS),
-                self.sonicamp.status.gain
-            )
-            self.collected_data.append(data)
-            logger.info(data)
-            return data
+        logger.debug(f"Sonicamp signal: {self.sonicamp.status.signal}")
+
+        data: MeasureData = MeasureData.construct_from_str(
+            self.serial.send_and_get(Command.GET_SENS),
+            self.sonicamp.status.gain
+        )
+        self.collected_data.append(data)
+        logger.info(data)
+        
+        return data
         
     def stop(self) -> None:
         if not self.run:
@@ -304,7 +316,7 @@ class SonicMeasureControlUnit(object):
         
         for frq in range(self.start_frq, self.stop_frq, self.step_frq):
             if self.run:    
-                try: 
+                try:  
                     logger.debug(f"At {frq}")
                     self.serial.send_and_get(Command.SET_FRQ + frq)
                     data: MeasureData = self.get_sens()
@@ -322,9 +334,6 @@ class SonicMeasureControlUnit(object):
                     self.gui.stop()
                     self.gui.root.__reinit__()
                     break
-                
-                else:
-                    logger.warning('Something went terribly wrong')
             
             else:
                 break
@@ -332,11 +341,8 @@ class SonicMeasureControlUnit(object):
         self.stop()
             
     def start(self):
-        self.serial.send_and_get(Command.SET_SIGNAL_ON)
-        self.serial.send_and_get(Command.SET_GAIN + self.gui.gain_tk.get())
-        
-        self.sonicamp.status.signal = True
-        self.sonicamp.status.gain = self.gui.gain_tk.get()
+        # self.sonicamp.status.signal = True
+        # self.sonicamp.status.gain = self.gui.gain_tk.get()
         
         self.run: bool = True
         self.sequence()
@@ -345,12 +351,13 @@ class SonicMeasureControlUnit(object):
 @dataclass(frozen=True)
 class MeasureData(object):
     
-    TIMESTAMP: int
-    FRQ: int
-    GAIN: int
-    URMS: int
-    IRMS: int
-    PHASE: int
+    timestamp: int
+    signal: bool
+    frq: int
+    gain: int
+    urms: int
+    irms: int
+    phase: int
     
     @classmethod
     def construct_from_str(cls, data_string: str, gain: int) -> MeasureData:
@@ -359,7 +366,7 @@ class MeasureData(object):
         timestamp: datetime.datetime = datetime.datetime.now()
         data_list: list = [int(data) for data in data_string.split(" ")]
         
-        obj: MeasureData = cls(timestamp, data_list[0], gain, data_list[1], data_list[2], data_list[3])
+        obj: MeasureData = cls(timestamp, True, data_list[0], gain, data_list[1], data_list[2], data_list[3])
         
         return obj
     
@@ -424,12 +431,12 @@ class FileHandler(object):
         self._save_dir: str = "SonicMeasure"
 
         self.fieldnames: list = [
-            "TIMESTAMP",
-            "FRQ",
-            "GAIN",
-            "URMS",
-            "IRMS",
-            "PHASE"
+            "timestamp",
+            "frq",
+            "gain",
+            "urms",
+            "irms",
+            "phase"
         ]
 
         if not os.path.exists(self._save_dir):
@@ -491,6 +498,12 @@ class FileHandler(object):
         with open(self.logfilepath, "a", newline="") as logfile:
             csv_writer: csv.DictWriter = csv.DictWriter(
                 logfile, fieldnames=self.fieldnames
+            )
+            csv_writer.writerow(data_dict)
+        
+        with open(self.gui.root.statuslog_filepath, "a", newline="") as statuslogfile:
+            csv_writer: csv.DictWriter = csv.DictWriter(
+                statuslogfile, fieldnames=self.fieldnames
             )
             csv_writer.writerow(data_dict)
         
