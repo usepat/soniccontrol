@@ -816,6 +816,9 @@ class FileHandler(object):
             "signal",
             "frequency",
             "gain",
+            "urms",
+            "irms",
+            "phase"
         ]
 
         if not os.path.exists(self._sequence_dir):
@@ -872,6 +875,9 @@ class FileHandler(object):
                 "signal": status.signal,
                 "frequency": status.frequency,
                 "gain": status.gain,
+                "urms": status.urms,
+                "irms": status.irms,
+                "phase": status.phase
             }
 
             with open(self.logfilepath, "a", newline="") as logfile:

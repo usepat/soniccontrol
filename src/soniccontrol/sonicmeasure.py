@@ -205,10 +205,10 @@ class SonicMeasureWindow(tk.Toplevel):
     def plot_data(self, data: MeasureData) -> None:
         assert isinstance(data, MeasureData)
         
-        self.frq_list.append(data.FRQ)
-        self.urms_list.append(data.URMS)
-        self.irms_list.append(data.IRMS)
-        self.phase_list.append(data.PHASE)
+        self.frq_list.append(data.frq)
+        self.urms_list.append(data.urms)
+        self.irms_list.append(data.irms)
+        self.phase_list.append(data.phase)
 
         self.fig_canvas.plot_urms.set_data(self.frq_list, self.urms_list)
         self.fig_canvas.plot_irms.set_data(self.frq_list, self.irms_list)
@@ -432,6 +432,7 @@ class FileHandler(object):
 
         self.fieldnames: list = [
             "timestamp",
+            "signal",
             "frq",
             "gain",
             "urms",
