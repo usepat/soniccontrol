@@ -608,12 +608,12 @@ class Sequence:
         # in case the ramp should be decreasing
         if start > stop:
 
-            frq_list: list[int] = list(range(stop, start + step, step))
+            frq_list: list[int] = list(range(stop, start, step))
             frq_list.sort(reverse=True)
 
         else:
 
-            frq_list: list[int] = list(range(start, stop + step, step))
+            frq_list: list[int] = list(range(start, stop, step))
 
         # The core of the ramp function
         for frq in frq_list:

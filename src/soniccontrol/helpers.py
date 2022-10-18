@@ -19,7 +19,7 @@ if not os.path.isdir("logs/"):
     os.mkdir("logs/")
 
 logger = logging.getLogger("soniccontrol")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 formatter = logging.Formatter(
     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
