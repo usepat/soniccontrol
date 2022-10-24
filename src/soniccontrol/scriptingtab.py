@@ -249,7 +249,7 @@ class ScriptingTab(ttk.Frame):
             text="Stop",
             style="danger.TButton",
             image=self.root.PAUSE_IMG,
-            command=self.sequence.close_sequence,
+            command=self.end,
         )
 
         self.sequence_status.start()
@@ -268,6 +268,9 @@ class ScriptingTab(ttk.Frame):
         ends the sequence with configuring everything for 
         normal usage again.
         """
+        if not self.sequence.run:
+            self.sequence.run: bool = False
+        
         self.file_handler.logfilepath: str = None
         self.start_script_btn.configure(
             text="Run",
@@ -294,7 +297,7 @@ class ScriptingTab(ttk.Frame):
         self.serial.send_and_get(Command.SET_SIGNAL_OFF)
         self.root.attach_data()
 
-        if not isinstance(self.root.sonicamp, SonicWipeDuty):
+        if not isinstance(self.root.sonicamp, SonicWipeDuty) and self.root.thread.paused:
             self.root.thread.resume()
 
     def status_handler(self, command: str, argument: int) -> None:
@@ -464,7 +467,7 @@ class Sequence:
                 self.exec_command(line)
                 line += 1
                 
-        self.close_sequence()
+        self.gui.end()
 
     def exec_command(self, counter: int) -> None:
         """

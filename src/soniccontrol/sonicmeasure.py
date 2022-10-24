@@ -170,7 +170,7 @@ class SonicMeasureWindow(tk.Toplevel):
             text='Stop',
             style='danger.TButton',
             image=self.root.PAUSE_IMG,
-            command=self.control_unit.stop
+            command=self.stop
         )
         
         for child in self.frq_frame.winfo_children():
@@ -188,6 +188,11 @@ class SonicMeasureWindow(tk.Toplevel):
         self.control_unit.start()
     
     def stop(self) -> None:
+        if not self.control_unit.run:
+            self.control_unit.run: bool = False
+        
+        self.root.serial.send_and_get(Command.SET_SIGNAL_OFF)
+        
         self.start_btn.config(
             text="Run",
             style="success.TButton",
@@ -338,7 +343,7 @@ class SonicMeasureControlUnit(object):
             else:
                 break
         
-        self.stop()
+        self.gui.stop()
             
     def start(self):
         # self.sonicamp.status.signal = True
@@ -403,6 +408,9 @@ class MeasureCanvas(FigureCanvasTkAgg):
 
     def update_axes(self, start_frq: int, stop_frq: int) -> None:
         self.ax_urms.set_xlim(start_frq, stop_frq)
+        
+    def remove_plot(self) -> None:
+        pass
         
 
 class FileHandler(object):
