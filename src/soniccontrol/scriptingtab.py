@@ -94,7 +94,7 @@ class ScriptingTab(ttk.Frame):
         """
         When initialized, the composit elements of the ScriptingTab 
         are initialized. Mainly the sequence and filehandler objects
-        
+
         Furhtermore, the creation of the GUI children is being held 
         in the internal initialize methods
 

@@ -93,7 +93,6 @@ class InfoTab(ttk.Frame):
             self.flash_button.grid(row=0, column=2, padx=5, pady=10)
         
         self.controlframe.pack()
-
         self.version_label.pack(anchor=tk.S, side=tk.BOTTOM, padx=10, pady=10)
 
     @staticmethod

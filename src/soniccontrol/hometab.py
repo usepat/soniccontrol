@@ -233,6 +233,7 @@ class Hometab(ttk.Frame):
 
     def publish_sonicmeasure(self) -> None:
         self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self.root)
+        self.sonic_measure_button.config(state=tk.DISABLED)
 
     def _initialize_botframe(self) -> None:
         self.output_frame: ttk.Frame = ttk.LabelFrame(self.botframe, text="Feedback")

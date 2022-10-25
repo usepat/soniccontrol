@@ -13,4 +13,4 @@ GRAPH_RAW_IMG: Image = resize_img("src//soniccontrol//pictures//graph.png", (100
 LED_GREEN_RAW_IMG: Image = resize_img("src//soniccontrol//pictures//led_green.png", (35, 35))
 LED_RED_RAW_IMG: Image = resize_img("src//soniccontrol//pictures//led_red.png", (35, 35))
 
-VERSION: int = 1.81
+VERSION: int = 1.83

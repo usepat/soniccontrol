@@ -118,7 +118,7 @@ class Root(tk.Tk):
 
         if not os.path.exists(self.status_log_dir):
             os.mkdir(self.status_log_dir)
-            
+
         self.config_file_algorithm()
 
         # setting up root window, configurations
@@ -139,7 +139,6 @@ class Root(tk.Tk):
         self.arial12: font.Font = font.Font(
             family="Arial", size=12, weight=tk.font.BOLD
         )
-
 
         self.qtype12: font.Font = font.Font(
             family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD

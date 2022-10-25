@@ -33,9 +33,47 @@ class SonicMeasureWindow(tk.Toplevel):
     
     def __init__(self, root: Root, *args, **kwargs):
         super().__init__(master=root, *args, **kwargs)
-        
         self.root: Root = root
-        self.control_unit: SonicMeasureControlUnit
+        self.sonicmeasure: SonicMeasureFrame = SonicMeasureFrame(self, self.root)
+        
+        self.title('Sonic Measure')
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        self.sonicmeasure.pack()
+        
+    def __reinit__(self):
+        start: int = self.sonicmeasure.start_frq_tk.get()
+        stop: int = self.sonicmeasure.stop_frq_tk.get()
+        step: int = self.sonicmeasure.step_frq_tk.get()
+        gain: int = self.sonicmeasure.gain_tk.get()
+        comment: str = self.sonicmeasure.meta_comment.get(1.0, tk.END)
+        
+        self.sonicmeasure.destroy()
+        self.sonicmeasure: SonicMeasureFrame = SonicMeasureFrame(self, self.root)
+        
+        self.sonicmeasure.start_frq_tk.set(start)
+        self.sonicmeasure.stop_frq_tk.set(stop)
+        self.sonicmeasure.step_frq_tk.set(step)
+        self.sonicmeasure.gain_tk.set(gain)
+        self.sonicmeasure.meta_comment.insert(1.0, comment)
+        
+        self.sonicmeasure.pack()
+        self.sonicmeasure.start()
+        
+    def on_closing(self) -> None:
+        self.root.notebook.hometab.sonic_measure_button.config(state=tk.NORMAL)
+        self.sonicmeasure.stop()
+        self.sonicmeasure.destroy()
+        self.destroy()
+
+
+class SonicMeasureFrame(ttk.Frame):
+    
+    def __init__(self, window: SonicMeasureWindow,root: Root, *args, **kwargs):
+        super().__init__(master=window, *args, **kwargs)
+        
+        self.window: SonicMeasureWindow = window
+        self.root: Root = root
         self.filehandler: FileHandler
         
         # Data array for plotting
@@ -51,9 +89,7 @@ class SonicMeasureWindow(tk.Toplevel):
         self.gain_tk: tk.IntVar = tk.IntVar(value=100)
         self.comment_tk: tk.StringVar = tk.StringVar()
         
-        # Window configuration
-        self.title('Sonic Measure')
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.control_unit: SonicMeasureControlUnit = SonicMeasureControlUnit(self, self.root.sonicamp)
         
         # Figure Frame
         self.fig_frame: ttk.Frame = ttk.Frame(self)
@@ -160,6 +196,11 @@ class SonicMeasureWindow(tk.Toplevel):
         if make_copy_answer is None:
             return None
         
+        self.fig_canvas.update_axes(
+            self.start_frq_tk.get(),
+            self.stop_frq_tk.get()
+        )
+        
         self.filehandler: FileHandler = FileHandler(self, make_copy_answer)
         self.control_unit: SonicMeasureControlUnit = SonicMeasureControlUnit(
             self, 
@@ -186,8 +227,7 @@ class SonicMeasureWindow(tk.Toplevel):
             self.root.thread.pause()
             
         self.control_unit.start()
-        
-    #kommetnar
+    
     def stop(self) -> None:
         if not self.control_unit.run:
             self.control_unit.run: bool = False
@@ -198,7 +238,7 @@ class SonicMeasureWindow(tk.Toplevel):
             text="Run",
             style="success.TButton",
             image=self.root.PLAY_IMG,
-            command=self.start,
+            command=self.window.__reinit__,
         )
 
         for child in self.frq_frame.children.values():
@@ -266,10 +306,6 @@ class SonicMeasureWindow(tk.Toplevel):
         # self.meta_comment_label.grid(row=0, column=0, padx=3, pady=3)
         self.meta_comment.grid(row=0, column=1, padx=3, pady=3)
         
-    def on_closing(self) -> None:
-        self.stop()
-        self.destroy()
-        
         
 class SonicMeasureControlUnit(object):
     
@@ -287,6 +323,7 @@ class SonicMeasureControlUnit(object):
         self._sonicamp: SonicAmp = sonicamp
         self._serial: SerialConnection = sonicamp.serial
         
+        self.run: bool = False
         self.collected_data: list = []
         
         self.start_frq: int = self.gui.start_frq_tk.get()
