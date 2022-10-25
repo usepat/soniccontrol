@@ -186,7 +186,8 @@ class SonicMeasureWindow(tk.Toplevel):
             self.root.thread.pause()
             
         self.control_unit.start()
-    
+        
+    #kommetnar
     def stop(self) -> None:
         if not self.control_unit.run:
             self.control_unit.run: bool = False
