@@ -210,7 +210,7 @@ class Root(tk.Tk):
                 self.publish_disconnected()
 
         except Exception as e:
-            traceback.print_tb(e)
+            # traceback.print_tb(e)
             logger.warning(f"{e}")
             messagebox.showerror("Error", "Connection error")
             self.publish_disconnected()
