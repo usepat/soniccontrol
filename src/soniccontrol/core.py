@@ -209,6 +209,10 @@ class Root(tk.Tk):
                 logger.info(f"No connection publishing for not connected")
                 self.publish_disconnected()
 
+        except MemoryError as me:
+            logger.warning(me)
+            messagebox.showerror("Error", "Storage is full, please delete logfiles")
+
         except Exception as e:
             # traceback.print_tb(e)
             logger.warning(f"{e}")

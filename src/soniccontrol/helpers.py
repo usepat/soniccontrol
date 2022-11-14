@@ -11,7 +11,7 @@ import sonicpackage as sp
 ########################
 # Logger configuration #
 ########################
-
+        
 sp.logger.removeHandler(sp.file_handler)
 sp.logger.removeHandler(sp.stream_handler)
 
