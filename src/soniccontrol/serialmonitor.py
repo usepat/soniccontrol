@@ -303,7 +303,7 @@ exit              Exits the Serial Monitor"""
         self.command_history.insert(0, command)
         self.insert_text(f">>> {command}")
 
-        if not self._internal_command(command=command):
+        if not self.is_internal_command(command=command):
             
             answer: str = self.serial.send_and_get(command)
             
