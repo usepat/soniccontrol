@@ -258,7 +258,7 @@ class Root(tk.Tk):
         else:
             messagebox.showerror("Error", "Either your device is not set for external control or your device was not implemented. Please check if your device is in 'External Control Mode' or 'Serial Mode'")
             print(self.sonicamp)
-            self.serial.disconnect()
+            self.open_for_serialmonitor()
 
         self.initialize_amp_data()
 
@@ -332,6 +332,10 @@ class Root(tk.Tk):
         logger.info(f"attaching data for {self.sonicamp}")
         self.notebook.attach_data()
         self.status_frame.attach_data()
+
+    def open_for_serialmonitor(self) -> None:
+        self.serial_monitor: SerialMonitor = SerialMonitor(self)
+        self.notebook.connectiontab.open_last_resort_connection()
 
     def publish_disconnected(self) -> None:
         """

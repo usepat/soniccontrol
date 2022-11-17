@@ -257,6 +257,19 @@ class ConnectionTab(ttk.Frame):
             child.configure(state=tk.DISABLED)
 
         self.root.sonicamp = None
+    
+    def open_last_resort_connection() -> None:
+        self.subtitle["text"] = "Rescue serial monitor connection"
+        self.heading1["text"] = "Serial"
+        self.heading2["text"] = "Monitor"
+        self.notebook.connectiontab.serial_monitor_btn.config(
+            state=tk.NORMAL
+        )
+        self.connect_button.config(
+            bootstyle="danger",
+            text="Disconnect",
+            command=self.disconnect
+        )
         
     def refresh(self) -> None:
         """
