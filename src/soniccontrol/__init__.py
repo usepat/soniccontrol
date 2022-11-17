@@ -27,3 +27,4 @@ pyglet.font.add_file("src//soniccontrol//fonts//QTypeOT-CondBook.otf")
 pyglet.font.add_file("src//soniccontrol//fonts//QTypeOT-CondBold.otf")
 
 from soniccontrol.core import Root
+

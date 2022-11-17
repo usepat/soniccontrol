@@ -212,10 +212,25 @@ class Root(tk.Tk):
         except MemoryError as me:
             logger.warning(me)
             messagebox.showerror("Error", "Storage is full, please delete logfiles")
+            answer: bool = messagebox.askyesno(
+                "Error", 
+                "It seems there occured an error during initialization.\n Do you want to keep the connection and open the Serial Monitor?"
+            )
+            if answer: self.open_for_serialmonitor()
+            else: self.publish_disconnected()
+
+        except AttributeError as ae:
+            logger.warning(ae)
+            answer: bool = messagebox.askyesno(
+                "Error", 
+                "It seems there occured an error during initialization.\n Do you want to keep the connection and open the Serial Monitor?"
+            )
+            if answer: self.open_for_serialmonitor()
+            else: self.publish_disconnected()
 
         except Exception as e:
             # traceback.print_tb(e)
-            logger.warning(f"{e}")
+            logger.warning(e)
             messagebox.showerror("Error", "Connection error")
             self.publish_disconnected()
 
@@ -258,7 +273,6 @@ class Root(tk.Tk):
         else:
             messagebox.showerror("Error", "Either your device is not set for external control or your device was not implemented. Please check if your device is in 'External Control Mode' or 'Serial Mode'")
             print(self.sonicamp)
-            self.open_for_serialmonitor()
 
         self.initialize_amp_data()
 
@@ -336,6 +350,7 @@ class Root(tk.Tk):
     def open_for_serialmonitor(self) -> None:
         self.serial_monitor: SerialMonitor = SerialMonitor(self)
         self.notebook.connectiontab.open_last_resort_connection()
+        self.publish_serial_monitor()
 
     def publish_disconnected(self) -> None:
         """

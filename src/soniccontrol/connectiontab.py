@@ -258,11 +258,11 @@ class ConnectionTab(ttk.Frame):
 
         self.root.sonicamp = None
     
-    def open_last_resort_connection() -> None:
+    def open_last_resort_connection(self) -> None:
         self.subtitle["text"] = "Rescue serial monitor connection"
         self.heading1["text"] = "Serial"
         self.heading2["text"] = "Monitor"
-        self.notebook.connectiontab.serial_monitor_btn.config(
+        self.serial_monitor_btn.config(
             state=tk.NORMAL
         )
         self.connect_button.config(
