@@ -84,10 +84,10 @@ class StatusFrame(ttk.Frame):
         self.temp_meter: ttkb.Meter = ttkb.Meter(
             self.meter_frame,
             bootstyle=ttkb.WARNING,
-            amounttotal=100,
+            amounttotal=300,
             amountused=self._temp_using,
             textright="°C",
-            subtext="Thermometer not found",
+            subtext="Positive temperature",
             metersize=150,
         )
         
@@ -217,7 +217,7 @@ class StatusFrame(ttk.Frame):
         self, 
         frq: int = None, 
         gain: int = None, 
-        temp: int = None, 
+        temp: float = None, 
         urms: int = None, 
         irms: int = None, 
         phase: int = None
@@ -242,10 +242,20 @@ class StatusFrame(ttk.Frame):
             self.gain_meter["amountused"] = gain
             self._gain_using: int = gain
         
-        if isinstance(temp, int) and temp != self._temp_using:
+        if isinstance(temp, float) and temp != self._temp_using:
             
+            if temp < 0:
+                temp: float = temp * (-1)
+                self.temp_meter["amounttotal"] = 50
+                self.temp_meter["bootstyle"] = ttkb.INFO
+                self.temp_meter["subtext"] = "Negative Temperature"
+            else:
+                self.temp_meter["amounttotal"] = 300
+                self.temp_meter["bootstyle"] = ttkb.WARNING
+                self.temp_meter["subtext"] = "Positive Temperature"
+                
             self.temp_meter["amountused"] = temp
-            self._temp_using: int = temp
+            self._temp_using: float = temp
             
         if isinstance(urms, int) and urms != self._urms_using:
             
@@ -267,6 +277,7 @@ class StatusFrame(ttk.Frame):
         Method to attach new data to the object, so that the
         object adapts itself accordingly
         """
+        
         self.change_values(
             frq=self.sonicamp.status.frequency,
             gain=self.sonicamp.status.gain,
@@ -274,6 +285,11 @@ class StatusFrame(ttk.Frame):
             irms=self.sonicamp.status.irms,
             phase=self.sonicamp.status.phase,
         )
+        
+        if self.sonicamp.status.temperature:
+            self.change_values(temp=self.sonicamp.status.temperature)
+        else:
+            self.temp_meter["subtext"] = "Thermometer not found"
 
         self.connection_on()
 
