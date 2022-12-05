@@ -286,7 +286,7 @@ class StatusFrame(ttk.Frame):
             phase=self.sonicamp.status.phase,
         )
         
-        if self.sonicamp.status.temperature:
+        if isinstance(self.sonicamp.status.temperature, float):
             self.change_values(temp=self.sonicamp.status.temperature)
         else:
             self.temp_meter["subtext"] = "Thermometer not found"
