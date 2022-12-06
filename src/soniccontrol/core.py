@@ -213,8 +213,8 @@ class Root(tk.Tk):
             messagebox.showerror("Error", "")
             answer: bool = messagebox.askyesno(
                 "Error", 
-                "Storage is full, please delete logfiles.\n Nonetheless you can go into rescue mode.\n \
-                Do you want to keep the connection and open the Serial Monitor?"
+                "Storage is full, please delete logfiles.\n\nNonetheless you can go into rescue mode.\n\
+Do you want to keep the connection and open the Serial Monitor?"
             )
             if answer: self.open_for_serialmonitor()
             else: self.publish_disconnected()
@@ -223,7 +223,8 @@ class Root(tk.Tk):
             logger.warning(ae)
             answer: bool = messagebox.askyesno(
                 "Error", 
-                "It seems there occured an error during initialization.\n Do you want to keep the connection and open the Serial Monitor?"
+                "It seems there occured an error during initialization.\n\n\
+Nonetheless you can go into rescue mode. Do you want to keep the connection and open the Serial Monitor?"
             )
             if answer: self.open_for_serialmonitor()
             else: self.publish_disconnected()
@@ -232,20 +233,20 @@ class Root(tk.Tk):
             logger.warning(nie)
             answer: bool = messagebox.askyesno(
                 "Error", 
-                "It seems like your device was either not implemented, \
-                or the initialization data was not sent in the correct format.\n \
-                Try again by restarting the device and making sure, that it is currently run in serial mode.\n \
-                Nonetheless you can go into rescue mode.\n Do you want to keep the connection and open the Serial Monitor?"
+                "It seems like your device was either not implemented,\
+or the initialization data was not sent in the correct format.\
+Try again by restarting the device and making sure, that it is currently run in serial mode.\n\n\
+Nonetheless you can go into rescue mode.\nDo you want to keep the connection and open the Serial Monitor?"
             )
             if answer: self.open_for_serialmonitor()
             else: self.publish_disconnected()
 
-        except serial.PortNotOpenError as pnoe:
+        except PermissionError as pnoe:
             logger.warning(pnoe)
             messagebox.showerror(
                 "Port not open", 
-                "It seems your device is used somewhere else. \
-                Disconnect it there or restart it and try again."
+                "It seems your device is used somewhere else.\
+Disconnect it there or restart it and try again."
             )
             self.publish_disconnected()
         
@@ -310,6 +311,7 @@ class Root(tk.Tk):
             self.publish_for_wipe()
 
         else:
+            raise NotImplementedError
             messagebox.showerror("Error", "Either your device is not set for external control or your device was not implemented. Please check if your device is in 'External Control Mode' or 'Serial Mode'")
             print(self.sonicamp)
 
