@@ -268,8 +268,9 @@ class ScriptingTab(ttk.Frame):
         ends the sequence with configuring everything for 
         normal usage again.
         """
-        if not self.sequence.run:
+        if self.sequence.run:
             self.sequence.run: bool = False
+            logger.debug(f"self.run is {self.sequence.run}")
         
         self.file_handler.logfilepath: str = None
         self.start_script_btn.configure(
@@ -620,26 +621,19 @@ class Sequence:
 
         # The core of the ramp function
         for frq in frq_list:
-
-            if self.run:
-
-                if isinstance(self.sonicamp, SonicWipeDuty):
-                    self.gui.current_task.set(f"Ramp is @ {frq}%")
-                    logger.info(f"Ramp is at {frq}%")
-                    self.set_gain(frq)
-
-                else:
-
-                    self.gui.current_task.set(f"Ramp is @ {frq/1000}kHz")
-                    logger.info(f"Ramp is at {frq/1000}kHz")
-
-                    self.set_frq(frq)
-
-                self.gui.status_handler(command="ramp", argument=args_)
-                self.hold(hold_argument, ramp_mode=True)
-
+            if not self.run: return
+            if isinstance(self.sonicamp, SonicWipeDuty):
+                self.gui.current_task.set(f"Ramp is @ {frq}%")
+                logger.info(f"Ramp is at {frq}%")
+                self.set_gain(frq)
+            
             else:
-                break
+                self.gui.current_task.set(f"Ramp is @ {frq/1000}kHz")
+                logger.info(f"Ramp is at {frq/1000}kHz")
+                self.set_frq(frq)
+            
+            self.gui.status_handler(command="ramp", argument=args_)
+            self.hold(hold_argument, ramp_mode=True)
 
     def hold(self, args_: Union[list, int], ramp_mode: bool = False) -> None:
         """
@@ -791,7 +785,8 @@ class Sequence:
 
     def close_sequence(self) -> None:
 
-        if not self.run:
+        if self.run:
+            logger.debug(f"self.run is {self.run}")
             self.run: bool = False
 
         self.gui.end()
@@ -1037,7 +1032,7 @@ class ScriptingGuide(tk.Toplevel):
         ):
             self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
 
-        elif not isinstance(self.root.sonicamp, SonicWipeDuty):
+        if not isinstance(self.root.sonicamp, SonicWipeDuty):
             self.frq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
 
         self.disclaimer_label.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)

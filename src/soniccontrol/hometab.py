@@ -393,6 +393,7 @@ class HometabOldWipe(Hometab):
     def _initialize_frq_frame(self) -> None:
         super()._initialize_frq_frame()
         self.frq_spinbox.configure(from_=50000, to=1200000, width=10)
+        self.set_val_btn["text"] = "Set Frequency"
 
     def _initialize_wipeframe(self) -> None:
         self.wipe_frame: ttk.LabelFrame = ttk.LabelFrame(

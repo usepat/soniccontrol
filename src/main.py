@@ -17,12 +17,10 @@ elif platform.system() == 'Linux':
 gui.mainloop()
 
 # on
-# startloop 2
+# startloop 10
 # hold 5s
 # frequency 1200000
-# gain 100
-# frequency 9000000
 # startloop 2
-# ramp 1200000 900000 10000 100ms
+# ramp 1200000 900000 10000 100
 # endloop
-# endloop
+# off

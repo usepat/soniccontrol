@@ -204,17 +204,17 @@ class Root(tk.Tk):
             if self.serial.connect_to_port(self.port.get()):
                 logger.info(f"Getting connected to {self.port.get()}")
                 self.decide_action()
-
             else:
-                logger.info(f"No connection publishing for not connected")
+                logger.info("No port to connect, publishing disconnected")
                 self.publish_disconnected()
 
         except MemoryError as me:
             logger.warning(me)
-            messagebox.showerror("Error", "Storage is full, please delete logfiles")
+            messagebox.showerror("Error", "")
             answer: bool = messagebox.askyesno(
                 "Error", 
-                "It seems there occured an error during initialization.\n Do you want to keep the connection and open the Serial Monitor?"
+                "Storage is full, please delete logfiles.\n Nonetheless you can go into rescue mode.\n \
+                Do you want to keep the connection and open the Serial Monitor?"
             )
             if answer: self.open_for_serialmonitor()
             else: self.publish_disconnected()
@@ -227,11 +227,50 @@ class Root(tk.Tk):
             )
             if answer: self.open_for_serialmonitor()
             else: self.publish_disconnected()
+            
+        except NotImplementedError as nie:
+            logger.warning(nie)
+            answer: bool = messagebox.askyesno(
+                "Error", 
+                "It seems like your device was either not implemented, \
+                or the initialization data was not sent in the correct format.\n \
+                Try again by restarting the device and making sure, that it is currently run in serial mode.\n \
+                Nonetheless you can go into rescue mode.\n Do you want to keep the connection and open the Serial Monitor?"
+            )
+            if answer: self.open_for_serialmonitor()
+            else: self.publish_disconnected()
 
-        except Exception as e:
-            # traceback.print_tb(e)
-            logger.warning(e)
-            messagebox.showerror("Error", "Connection error")
+        except serial.PortNotOpenError as pnoe:
+            logger.warning(pnoe)
+            messagebox.showerror(
+                "Port not open", 
+                "It seems your device is used somewhere else. \
+                Disconnect it there or restart it and try again."
+            )
+            self.publish_disconnected()
+        
+        except TypeError as te:
+            logger.warning(te)
+            messagebox.showerror(
+                "No data coming from device", 
+                "Your device can be connected, but nothing seems to come out of it"
+            )
+            self.publish_disconnected()
+            
+        except serial.SerialTimeoutException as ste:
+            logger.warning(ste)
+            messagebox.showerror(
+                "Connection Timout Error", 
+                "The initialization took to long, try again by restarting the program and the device or call for support"
+            )
+            self.publish_disconnected()
+
+        except serial.SerialException as se:
+            logger.warning(se)
+            messagebox.showerror(
+                "Connection Error", 
+                "Something went wrong during the connection, try again or call for support"
+            )
             self.publish_disconnected()
 
     def decide_action(self) -> None:
@@ -362,6 +401,7 @@ class Root(tk.Tk):
         sonicmeasure and serialmonitor window exists. If that's
         the case, the windows are closed
         """
+        self.serial.disconnect()
         logger.info(f"publshing for disconnected soniccontrol")
         self.notebook.publish_disconnected()
         self.status_frame.destroy()
