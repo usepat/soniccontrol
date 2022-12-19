@@ -112,7 +112,7 @@ class Root(tk.Tk):
         self.protocol: tk.StringVar = tk.StringVar(value=0)
 
         # Status Log configuration
-        self.fieldnames: list = ["timestamp", "signal", "frequency", "gain", "urms", "irms", "phase"]
+        self.fieldnames: list = ["timestamp", "signal", "frequency", "gain", "urms", "irms", "phase", "temperature"]
         self.status_log_dir: str = "logs"
         self.statuslog_filepath: str
 
@@ -575,6 +575,7 @@ Disconnect it there or restart it and try again."
                 "urms": data.urms,
                 "irms": data.irms,
                 "phase": data.phase,
+                "temperature": data.temperature
             }
 
             with open(self.statuslog_filepath, "a", newline="") as statuslog:
@@ -630,23 +631,23 @@ class SonicAgent(SonicThread):
         """
         
         # This is the case when the thread is resumed
-        try:
+        # try:
             
-            if self.root.serial.is_connected:
-                status: Status = self.root.sonicamp.get_status()
-                
-                if (
-                    not isinstance(status, bool)
-                    and status != self.root.sonicamp.status
-                ):
-                    self.queue.put(status)
+        if self.root.serial.is_connected:
+            status: Status = self.root.sonicamp.get_status()
+            
+            if (
+                not isinstance(status, bool)
+                and status != self.root.sonicamp.status
+            ):
+                self.queue.put(status)
         
         # Case when a connection interrupt is happening
-        except serial.SerialException:
-            self.root.__reinit__()
+        # except serial.SerialException:
+        #     self.root.__reinit__()
         
-        # Undefined behaviour of the thread, so that the
-        # Thread is generally a bit "softer"
-        except Exception as e:
-            logger.warning(f"{e}")
-            # traceback.print_tb()
+        # # Undefined behaviour of the thread, so that the
+        # # Thread is generally a bit "softer"
+        # except Exception as e:
+        #     logger.warning(f"{e}")
+        #     # traceback.print_tb()

@@ -243,7 +243,7 @@ class StatusFrame(ttk.Frame):
             self._gain_using: int = gain
         
         if isinstance(temp, float) and temp != self._temp_using:
-            
+            print(f"{temp}  and {type(temp)}")
             if temp < 0:
                 temp: float = temp * (-1)
                 self.temp_meter["amounttotal"] = 50
@@ -256,6 +256,10 @@ class StatusFrame(ttk.Frame):
                 
             self.temp_meter["amountused"] = temp
             self._temp_using: float = temp
+        
+        elif isinstance(temp, bool):
+            print(f"{temp}  and {type(temp)}")
+            self.temp_meter["subtext"] = "Thermometer not found"
             
         if isinstance(urms, int) and urms != self._urms_using:
             
@@ -277,19 +281,14 @@ class StatusFrame(ttk.Frame):
         Method to attach new data to the object, so that the
         object adapts itself accordingly
         """
-        
         self.change_values(
             frq=self.sonicamp.status.frequency,
             gain=self.sonicamp.status.gain,
             urms=self.sonicamp.status.urms,
             irms=self.sonicamp.status.irms,
             phase=self.sonicamp.status.phase,
+            temp=self.sonicamp.status.temperature
         )
-        
-        if isinstance(self.sonicamp.status.temperature, float):
-            self.change_values(temp=self.sonicamp.status.temperature)
-        else:
-            self.temp_meter["subtext"] = "Thermometer not found"
 
         self.connection_on()
 
