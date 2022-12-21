@@ -14,21 +14,10 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 from sonicpackage import (
-    Status,
-    Command,
     SonicInterface,
-    SonicAmp,
-    SonicCatch,
     SonicWipe40KHZ,
-    SonicWipe,
     SonicWipeOld,
-    SonicCatchOld,
-    SonicCatchAncient,
     SonicWipeAncient,
-    KhzMode,
-    MhzMode,
-    CatchMode,
-    WipeMode,
     Sequence,
     SerialConnection,
     FileHandler,
@@ -39,7 +28,7 @@ from soniccontrol.helpers import logger, ToolTip
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
-    from soniccontrol._notebook import ScNotebook
+    from soniccontrol.notebook import ScNotebook
 
 
 class ScriptCommand(Enum):
@@ -64,7 +53,7 @@ class ScriptingTab(ttk.Frame):
         return self._root
 
     @property
-    def serial(self) -> SerialConnectionGUI:
+    def serial(self) -> SerialConnection:
         return self._serial
 
     @property

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import sys
-import datetime
 import csv
 import time
 import tkinter as tk
@@ -11,13 +10,14 @@ import logging
 import traceback
 import threading
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Union
 from tkinter import messagebox, filedialog
 from matplotlib import style
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk, FigureCanvasTkAgg
 
-from sonicpackage import Command, serial, SonicInterface, SonicMeasureFileHandler
+from sonicpackage import Command, serial, SonicInterface, SonicMeasureFileHandler, FileHandler
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
@@ -83,6 +83,13 @@ class SonicMeasureFrame(ttk.Frame):
 
         self._run: bool = False
         self.logfile: str = None
+        
+        self._filetypes: list = [
+            ("Text", "*.txt"),
+            ("Logging files", "*.log"),
+            ("CSV files", "*.csv"),
+            ("All files", "*"),
+        ]
         
         # Data array for plotting
         self.freq_list: list = []
@@ -216,14 +223,14 @@ class SonicMeasureFrame(ttk.Frame):
             self.root.thread.pause()
 
         if not self.logfile: 
-            time_str: str = datetime.now().strftime("%Y%m%d-%H:%M")
+            time_str: str = datetime.now().strftime("%Y%m%d-%H%M")
             self.logfile: str = f"logs/{time_str}_{self.root.sonicamp.type_}_sonicmeasure.csv"
 
         self.filehandler: FileHandler = SonicMeasureFileHandler(
             self.logfile,
             self.root.sonicamp.status,
             self.meta_comment.get(1.0, tk.END)
-        )
+        ).create_datafile()
 
         self.fig_canvas.update_axes(start_freq, stop_freq)
 
