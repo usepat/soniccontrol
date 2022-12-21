@@ -9,12 +9,14 @@ from typing import TYPE_CHECKING
 from tkinter import filedialog
 from tkinter import messagebox
 
+from sonicpackage import SerialConnection
+
 import soniccontrol.constants as const
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
-    from soniccontrol._notebook import ScNotebook
+    from soniccontrol.notebook import ScNotebook
 
 
 class InfoTab(ttk.Frame):
@@ -68,7 +70,7 @@ class InfoTab(ttk.Frame):
             self.controlframe, text="Help Manual", command=self.open_manual
         )
         self.flash_button: ttk.Button = ttk.Button(
-            self.controlframe, text="Update Firmware", command=lambda: subprocess.run(f"{os.getcwd()}/src/avrdude/XLoader.exe", shell=True)
+            self.controlframe, text="Update Firmware", command=lambda: HexFlashWindow(self.root)
         )
         self.version_label: ttk.Label = ttk.Label(
             self,
@@ -112,7 +114,7 @@ class HexFlashWindow(tk.Toplevel):
         super().__init__(master=root, *args, **kwargs)
         
         self.root: Root = root
-        self.serial: SerialConnectionGUI = root.serial
+        self.serial: SerialConnection = root.serial
         
         self.flash_frame = ttk.Labelframe(
             self,
