@@ -6,8 +6,7 @@ import ttkbootstrap as ttkb
 
 from typing import TYPE_CHECKING
 
-from sonicpackage import SonicAmp
-from soniccontrol.sonicamp import SerialConnection
+from sonicpackage import SonicInterface
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
@@ -50,7 +49,7 @@ class StatusFrame(ttk.Frame):
         self._is_on: bool = False
         self._is_connected: bool = False
         self._gain_using: int = 0
-        self._frq_using: int = 0
+        self._freq_using: int = 0
         self._temp_using: int = 0
         self._urms_using: int = None
         self._irms_using: int = None
@@ -61,11 +60,11 @@ class StatusFrame(ttk.Frame):
         self.sonsens_frame: ttk.Frame = ttk.Frame(self)
 
         # Meter Frame
-        self.frq_meter: ttkb.Meter = ttkb.Meter(
+        self.freq_meter: ttkb.Meter = ttkb.Meter(
             self.meter_frame,
             bootstyle=ttkb.DARK,
             amounttotal=1200000 / 1000,
-            amountused=self._frq_using,
+            amountused=self._freq_using,
             textright="kHz",
             subtext="Current Frequency",
             metersize=150,
@@ -152,6 +151,8 @@ class StatusFrame(ttk.Frame):
             width=10,
             text=None,
         )
+
+        logger.debug("Initialized statusframe")
         
     def signal_on(self) -> None:
         """
@@ -159,7 +160,6 @@ class StatusFrame(ttk.Frame):
         indicate that the US output signal of the SonicAmp is on
         """
         if not self._is_on:
-            
             self.sig_status_label["image"] = self.root.LED_GREEN_IMG
             self.sig_status_label["text"] = self.ON_TXT
             
@@ -171,7 +171,6 @@ class StatusFrame(ttk.Frame):
         indicate that the US output signal of the SonicAmp is off
         """ 
         if self._is_on:
-            
             self.sig_status_label["image"] = self.root.LED_RED_IMG
             self.sig_status_label["text"] = self.OFF_TXT
             
@@ -183,7 +182,6 @@ class StatusFrame(ttk.Frame):
         indicate that the connection to the SonicAmp is not there
         """
         if self._is_connected:
-            
             self.con_status_label["image"] = self.root.LED_RED_IMG
             self.con_status_label["text"] = self.NOT_CONN_TXT
             
@@ -195,7 +193,6 @@ class StatusFrame(ttk.Frame):
         indicate that the connection to a SonicAmp is there
         """
         if not self._is_connected:
-            
             self.con_status_label["image"] = self.root.LED_GREEN_IMG
             self.con_status_label["text"] = self.CONN_TXT
             
@@ -215,7 +212,7 @@ class StatusFrame(ttk.Frame):
     
     def change_values(
         self, 
-        frq: int = None, 
+        freq: int = None, 
         gain: int = None, 
         temp: int = None, 
         urms: int = None, 
@@ -228,37 +225,43 @@ class StatusFrame(ttk.Frame):
         and even then only if that value is not already shown
 
         Args:
-            frq (int, optional): The frequency value to show. Defaults to None.
+            freq (int, optional): The frequency value to show. Defaults to None.
             gain (int, optional): The gain value to show. Defaults to None.
             temp (int, optional): The temp value to show. Defaults to None.
         """
-        if isinstance(frq, int) and frq != self._frq_using:
-            
-            self.frq_meter["amountused"] = frq / 1000
-            self._frq_using: int = frq
+        if isinstance(freq, int) and freq != self._freq_using:
+            self.freq_meter["amountused"] = freq / 1000
+            self._freq_using: int = freq
         
         if isinstance(gain, int) and gain != self._gain_using:
-            
             self.gain_meter["amountused"] = gain
             self._gain_using: int = gain
         
-        if isinstance(temp, int) and temp != self._temp_using:
-            
+        if isinstance(temp, float) and temp != self._temp_using:
+            if temp < 0:
+                temp: float = temp * (-1)
+                self.temp_meter["amounttotal"] = 50
+                self.temp_meter["bootstyle"] = ttkb.INFO
+                self.temp_meter["subtext"] = "Negative Temperature"
+            else:
+                self.temp_meter["amounttotal"] = 300
+                self.temp_meter["bootstyle"] = ttkb.WARNING
+                self.temp_meter["subtext"] = "Positive Temperature"
+                
             self.temp_meter["amountused"] = temp
-            self._temp_using: int = temp
+            self._temp_using: float = temp
+        
+        elif isinstance(temp, bool): self.temp_meter["subtext"] = "Thermometer not found"
             
         if isinstance(urms, int) and urms != self._urms_using:
-            
             self.urms_label["text"] = f"Urms: {urms}mV"
             self._urms_using: int = urms
         
         if isinstance(irms, int) and irms != self._irms_using:
-            
             self.irms_label["text"] = f"Irms: {irms}mA"
             self._irms_using: int = irms
         
         if isinstance(phase, int) and phase != self._phase_using:
-            
             self.phase_label["text"] = f"Phase: {phase}˚"
             self._phase_using: int = phase    
 
@@ -268,27 +271,23 @@ class StatusFrame(ttk.Frame):
         object adapts itself accordingly
         """
         self.change_values(
-            frq=self.sonicamp.status.frequency,
+            freq=self.sonicamp.status.frequency,
             gain=self.sonicamp.status.gain,
             urms=self.sonicamp.status.urms,
             irms=self.sonicamp.status.irms,
             phase=self.sonicamp.status.phase,
+            temp=self.sonicamp.status.temperature
         )
-
         self.connection_on()
-
-        if self.root.sonicamp.status.signal:
-            self.signal_on()
-
-        else:
-            self.signal_off()
+        if self.root.sonicamp.status.signal: self.signal_on()
+        else: self.signal_off()
 
     def abolish_data(self) -> None:
         """
         Function to repeal setted values
         """
         self.change_values(
-            frq=0,
+            freq=0,
             gain=0,
             temp=0,
         )
@@ -330,7 +329,7 @@ class StatusFrameWipe(StatusFrame):
 
     def publish(self) -> None:
         """Function to build the statusframe"""
-        self.frq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.freq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.seperator.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.wipe_data_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
 
@@ -357,10 +356,10 @@ class StatusFrameCatch(StatusFrame):
     def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
 
-        self.frq_meter["amounttotal"] = 6000000 / 1000
+        self.freq_meter["amounttotal"] = 6000000 / 1000
 
     def publish(self) -> None:
-        self.frq_meter.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
+        self.freq_meter.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
         self.gain_meter.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
         self.temp_meter.grid(row=0, column=2, padx=10, sticky=tk.NSEW)
 
@@ -377,7 +376,7 @@ class StatusFrameCatch(StatusFrame):
         self.pack()
 
 
-class StatusFrameDutyWipe(StatusFrame):
+class StatusFrame40KHZ(StatusFrame):
     def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
 

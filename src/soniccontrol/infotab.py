@@ -10,7 +10,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 
 import soniccontrol.constants as const
-from soniccontrol.sonicamp import SerialConnectionGUI
+from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
@@ -63,21 +63,19 @@ class InfoTab(ttk.Frame):
         )
 
         self.info_label: ttk.Label = ttk.Label(self, text=InfoTab.INFOTEXT)
-
         self.controlframe: ttk.Frame = ttk.Frame(self)
-
         self.manual_btn: ttk.Button = ttk.Button(
             self.controlframe, text="Help Manual", command=self.open_manual
         )
-        
         self.flash_button: ttk.Button = ttk.Button(
             self.controlframe, text="Update Firmware", command=lambda: subprocess.run(f"{os.getcwd()}/src/avrdude/XLoader.exe", shell=True)
         )
-
         self.version_label: ttk.Label = ttk.Label(
             self,
             text=f"Version: {const.VERSION}",
         )
+
+        logger.debug("Initialized infotab")
 
     def publish(self) -> None:
         """
@@ -89,11 +87,10 @@ class InfoTab(ttk.Frame):
         self.info_label.pack()
         self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
         
-        if self.root.config_data["hexflash"]:
+        if self.root.config_file and self.root.config_file.hexflash:
             self.flash_button.grid(row=0, column=2, padx=5, pady=10)
         
         self.controlframe.pack()
-
         self.version_label.pack(anchor=tk.S, side=tk.BOTTOM, padx=10, pady=10)
 
     @staticmethod
@@ -108,6 +105,7 @@ class InfoTab(ttk.Frame):
         pass
     
 
+# TODO: Hexflash is not that supported, ISSUE 
 class HexFlashWindow(tk.Toplevel):
     
     def __init__(self, root: Root, *args, **kwargs):

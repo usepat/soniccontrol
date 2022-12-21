@@ -2,46 +2,48 @@ from __future__ import annotations
 
 import subprocess
 import os
+import typing
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 
-from typing import Union, TYPE_CHECKING
 from tkinter import filedialog
 from tkinter import messagebox
-# from ttkbootstrap.tooltip import ToolTip
 
-from soniccontrol.helpers import ToolTip
+from soniccontrol.helpers import ToolTip, logger
+from sonicpackage import Command
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from soniccontrol.core import Root
-    from soniccontrol._notebook import ScNotebook
+    from soniccontrol.notebook import ScNotebook
 
 
 class ConnectionTab(ttk.Frame):
-    
+
     @property
     def root(self) -> Root:
         return self._root
         
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
-        
         self._root: Root = root
         
         self.hex_file_path: tk.StringVar = tk.StringVar()
-        self.transducer_active: tk.StringVar = tk.StringVar()
+        # self.transducer_active: tk.StringVar = tk.StringVar()
+        self.transducer_active = tk.StringVar()
         
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
         self.botframe: ttk.Frame = ttk.Frame(self)
         
         self._initialize_topframe()
         self._initialize_botframe()
-    
+
+        logger.debug("Initialized Connectiontab")
+
     def _initialize_topframe(self) -> None:
         self._initialize_heading()
         self._initialize_control_frame()
-    
+
     def _initialize_botframe(self) -> None:
         self._initialize_firmware_info()
         self._initialize_flash_frame()
@@ -55,18 +57,19 @@ class ConnectionTab(ttk.Frame):
             state=tk.DISABLED,
             command=self.root.publish_serial_monitor,
         )
-    
+
     def _initialize_heading(self) -> None:
         self.heading_frame: ttk.Frame = ttk.Frame(self.topframe)
-        self.subtitle: ttk.Label = ttk.Label(self.heading_frame, padding=(0, 10, 0, 0))
-
+        self.subtitle: ttk.Label = ttk.Label(
+            self.heading_frame, 
+            padding=(0, 10, 0, 0)
+        )
         self.heading1: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(10, 0, 0, 10),
             font=self.root.qtype30,
             borderwidth=-2,
         )
-
         self.heading2: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(0, 0, 5, 10),
@@ -76,11 +79,9 @@ class ConnectionTab(ttk.Frame):
     
     def _initialize_control_frame(self) -> None:
         self.control_frame: ttk.Frame = ttk.Frame(self.topframe)
-
         self.connect_button: ttk.Button = ttkb.Button(
             self.control_frame, width=10, style="success.TButton"
         )
-
         self.ports_menue: ttk.Combobox = ttk.Combobox(
             master=self.control_frame,
             textvariable=self.root.port,
@@ -88,25 +89,21 @@ class ConnectionTab(ttk.Frame):
             style="dark.TCombobox",
             state=tk.READABLE,
         )
-
         ToolTip(
             self.ports_menue,
             text="Choose the serial communication address of you SonicAmp",
         )
-
         self.refresh_button: ttk.Button = ttkb.Button(
             self.control_frame,
             bootstyle="secondary-outline",
             image=self.root.REFRESH_IMG,
             command=self.refresh,
         )
-
+    
     def _initialize_firmware_info(self) -> None:
         self.firmware_frame: ttk.Labelframe = ttk.Labelframe(
-            self.botframe,
-            text="Firmware",
+            self.botframe, text="Firmware",
         )
-
         self.firmware_label: ttk.Label = ttk.Label(
             self.firmware_frame, justify=tk.CENTER, style="dark.TLabel"
         )
@@ -119,7 +116,6 @@ class ConnectionTab(ttk.Frame):
             width=200,
             padding=(0, 12, 0, 12),
         )
-
         self.file_entry = ttk.Button(
             self.flash_frame,
             text="Specify path for Firmware file",
@@ -127,7 +123,6 @@ class ConnectionTab(ttk.Frame):
             style="dark.TButton",
             command=self.hex_file_path_handler,
         )
-
         self.upload_button = ttk.Button(
             self.flash_frame,
             style="dark.TButton",
@@ -135,11 +130,14 @@ class ConnectionTab(ttk.Frame):
             text="Upload Firmware",
             command=self.upload_file,
         )
-        
+    
     def _initialize_transducer_menue(self) -> None:
+        if not self.root.config_file: 
+            return  
         
-        transducer_names: list = list(self.root.transducer.keys())
-        
+        if not self.root.config_file.transducer:
+            return
+
         self.transducer_frame: ttk.Frame = ttk.Frame(self.botframe)
         self.transducer_menuebutton: ttkb.Menubutton = ttkb.Menubutton(
             self.transducer_frame,
@@ -148,19 +146,7 @@ class ConnectionTab(ttk.Frame):
             text="Pick Transducer",
             state=tk.DISABLED,
         )
-        
-        transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
-        
-        for name in transducer_names:
-            transducer_menue.add_radiobutton(
-                label=name,
-                value=name,
-                variable=self.transducer_active,
-                command=lambda: self.root.set_atf(self.transducer_active.get()),
-            )
-
-        self.transducer_menuebutton["menu"] = transducer_menue
-        
+        self._update_transducer_menue()
         self.transducer_preview: ttk.LabelFrame = ttk.LabelFrame(
             self.botframe,
             text='Currently configured transducer',
@@ -171,43 +157,58 @@ class ConnectionTab(ttk.Frame):
             self.transducer_preview,
             text=''
         )
-        
+
+    def set_atf(self) -> None:
+        current_transducer: dict = self.root.config_file.transducer.get(self.transducer_active.get())
+        self.root.sonicamp.set_threshold_freq(current_transducer.get("threshold_freq"))
+        self.root.serial.send_and_get(Command.SET_PROT_FREQ1 + current_transducer.get("atf1"))
+        self.root.serial.send_and_get(Command.SET_PROT_FREQ2 + current_transducer.get("atf2"))
+        self.root.serial.send_and_get(Command.SET_PROT_FREQ3 + current_transducer.get("atf3"))
+        self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
+        self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
+
     def config_file_str(self) -> str:
-        string: str = ""
+        transducer_data: dict = self.root.config_file.transducer.get(self.transducer_active.get())
+        if not transducer_data: return
         
-        for item in self.root.transducer[self.transducer_active.get()]:
-            if not (item == "atf1" or  item == "atf2" or item == "atf3"):
-                string += item + ":\t" + str(self.root.transducer[self.transducer_active.get()][item]) + "\n"
-                print(string)
+        string: str = ""
+        for item in transducer_data:
+            if (item == "atf1" or  item == "atf2" or item == "atf3" or item == "threshold_freq"):
+                continue
+            string += item + ":\t" + str(self.root.config_file.transducer[self.transducer_active.get()][item]) + "\n"
         
         return string
-        
+
     def _update_transducer_menue(self) -> None:
-        self.root.config_file_algorithm()
-
-        transducer_names: list = list(self.root.transducer.keys())
+        if not self.root.config_file: return
+        if not self.root.config_file.transducer: return
         transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
-
-        for name in transducer_names:
+        for trd in self.root.config_file.transducer.keys():
             transducer_menue.add_radiobutton(
-                label=name,
-                value=name,
+                label=trd,
+                value=trd,
                 variable=self.transducer_active,
-                command=lambda: self.root.set_atf(self.transducer_active.get()),
+                command=self.set_atf,
             )
-
         self.transducer_menuebutton["menu"] = transducer_menue
 
-
-    def attach_data(self) -> None:
-        """
-        Attaches data to the connectiontab
-        """
+    def attach_data(self, rescue: bool = False) -> None:
         self._update_transducer_menue()
         
-        self.subtitle["text"] = "You are connected to"
-        self.heading1["text"] = self.root.sonicamp.type_[:5]
-        self.heading2["text"] = self.root.sonicamp.type_[5:]
+        if rescue:
+            self.subtitle["text"] = "Rescue serial monitor connection"
+            self.heading1["text"] = "Serial"
+            self.heading2["text"] = "Monitor"
+        else:
+            self.subtitle["text"] = "You are connected to"
+            self.heading1["text"] = self.root.sonicamp.type_[:5]
+            self.heading2["text"] = self.root.sonicamp.type_[5:]
+            
+            fwmsg: Union[str, list] = self.root.sonicamp.firmware_msg
+            self.firmware_label["text"] = fwmsg
+            
+            for child in self.flash_frame.children.values():
+                child.configure(state=tk.NORMAL)
 
         self.connect_button.config(
             bootstyle="danger",
@@ -215,25 +216,16 @@ class ConnectionTab(ttk.Frame):
             command=self.disconnect,
         )
         
-        fwmsg: Union[str, list] = self.root.sonicamp.firmware_msg
-        
-        if isinstance(fwmsg, list):
-            fwmsg.insert(int(len(fwmsg)/2), '\n')
-            fwmsg: str = " ".join(fwmsg)
-
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
         self.serial_monitor_btn.config(state=tk.NORMAL)
-        self.transducer_menuebutton.config(state=tk.NORMAL)
-        self.firmware_label["text"] = fwmsg
 
-        for child in self.flash_frame.children.values():
-            child.configure(state=tk.NORMAL)
-            
+        if not self.root.config_file: return 
+        if not self.root.config_file.transducer: return
+        self.transducer_menuebutton.config(state=tk.NORMAL)
+        self.transducer_preview_label["text"] = self.config_file_str()
+
     def abolish_data(self) -> None:
-        """
-        Abolishes data from the connectiontab
-        """
         self.subtitle["text"] = "Please connect to a SonicAmp system"
         self.heading1["text"] = "not"
         self.heading2["text"] = "connected"
@@ -251,36 +243,30 @@ class ConnectionTab(ttk.Frame):
         )
 
         self.serial_monitor_btn.config(state=tk.DISABLED)
-        self.transducer_menuebutton.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.NORMAL)
         self.firmware_label["text"] = ""
-        self.transducer_menuebutton['text'] = 'Pick Transducer'
-        self.transducer_preview_label['text'] = ''
 
         for child in self.flash_frame.children.values():
             child.configure(state=tk.DISABLED)
 
-        self.root.sonicamp = None
-        
+        if self.root.config_file and self.root.config_file.transducer:
+            self.transducer_menuebutton.config(state=tk.DISABLED)
+            self.transducer_menuebutton['text'] = 'Pick Transducer'
+            self.transducer_preview_label['text'] = ''
+
+        self.root.abolish_data()
+
     def refresh(self) -> None:
-        """
-        Refreshes the potential ports
-        """
         self.ports_menue["values"] = self.root.serial.get_ports()
-        
+
     def disconnect(self) -> None:
-        """
-        Disconnects the soniccontrol with the current connection
-        """
-        if not self.root.thread.paused:
-            self.root.thread.pause()
+        if not self.root.thread.paused: self.root.thread.pause()
 
         self.abolish_data()
         self.root.serial.disconnect()
         self.root.publish_disconnected()
-        
+
     def hex_file_path_handler(self):
-        """Gets the file of a potential hex firmware file, and checks if it's even a hex file"""
         self.hex_file_path = filedialog.askopenfilename(
             defaultextension=".hex", filetypes=(("HEX File", "*.hex"),)
         )
@@ -298,9 +284,8 @@ class ConnectionTab(ttk.Frame):
             self.file_entry.config(
                 style="danger.TButton", text="File is not a firmware file"
             )
-
-    def upload_file(self):
-        """Upploads the hex file to the hardware via AVRDUDE"""
+    
+    def upload_file(self) -> None:
         if self.root.serial.is_connected:
 
             if self.hex_file_path:
@@ -344,12 +329,8 @@ class ConnectionTab(ttk.Frame):
                 "Error",
                 "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.",
             )
-    
+
     def publish(self) -> None:
-        """
-        Method to publish the children of the Connection Tab
-        and for that itself too
-        """
         for child in self.children.values():
             child.pack()
 
@@ -372,10 +353,9 @@ class ConnectionTab(ttk.Frame):
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
         
-        if len(self.root.transducer) > 1:
+        if self.root.config_file and self.root.config_file.transducer:
             self.transducer_menuebutton.pack()
             self.transducer_frame.grid(row=1, column=1, padx=10, pady=10)
-
             self.transducer_preview.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
             self.transducer_preview_label.pack()
 
@@ -386,4 +366,7 @@ class ConnectionTab(ttk.Frame):
         #     self.firmware_frame.grid(row=0, column=0, columnspan=1, padx=10, pady=10) 
         
         self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
-            
+        
+
+if __name__ == "__main__":
+    pass    
