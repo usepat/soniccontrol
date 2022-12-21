@@ -5,8 +5,10 @@ import json
 from PIL import Image
 
 from ttkbootstrap.tooltip import ToolTip as TT
+from tkinter import messagebox
 
 import sonicpackage as sp
+
 
 ########################
 # Logger configuration #
@@ -15,11 +17,10 @@ import sonicpackage as sp
 sp.logger.removeHandler(sp.file_handler)
 sp.logger.removeHandler(sp.stream_handler)
 
-if not os.path.isdir("logs/"):
-    os.mkdir("logs/")
+if not os.path.isdir("logs/"): os.mkdir("logs/")
 
 logger = logging.getLogger("soniccontrol")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter(
     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
@@ -40,10 +41,10 @@ logger.addHandler(stream_handler)
 sp.logger.addHandler(file_handler_sp)
 sp.logger.addHandler(stream_handler)
 
+
 ##################################
 # Helper Functions Configuration #
 ##################################
-
 
 def resize_img(image_path: str, maxsize: tuple) -> Image:
     """
@@ -66,28 +67,11 @@ def resize_img(image_path: str, maxsize: tuple) -> Image:
     image = image.resize(newsize, Image.ANTIALIAS)
     return image
 
-
-def read_json() -> dict:
-    """
-    Function to read the soniccontrol config file and return a dictionary
-    of data.
-
-    RETURNS:
-        data (dict): the dictionary data of the config.json file
-    """
-    try:
-        with open("config.json", "r") as file_json:
-            data: dict = json.load(file_json)
-            return data
-    except Exception:
-        return {}
-
-
 class ToolTip(TT):
     def __init__(self, *args, **kwargs):
         if not sys.platform == "linux":
             super().__init__(*args, **kwargs)
-        
+
 
 if __name__ == "__main__":
-    data = read_json()
+    pass

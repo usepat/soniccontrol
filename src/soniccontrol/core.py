@@ -1,125 +1,94 @@
 from __future__ import annotations
-import time
 
+import time
+import os
+import platform
+import datetime
 import traceback
+import csv
+import json
+import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
-import csv
-import datetime
-import os
 import serial
 
+from dataclasses import dataclass, field
 from PIL.ImageTk import PhotoImage
 from tkinter import font
 from tkinter import messagebox
+from tkinter import TclError
 
 from sonicpackage import (
-    SonicAmp,
+    SonicInterface,
     SonicThread,
     Status,
-    SonicAmpBuilder,
-    SonicWipeDuty,
-    SonicCatch,
-    SonicCatchOld,
-    SonicWipe,
-    SonicWipeOld,
-    SonicCatchAncient,
-    SonicWipeAncient,
     Command,
-    Transducer
+    SerialConnection,
+    SonicAmp,
+    SonicCatchOld,
+    SonicCatchAncient,
+    SonicWipe40KHZ,
+    SonicWipeOld,
+    SonicWipeAncient
 )
-from soniccontrol.sonicamp import SerialConnectionGUI, SerialConnection
+
+import soniccontrol.constants as const
+
 from soniccontrol.statusframe import (
     StatusFrameCatch,
-    StatusFrameDutyWipe,
+    StatusFrame40KHZ,
     StatusFrameWipe,
     StatusFrame,
 )
-from soniccontrol.serialmonitor import(
+
+from soniccontrol.serialmonitor import (
     SerialMonitor, 
     SerialMonitor40KHZ, 
     SerialMonitorCatch, 
     SerialMonitorWipe
 )
-from soniccontrol._notebook import ScNotebook
-from soniccontrol.helpers import logger, read_json
 
-import soniccontrol.constants as const
+from soniccontrol.sonicmeasure import SonicMeasureWindow
+from soniccontrol.notebook import ScNotebook
+from soniccontrol.helpers import logger
 
 
 class Root(tk.Tk):
-    """
-    The Root class is the main class of the Tkinter GUI.
-    Through this class every other compository object can get
-    information about another object. When initializing, it
-    creates the attribute self.thread that represents the
-    main SonicThread that asks the sonicamp about its status.
 
-    This thread then is passed into the customized SerialConnection
-    class for the GUI. So that the method SerialConnection.send_and_get()
-    pauses and resumes the thread automatically, so that none
-    information interwienes with one another
-
-    The data that the thread gets is then being passed into the
-    queue object of the thread and processed in the engine method
-
-    Antother useful method is the self.attach_data method, that
-    passes the newly arrived data to all tkinter compository
-    objects, so that the GUI adapts itself as a whole to the
-    new status.
-
-    Inheritance:
-        tk (tk.Tk): The main root class of tkinter, that the Root
-        class inherets from
-    """
-
-    # GUI specific constants
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    TITLE: str = "Soniccontrol"
-    THEME: str = "sandstone"
+    TITLE: str = 'SonicControl'
+    THEME: str = 'sandstone'
+    LOGGER_LEVEL: int = logging.DEBUG
+
+    @property
+    def serial(self) -> SerialConnection:
+        return self._serial
+
+    @property
+    def amp_controller(self) -> SonicInterface:
+        return self._amp_controller
+
+    @property
+    def sonicamp(self) -> SonicAmp:
+        return self._sonicamp
+
+    @property
+    def thread(self) -> SonicThread:
+        return self._thread
 
     def __init__(self, *args, **kwargs) -> None:
-        """
-        Here the Root class is being constructed and
-        every needed child is being initialized, for instance
-        the self.thread object that the Root class is inherently
-        depended on. Further information above or in the Thread
-        itself.
-        
-        Furthermore, the serial instance is being initialized
-        this object is used to exchange data with an sonicamp
-        """
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
-        self.serial: SerialConnection
-        self.sonicamp: SonicAmp
-        self.thread: SonicThread
+        self._amp_controller: SonicInterface
+        self._sonicamp: SonicAmp
+        self._thread: SonicThread
+        self._serial: SerialConnection = SerialConnection()
 
-        # Tkinter children of Root
-        self.mainframe: ttk.Frame
-        self.notebook: ScNotebook
-        self.status_frame: StatusFrame
-        self.serial_monitor: SerialMonitor
-
-        self.port: tk.StringVar = tk.StringVar(value=None)
-        self.frq: tk.IntVar = tk.IntVar(value=0)
-        self.gain: tk.IntVar = tk.IntVar(value=0)
-        self.frq_range: tk.StringVar = tk.StringVar(value="khz")
-        self.wipe_mode: tk.IntVar = tk.IntVar(value=0)
-        self.protocol: tk.StringVar = tk.StringVar(value=0)
-
-        # Status Log configuration
-        self.fieldnames: list = ["timestamp", "signal", "frequency", "gain", "urms", "irms", "phase", "temperature"]
-        self.status_log_dir: str = "logs"
-        self.statuslog_filepath: str
-
-        if not os.path.exists(self.status_log_dir):
-            os.mkdir(self.status_log_dir)
-
-        self.config_file_algorithm()
+        self.port: tk.StringVar = tk.StringVar()
+        self.config_file: ConfigFile = ConfigData().read_json()
 
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -128,30 +97,17 @@ class Root(tk.Tk):
         self.wm_title(Root.TITLE)
         ttkb.Style(theme=Root.THEME)
 
-        if os.sys.platform == 'Windows':
+        if platform.system() == 'Windows':
             self.iconbitmap("src//soniccontrol//pictures//welle.ico")
 
         # default font in GUI and custom Fonts
         default_font: font.Font = font.nametofont("TkDefaultFont")
         default_font.configure(family="Arial", size=12)
         self.option_add("*Font", default_font)
-
-        self.arial12: font.Font = font.Font(
-            family="Arial", size=12, weight=tk.font.BOLD
-        )
-
-        self.qtype12: font.Font = font.Font(
-            family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD
-        )
-
-        self.qtype30: font.Font = font.Font(
-            family="QTypeOT-CondLight",
-            size=30,
-        )
-
-        self.qtype30b: font.Font = font.Font(
-            family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD
-        )
+        self.arial12: font.Font = font.Font(family="Arial", size=12, weight=tk.font.BOLD)
+        self.qtype12: font.Font = font.Font(family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD)
+        self.qtype30: font.Font = font.Font(family="QTypeOT-CondLight", size=30)
+        self.qtype30b: font.Font = font.Font(family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD)
 
         # Defining images
         self.REFRESH_IMG: PhotoImage = PhotoImage(const.REFRESH_RAW_IMG)
@@ -166,454 +122,246 @@ class Root(tk.Tk):
         self.LED_GREEN_IMG: PhotoImage = PhotoImage(const.LED_GREEN_RAW_IMG)
         self.LED_RED_IMG: PhotoImage = PhotoImage(const.LED_RED_RAW_IMG)
 
-        # Building the thread and serialconnection
-        # First: initializing the thread
-        self.thread: SonicThread = SonicAgent(self) 
-        self.thread.setDaemon(True)
+        # Configuring and starting the Thread
+        self._thread: SonicThread = SonicAgent(self)
+        self._thread.setDaemon(True)
+        self._thread.start()
+        self._thread.pause()
 
-        # Second: initializing the serial interface, with the information about the thread
-        self.serial: SerialConnectionGUI = SerialConnectionGUI(self.thread)
-
-        self.thread.start()
-        self.thread.pause()
-
-        # Starting the main parts of the GUI
+        # Starting the main graphical parts of the GUI
         self.mainframe: ttk.Frame = ttk.Frame(self)
         self.notebook: ScNotebook = ScNotebook(self.mainframe, self)
         self.status_frame: ttk.Frame = ttk.Frame(self.mainframe)
+        self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self)
         self.serial_monitor: ttk.Frame = ttk.Frame(self.mainframe)
 
-        self.__reinit__()
+        logger.debug("Initialized Root")
 
-    def __reinit__(self) -> None:
-        """
-        Method to reinitialize the main composites of Root. Based
-        on the fact, if a connection was successfully established
-        python decides what exactly to do further in the
-        self.decide_action() method.
+        self.__reinit__(True)
+
+    def __reinit__(self, first_start: bool = False) -> None:
+        if first_start: 
+            self.publish_disconnected()
+            return 
         
-        If no connection was established, or there was an error
-        during the connection, the self.publish_disconnected()
-        method is being called, which brings the GUI to the
-        appearance of a to-be-connected state
-        """
-        self.serial.get_ports()
-
-        try:
-
-            if self.serial.connect_to_port(self.port.get()):
-                logger.info(f"Getting connected to {self.port.get()}")
-                self.decide_action()
-            else:
-                logger.info("No port to connect, publishing disconnected")
-                self.publish_disconnected()
-
-        except MemoryError as me:
-            logger.warning(me)
-            messagebox.showerror("Error", "")
-            answer: bool = messagebox.askyesno(
-                "Error", 
-                "Storage is full, please delete logfiles.\n\nNonetheless you can go into rescue mode.\n\
-Do you want to keep the connection and open the Serial Monitor?"
-            )
-            if answer: self.open_for_serialmonitor()
-            else: self.publish_disconnected()
-
-        except AttributeError as ae:
-            logger.warning(ae)
-            answer: bool = messagebox.askyesno(
-                "Error", 
-                "It seems there occured an error during initialization.\n\n\
-Nonetheless you can go into rescue mode. Do you want to keep the connection and open the Serial Monitor?"
-            )
-            if answer: self.open_for_serialmonitor()
-            else: self.publish_disconnected()
-            
-        except NotImplementedError as nie:
-            logger.warning(nie)
-            answer: bool = messagebox.askyesno(
-                "Error", 
-                "It seems like your device was either not implemented,\
-or the initialization data was not sent in the correct format.\
-Try again by restarting the device and making sure, that it is currently run in serial mode.\n\n\
-Nonetheless you can go into rescue mode.\nDo you want to keep the connection and open the Serial Monitor?"
-            )
-            if answer: self.open_for_serialmonitor()
-            else: self.publish_disconnected()
-
-        except PermissionError as pnoe:
-            logger.warning(pnoe)
-            messagebox.showerror(
-                "Port not open", 
-                "It seems your device is used somewhere else.\
-Disconnect it there or restart it and try again."
-            )
-            self.publish_disconnected()
+        rescue_me: bool = False
+        exception: bool = True
         
-        except TypeError as te:
-            logger.warning(te)
-            messagebox.showerror(
-                "No data coming from device", 
-                "Your device can be connected, but nothing seems to come out of it"
-            )
-            self.publish_disconnected()
-            
-        except serial.SerialTimeoutException as ste:
-            logger.warning(ste)
-            messagebox.showerror(
-                "Connection Timout Error", 
-                "The initialization took to long, try again by restarting the program and the device or call for support"
-            )
-            self.publish_disconnected()
-
+        try: self.decide_action()
+        
         except serial.SerialException as se:
+            logger.debug(traceback.format_exc())
             logger.warning(se)
-            messagebox.showerror(
-                "Connection Error", 
-                "Something went wrong during the connection, try again or call for support"
+            messagebox.showerror("Connection Error", se)
+        
+        except AssertionError as ass_e:
+            logger.debug(traceback.format_exc())
+            logger.warning(ass_e)
+            rescue_me: bool = messagebox.askyesno(
+                "Data Error", 
+                f"{ass_e}\nDo you want to go into rescue mode?"
             )
-            self.publish_disconnected()
+        
+        except MemoryError as mem_e:
+            logger.debug(traceback.format_exc())
+            logger.warning(mem_e)
+            rescue_me: bool = messagebox.askyesno(
+                "Memory Error", 
+                f"{mem_e}Do you want to go into rescue mode?"
+            )
+            messagebox.showerror()
+        
+        except AttributeError as attr_e:
+            logger.debug(traceback.format_exc())
+            logger.warning(attr_e)
+            rescue_me: bool = messagebox.askyesno(
+                "Data Error", 
+                f"{attr_e}\nDo you want to go into rescue mode?"
+            )
+        
+        except NotImplementedError as nie:
+            logger.debug(traceback.format_exc())
+            logger.warning(nie)
+            rescue_me: bool = messagebox.askyesno(
+                "Data Error",
+                f"{nie}\nDo you want to go into rescue mode?"
+            )
+
+        except TypeError as te:
+            logger.debug(traceback.format_exc())
+            logger.warning(te)
+            rescue_me: bool = messagebox.askyesno(
+                "Data Error",
+                f"{te}\nDo you want to go into rescue mode?"
+            )
+
+        except Exception as e:
+            logger.debug(traceback.format_exc())
+            logger.warning(e)
+            messagebox.showerror("Error", e)
+        
+        except TclError as tcle:
+            logger.debug(traceback.format_exc())
+            logger.warning(tcle)
+            messagebox.showerror("Tkinter Error", tcle)
+        
+        else:
+            exception: bool = False
+            self._initialize_data()
+            if isinstance(self.sonicamp, SonicWipe40KHZ): return
+            self.engine()
+            if self.thread.paused: self._thread.resume()
+        
+        finally:
+            if rescue_me and exception: self.publish_rescue_mode()
+            elif not rescue_me and exception: self.publish_disconnected()
 
     def decide_action(self) -> None:
-        """
-        This method is being called when a succesfull connection
-        was being made. Through this method, a sonicamp object
-        is being created, narrowing the information and methods
-        to use with the device.
+        self._amp_controller: SonicInterface = SonicInterface(port = self.port.get(), logger_level = self.LOGGER_LEVEL, thread = self.thread)
+        self._sonicamp: SonicAmp = self.amp_controller.sonicamp
+        self._serial: SerialConnection = self.amp_controller.serial
 
-        Then this information is being setted to the tkinter variables
-        and further more the whole GUI is being published accordingly
-        """
-        try:
-            self.sonicamp: SonicAmp = SonicAmpBuilder.build_amp(self.serial)
-        except Exception as e:
-            logger.warning(f"{e}")
+        logger.info("Succesfully connected and built sonicamp")
+        logger.info(f"{self.sonicamp}")
 
-        logger.info(f"Built sonicamp {self.sonicamp}")
-
-        if isinstance(self.sonicamp, SonicCatchOld) or isinstance(
-            self.sonicamp, SonicCatchAncient
-        ):
+        if isinstance(self.sonicamp, SonicCatchOld) or isinstance(self.sonicamp, SonicCatchAncient):
             self.publish_for_old_catch()
-
-        elif isinstance(self.sonicamp, SonicWipeAncient) or isinstance(
-            self.sonicamp, SonicWipeOld
-        ):
+        
+        elif isinstance(self.sonicamp, SonicWipeOld) or isinstance(self.sonicamp, SonicWipeAncient):
             self.publish_for_old_wipe()
-
-        elif isinstance(self.sonicamp, SonicWipeDuty):
-            self.publish_for_duty_wipe()
-
-        elif isinstance(self.sonicamp, SonicCatch):
+        
+        elif isinstance(self.sonicamp, SonicWipe40KHZ): 
+            self.publish_for_wipe40khz()
+        
+        elif isinstance(self.sonicamp, SonicCatch): 
             self.publish_for_catch()
-
-        elif isinstance(self.sonicamp, SonicWipe):
+        
+        elif isinstance(self.sonicamp, SonicWipe): 
             self.publish_for_wipe()
-
-        else:
-            raise NotImplementedError
-            messagebox.showerror("Error", "Either your device is not set for external control or your device was not implemented. Please check if your device is in 'External Control Mode' or 'Serial Mode'")
-            print(self.sonicamp)
-
-        self.initialize_amp_data()
-
-        # Due to the Fact, that the 40kHz SonicWipe does not need a data exchange
-        # in form of a thread. The sonicamp instance is checked
-        if not isinstance(self.sonicamp, SonicWipeDuty):
-            self.engine()
-
-            if self.thread.paused:
-                self.thread.resume()
-
-    def initialize_amp_data(self) -> None:
-        """
-        Makes sure that data from the config file is being read and
-        updated. So that one can just reset the connection to update
-        the data
         
-        Method to get the data from the sonicamp to the Root tkinter
-        variables, so the all objects can adapt to it
-        
-        Furthermore the method creates the needed statuslog for this
-        instance of usage
-        
-        Every new connection creates a needed logfile
-        """
-        self.config_file_algorithm()
-        
-        self.frq.set(self.sonicamp.status.frequency)
-        self.gain.set(self.sonicamp.status.gain)
-        self.wipe_mode.set(self.sonicamp.status.wipe_mode)
-        self.protocol.set(self.serial.send_and_get(Command.GET_PROTOCOL))
-        
-        if len(self.transducer) == 1:
-            self.set_atf(list(self.transducer.keys())[0])
+        else: raise Exception("Do not know which device it is!")
 
-        tmp_timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d")
-        self.statuslog_filepath: str = f"{self.status_log_dir}//statuslog_{self.sonicamp.type_}_{tmp_timestamp}.csv"
-        self._create_statuslog()
+    def _initialize_data(self) -> None:
+        self.config_file: ConfigData = ConfigData().read_json()
+        self.attach_data()
 
     def engine(self) -> None:
-        """
-        The engine method is automatically being
-        called every 100ms to look for new data, that
-        the thread received. If the new data arrived,
-        the whole GUI adapts to it through this said
-        method
-        
-        Furthermore, the register_status_data() method
-        is being called to register the current frequency
-        and gain to a logfile
-        """
         while self.thread.queue.qsize():
-
             status: Status = self.thread.queue.get(0)
-            logger.info(f"Got status {status}")
-
             self.sonicamp.status = status
-            self.register_status_data(data=status)
-
+            self.amp_controller.register_data()
             self.update_idletasks()
             self.attach_data()
 
         self.after(100, self.engine)
 
     def attach_data(self) -> None:
-        """
-        The attach data method passes the newly
-        arrived information about the sonicamp to all
-        children of root.
-        """
-        logger.info(f"attaching data for {self.sonicamp}")
+        self.config_file: ConfigFile = ConfigData().read_json()
         self.notebook.attach_data()
         self.status_frame.attach_data()
 
-    def open_for_serialmonitor(self) -> None:
+    def abolish_data(self) -> None:
+        self._sonicamp = None
+        self._amp_controller = None
+        self.notebook.abolish_data()
+
+    def publish_rescue_mode(self) -> None:
+        self._serial: SerialConnection = SerialConnection().connect(self.port.get())
         self.serial_monitor: SerialMonitor = SerialMonitor(self)
-        self.notebook.connectiontab.open_last_resort_connection()
-        self.publish_serial_monitor()
+        self.notebook.publish_rescue_mode()
 
     def publish_disconnected(self) -> None:
-        """
-        This method publishes the GUI for the case that
-        there is no connection with a sonicamp.
-        
-        Due to the fact, that this method can also be called
-        when a connection was lost, the method checks if a 
-        sonicmeasure and serialmonitor window exists. If that's
-        the case, the windows are closed
-        """
         self.serial.disconnect()
-        logger.info(f"publshing for disconnected soniccontrol")
         self.notebook.publish_disconnected()
         self.status_frame.destroy()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
-        # Check if Serial Monitor is open
         if self.winfo_width() == Root.MAX_WIDTH:
-            self.adjust_dimensions()
-
-        try:
+            self._adjust_dimensions()
         
-        # Check if a sonicmeasure window exists
-            if tk.Toplevel.winfo_exists(self.notebook.hometab.sonicmeasure):
-                self.notebook.hometab.sonicmeasure.destroy()
+        if tk.Toplevel.winfo_exists(self.sonicmeasure):
+            self.sonicmeasure.destroy()
 
-                if self.thread.paused:
-                    self.thread.resume()
-
-        # Undefind behaivour, nooby code
-        except AttributeError as e:
-            logger.warning(f"{e}")
+        if not self.thread.paused: self.thread.pause()
 
     def publish_for_old_catch(self) -> None:
-        """
-        This method published the GUI for the case that there
-        is a connection with a SonicCatch. 
-        
-        Specifically for all SonicCatches that were developed
-        pre Revision 2.1 (firmware 1.0)
-        """
-        self.serial_monitor.destroy()
+        self._pre_publish()
         self.serial_monitor: SerialMonitor = SerialMonitorCatch(self)
-        
-        self.status_frame.destroy()
         self.status_frame: StatusFrame = StatusFrameCatch(self.mainframe, self)
-
         self.attach_data()
         self.notebook.publish_for_old_catch()
-        self.status_frame.publish()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        self._after_publish()
 
     def publish_for_old_wipe(self) -> None:
-        """
-        This method published the GUI for the case that there
-        is a connection with a SonicWipe
-        
-        Specifically for all SonicWipes that were developed
-        pre Revision 2.1 (firmware 1.0)
-        """
-        self.serial_monitor.destroy()
+        self._pre_publish()
         self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
-        
-        self.status_frame.destroy()
         self.status_frame: StatusFrame = StatusFrameWipe(self.mainframe, self)
-
         self.attach_data()
         self.notebook.publish_for_old_wipe()
-        self.status_frame.publish()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        self._after_publish()
 
-    def publish_for_duty_wipe(self) -> None:
-        """
-        This method published the GUI for the case that there
-        is a connection with a SonicWipe 40kHz DutyCycle Amp
-        
-        Due to the fact, that the sonicwipe dutycycle amp does not
-        rely on the SonicAgent thread, there is a if case to pause it
-        """
-        if not self.thread.paused:
-            self.thread.pause()
-            
-        self.serial_monitor.destroy()
+    def publish_for_wipe40khz(self) -> None:
+        if not self.thread.paused: self.thread.pause()
+        self._pre_publish()
         self.serial_monitor: SerialMonitor = SerialMonitor40KHZ(self)
-
-        self.status_frame.destroy()
-        self.status_frame: StatusFrame = StatusFrameDutyWipe(self.mainframe, self)
-
-        self.notebook.publish_for_dutywipe()
-        self.status_frame.publish()
+        self.status_frame: StatusFrame = StatusFrame40KHZ(self.mainframe, self)
+        self.notebook.publish_for_wipe40khz()
         self.status_frame.connection_on()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
-
-    def publish_for_catch(self) -> None:
-        """
-        Method that publishes everything for the SonicCatch
-        Revision 2.1 (firmware 1.0)
-        """
-        self.serial_monitor.destroy()
-        self.serial_monitor: SerialMonitor = SerialMonitorCatch(self)
-        
-        self.status_frame.destroy()
-        self.status_frame: StatusFrame = StatusFrameCatch(self.mainframe, self)
-
-        self.attach_data()
-        self.notebook.publish_for_catch()
-        self.status_frame.publish()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        self._after_publish()
 
     def publish_for_wipe(self) -> None:
-        """
-        Method that publishes everything for the SonicWipe
-        Revision 2.1 (firmware 1.0)
-        """
-        self.serial_monitor.destroy()
-        self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
-        
-        self.status_frame.destroy()
-        self.status_frame: StatusFrame = StatusFrameCatch(self.mainframe, self)
+        pass
 
-        self.attach_data()
-        self.notebook.publish_for_wipe()
-        self.status_frame.publish()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+    def publish_for_catch(self) -> None:
+        pass
+
+    def publish_sonicmeasure(self) -> None:
+        self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self)
+        self.notebook.hometab.sonic_measure_button.config(state=tk.DISABLED)
 
     def publish_serial_monitor(self) -> None:
-        """
-        Method to publish the the serial monitor of the tkinter GUI
-        """
-        if self.adjust_dimensions():
-            self.serial_monitor.pack(
-                anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
-            )
+        if not self._is_wided(): return
+        self.serial_monitor.pack(anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH) 
 
-    def adjust_dimensions(self) -> bool:
-        """A method to adjust the dimensions of the GUI
-        so that a serialmonitor can be viewed or not.
-
-        Returns:
-            bool: Returns True if the GUI is in a stated, where the
-            maximum width is being held
-        """
+    def _is_wided(self) -> bool:
         if self.winfo_width() == Root.MIN_WIDTH:
-
             self.geometry(f"{Root.MAX_WIDTH}x{Root.MIN_HEIGHT}")
             return True
 
         else:
-
             self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
             return False
 
-    def _create_statuslog(self) -> None:
-        """
-        Internal method to create the csv status log file
-        """
-        if not isinstance(self.sonicamp, SonicWipeDuty):
-            with open(self.statuslog_filepath, "a", newline="") as statuslog:
+    def _pre_publish(self) -> None:
+        self.serial_monitor.destroy()
+        self.status_frame.destroy()
 
-                csv_writer: csv.DictWriter = csv.DictWriter(
-                    statuslog, fieldnames=self.fieldnames
-                )
-                csv_writer.writeheader()
+    def _after_publish(self) -> None:
+        self.status_frame.publish()
+        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
-    def register_status_data(self, data: Status) -> None:
-        """
-        Method to register the current state of a sonicamp in a
-        csv log file. Takes in the Status object, that is normally
-        passed from the engine method
+@dataclass
+class ConfigData(object):
 
-        Args:
-            data (Status): the Status object containing the data
-        """
-        if not isinstance(self.sonicamp, SonicWipeDuty):
-            data_dict: dict = {
-                "timestamp": datetime.datetime.now(),
-                "signal": data.signal,
-                "frequency": data.frequency,
-                "gain": data.gain,
-                "urms": data.urms,
-                "irms": data.irms,
-                "phase": data.phase,
-                "temperature": data.temperature
-            }
+    hexflash: bool = field(default=False)
+    dev_mode: bool = field(default=False)
+    transducer: dict = field(default_factory=dict)
 
-            with open(self.statuslog_filepath, "a", newline="") as statuslog:
-                csv_writer: csv.DictWriter = csv.DictWriter(
-                    statuslog, fieldnames=self.fieldnames
-                )
-                csv_writer.writerow(data_dict)
-                
-    def config_file_algorithm(self) -> None:
-        
-        self.config_data: dict = read_json()
-        
-        if self.config_data:
-            self.transducer: dict = self.config_data["transducer"]
-        else:
-            self.transducer: dict = {}
+    @classmethod
+    def read_json(cls) -> object:
+        if not os.path.isfile("config.json"): return None
+        with open("config.json", "r") as file:
+            data: dict = json.load(file)
+            obj: ConfigData = cls()
+            if "hexflash" in data: obj.hexflash = data.get("hexflash")
+            if "dev_mode" in data: obj.dev_mode = data.get("dev_mode")
+            if data.get("transducer") == None: return obj
             
-                
-    def set_atf(self, transducer_name: str) -> None:
-        
-        transducer: dict = self.transducer[transducer_name]
-        
-        for atf in transducer:
-            self.serial.send_and_get(f"!{atf}={transducer[atf]}")
-        
-        self.notebook.connectiontab.transducer_menuebutton['text'] = transducer_name
-        self.notebook.connectiontab.transducer_preview_label['text'] = self.notebook.connectiontab.config_file_str()
+            obj.transducer: dict = data.get("transducer")
+            return obj
 
 
 class SonicAgent(SonicThread):
-    """
-    The SonicAgent sends the Command.GET_STATUS command to get the status data
-    from a SonicAmp. It puts that data into the inhereted queue.
-    Furthermore it has access to the serial connection through it's parameters
-
-    It is also the source of a connection Interrupt. If that case arrives,
-    the __reinit__ method of root is being called so that the
-    """
 
     @property
     def root(self):
@@ -624,30 +372,25 @@ class SonicAgent(SonicThread):
         self._root: Root = root
 
     def worker(self) -> None:
-        """
-        This is the core of the SonicThread, the worker method
-        that does the actual work during the phase that the 
-        thread is not paused
-        """
+        try:            
+            if self.root.serial.is_connected:
+                status: Status = self.root.sonicamp.get_status()
+                
+                if (
+                    not isinstance(status, bool)
+                    and status != self.root.sonicamp.status
+                ):
+                    self.queue.put(status)
         
-        # This is the case when the thread is resumed
-        # try:
-            
-        if self.root.serial.is_connected:
-            status: Status = self.root.sonicamp.get_status()
-            
-            if (
-                not isinstance(status, bool)
-                and status != self.root.sonicamp.status
-            ):
-                self.queue.put(status)
+        except IndexError as ie:
+            logger.warning(ie)
+
+        except serial.SerialException:
+            self.root.__reinit__()
         
-        # Case when a connection interrupt is happening
-        # except serial.SerialException:
-        #     self.root.__reinit__()
-        
-        # # Undefined behaviour of the thread, so that the
-        # # Thread is generally a bit "softer"
-        # except Exception as e:
-        #     logger.warning(f"{e}")
-        #     # traceback.print_tb()
+        except Exception as e:
+            logger.warning(f"{e}")
+
+
+if __name__ == "__main__":
+    pass

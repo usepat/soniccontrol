@@ -13,4 +13,10 @@ GRAPH_RAW_IMG: Image = resize_img("src//soniccontrol//pictures//graph.png", (100
 LED_GREEN_RAW_IMG: Image = resize_img("src//soniccontrol//pictures//led_green.png", (35, 35))
 LED_RED_RAW_IMG: Image = resize_img("src//soniccontrol//pictures//led_red.png", (35, 35))
 
-VERSION: int = 1.87
+CONFIGPATH: str = "config.json"
+
+VERSION: float = 1.90
+
+
+if __name__ == "__main__":
+    pass
