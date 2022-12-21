@@ -1,0 +1,30 @@
+python -m PyInstaller --noconfirm --log-level=WARN ^
+    --noconsole ^
+    --add-data="src//soniccontrol;src//soniccontrol" ^
+    --add-data="src//soniccontrol//fonts;src//soniccontrol//fonts" ^
+    --add-data="src//soniccontrol//pictures;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//resources;src//soniccontrol//resources" ^
+    --add-data="src//soniccontrol//pictures//connection_icon.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//graph.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//home_icon.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//info_icon.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//led_green.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//led_red.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//pause_icon.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//pause_icon.svg;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//play_icon.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//refresh_icon.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//script_icon.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//tkinter_wave.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//wave_bg.png;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//pictures//welle.ico;src//soniccontrol//pictures" ^
+    --add-data="src//soniccontrol//fonts//QTypeOT-CondExtraLight.otf;src//soniccontrol//fonts//QTypeOT-CondExtraLight.otf" ^
+    --add-data="src//soniccontrol//fonts//QTypeOT-CondBold.otf;src//soniccontrol//fonts" ^
+    --add-data="src//soniccontrol//fonts//QTypeOT-CondBook.otf;src//soniccontrol//fonts" ^
+    --add-data="src//soniccontrol//fonts//QTypeOT-CondLight.otf;src//soniccontrol//fonts" ^
+    --add-data="src//soniccontrol//fonts//QTypeOT-CondMedium.otf;src//soniccontrol//fonts" ^
+    --add-data="src//soniccontrol//resources//help_page.pdf;src//soniccontrol//resources" ^
+    --collect-submodules=src//soniccontrol ^
+    --icon=src//soniccontrol//pictures//welle.ico ^
+    --name=SonicControl-1.83 ^
+    src//soniccontrol//__main__.py
