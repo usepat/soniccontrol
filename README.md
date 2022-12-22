@@ -7,7 +7,7 @@ SonicControl is a python based light-weighted graphical user interface for contr
 The installation of SonicControl is done by cloning the repository and installing the application while being in the folder through using the python package manager pip:
 ```bash
 $ git clone https://github.com/usepat/soniccontrol.git
-$ cd sonicontrol
+$ cd soniccontrol
 $ python -m pip install -e .
 ```
 
@@ -31,6 +31,83 @@ $ python -m pip install -e .
 ```bash
 $ python -m soniccontrol
 ```
+
+#### Writing a config file for soniccontrol ``config.json``
+The GUI provides the posssibility to write a config file to set up some data, that the GUI should know for controlling a SonicAmp device. To be precise, the current configuration possibilities are:
+- To set a hexflash flag, so that the user can flash and update the firmware for a SonicAmp system. Though this feature is not fully tested and should be worked on
+- To set a development mode flag, so that a few buttons and features are seen, even without connecting to a SonicAmp system
+- To give concrete data information about a transducer and it's charateristics
+    - The name of the transducer
+    - ATF1, ATF2 and ATF3 frequencies information
+    - ATT1, ATT2 temperature information
+    - A threshold frequency to set a threshold frequency between the MHz mode and kHz Mode
+    - Some information, so that the user knows what transducer is currently configured and has a overview
+
+The file ``config.json`` should be placed into the root directory soniccontrol, along with ``setup.py, requirements.txt, README.md`` and so on, or in case of a binary,
+it should be placed into the same folder, where the ``.exe`` app is.
+This data is provided in a certain format in a json file, according to json syntax rules. Here are some examples:
+```json
+{
+  "hexflash": false, 
+  "dev_mode": false,
+  "transducer": {
+    "<Name of first transducer>": {
+      "atf1": 1000000,
+      "atf2": 2000000,
+      "atf3": 3000000,
+      "threshold_freq": 1100000,
+      "att1": 12,
+      "att2": 50,
+      "Comment": "Some comment so that I know what I am configuring",
+      "Distance": "A Distance so that I know during the experiment what to do"
+    },
+    "<Name of second transducer>": {
+      "atf1": 1230984,
+      "atf2": 3249080,
+      "atf3": 5098234,
+      "threshold_freq": 900000,
+      "att1": 420,
+      "att2": 187,
+      "Comment": "I am a comment for you",
+      "Distance": "To the moon and back"
+    }
+  }
+}
+```
+Note that you can provide as much information and entries about the transducer as you want, the program doesn't care about anything.
+In fact, it won't even care if you provide no information. The value will be just set to ``None``. This will just result, that when you 
+select a certain configuration of a transducer the program will send a command to the device with the value ``None``. This won't change
+anything.
+
+Another example:
+```json
+{
+  "transducer": {
+    "<Name of first transducer>": {
+      "atf1": 1000000,
+      "atf2": 2000000,
+      "atf3": 3000000
+    },
+    "<Name of second transducer>": {
+      "atf1": 1230984,
+      "atf2": 3249080,
+      "atf3": 5098234,
+    },
+    "<Name of third transducer>": {
+      "atf1": 3498573,
+      "atf2": 4596873,
+      "atf3": 982734
+    },
+    "<Name of fourth transducer>": {
+      "atf1": 2938742,
+      "atf2": 6000000,
+      "atf3": 1987989,
+    }
+  }
+}
+```
+All other configurations are settet to ``None`` or their default value, like ``hexlfash``, ``dev_mode`` and ``threshold_freq``.
+Please be aware, that the naming of all those values is very strict. ``Threshold Frequency`` won't do anything, you should use ``threshold_freq``.
 
 #### Connectiontab
 The connection tab is the interface you are greeted with, here you can connect to a SonicAmp and inspect the already established connection.
