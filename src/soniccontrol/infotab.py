@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import os
+import platform
 import tkinter as tk
 import tkinter.ttk as ttk
 
@@ -137,6 +138,7 @@ class HexFlashWindow(tk.Toplevel):
             style="dark.TButton",
             width=20,
             text="Upload Firmware",
+            state=tk.DISABLED,
             command=self.upload_file,
         )
         
@@ -148,71 +150,55 @@ class HexFlashWindow(tk.Toplevel):
         
     def hex_file_path_handler(self):
         """Gets the file of a potential hex firmware file, and checks if it's even a hex file"""
-        self.hex_file_path = filedialog.askopenfilename(
-            defaultextension=".hex", filetypes=(("HEX File", "*.hex"),)
-        )
+        self.hex_file_path = filedialog.askopenfilename(defaultextension=".hex", filetypes=(("HEX File", "*.hex"),))
+        if not self.hex_file_path: return
 
-        if self.hex_file_path[-4:] == ".hex":
-            self.file_entry.config(
-                style="success.TButton", text="File specified and validated"
-            )
+        self.file_entry.config(style="success.TButton", text="File specified and validated")
+        self.upload_button.config(state=tk.NORMAL)
 
-        else:
-            messagebox.showerror(
-                "Wrong File",
-                'The specified file is not a validated firmware file. Please try again with a file that ends with the format ".hex"',
-            )
-            self.file_entry.config(
-                style="danger.TButton", text="File is not a firmware file"
-            )
             
     def upload_file(self) -> None:
+        if not self.serial.is_connected:
+            messagebox.showerror("Connection Error", "It appears, that your device is not connected. Please connect the device")
+            return
         
-        if self.serial.is_connected:
+        if not self.hex_file_path:
+            messagebox.showerror("Filepath Error", "The file you have given is not valid, please try again")
+            return
+
+    
+        port: str = self.serial.port        
+        self.root.notebook.connectiontab.disconnect()
+        
+        try:
+            print(platform.system())
+            if platform.system() == "Linux":
+                command = f'"avrdude/Linux/avrdude" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{self.hex_file_path}":i'
+            elif platform.system() == "Windows":
+                command = f'"avrdude/Windows/avrdude.exe" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{self.hex_file_path}":i'
             
-            if self.hex_file_path:
-                port: str = self.serial.port
-                current_dir: str = os.getcwd()
+            msgbox = messagebox.showwarning(
+                "Process about to start",
+                "The program is about to flash a new firmware on your device, please do NOT disconnect or turn off your device during that process",
+            )
+            
+            if msgbox:
+                subprocess.run(command, shell=True)
+                self.file_entry.configure(
+                    style="dark.TButton",
+                    text="Specify the path for the Firmware file",
+                )
                 
-                self.root.notebook.connectiontab.disconnect()
-                
-                try:
-                    command = f'"{current_dir}/src/avrdude/avrdude.exe" -v -patmega328p -carduino -P{port} -b115200 -D -Uflash:w:"{self.hex_file_path}":i'
-                    msgbox = messagebox.showwarning(
-                        "Process about to start",
-                        "The program is about to flash a new firmware on your device, please do NOT disconnect or turn off your device during that process",
-                    )
-
-                    if msgbox:
-                        subprocess.run(command, shell=True)
-                        self.file_entry.configure(
-                            style="dark.TButton",
-                            text="Specify the path for the Firmware file",
-                        )
-                        # self.firmware_progress_text.pack_forget()
-                        
-                        self.root.port.set(port)
-                        self.root.__reinit__()
-                        
-                    else:
-                        messagebox.showerror("Error", "Cancled the update")
-
-                except WindowsError:
-                    messagebox.showerror(
-                        "Error",
-                        "Something went wrong, please try again. Maybe restart the device and the program",
-                    )
+                self.root.port.set(port)
+                self.root.__reinit__()
                 
             else:
-                messagebox.showerror(
-                    "Couldn't find file",
-                    "Please specify the path to the firmware file, before flashing your SonicAmp",
-                )
-        else:
+                messagebox.showerror("Error", "Cancled the update")
+        except WindowsError:
             messagebox.showerror(
                 "Error",
-                "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.",
-            ) 
+                "Something went wrong, please try again. Maybe restart the device and the program",
+            )
                 
             
 
