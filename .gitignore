@@ -36,11 +36,13 @@ TEST*.xml
 Thumbs.db
 
 # Applications
-!avrdude/*
-!avrdude/Windows/avrdude.exe
 *.app
 *.exe
 *.war
+
+# Exclusion regarding AVRDUDE
+!avrdude/*
+!avrdude/Windows/avrdude.exe
 
 # Large media files
 *.mp4
