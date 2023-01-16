@@ -36,6 +36,7 @@ TEST*.xml
 Thumbs.db
 
 # Applications
+!avrdude.*
 *.app
 *.exe
 *.war
