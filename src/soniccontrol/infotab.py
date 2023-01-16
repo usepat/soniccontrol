@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import os
 import platform
+import threading
 import tkinter as tk
 import tkinter.ttk as ttk
 
@@ -78,7 +79,34 @@ class InfoTab(ttk.Frame):
             text=f"Version: {const.VERSION}",
         )
 
+        self._initialize_flash_frame()
         logger.debug("Initialized infotab")
+
+    def _initialize_flash_frame(self) -> None:
+        self.flash_frame = ttk.Labelframe(
+            self,
+            height=250,
+            text="Update Firmware",
+            width=200,
+            padding=(0, 12, 0, 12),
+        )
+
+        self.file_entry = ttk.Button(
+            self.flash_frame,
+            text="Specify path for Firmware file",
+            width=23,
+            style="dark.TButton",
+            command=self.hex_file_path_handler,
+        )
+
+        self.upload_button = ttk.Button(
+            self.flash_frame,
+            style="dark.TButton",
+            width=23,
+            text="Upload Firmware",
+            state=tk.DISABLED,
+            command=self.upload_file,
+        )
 
     def publish(self) -> None:
         """
@@ -89,12 +117,17 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo_frame.pack(padx=20, pady=20)
         self.info_label.pack()
         self.manual_btn.grid(row=0, column=0, padx=5, pady=10)
-        
-        if self.root.config_file and self.root.config_file.hexflash:
-            self.flash_button.grid(row=0, column=2, padx=5, pady=10)
-        
+
+        self.file_entry.pack(pady=10, padx=10)
+        self.upload_button.pack(pady=10, padx=10)
+
         self.controlframe.pack()
         self.version_label.pack(anchor=tk.S, side=tk.BOTTOM, padx=10, pady=10)
+
+        if not (self.root.config_file and self.root.config_file.hexflash):
+            return
+
+        self.flash_frame.pack()
 
     @staticmethod
     def open_manual() -> None:
@@ -104,11 +137,81 @@ class InfoTab(ttk.Frame):
         path: str = r'src\\soniccontrol\\resources\\help_page.pdf'
         subprocess.Popen([path], shell=True)
 
+    def hex_file_path_handler(self):
+        """Gets the file of a potential hex firmware file, and checks if it's even a hex file"""
+        self.hex_file_path = filedialog.askopenfilename(defaultextension=".hex", filetypes=(("HEX File", "*.hex"),))
+        if not self.hex_file_path: return
+
+        self.file_entry.config(style="success.TButton", text="File specified and validated")
+        self.upload_button.config(state=tk.NORMAL)
+
+    def upload_file(self) -> None:
+        self.root.notebook.connectiontab.flash_progressbar.start()
+        thread = threading.Thread(target=self._upload_file)
+        thread.start()
+            
+    def _upload_file(self) -> None:
+        if not self.root.serial.is_connected:
+            messagebox.showerror("Connection Error", "It appears, that your device is not connected. Please connect the device")
+            return
+        
+        if not self.hex_file_path:
+            messagebox.showerror("Filepath Error", "The file you have given is not valid, please try again")
+            return
+
+    
+        port: str = self.root.serial.port        
+        self.root.notebook.connectiontab.disconnect()
+        
+        try:
+            if platform.system() == "Linux":
+                command = f'"avrdude/Linux/avrdude" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{self.hex_file_path}":i'
+            
+            elif platform.system() == "Windows":
+                command = f'"avrdude/Windows/avrdude.exe" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{self.hex_file_path}":i'
+            
+            else: 
+                messagebox.showerror("Platform not supported", "Your system is not supported for this operation")
+                self.connect_after_hexflash(port)
+                return
+
+            msgbox = messagebox.showwarning(
+                "Process about to start",
+                "The program is about to flash a new firmware on your device, please do NOT disconnect or turn off your device during that process",
+            )
+            
+            if not msgbox:
+                messagebox.showerror("Error", "Cancled the update")
+                self.connect_after_hexflash(port)
+                return
+            
+            self.root.notebook.connectiontab.flash_mode()
+
+            subprocess.run(command, shell=True)
+            self.file_entry.configure(
+                style="dark.TButton",
+                text="Specify the path for the Firmware file",
+            )
+            
+            self.connect_after_hexflash(port)
+                    
+        except WindowsError:
+            messagebox.showerror(
+                "Error",
+                "Something went wrong, please try again. Maybe restart the device and the program",
+            )
+
+    def connect_after_hexflash(self, port: str) -> None:
+        self.root.port.set(port)
+        self.root.__reinit__()
+
     def attach_data(self) -> None:
-        pass
+        if not (self.root.config_file and self.root.config_file.hexflash):
+            return
+        
+        self.flash_frame.pack()
     
 
-# TODO: Hexflash is not that supported, ISSUE 
 class HexFlashWindow(tk.Toplevel):
     
     def __init__(self, root: Root, *args, **kwargs):

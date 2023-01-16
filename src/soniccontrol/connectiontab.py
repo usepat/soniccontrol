@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import os
 import typing
+import threading
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
@@ -44,9 +45,14 @@ class ConnectionTab(ttk.Frame):
         self._initialize_heading()
         self._initialize_control_frame()
 
+        self.flash_progressbar: ttk.Progressbar = ttk.Progressbar(
+            self.topframe,
+            mode="indeterminate",
+            orient=tk.HORIZONTAL,
+        )
+
     def _initialize_botframe(self) -> None:
         self._initialize_firmware_info()
-        self._initialize_flash_frame()
         self._initialize_transducer_menue()
         
         self.serial_monitor_btn: ttk.Button = ttk.Button(
@@ -66,13 +72,13 @@ class ConnectionTab(ttk.Frame):
         )
         self.heading1: ttk.Label = ttk.Label(
             self.heading_frame,
-            padding=(10, 0, 0, 10),
+            padding=(10, 0, 5, 10),
             font=self.root.qtype30,
             borderwidth=-2,
         )
         self.heading2: ttk.Label = ttk.Label(
             self.heading_frame,
-            padding=(0, 0, 5, 10),
+            padding=(5, 0, 0, 10),
             font=self.root.qtype30b,
             borderwidth=-2,
         )
@@ -106,29 +112,6 @@ class ConnectionTab(ttk.Frame):
         )
         self.firmware_label: ttk.Label = ttk.Label(
             self.firmware_frame, justify=tk.CENTER, style="dark.TLabel"
-        )
-
-    def _initialize_flash_frame(self) -> None:
-        self.flash_frame = ttk.Labelframe(
-            self.botframe,
-            height=250,
-            text="Update Firmware",
-            width=200,
-            padding=(0, 12, 0, 12),
-        )
-        self.file_entry = ttk.Button(
-            self.flash_frame,
-            text="Specify path for Firmware file",
-            width=20,
-            style="dark.TButton",
-            command=self.hex_file_path_handler,
-        )
-        self.upload_button = ttk.Button(
-            self.flash_frame,
-            style="dark.TButton",
-            width=20,
-            text="Upload Firmware",
-            command=self.upload_file,
         )
     
     def _initialize_transducer_menue(self) -> None:
@@ -195,6 +178,13 @@ class ConnectionTab(ttk.Frame):
     def attach_data(self, rescue: bool = False) -> None:
         self._update_transducer_menue()
         
+        if self.flash_progressbar.winfo_exists():
+            self.flash_progressbar.stop()
+            self.flash_progressbar.pack_forget()
+        
+        for child in self.control_frame.winfo_children():
+            child.config(state=tk.NORMAL)
+
         if rescue:
             self.subtitle["text"] = "Rescue serial monitor connection"
             self.heading1["text"] = "Serial"
@@ -206,9 +196,6 @@ class ConnectionTab(ttk.Frame):
             
             fwmsg: Union[str, list] = self.root.sonicamp.firmware_msg
             self.firmware_label["text"] = fwmsg
-            
-            for child in self.flash_frame.children.values():
-                child.configure(state=tk.NORMAL)
 
         self.connect_button.config(
             bootstyle="danger",
@@ -224,6 +211,17 @@ class ConnectionTab(ttk.Frame):
         if not self.root.config_file.transducer: return
         self.transducer_menuebutton.config(state=tk.NORMAL)
         self.transducer_preview_label["text"] = self.config_file_str()
+
+    def flash_mode(self) -> None:
+        self.subtitle["text"] = "Your device is currently updating"
+        self.heading1["text"] = "updating"
+        self.heading2["text"] = "device"
+        
+        self.flash_progressbar.pack()
+        self.flash_progressbar.start()
+
+        for child in self.control_frame.winfo_children():
+            child.config(state=tk.DISABLED)
 
     def abolish_data(self) -> None:
         self.subtitle["text"] = "Please connect to a SonicAmp system"
@@ -246,9 +244,6 @@ class ConnectionTab(ttk.Frame):
         self.refresh_button.config(state=tk.NORMAL)
         self.firmware_label["text"] = ""
 
-        for child in self.flash_frame.children.values():
-            child.configure(state=tk.DISABLED)
-
         if self.root.config_file and self.root.config_file.transducer:
             self.transducer_menuebutton.config(state=tk.DISABLED)
             self.transducer_menuebutton['text'] = 'Pick Transducer'
@@ -265,70 +260,6 @@ class ConnectionTab(ttk.Frame):
         self.abolish_data()
         self.root.serial.disconnect()
         self.root.publish_disconnected()
-
-    def hex_file_path_handler(self):
-        self.hex_file_path = filedialog.askopenfilename(
-            defaultextension=".hex", filetypes=(("HEX File", "*.hex"),)
-        )
-
-        if self.hex_file_path[-4:] == ".hex":
-            self.file_entry.config(
-                style="success.TButton", text="File specified and validated"
-            )
-
-        else:
-            messagebox.showerror(
-                "Wrong File",
-                'The specified file is not a validated firmware file. Please try again with a file that ends with the format ".hex"',
-            )
-            self.file_entry.config(
-                style="danger.TButton", text="File is not a firmware file"
-            )
-    
-    def upload_file(self) -> None:
-        if self.root.serial.is_connected:
-
-            if self.hex_file_path:
-                port = self.root.serial.port
-                self.root.serial.disconnect()
-                cur_dir = os.getcwd()
-                print(cur_dir)
-                # self.firmware_progress_text.pack(padx=10, pady=10)
-
-                try:
-                    command = f'"{cur_dir}/avrdude/avrdude.exe" -v -patmega328p -carduino -P{port} -b115200 -D -Uflash:w:"{self.hex_file_path}":i'
-                    msgbox = messagebox.showwarning(
-                        "Process about to start",
-                        "The program is about to flash a new firmware on your device, please do NOT disconnect or turn off your device during that process",
-                    )
-
-                    if msgbox:
-                        subprocess.run(command, shell=True)
-                        self.file_entry.configure(
-                            style="dark.TButton",
-                            text="Specify the path for the Firmware file",
-                        )
-                        # self.firmware_progress_text.pack_forget()
-                        self.connectPort(port)
-                    else:
-                        messagebox.showerror("Error", "Cancled the update")
-
-                except WindowsError:
-                    messagebox.showerror(
-                        "Error",
-                        "Something went wrong, please try again. Maybe restart the device and the program",
-                    )
-
-            else:
-                messagebox.showerror(
-                    "Couldn't find file",
-                    "Please specify the path to the firmware file, before flashing your SonicAmp",
-                )
-        else:
-            messagebox.showerror(
-                "Error",
-                "No connection is established, please recheck all connections and try to reconnect in the Connection Tab. Make sure the instrument is in Serial Mode.",
-            )
 
     def publish(self) -> None:
         for child in self.children.values():
