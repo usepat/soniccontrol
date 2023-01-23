@@ -15,7 +15,7 @@ LED_RED_RAW_IMG: Image = resize_img("src//soniccontrol//pictures//led_red.png", 
 
 CONFIGPATH: str = "config.json"
 
-VERSION: float = 1.90
+VERSION: float = 1.91
 
 
 if __name__ == "__main__":

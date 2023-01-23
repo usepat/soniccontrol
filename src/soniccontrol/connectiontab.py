@@ -72,13 +72,13 @@ class ConnectionTab(ttk.Frame):
         )
         self.heading1: ttk.Label = ttk.Label(
             self.heading_frame,
-            padding=(10, 0, 5, 10),
+            padding=(10, 0, 2, 10),
             font=self.root.qtype30,
             borderwidth=-2,
         )
         self.heading2: ttk.Label = ttk.Label(
             self.heading_frame,
-            padding=(5, 0, 0, 10),
+            padding=(2, 0, 0, 10),
             font=self.root.qtype30b,
             borderwidth=-2,
         )

@@ -53,7 +53,7 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo1: ttk.Label = ttk.Label(
             self.soniccontrol_logo_frame,
             text="sonic",
-            padding=(10, 0, 0, 10),
+            padding=(10, 0, 2, 10),
             font="QTypeOT-CondLight 30",
             borderwidth=-2,
         )
@@ -61,7 +61,7 @@ class InfoTab(ttk.Frame):
         self.soniccontrol_logo2: ttk.Label = ttk.Label(
             self.soniccontrol_logo_frame,
             text="control",
-            padding=(0, 0, 0, 10),
+            padding=(2, 0, 0, 10),
             font="QTypeOT-CondBook 30 bold",
             borderwidth=-2,
         )
