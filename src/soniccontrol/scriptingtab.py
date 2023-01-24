@@ -370,9 +370,16 @@ class GUISequence(Sequence):
     def ramp(self, args_: list) -> None:
         if not self.run: return
         logger.info("Starting ramp")
-        start, stop, step, delay = args_
-        if len(args_) > 4: hold_argument: list = [delay, args_[4]]
-        else: hold_argument: list = [delay]
+        logger.debug(f"Arguments for ramp: {args_}")
+
+        if len(args_) < 4:
+            raise SyntaxError("Wrong format with ramp command\n The correct format should be: \"ramp start_freq stop_freq step_freq delay delay_unit[ms or s]\"")
+        elif len(args_) == 4:
+            start, stop, step, delay = args_
+            hold_argument: list = [delay]
+        elif len(args_) > 4:
+            start, stop, step, delay, delay_unit = args_
+            hold_argument: list = [delay, args_[4]]
 
         frq_list: list = list(range(start, stop, step))
         if start > stop: frq_list.sort(reverse=True)

@@ -253,11 +253,14 @@ class SonicMeasureFrame(ttk.Frame):
             worker = self.updater, 
             sequence = self
         )
+        
         except ValueError as ve: 
             messagebox.showerror("Value Error", ve)
             self.stop()
         except Exception as e:
             logger.warning(traceback.format_exc())
+        
+        self.stop()
         
     def stop(self) -> None:
         if self._run: self._run: bool = False
