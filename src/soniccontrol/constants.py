@@ -17,6 +17,5 @@ CONFIGPATH: str = "config.json"
 
 VERSION: float = 1.92
 
-
 if __name__ == "__main__":
     pass

@@ -248,13 +248,16 @@ class Root(tk.Tk):
         self.attach_data()
 
     def engine(self) -> None:
-        while self.thread.queue.qsize():
-            status: Status = self.thread.queue.get(0)
-            self.sonicamp.status = status
-            self.amp_controller.register_data()
-            self.update_idletasks()
-            self.attach_data()
-
+        try:
+            while self.thread.queue.qsize():
+                status: Status = self.thread.queue.get(0)
+                self.sonicamp.status = status
+                self.amp_controller.register_data()
+                self.update_idletasks()
+                self.attach_data()
+        except AttributeError as ae:
+            logger.warning("Could not find status because sonicamp is none")    
+        
         self.after(100, self.engine)
 
     def attach_data(self) -> None:

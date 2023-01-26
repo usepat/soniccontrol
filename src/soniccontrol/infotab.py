@@ -7,14 +7,14 @@ import threading
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 from tkinter import filedialog
 from tkinter import messagebox
 
 from sonicpackage import SerialConnection
 
 import soniccontrol.constants as const
-from soniccontrol.helpers import logger
+from soniccontrol.helpers import logger, flash_command
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
@@ -163,13 +163,14 @@ class InfoTab(ttk.Frame):
         port: str = self.root.serial.port        
         self.root.notebook.connectiontab.disconnect()
         
+        test_command: Union[str, bool] = flash_command(port, self.hex_file_path, True)
+        command: Union[str, bool] = flash_command(port, self.hex_file_path, False)
+        
         try:
-            if platform.system() == "Linux":
-                command = f'"avrdude/Linux/avrdude" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{self.hex_file_path}":i'
-            
-            elif platform.system() == "Windows":
-                command = f'"avrdude/Windows/avrdude.exe" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{self.hex_file_path}":i'
-            
+            if test_command: 
+                logger.info(f"Subprocess flashing firmware about to start with command: {command}")
+                commandline_process: subprocess.Popen = subprocess.Popen(test_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                logger.info(f"AVRDUDE log:\n\n{commandline_process.communicate()[0].decode()}")
             else: 
                 messagebox.showerror("Platform not supported", "Your system is not supported for this operation")
                 self.connect_after_hexflash(port)
