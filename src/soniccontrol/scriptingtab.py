@@ -379,11 +379,15 @@ class GUISequence(Sequence):
             hold_argument: list = [delay]
         elif len(args_) > 4:
             start, stop, step, delay, delay_unit = args_
-            hold_argument: list = [delay, args_[4]]
+            hold_argument: list = [delay, delay_unit]
 
-        frq_list: list = list(range(start, stop, step))
-        if start > stop: frq_list.sort(reverse=True)
-
+        if start > stop: frq_list: list = list(range(start, stop-step, -step))
+        else: frq_list: list = list(range(start, stop+step, step))
+        
+        logger.debug(f"Ramp: start = {start}\tstop = {stop}\tstep = {step}\tdelay = {delay}\tunit = {delay_unit}")
+        logger.debug(f"\n\n{frq_list}\n\n")
+        logger.debug(f"Freq list: start = {frq_list[0]}\tstop = {frq_list[-1]}")
+         
         for frq in frq_list:
             if not self.run: return
             if isinstance(self.sonicamp, SonicWipe40KHZ):
@@ -396,7 +400,6 @@ class GUISequence(Sequence):
                 logger.info(f"Ramp is at {frq/1000}kHz")
                 self.sonicamp.set_freq(frq)
 
-            if not self.run: return 
             self.updater("ramp", args_)
             self.hold(hold_argument, ramp_mode=True) 
 

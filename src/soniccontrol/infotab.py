@@ -32,7 +32,7 @@ class InfoTab(ttk.Frame):
         ttk (tkinter.ttk.Frame): the basic Frame object
     """
 
-    INFOTEXT = (
+    INFOTEXT: str = (
         "Welcome to soniccontrol, a light-weight application to\n"
         "control sonicamp systems over the serial interface. \n"
         'For help, click the "Manual" button below\n'
@@ -187,7 +187,10 @@ class InfoTab(ttk.Frame):
             
             self.root.notebook.connectiontab.flash_mode()
 
-            subprocess.run(command, shell=True)
+            logger.info(f"Subprocess flashing firmware about to start with command: {command}")
+            commandline_process: subprocess.Popen = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            logger.info(f"AVRDUDE log:\n\n{commandline_process.communicate()[0].decode()}")
+            
             self.file_entry.configure(
                 style="dark.TButton",
                 text="Specify the path for the Firmware file",
@@ -195,7 +198,8 @@ class InfoTab(ttk.Frame):
             
             self.connect_after_hexflash(port)
                     
-        except WindowsError:
+        except Exception as e:
+            logger.warning(e)
             messagebox.showerror(
                 "Error",
                 "Something went wrong, please try again. Maybe restart the device and the program",
