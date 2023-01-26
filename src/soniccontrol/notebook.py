@@ -99,6 +99,7 @@ class ScNotebook(ttk.Notebook):
         else: self.connectiontab.attach_data(rescue=True)
 
         self.disable_children(self.connectiontab)
+        self.tab(self.infotab, state=tk.NORMAL)
         self._after_publish()
 
     def abolish_data(self) -> None:

@@ -30,7 +30,9 @@ from sonicpackage import (
     SonicCatchAncient,
     SonicWipe40KHZ,
     SonicWipeOld,
-    SonicWipeAncient
+    SonicWipeAncient,
+    SonicCatch,
+    SonicWipe
 )
 
 import soniccontrol.constants as const
@@ -88,7 +90,7 @@ class Root(tk.Tk):
         self._serial: SerialConnection = SerialConnection()
 
         self.port: tk.StringVar = tk.StringVar()
-        self.config_file: ConfigFile = ConfigData().read_json()
+        self.config_file: ConfigData = ConfigData().read_json()
 
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
@@ -256,7 +258,7 @@ class Root(tk.Tk):
         self.after(100, self.engine)
 
     def attach_data(self) -> None:
-        self.config_file: ConfigFile = ConfigData().read_json()
+        self.config_file: ConfigData = ConfigData().read_json()
         self.notebook.attach_data()
         self.status_frame.attach_data()
 
