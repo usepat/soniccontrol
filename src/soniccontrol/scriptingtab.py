@@ -18,7 +18,7 @@ from sonicpackage import (
     SonicWipe40KHZ,
     SonicWipeOld,
     SonicWipeAncient,
-    Sequence,
+    SonicSequence,
     SerialConnection,
     FileHandler,
     ValueNotSupported
@@ -284,7 +284,7 @@ class ScriptingTab(ttk.Frame):
         self.sequence_status.grid(row=2, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
 
 
-class GUISequence(Sequence):
+class GUISequence(SonicSequence):
 
     @property
     def gui(self) -> ScriptingTab:
