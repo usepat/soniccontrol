@@ -207,7 +207,7 @@ class Hometab(ttk.Frame):
 
     def set_signal_on(self) -> None:
         self.insert_feed(self.amp_controller.set_signal_on())
-        
+
     def set_signal_auto(self) -> None:
         self.insert_feed(self.amp_controller.set_signal_auto())
         self._set_khz()
@@ -219,7 +219,7 @@ class Hometab(ttk.Frame):
         try:
             answer: str = self.root.sonicamp.set_freq(self._freq.get())
             return answer
-        
+
         except ValueNotSupported as e:
             logger.debug(traceback.format_exc())
             if called: raise ValueNotSupported(e)
@@ -242,7 +242,7 @@ class Hometab(ttk.Frame):
         try:
             answer: str = self.root.sonicamp.set_gain(self._gain.get())
             return answer
-        
+
         except ValueNotSupported as e:
             logger.debug(traceback.format_exc())
             if called: raise ValueNotSupported(e)
@@ -318,7 +318,7 @@ class HometabOldCatch(Hometab):
         if (mode == "khz") and (self.root.sonicamp.mode == MhzMode()):
             answer: str = self.root.sonicamp.set_mode(KhzMode())
             self._set_khz()
-            
+
         elif (mode == "mhz") and (self.root.sonicamp.mode == KhzMode()):
             answer: str = self.root.sonicamp.set_mode(MhzMode())
             self._set_mhz()
@@ -342,12 +342,12 @@ class HometabOldCatch(Hometab):
             from_=self.root.sonicamp.mode.freq_start, 
             to=self.root.sonicamp.mode.freq_stop
         )
-        
+
         if isinstance(self.root.sonicamp.mode, KhzMode) and self._mode.get() == "mhz":
             self._set_khz()
         elif isinstance(self.root.sonicamp.mode, MhzMode) and self._mode.get() == "khz":
             self._set_mhz()
-    
+
     def publish(self) -> None:
         super().publish()
         self.freq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
@@ -607,19 +607,17 @@ class HometabWipe40KHZ(Hometab):
 class HometabCatch(Hometab):
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
-        
         self._mode.set('catch')
-        
+
     def _initialize_freq_frame(self) -> None:
         super()._initialize_freq_frame()
-        
         self.freq_spinbox.configure(
             from_=self.root.sonicamp.mode.freq_start, to=self.root.sonicamp.mode.freq_stop
         )
-        
+
     def _initialize_gain_frame(self) -> None:
         super()._initialize_gain_frame()
-        
+
         self.gain_spinbox.configure(from_=0, to=150)
         self.gain_scale.configure(from_=0, to=150)
         
@@ -678,7 +676,6 @@ class HometabCatch(Hometab):
         return super().after_publish()
 
 
-#### TODO: Should look into Hometab for the new Revision
 class HometabWipe(Hometab):
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
@@ -704,14 +701,14 @@ class HometabWipe(Hometab):
         )
 
         ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
-    
+
     def _initialize_freq_frame(self) -> None:
         super()._initialize_freq_frame()
-        
+
         self.freq_spinbox.configure(
             from_=self.root.sonicamp.mode.freq_start, to=self.root.sonicamp.mode.freq_stop
         )
-        
+
     def _initialize_gain_frame(self) -> None:
         super()._initialize_gain_frame()
         
@@ -766,21 +763,14 @@ class HometabWipe(Hometab):
         
     def start_wiping(self) -> None:
         wipe_runs: int = self._wipe_inf_or_def.get()
-
-        if wipe_runs:
-            self.insert_feed(
-                self.serial.send_and_get(Command.SET_WIPE_DEF + self._wipe_var.get())
-            )
-
-        else:
-            self.insert_feed(self.serial.send_and_get(Command.SET_WIPE_INF))
+        self.insert_feed(
+            self.serial.send_and_get(Command.SET_WIPE_DEF + self._wipe_var.get())
+        ) if wipe_runs else self.insert_feed(self.serial.send_and_get(Command.SET_WIPE_INF))
         
     def handle_wipe_mode(self) -> None:
-        if self._wipe_inf_or_def.get():
-            self.wipe_spinbox.config(state=tk.NORMAL)
-
-        else:
-            self.wipe_spinbox.config(state=tk.DISABLED)
+        self.wipe_spinbox.config(
+            state=tk.NORMAL
+        ) if self._wipe_inf_or_def.get() else self.wipe_spinbox.config(state=tk.DISABLED)
 
     def attach_data(self) -> None:
         return super().attach_data()
@@ -791,11 +781,6 @@ class HometabWipe(Hometab):
         self.freq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.freq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        
-        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        
         self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
         self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
 
@@ -807,8 +792,8 @@ class HometabWipe(Hometab):
             side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X
         )
 
-        self.wipe_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.control_frame.grid(row=1, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.us_off_button.grid(
             row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW

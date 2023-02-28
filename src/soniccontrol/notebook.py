@@ -43,7 +43,8 @@ class ScNotebook(ttk.Notebook):
         logger.debug("Initialized Notebook")
 
     def attach_data(self) -> None: 
-        for child in self.children.values(): child.attach_data()
+        for child in self.children.values():
+            child.attach_data()
 
     def _add_children(self) -> None:
         """
@@ -122,6 +123,13 @@ class ScNotebook(ttk.Notebook):
         self.hometab.destroy()
         self.scriptingtab.destroy()
         self.hometab: Hometab = HometabOldWipe(self, self.root)
+        self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
+        self._publish()
+
+    def publish_for_wipe(self) -> None:
+        self.hometab.destroy()
+        self.scriptingtab.destroy()
+        self.hometab: Hometab = HometabWipe(self, self.root)
         self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
         self._publish()
 

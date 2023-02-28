@@ -41,6 +41,7 @@ from soniccontrol.statusframe import (
     StatusFrameCatch,
     StatusFrame40KHZ,
     StatusFrameWipe,
+    StatusFrameWipeOld,
     StatusFrame,
 )
 
@@ -138,24 +139,24 @@ class Root(tk.Tk):
         self.serial_monitor: ttk.Frame = ttk.Frame(self.mainframe)
 
         logger.debug("Initialized Root")
-
         self.__reinit__(True)
 
     def __reinit__(self, first_start: bool = False) -> None:
         if first_start: 
             self.publish_disconnected()
             return 
-        
+
         rescue_me: bool = False
         exception: bool = True
-        
-        try: self.decide_action()
-        
+
+        try:
+            self.decide_action()
+
         except serial.SerialException as se:
             logger.debug(traceback.format_exc())
             logger.warning(se)
             messagebox.showerror("Connection Error", se)
-        
+
         except AssertionError as ass_e:
             logger.debug(traceback.format_exc())
             logger.warning(ass_e)
@@ -163,7 +164,7 @@ class Root(tk.Tk):
                 "Data Error", 
                 f"{ass_e}\nDo you want to go into rescue mode?"
             )
-        
+
         except MemoryError as mem_e:
             logger.debug(traceback.format_exc())
             logger.warning(mem_e)
@@ -209,14 +210,19 @@ class Root(tk.Tk):
         
         else:
             exception: bool = False
+            
             self._initialize_data()
-            if isinstance(self.sonicamp, SonicWipe40KHZ): return
+            if isinstance(self.sonicamp, SonicWipe40KHZ):
+                return
+            
             self.engine()
-            if self.thread.paused: self._thread.resume()
+            self._thread.resume() if self.thread.paused else None
         
-        finally:
-            if rescue_me and exception: self.publish_rescue_mode()
-            elif not rescue_me and exception: self.publish_disconnected()
+        finally:            
+            if rescue_me and exception: 
+                self.publish_rescue_mode()
+            elif not rescue_me and exception:
+                self.publish_disconnected()
 
     def decide_action(self) -> None:
         self._amp_controller: SonicInterface = SonicInterface(port = self.port.get(), logger_level = self.LOGGER_LEVEL, thread = self.thread)
@@ -241,7 +247,8 @@ class Root(tk.Tk):
         elif isinstance(self.sonicamp, SonicWipe): 
             self.publish_for_wipe()
         
-        else: raise Exception("Do not know which device it is!")
+        else:
+            raise Exception("Do not know which device it is!")
 
     def _initialize_data(self) -> None:
         self.config_file: ConfigData = ConfigData().read_json()
@@ -301,7 +308,7 @@ class Root(tk.Tk):
     def publish_for_old_wipe(self) -> None:
         self._pre_publish()
         self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
-        self.status_frame: StatusFrame = StatusFrameWipe(self.mainframe, self)
+        self.status_frame: StatusFrame = StatusFrameWipeOld(self.mainframe, self)
         self.attach_data()
         self.notebook.publish_for_old_wipe()
         self._after_publish()
@@ -316,10 +323,15 @@ class Root(tk.Tk):
         self._after_publish()
 
     def publish_for_wipe(self) -> None:
-        pass
+        self._pre_publish()
+        self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
+        self.status_frame: StatusFrame = StatusFrameWipe(self.mainframe, self)
+        self.attach_data()
+        self.notebook.publish_for_wipe()
+        self._after_publish()
 
     def publish_for_catch(self) -> None:
-        pass
+        self.publish_for_old_catch()
 
     def publish_sonicmeasure(self) -> None:
         self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self)
