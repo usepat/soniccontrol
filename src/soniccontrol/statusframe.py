@@ -255,14 +255,15 @@ class StatusFrame(ttk.Frame):
     def update_temp(self, status: Status) -> None:
         temp: float = (
             status.temperature 
-            if (status.temperature is None or status.temperature > 0) 
+            if (status.temperature is None or status.temperature > 0)
             else status.temperature * -1
         )
 
         if not (
             isinstance(status.temperature, float) 
             and status.temperature != self._temp_using
-        ):
+        ) or status.temperature > 600:
+            self.temp_meter['amountused'] = 0
             self.temp_meter['subtext'] = 'Thermometer not found'
             return
 
