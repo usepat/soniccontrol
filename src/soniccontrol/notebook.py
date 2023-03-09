@@ -118,7 +118,7 @@ class ScNotebook(ttk.Notebook):
         self.hometab: Hometab = HometabOldCatch(self, self.root)
         self.scriptingtab: ScriptingTab = ScriptingTab(self, self.root)
         self._publish()
-    
+
     def publish_for_old_wipe(self) -> None:
         self.hometab.destroy()
         self.scriptingtab.destroy()

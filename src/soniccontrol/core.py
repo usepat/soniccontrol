@@ -402,10 +402,8 @@ class SonicAgent(SonicThread):
         
         except IndexError as ie:
             logger.warning(ie)
-
         except serial.SerialException:
             self.root.__reinit__()
-        
         except Exception as e:
             logger.warning(f"{e}")
 

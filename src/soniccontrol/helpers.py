@@ -18,7 +18,8 @@ import sonicpackage as sp
 sp.logger.removeHandler(sp.file_handler)
 sp.logger.removeHandler(sp.stream_handler)
 
-if not os.path.isdir("logs/"): os.mkdir("logs/")
+if not os.path.isdir("logs/"): 
+    os.mkdir("logs/")
 
 logger = logging.getLogger("soniccontrol")
 logger.setLevel(logging.DEBUG)
@@ -77,7 +78,8 @@ def flash_command(port: str, hex_file_path: str, test: bool = False) -> str:
         command = f'"avrdude/Windows/avrdude.exe" -n -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
     elif platform.system() == "Windows" and not test:
         command = f'"avrdude/Windows/avrdude.exe" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
-    else: return False
+    else:
+        return False
     return command
 
 class ToolTip(TT):

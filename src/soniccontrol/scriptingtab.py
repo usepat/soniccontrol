@@ -6,9 +6,10 @@ import time
 import csv
 import tkinter as tk
 import tkinter.ttk as ttk
+import traceback as tb
 import threading
 
-from typing import Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING, Optional, Any
 from enum import Enum
 from tkinter import messagebox
 from tkinter import filedialog
@@ -70,7 +71,7 @@ class ScriptingTab(ttk.Frame):
         self._sequence: Sequence
         self._filehandler: FileHandler
 
-        self.logfile: str = None
+        self.logfile: Optional[str] = None
         self.current_task: tk.StringVar = tk.StringVar(value="Idle")
 
         self._filetypes: list = [
@@ -162,10 +163,12 @@ class ScriptingTab(ttk.Frame):
         )
 
     def status_handler(self) -> None:
-        if isinstance(self.root.sonicamp, SonicWipe40KHZ): return
+        if isinstance(self.root.sonicamp, SonicWipe40KHZ): 
+            return
+        
         self.root.attach_data()
         self.root.update_idletasks()
-        if not self.sequence.run: self.end_sequence()
+        self.end_sequence() if not self.sequence.run else None
 
     def highlight_line(self, current_line: int) -> None:
         current_line += 1
@@ -202,9 +205,9 @@ class ScriptingTab(ttk.Frame):
         self.save_log_btn.config(state=tk.DISABLED)
         self.save_script_btn.config(state=tk.DISABLED)
         self.script_guide_btn.config(state=tk.DISABLED)
-        
+
         logger.debug("trying to start loop")
-        try: 
+        try:
             self.sequence.start(self.scripttext.get(1.0, tk.END))
         except SyntaxError as se:
             messagebox.showerror("Syntax Error", se)
@@ -212,12 +215,16 @@ class ScriptingTab(ttk.Frame):
             messagebox.showerror("Value Error", ve)
         except ValueError as vee:
             logger.warning(vee)
+        except Exception as exc:
+            logger.warning(tb.format_exc(exc))
+            messagebox.showerror("Syntax Error", exc)
 
     def end_sequence(self) -> None:
         logger.debug("End sequence started")
-        if self.sequence._run: self.sequence._run: bool = False
-        
-        self.logfile: str = None
+        if self.sequence._run: 
+            self.sequence._run = False
+
+        self.logfile = None
         self.start_script_btn.configure(
             text="Run",
             style="success.TButton",
@@ -231,7 +238,7 @@ class ScriptingTab(ttk.Frame):
         self.current_task.set("Idle")
         self.previous_task = "Idle"
         self.root.notebook.enable_children()
-        
+
         # Changing the state of the Buttons
         self.scripttext.config(state=tk.NORMAL)
         self.load_script_btn.config(state=tk.NORMAL)
@@ -311,40 +318,8 @@ class GUISequence(SonicSequence):
         self.file_handler.register_data(data_dict)
 
     def exec_command(self, index: int) -> None:
-        if not self.run: return
         self.gui.highlight_line(index+len(self.comment))
-        
-        if isinstance(self.args_[index], list) and len(self.args_[index]) == 1:
-            argument: int = self.args_[index][0]            
-        else: 
-            argument: int = self.args_[index]
-
-        logger.info(f"Executing command: '{self.commands[index]}'")
-        self.current_task: str = f"Command: {self.commands[index]} Args: {argument}"
-        if self.commands[index] == "frequency":
-            self.sonicamp.set_freq(argument)
-        
-        elif self.commands[index] == "gain":
-            self.sonicamp.set_gain(argument)
-        
-        elif self.commands[index] == "ramp":
-            self.ramp(argument)
-        
-        elif self.commands[index] == "hold":
-            self.hold(argument)
-        
-        elif self.commands[index] == "on":
-            self.sonicamp.set_signal_on()
-        
-        elif self.commands[index] == "off":
-            self.sonicamp.set_signal_off()
-        
-        else:
-            raise SyntaxError(f"Syntax of the command {self.commands[index]} is not known!")
-            self.stop()
-        
-        if not self.run: return
-        self.updater(self.commands[index], argument)
+        super().exec_command(index)
 
     def hold(self, args_: Union[list, int], ramp_mode: bool = False) -> None:
         if not self.run: return
@@ -361,10 +336,10 @@ class GUISequence(SonicSequence):
         while now < target and self.run:
             time.sleep(0.02)
             now = datetime.datetime.now()
-            if ramp_mode: continue
-            self.gui.current_task.set(
-                f"Hold: {(target - now).seconds} seconds remaining"
-            )
+            if ramp_mode: 
+                continue
+            
+            self.gui.current_task.set(f"Hold: {(target - now).seconds} seconds remaining")
             self.updater("hold", args_)
 
     def ramp(self, args_: list) -> None:

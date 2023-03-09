@@ -381,7 +381,7 @@ class StatusFrameWipe(StatusFrame):
 class StatusFrameCatch(StatusFrame):
     def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
-        self.freq_meter['amountttotal'] = 6_000_000 / const.DIVIDE_TO_KHZ
+        self.freq_meter['amounttotal'] = 6_000_000 / const.DIVIDE_TO_KHZ
 
     def publish(self) -> None:
         self.freq_meter.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
