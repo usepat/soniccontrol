@@ -205,10 +205,9 @@ class SonicMeasureFrame(ttk.Frame):
         self.logfile = filedialog.asksaveasfilename(
             defaultextension=".txt", filetypes=self._filetypes
         )
-    
+
     def button_starter(self) -> None:
-        thread = threading.Thread(target=self.start)
-        thread.start()
+        threading.Thread(target=self.start, daemon=True).start()
 
     def start(self) -> None:
         start_freq: int = self.start_freq_tk.get()
@@ -219,8 +218,8 @@ class SonicMeasureFrame(ttk.Frame):
 
         self.root.amp_controller.set_gain(self.gain_tk.get())
         self.root.amp_controller.set_signal_on()
-        if not self.root.thread.paused:
-            self.root.thread.pause()
+
+        self.root.thread.pause() if not self.root.thread.paused.is_set() else None
 
         if not self.logfile: 
             time_str: str = datetime.now().strftime("%Y%m%d-%H%M")
@@ -276,8 +275,8 @@ class SonicMeasureFrame(ttk.Frame):
 
         for child in self.freq_frame.children.values():
             child.config(state=tk.NORMAL)
-
-        if self.root.thread.paused: self.root.thread.resume()
+ 
+        self.root.thread.resume() if self.root.thread.paused.is_set() else None
 
     def status_handler(self) -> None:
         self.root.attach_data()

@@ -216,7 +216,7 @@ class Root(tk.Tk):
                 return
             
             self.engine()
-            self._thread.resume() if self.thread.paused else None
+            self._thread.resume() if self.thread.paused.is_set() else None
         
         finally:            
             if rescue_me and exception: 
@@ -295,7 +295,7 @@ class Root(tk.Tk):
         if tk.Toplevel.winfo_exists(self.sonicmeasure):
             self.sonicmeasure.destroy()
 
-        if not self.thread.paused: self.thread.pause()
+        self.thread.pause() if not self.thread.paused.is_set() else None
 
     def publish_for_old_catch(self) -> None:
         self._pre_publish()
@@ -314,7 +314,7 @@ class Root(tk.Tk):
         self._after_publish()
 
     def publish_for_wipe40khz(self) -> None:
-        if not self.thread.paused: self.thread.pause()
+        self.thread.pause() if not self.thread.paused.is_set() else None
         self._pre_publish()
         self.serial_monitor: SerialMonitor = SerialMonitor40KHZ(self)
         self.status_frame: StatusFrame = StatusFrame40KHZ(self.mainframe, self)
@@ -390,16 +390,16 @@ class SonicAgent(SonicThread):
         self._root: Root = root
 
     def worker(self) -> None:
-        try:            
+        try:
             if self.root.serial.is_connected:
                 status: Status = self.root.sonicamp.get_status()
-                
+
                 if (
                     not isinstance(status, bool)
                     and status != self.root.sonicamp.status
                 ):
                     self.queue.put(status)
-        
+
         except IndexError as ie:
             logger.warning(ie)
         except serial.SerialException:

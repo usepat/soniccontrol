@@ -165,7 +165,7 @@ class ScriptingTab(ttk.Frame):
     def status_handler(self) -> None:
         if isinstance(self.root.sonicamp, SonicWipe40KHZ): 
             return
-        
+
         self.root.attach_data()
         self.root.update_idletasks()
         self.end_sequence() if not self.sequence.run else None
@@ -181,15 +181,22 @@ class ScriptingTab(ttk.Frame):
         )
 
     def button_starter(self):
-        thread = threading.Thread(target=self.start_sequence)
-        thread.start()
+        # threading.Thread(target=self.start_sequence, daemon=True).start()
+        try:
+            lock = threading.Lock()
+            t = threading.Thread(target=self.start_sequence)
+            t.start()
+            lock.acquire()
+            lock.release()
+        except Exception as exc:
+            logger.warning(tb.format_exc(exc))
+            self.root.thread.resume() if self.root.thread.paused.is_set() else None
 
     def start_sequence(self) -> None:
         logger.debug("Started sequence")
         self.sequence: Sequence = GUISequence(self.amp_controller, self, self.logfile)
 
-        if not self.root.thread.paused:
-            self.root.thread.pause()
+        self.root.thread.pause() if not self.root.thread.paused.is_set() else None
 
         self.start_script_btn.configure(
             text="Stop",
@@ -250,7 +257,7 @@ class ScriptingTab(ttk.Frame):
         self.root.amp_controller.set_signal_off()
         self.root.attach_data()
 
-        if not isinstance(self.root.sonicamp, SonicWipe40KHZ) and self.root.thread.paused:
+        if not isinstance(self.root.sonicamp, SonicWipe40KHZ) and self.root.thread.paused.is_set():
             self.root.thread.resume()
 
     def attach_data(self) -> None:

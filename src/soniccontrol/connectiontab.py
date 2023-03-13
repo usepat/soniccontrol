@@ -255,7 +255,8 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue["values"] = self.root.serial.get_ports()
 
     def disconnect(self) -> None:
-        if not self.root.thread.paused: self.root.thread.pause()
+        if not self.root.thread.paused.is_set(): 
+            self.root.thread.pause()
 
         self.abolish_data()
         self.root.serial.disconnect()
