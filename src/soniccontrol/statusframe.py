@@ -74,7 +74,7 @@ class StatusFrame(ttk.Frame):
         self.gain_meter: ttkb.Meter = ttkb.Meter(
             self.meter_frame,
             bootstyle=ttkb.SUCCESS,
-            amounttotal=self.sonicamp.mode.gain_stop,
+            amounttotal=150,
             amountused=self._gain_using,
             textright="%",
             subtext="Current Gain",
