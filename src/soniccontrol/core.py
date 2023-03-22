@@ -8,20 +8,23 @@ import traceback
 import csv
 import json
 import logging
+import threading
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 import serial
+import queue
 
 from dataclasses import dataclass, field
 from PIL.ImageTk import PhotoImage
 from tkinter import font
 from tkinter import messagebox
 from tkinter import TclError
+from abc import ABC, abstractmethod, abstractclassmethod
 
 from sonicpackage import (
     SonicInterface,
-    SonicThread,
+    # SonicThread,
     Status,
     Command,
     SerialConnection,
@@ -88,6 +91,7 @@ class Root(tk.Tk):
         self._amp_controller: SonicInterface
         self._sonicamp: SonicAmp
         self._thread: SonicThread
+        self._lock: threading.Lock = threading.Lock()
         self._serial: SerialConnection = SerialConnection()
 
         self.port: tk.StringVar = tk.StringVar()
@@ -380,6 +384,56 @@ class ConfigData(object):
             return obj
 
 
+class SonicThread(ABC, threading.Thread):
+    """
+    Abstract class for threads that are used in the sonicpackage
+    This class inherets from the threading.Thread object and builds
+    it's own methods to run, pause or resume a thread. Moreover it
+    contains it's own queue object, that can be used for transfering data
+    """
+
+    @property
+    def _run(self):
+        return self.run
+
+    def __init__(self, lock: threading.Lock) -> None:
+        """Initializes the parent constructor with a worker function for the target"""
+        threading.Thread.__init__(self, target=self._run)
+        self.paused: threading.Event = threading.Event()
+        self.pause_cond: threading.Condition = threading.Condition(lock)
+        self.queue: queue.Queue[Any] = queue.Queue()
+        self.pause()
+
+    def run(self) -> None:
+        """The worker function itself, that must be implemented in a concrete class"""
+        while True:
+            with self.pause_cond:
+                while self.paused.is_set():
+                    self.pause_cond.wait()
+                self.worker()
+
+    @abstractclassmethod
+    def worker(self) -> None:
+        pass
+
+    def pause(self) -> None:
+        """Function to pause the thread"""
+        if self.paused.is_set():
+            return
+        self.paused.set()
+        self.pause_cond.acquire()
+        logger.debug("Pausing thread")
+
+    def resume(self) -> None:
+        """Function to resume the thread"""
+        if not self.paused.is_set():
+            return
+        self.paused.clear()
+        self.pause_cond.notify()
+        self.pause_cond.release()
+        logger.debug("Resuming thread")
+
+
 class SonicAgent(SonicThread):
 
     @property
@@ -387,7 +441,7 @@ class SonicAgent(SonicThread):
         return self._root
 
     def __init__(self, root: Root) -> None:
-        super().__init__()
+        super().__init__(root._lock)
         self._root: Root = root
 
     def worker(self) -> None:
@@ -403,9 +457,11 @@ class SonicAgent(SonicThread):
 
         except IndexError as ie:
             logger.warning(ie)
-        except serial.SerialException as se:
-            logger.warning(traceback.format_exc(se))
+        except serial.serialutil.PortNotOpenError() as pno:
+            logger.warning(traceback.format_exc(pno))
             self.root.__reinit__()
+        except serial.serialutil.SerialException as se:
+            logger.warning(traceback.format_exc(se))
         except Exception as e:
             logger.warning(f"{e}")
 

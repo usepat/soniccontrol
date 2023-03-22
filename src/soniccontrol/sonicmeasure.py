@@ -207,7 +207,15 @@ class SonicMeasureFrame(ttk.Frame):
         )
 
     def button_starter(self) -> None:
-        threading.Thread(target=self.start, daemon=True).start()
+        try:
+            t = threading.Thread(target=self.start)
+            with self.root._lock:
+                t.start()
+        except Exception as exc:
+            logger.warning(tb.format_exc(exc))
+        finally:
+            self.root.thread.resume() if self.root.thread.paused.is_set() else None
+
 
     def start(self) -> None:
         start_freq: int = self.start_freq_tk.get()

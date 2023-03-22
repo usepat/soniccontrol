@@ -183,13 +183,12 @@ class ScriptingTab(ttk.Frame):
     def button_starter(self):
         # threading.Thread(target=self.start_sequence, daemon=True).start()
         try:
-            lock = threading.Lock()
             t = threading.Thread(target=self.start_sequence)
-            t.start()
-            lock.acquire()
-            lock.release()
+            with self.root._lock:
+                t.start()
         except Exception as exc:
             logger.warning(tb.format_exc(exc))
+        finally:
             self.root.thread.resume() if self.root.thread.paused.is_set() else None
 
     def start_sequence(self) -> None:
