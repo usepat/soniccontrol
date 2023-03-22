@@ -366,8 +366,9 @@ class ConfigData(object):
     transducer: dict = field(default_factory=dict)
 
     @classmethod
-    def read_json(cls) -> object:
-        if not os.path.isfile("config.json"): return None
+    def read_json(cls) -> ConfigData:
+        if not os.path.isfile("config.json"):
+            return None
         with open("config.json", "r") as file:
             data: dict = json.load(file)
             obj: ConfigData = cls()
@@ -402,7 +403,8 @@ class SonicAgent(SonicThread):
 
         except IndexError as ie:
             logger.warning(ie)
-        except serial.SerialException:
+        except serial.SerialException as se:
+            logger.warning(traceback.format_exc(se))
             self.root.__reinit__()
         except Exception as e:
             logger.warning(f"{e}")

@@ -248,7 +248,6 @@ class StatusFrame(ttk.Frame):
         if not (isinstance(status.gain, int) and status.gain != self._gain_using):
             return
 
-        self.gain_meter['amounttotal'] = self.sonicamp.mode.freq_stop
         self.gain_meter['amountused'] = status.gain
         self._gain_using = status.gain
 
