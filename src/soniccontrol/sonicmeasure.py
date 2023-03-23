@@ -17,7 +17,14 @@ from matplotlib import style
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk, FigureCanvasTkAgg
 
-from sonicpackage import Command, serial, SonicInterface, SonicMeasureFileHandler, FileHandler
+from sonicpackage import (
+    Command, 
+    serial, 
+    SonicInterface, 
+    SonicMeasureFileHandler, 
+    FileHandler,
+    ValueNotSupported
+)
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
@@ -198,7 +205,7 @@ class SonicMeasureFrame(ttk.Frame):
         self.distance_entry: ttk.Entry = ttk.Entry(
             self.meta_data_frame, textvariable=self.comment_tk, style='dark.TEntry'
         )
-        
+
         self.publish()
 
     def open_logfile(self) -> None:
@@ -253,12 +260,12 @@ class SonicMeasureFrame(ttk.Frame):
             sequence = self
         )
         
-        except ValueError as ve: 
+        except ValueNotSupported as ve: 
             messagebox.showerror("Value Error", ve)
             self.stop()
         except Exception as e:
-            logger.warning(traceback.format_exc())
-        
+            logger.warning(traceback.format_exc(e))
+
         self.stop()
         
     def stop(self) -> None:
