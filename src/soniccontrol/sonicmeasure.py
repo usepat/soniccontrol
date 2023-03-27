@@ -262,14 +262,14 @@ class SonicMeasureFrame(ttk.Frame):
         
         except ValueNotSupported as ve: 
             messagebox.showerror("Value Error", ve)
-            self.stop()
         except Exception as e:
             logger.warning(traceback.format_exc(e))
-
-        self.stop()
+        finally: 
+            self.stop()
         
     def stop(self) -> None:
-        if self._run: self._run: bool = False
+        if self._run:
+            self._run: bool = False
         self.root.amp_controller.set_signal_off()
         self.root.attach_data()
 
