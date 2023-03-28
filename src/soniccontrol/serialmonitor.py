@@ -140,15 +140,19 @@ Here is a list for all commands:
     def is_internal_command(self, command: str) -> bool:
         if command == "clear":
             for child in self.scrolled_frame.winfo_children(): child.destroy()
-        elif command == "help": self.insert_text(self.HELPTEXT)
-        elif command == "exit": self.root.publish_serial_monitor()
-        else: return False
-        
+        elif command == "help":
+            self.insert_text(self.HELPTEXT)
+        elif command == "exit": 
+            self.root.publish_serial_monitor()
+        else: 
+            return False
+
         return True
 
     def insert_text(self, text: Union[str, list]) -> None:
-        if text is list: text = " ".join(text)
-        
+        if text is list: 
+            text = " ".join(text)
+
         ttk.Label(self.scrolled_frame, text=text, font=("Consolas", 10)).pack(
             fill=tk.X, side=tk.TOP, anchor=tk.W
         )
@@ -159,7 +163,7 @@ Here is a list for all commands:
         self.index_history += 1
         self.command_field.delete(0, tk.END)
         self.command_field.insert(0, self.command_history[self.index_history])
-    
+
     def history_down(self, event) -> None:
         if not self.index_history: return 
         self.index_history -= 1
