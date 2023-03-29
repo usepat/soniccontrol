@@ -142,15 +142,15 @@ Here is a list for all commands:
             for child in self.scrolled_frame.winfo_children(): child.destroy()
         elif command == "help":
             self.insert_text(self.HELPTEXT)
-        elif command == "exit": 
+        elif command == "exit":
             self.root.publish_serial_monitor()
-        else: 
+        else:
             return False
 
         return True
 
     def insert_text(self, text: Union[str, list]) -> None:
-        if text is list: 
+        if text is list:
             text = " ".join(text)
 
         ttk.Label(self.scrolled_frame, text=text, font=("Consolas", 10)).pack(
