@@ -26,5 +26,5 @@ python -m PyInstaller --noconfirm --log-level=WARN ^
     --add-data="src//soniccontrol//resources//help_page.pdf;src//soniccontrol//resources" ^
     --collect-submodules=src//soniccontrol ^
     --icon=src//soniccontrol//pictures//welle.ico ^
-    --name=SonicControl-1.83 ^
+    --name=SonicControl-1.9.4 ^
     src//soniccontrol//__main__.py
