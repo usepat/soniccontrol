@@ -8,7 +8,8 @@ import ttkbootstrap as ttkb
 from typing import Union, TYPE_CHECKING
 from ttkbootstrap.scrolled import ScrolledFrame
 
-if TYPE_CHECKING: from soniccontrol.core import Root
+if TYPE_CHECKING:
+    from soniccontrol.core import Root
 
 from soniccontrol.helpers import logger
 
@@ -85,7 +86,7 @@ Here is a list for all commands:
 
     def __init__(self, root: Root, *args, **kwargs) -> None:
         super().__init__(root, *args, **kwargs)
-        
+
         self._root: Root = root
         self._serial: SerialConnection = root.serial
 
@@ -93,14 +94,15 @@ Here is a list for all commands:
         self.index_history: int = 0
 
         self.output_frame: ttk.Frame = ttk.LabelFrame(self, text='OUTPUT')
-        
+
         self.scrolled_frame: ScrolledFrame = ScrolledFrame(self.output_frame)
         self.scrolled_frame.autohide_scrollbar()
         self.scrolled_frame.enable_scrolling()
 
         self.input_frame: ttk.LabelFrame = ttk.LabelFrame(self, text='INPUT')
-        self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style='dark.TEntry')
-        
+        self.command_field: ttk.Entry = ttk.Entry(
+            self.input_frame, style='dark.TEntry')
+
         self.command_field.bind('<Return>', self.send_command)
         self.command_field.bind('<Up>', self.history_up)
         self.command_field.bind('<Down>', self.history_down)
@@ -111,19 +113,22 @@ Here is a list for all commands:
             command=self.send_command,
             style='success.TButton',
         )
-        
+
         self.insert_text(self.HELPTEXT)
         self.publish()
 
         logger.debug("Initialized SerialMonitor")
-        
+
     def publish(self) -> None:
-        self.command_field.pack(anchor=tk.S, padx=10, pady=10, fill=tk.X, expand=True, side=tk.LEFT)
+        self.command_field.pack(anchor=tk.S, padx=10,
+                                pady=10, fill=tk.X, expand=True, side=tk.LEFT)
         self.send_button.pack(anchor=tk.S, padx=10, pady=10, side=tk.RIGHT)
-        self.scrolled_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, padx=10, pady=10, side=tk.TOP)
+        self.scrolled_frame.pack(
+            anchor=tk.N, expand=True, fill=tk.BOTH, padx=10, pady=10, side=tk.TOP)
 
         self.input_frame.pack(anchor=tk.S, fill=tk.X, side=tk.BOTTOM)
-        self.output_frame.pack(anchor=tk.N, expand=True, fill=tk.BOTH, pady=10, side=tk.TOP)
+        self.output_frame.pack(anchor=tk.N, expand=True,
+                               fill=tk.BOTH, pady=10, side=tk.TOP)
 
     def send_command(self, event) -> None:
         command: str = self.command_field.get()
@@ -139,7 +144,8 @@ Here is a list for all commands:
 
     def is_internal_command(self, command: str) -> bool:
         if command == "clear":
-            for child in self.scrolled_frame.winfo_children(): child.destroy()
+            for child in self.scrolled_frame.winfo_children():
+                child.destroy()
         elif command == "help":
             self.insert_text(self.HELPTEXT)
         elif command == "exit":
@@ -159,13 +165,15 @@ Here is a list for all commands:
         self.scrolled_frame.update()
 
     def history_up(self, event) -> None:
-        if self.index_history == len(self.command_history) - 1: return
+        if self.index_history == len(self.command_history) - 1:
+            return
         self.index_history += 1
         self.command_field.delete(0, tk.END)
         self.command_field.insert(0, self.command_history[self.index_history])
 
     def history_down(self, event) -> None:
-        if not self.index_history: return 
+        if not self.index_history:
+            return
         self.index_history -= 1
         self.command_field.delete(0, tk.END)
         self.command_field.insert(0, self.command_history[self.index_history])
@@ -233,7 +241,7 @@ COMMAND:          DESCRIPTION:
 
 
 class SerialMonitorWipe(SerialMonitor):
-    
+
     HELPTEXT: str = """
 Welcome to the Help text for your SonicWipe!
 There are a variety of commands to control your SonicWipe
@@ -271,7 +279,7 @@ COMMAND:          DESCRIPTION:
 
 
 class SerialMonitor40KHZ(SerialMonitor):
-    
+
     HELPTEXT: str = """
 Welcome to the Help Page for the Serial Monitor!
 There are a variety of commands to control your SonicWipe
@@ -300,10 +308,11 @@ exit              Exits the Serial Monitor"""
         self.command_history.insert(0, command)
         self.insert_text(f">>> {command}")
 
-        if self.is_internal_command(command=command): return
-            
+        if self.is_internal_command(command=command):
+            return
+
         answer: str = self.serial.send_and_get(command)
-        
+
         if answer.isnumeric():
             answer: int = int(answer)
             if command == "!ON" and answer == 1:
@@ -315,12 +324,15 @@ exit              Exits the Serial Monitor"""
             elif command[:3] == "!g=" and answer:
                 self.insert_text(f"Gain set to {answer}")
                 self.root.status_frame.change_values(gain=answer)
-                
+
         else:
-            self.insert_text(answer)   
-            if command == "!ON": self.root.status_frame.signal_on()
-            elif command == "!OFF": self.root.status_frame.signal_off()
-            elif command[:3] == "!g=": self.root.status_frame.change_values(gain=answer)
-        
+            self.insert_text(answer)
+            if command == "!ON":
+                self.root.status_frame.signal_on()
+            elif command == "!OFF":
+                self.root.status_frame.signal_off()
+            elif command[:3] == "!g=":
+                self.root.status_frame.change_values(gain=answer)
+
         self.scrolled_frame.yview_moveto(1)
         self.command_field.delete(0, tk.END)

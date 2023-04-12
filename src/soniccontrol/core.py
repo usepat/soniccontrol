@@ -12,6 +12,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
 import serial
+import sonicpackage as sp
 
 from dataclasses import dataclass, field
 from PIL.ImageTk import PhotoImage
@@ -46,9 +47,9 @@ from soniccontrol.statusframe import (
 )
 
 from soniccontrol.serialmonitor import (
-    SerialMonitor, 
-    SerialMonitor40KHZ, 
-    SerialMonitorCatch, 
+    SerialMonitor,
+    SerialMonitor40KHZ,
+    SerialMonitorCatch,
     SerialMonitorWipe
 )
 
@@ -90,6 +91,10 @@ class Root(tk.Tk):
         self._thread: SonicThread
         self._serial: SerialConnection = SerialConnection()
 
+        # deprecated
+        self.custom_modes: dict[str, sp.Mode] = {}
+        self.current_mode = tk.StringVar()
+
         self.port: tk.StringVar = tk.StringVar()
         self.config_file: ConfigData = ConfigData().read_json()
 
@@ -107,10 +112,14 @@ class Root(tk.Tk):
         default_font: font.Font = font.nametofont("TkDefaultFont")
         default_font.configure(family="Arial", size=12)
         self.option_add("*Font", default_font)
-        self.arial12: font.Font = font.Font(family="Arial", size=12, weight=tk.font.BOLD)
-        self.qtype12: font.Font = font.Font(family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD)
-        self.qtype30: font.Font = font.Font(family="QTypeOT-CondLight", size=30)
-        self.qtype30b: font.Font = font.Font(family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD)
+        self.arial12: font.Font = font.Font(
+            family="Arial", size=12, weight=tk.font.BOLD)
+        self.qtype12: font.Font = font.Font(
+            family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD)
+        self.qtype30: font.Font = font.Font(
+            family="QTypeOT-CondLight", size=30)
+        self.qtype30b: font.Font = font.Font(
+            family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD)
 
         # Defining images
         self.REFRESH_IMG: PhotoImage = PhotoImage(const.REFRESH_RAW_IMG)
@@ -142,9 +151,9 @@ class Root(tk.Tk):
         self.__reinit__(True)
 
     def __reinit__(self, first_start: bool = False) -> None:
-        if first_start: 
+        if first_start:
             self.publish_disconnected()
-            return 
+            return
 
         rescue_me: bool = False
         exception: bool = True
@@ -161,7 +170,7 @@ class Root(tk.Tk):
             logger.debug(traceback.format_exc())
             logger.warning(ass_e)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error", 
+                "Data Error",
                 f"{ass_e}\nDo you want to go into rescue mode?"
             )
 
@@ -169,19 +178,19 @@ class Root(tk.Tk):
             logger.debug(traceback.format_exc())
             logger.warning(mem_e)
             rescue_me: bool = messagebox.askyesno(
-                "Memory Error", 
+                "Memory Error",
                 f"{mem_e}Do you want to go into rescue mode?"
             )
             messagebox.showerror()
-        
+
         except AttributeError as attr_e:
             logger.debug(traceback.format_exc())
             logger.warning(attr_e)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error", 
+                "Data Error",
                 f"{attr_e}\nDo you want to go into rescue mode?"
             )
-        
+
         except NotImplementedError as nie:
             logger.debug(traceback.format_exc())
             logger.warning(nie)
@@ -202,30 +211,31 @@ class Root(tk.Tk):
             logger.debug(traceback.format_exc())
             logger.warning(e)
             messagebox.showerror("Error", e)
-        
+
         except TclError as tcle:
             logger.debug(traceback.format_exc())
             logger.warning(tcle)
             messagebox.showerror("Tkinter Error", tcle)
-        
+
         else:
             exception: bool = False
-            
+
             self._initialize_data()
             if isinstance(self.sonicamp, SonicWipe40KHZ):
                 return
-            
+
             self.engine()
             self._thread.resume() if self.thread.paused.is_set() else None
-        
-        finally:            
-            if rescue_me and exception: 
+
+        finally:
+            if rescue_me and exception:
                 self.publish_rescue_mode()
             elif not rescue_me and exception:
                 self.publish_disconnected()
 
     def decide_action(self) -> None:
-        self._amp_controller: SonicInterface = SonicInterface(port = self.port.get(), logger_level = self.LOGGER_LEVEL, thread = self.thread)
+        self._amp_controller: SonicInterface = SonicInterface(
+            port=self.port.get(), logger_level=self.LOGGER_LEVEL, thread=self.thread)
         self._sonicamp: SonicAmp = self.amp_controller.sonicamp
         self._serial: SerialConnection = self.amp_controller.serial
 
@@ -234,24 +244,37 @@ class Root(tk.Tk):
 
         if isinstance(self.sonicamp, SonicCatchOld) or isinstance(self.sonicamp, SonicCatchAncient):
             self.publish_for_old_catch()
-        
+
         elif isinstance(self.sonicamp, SonicWipeOld) or isinstance(self.sonicamp, SonicWipeAncient):
             self.publish_for_old_wipe()
-        
-        elif isinstance(self.sonicamp, SonicWipe40KHZ): 
+
+        elif isinstance(self.sonicamp, SonicWipe40KHZ):
             self.publish_for_wipe40khz()
-        
-        elif isinstance(self.sonicamp, SonicCatch): 
+
+        elif isinstance(self.sonicamp, SonicCatch):
             self.publish_for_catch()
-        
-        elif isinstance(self.sonicamp, SonicWipe): 
+
+        elif isinstance(self.sonicamp, SonicWipe):
             self.publish_for_wipe()
-        
+
         else:
             raise Exception("Do not know which device it is!")
 
     def _initialize_data(self) -> None:
         self.config_file: ConfigData = ConfigData().read_json()
+        logger.debug(f'read config file: {self.config_file}')
+        if self.config_file.modes:
+            for mode in self.sonicamp._supported_modes:
+                self.custom_modes.update({str(mode): mode})
+            for key, mode in self.config_file.modes.items():
+                logger.info(f'adding mode {mode}')
+                mode = self.sonicamp.define_new_mode(
+                    mode.get('freq_begin'),
+                    mode.get('freq_end'),
+                    mode.get('gain_begin'),
+                    mode.get('gain_end'),
+                )
+                self.custom_modes.update({str(mode): mode})
         self.attach_data()
 
     def engine(self) -> None:
@@ -264,8 +287,8 @@ class Root(tk.Tk):
                 self.attach_data()
         except AttributeError as ae:
             print(ae.with_traceback())
-            logger.warning("Could not find status because sonicamp is none")    
-        
+            logger.warning("Could not find status because sonicamp is none")
+
         self.after(100, self.engine)
 
     def attach_data(self) -> None:
@@ -291,7 +314,7 @@ class Root(tk.Tk):
 
         if self.winfo_width() == Root.MAX_WIDTH:
             self._adjust_dimensions()
-        
+
         if tk.Toplevel.winfo_exists(self.sonicmeasure):
             self.sonicmeasure.destroy()
 
@@ -308,7 +331,8 @@ class Root(tk.Tk):
     def publish_for_old_wipe(self) -> None:
         self._pre_publish()
         self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
-        self.status_frame: StatusFrame = StatusFrameWipeOld(self.mainframe, self)
+        self.status_frame: StatusFrame = StatusFrameWipeOld(
+            self.mainframe, self)
         self.attach_data()
         self.notebook.publish_for_old_wipe()
         self._after_publish()
@@ -338,8 +362,10 @@ class Root(tk.Tk):
         self.notebook.hometab.sonic_measure_button.config(state=tk.DISABLED)
 
     def publish_serial_monitor(self) -> None:
-        if not self._is_wided(): return
-        self.serial_monitor.pack(anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH) 
+        if not self._is_wided():
+            return
+        self.serial_monitor.pack(
+            anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH)
 
     def _is_wided(self) -> bool:
         if self.winfo_width() == Root.MIN_WIDTH:
@@ -358,12 +384,14 @@ class Root(tk.Tk):
         self.status_frame.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
+
 @dataclass
 class ConfigData(object):
 
     hexflash: bool = field(default=False)
     dev_mode: bool = field(default=False)
     transducer: dict = field(default_factory=dict)
+    modes: dict = field(default_factory=dict)
 
     @classmethod
     def read_json(cls) -> ConfigData:
@@ -372,10 +400,12 @@ class ConfigData(object):
         with open("config.json", "r") as file:
             data: dict = json.load(file)
             obj: ConfigData = cls()
-            if "hexflash" in data: obj.hexflash = data.get("hexflash")
-            if "dev_mode" in data: obj.dev_mode = data.get("dev_mode")
-            if data.get("transducer") == None: return obj
-            
+            obj.hexflash = data.get("hexflash") if "hexflash" in data else None
+            obj.dev_mode = data.get("dev_mode") if "dev_mode" in data else None
+            obj.modes = data.get("modes") if "modes" in data else {}
+            if data.get("transducer") == None:
+                return obj
+
             obj.transducer: dict = data.get("transducer")
             return obj
 

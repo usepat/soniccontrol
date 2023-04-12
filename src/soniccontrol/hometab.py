@@ -17,7 +17,8 @@ from sonicpackage import (
     CatchMode,
     WipeMode,
     SonicInterface,
-    ValueNotSupported
+    ValueNotSupported,
+    ModeWarning
 )
 from soniccontrol.sonicmeasure import SonicMeasureWindow
 from soniccontrol.helpers import ToolTip, logger
@@ -28,7 +29,7 @@ if typing.TYPE_CHECKING:
 
 
 class Hometab(ttk.Frame):
-    
+
     @property
     def root(self) -> Root:
         return self._root
@@ -48,7 +49,8 @@ class Hometab(ttk.Frame):
         self._serial: SerialConnection = root.serial
         self._amp_controller: SonicInterface = root.amp_controller
 
-        self._freq: tk.IntVar = tk.IntVar(value=self.root.sonicamp.status.frequency)
+        self._freq: tk.IntVar = tk.IntVar(
+            value=self.root.sonicamp.status.frequency)
         self._gain: tk.IntVar = tk.IntVar(value=self.root.sonicamp.status.gain)
         self._mode: tk.StringVar = tk.StringVar()
         self._wipe_inf_or_def: tk.BooleanVar = tk.BooleanVar()
@@ -188,7 +190,8 @@ class Hometab(ttk.Frame):
         )
 
     def _initialize_botframe(self) -> None:
-        self.output_frame: ttk.Frame = ttk.LabelFrame(self.botframe, text="Feedback")
+        self.output_frame: ttk.Frame = ttk.LabelFrame(
+            self.botframe, text="Feedback")
         self.feedback_frame: ScrolledFrame = ScrolledFrame(
             self.output_frame,
             height=200,
@@ -203,6 +206,11 @@ class Hometab(ttk.Frame):
             messagebox.showerror(
                 "Wrong frequency and/ or gain",
                 f"The {self.root.sonicamp.type_} does not support the values you wanted to set"
+            )
+        except ModeWarning as mw:
+            messagebox.showerror(
+                "Wrong frequency and/ or gain under this configuration",
+                f"The {self.root.sonicamp.type_} does not support the values you wanted to set under the current software configuration.\nPlease configure or select another mode of range"
             )
 
     def set_signal_on(self) -> None:
@@ -222,10 +230,20 @@ class Hometab(ttk.Frame):
 
         except ValueNotSupported as e:
             logger.debug(traceback.format_exc())
-            if called: raise ValueNotSupported(e)
+            if called:
+                raise ValueNotSupported(e)
             messagebox.showwarning(
                 "Value out of supported range",
                 f"The value of frequency, you want to set is not supported under the current configurtation. The supported range is currently from {self.root.sonicamp.mode.freq_start} to {self.root.sonicamp.mode.freq_stop}",
+            )
+
+        except ModeWarning as mw:
+            logger.debug(traceback.format_exc())
+            if called:
+                raise ModeWarning(mw)
+            messagebox.showwarning(
+                "Value out of supported range",
+                f"The value of frequency, you want to set is not supported under the current configurtation. The supported range is currently from {self.root.sonicamp.mode.freq_start} to {self.root.sonicamp.mode.freq_stop}. \nPlease configure or select another mode of range.",
             )
 
     def _set_khz(self) -> None:
@@ -245,10 +263,20 @@ class Hometab(ttk.Frame):
 
         except ValueNotSupported as e:
             logger.debug(traceback.format_exc())
-            if called: raise ValueNotSupported(e)
+            if called:
+                raise ValueNotSupported(e)
             messagebox.showwarning(
                 "Value out of supported range",
                 f"The value of gain, you want to set is not supported under the current configurtation. The supported range is currently from {self.root.sonicamp.mode.gain_start} to {self.root.sonicamp.mode.gain_stop}",
+            )
+
+        except ModeWarning as mw:
+            logger.debug(traceback.format_exc())
+            if called:
+                raise ModeWarning(mw)
+            messagebox.showwarning(
+                "Value out of supported range",
+                f"The value of gain, you want to set is not supported under the current configurtation. The supported range is currently from {self.root.sonicamp.mode.gain_start} to {self.root.sonicamp.mode.gain_stop}. \nPlease configure or select another mode of range.",
             )
 
     def set_scroll_digit(self) -> None:
@@ -260,7 +288,8 @@ class Hometab(ttk.Frame):
         pass
 
     def insert_feed(self, text: str) -> None:
-        if text is list: text = " ".join(text)
+        if text is list:
+            text = " ".join(text)
 
         ttk.Label(self.feedback_frame, text=text, font=("Consolas", 10)).pack(
             fill=tk.X, side=tk.TOP, anchor=tk.W
@@ -292,18 +321,18 @@ class HometabOldCatch(Hometab):
     def _initialize_freq_frame(self) -> None:
         super()._initialize_freq_frame()
         self.freq_spinbox.configure(
-            from_=self.root.sonicamp.mode.freq_start, 
+            from_=self.root.sonicamp.mode.freq_start,
             to=self.root.sonicamp.mode.freq_stop
         )
 
     def _initialize_gain_frame(self) -> None:
         super()._initialize_gain_frame()
         self.gain_spinbox.configure(
-            from_=self.root.sonicamp.mode.gain_start, 
+            from_=self.root.sonicamp.mode.gain_start,
             to=self.root.sonicamp.mode.gain_stop
         )
         self.gain_scale.configure(
-            from_=self.root.sonicamp.mode.gain_start, 
+            from_=self.root.sonicamp.mode.gain_start,
             to=self.root.sonicamp.mode.gain_stop
         )
 
@@ -328,7 +357,8 @@ class HometabOldCatch(Hometab):
     def set_val(self) -> None:
         try:
             self.insert_feed(self.set_freq(True))
-            if isinstance(self.root.sonicamp.mode, KhzMode): return
+            if isinstance(self.root.sonicamp.mode, KhzMode):
+                return
             self.insert_feed(self.set_gain(True))
         except ValueNotSupported as ve:
             messagebox.showerror(
@@ -339,7 +369,7 @@ class HometabOldCatch(Hometab):
     def attach_data(self) -> None:
         super().attach_data()
         self.freq_spinbox.configure(
-            from_=self.root.sonicamp.mode.freq_start, 
+            from_=self.root.sonicamp.mode.freq_start,
             to=self.root.sonicamp.mode.freq_stop
         )
 
@@ -350,28 +380,40 @@ class HometabOldCatch(Hometab):
 
     def publish(self) -> None:
         super().publish()
-        self.freq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.freq_spinbox.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
+        self.scroll_digit.grid(row=0, column=1, padx=10,
+                               pady=10, sticky=tk.NSEW)
 
-        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_spinbox.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
-        self.wipemode_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.catchmode_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipemode_button.grid(
+            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.catchmode_button.grid(
+            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.freq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.set_val_btn.pack(side=tk.TOP, expand=True,
+                              fill=tk.X, padx=10, pady=10)
         self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
-        self.serial_monitor_btn.pack(side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH)
+        self.serial_monitor_btn.pack(
+            side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH)
 
-        self.control_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.utils_frame.grid(row=1, column=1, padx=20, pady=20, sticky=tk.NSEW)
-        
-        self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=1, column=0, padx=10,
+                                pady=10, sticky=tk.NSEW)
+        self.utils_frame.grid(row=1, column=1, padx=20,
+                              pady=20, sticky=tk.NSEW)
+
+        self.us_on_button.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
+        self.us_auto_button.grid(
+            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_off_button.grid(row=0, column=2, padx=10,
+                                pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
@@ -448,12 +490,14 @@ class HometabOldWipe(Hometab):
         )
 
     def handle_wipe_mode(self) -> None:
-        if self._wipe_inf_or_def.get(): self.wipe_spinbox.config(state=tk.NORMAL)
-        else: self.wipe_spinbox.config(state=tk.DISABLED)
+        if self._wipe_inf_or_def.get():
+            self.wipe_spinbox.config(state=tk.NORMAL)
+        else:
+            self.wipe_spinbox.config(state=tk.DISABLED)
 
     def set_freq(self) -> None:
         return super().set_freq()
-    
+
     def set_val(self) -> None:
         self.insert_feed(self.set_freq())
 
@@ -466,12 +510,13 @@ class HometabOldWipe(Hometab):
 
     def start_wiping(self) -> None:
         wipe_runs: int = self._wipe_inf_or_def.get()
-        
+
         if wipe_runs:
-            self.insert_feed(self.serial.send_and_get(Command.SET_WIPE_DEF + self._wipe_var.get()))
+            self.insert_feed(self.serial.send_and_get(
+                Command.SET_WIPE_DEF + self._wipe_var.get()))
         else:
             self.insert_feed(self.serial.send_and_get(Command.SET_WIPE_INF))
-        
+
         self.root.status_frame.wipe_progressbar.start()
 
     def attach_data(self) -> None:
@@ -479,22 +524,30 @@ class HometabOldWipe(Hometab):
 
     def publish(self) -> None:
         super().publish()
-        self.freq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.freq_spinbox.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
+        self.scroll_digit.grid(row=0, column=1, padx=10,
+                               pady=10, sticky=tk.NSEW)
         self.freq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
-        self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.set_val_btn.pack(side=tk.TOP, expand=True,
+                              fill=tk.X, padx=10, pady=10)
+        self.us_on_button.pack(side=tk.TOP, expand=True,
+                               fill=tk.X, padx=10, pady=10)
 
-        self.wipe_spinbox.pack(side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X)
-        self.inf_wipe_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.def_wipe_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipe_spinbox.pack(side=tk.TOP, expand=True,
+                               padx=10, pady=10, fill=tk.X)
+        self.inf_wipe_button.grid(
+            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.def_wipe_button.grid(
+            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.wipe_mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.start_wipe_button.pack(
             side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X
         )
 
         self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=1, padx=10,
+                                pady=10, sticky=tk.NSEW)
 
         self.us_off_button.grid(
             row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
@@ -525,23 +578,23 @@ class HometabWipe40KHZ(Hometab):
             command=self.set_gain,
             bootstyle="dark.TButton",
         )
-        
+
         self.us_on_button: ttk.Button = ttk.Button(
             self.control_frame,
             text='ON',
             style='success.TButton',
             width=10,
             command=self.set_signal_on)
-        
+
         ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
-        
+
         self.us_off_button: ttk.Button = ttk.Button(
             self.control_frame,
             text='OFF',
             style='danger.TButton',
             width=10,
             command=self.set_signal_off)
-        
+
         ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
 
         self.gain_scale: ttk.Scale = ttk.Scale(
@@ -558,25 +611,27 @@ class HometabWipe40KHZ(Hometab):
     def _initialize_botframe(self) -> None:
         super()._initialize_botframe()
         self.feedback_frame.config(width=200)
-    
+
     def set_gain(self) -> None:
         gain: int = int(super().set_gain())
         self.insert_feed(f"Gain setted to {gain}%")
         self.root.status_frame.change_values(gain=gain)
 
     def set_signal_on(self) -> None:
-        is_on: Union[str, bool] = self.serial.send_and_get(Command.SET_SIGNAL_ON)
+        is_on: Union[str, bool] = self.serial.send_and_get(
+            Command.SET_SIGNAL_ON)
 
         if isinstance(is_on, str):
             self.insert_feed(is_on)
             self.root.status_frame.signal_on()
-            
+
         elif isinstance(is_on, bool):
             self.insert_feed("Signal ON")
             self.root.status_frame.signal_on()
 
-        else: messagebox.showwarning(
-                "Error", 
+        else:
+            messagebox.showwarning(
+                "Error",
                 "Something went wrong, try again, or restart the application"
             )
 
@@ -585,22 +640,28 @@ class HometabWipe40KHZ(Hometab):
             self.insert_feed("Signal OFF")
             self.root.status_frame.signal_off()
 
-        else: messagebox.showwarning(
+        else:
+            messagebox.showwarning(
                 "Error", "Something went wrong, try again, or restart the application"
             )
 
     def publish(self) -> None:
         super().publish()
-        self.gain_spinbox.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
-        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
-        self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
-        self.us_off_button.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
+        self.gain_spinbox.pack(side=tk.TOP, expand=True,
+                               fill=tk.BOTH, padx=5, pady=5)
+        self.set_val_btn.pack(side=tk.TOP, expand=True,
+                              fill=tk.BOTH, padx=5, pady=5)
+        self.us_on_button.pack(side=tk.TOP, expand=True,
+                               fill=tk.BOTH, padx=5, pady=5)
+        self.us_off_button.pack(side=tk.TOP, expand=True,
+                                fill=tk.BOTH, padx=5, pady=5)
 
-        self.control_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=0, padx=10,
+                                pady=10, sticky=tk.NSEW)
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
-        
+
         super().after_publish()
 
 
@@ -620,10 +681,10 @@ class HometabCatch(Hometab):
 
         self.gain_spinbox.configure(from_=0, to=150)
         self.gain_scale.configure(from_=0, to=150)
-        
+
     def _initialize_mode_frame(self) -> None:
         super()._initialize_mode_frame()
-        
+
         self.wipemode_button.configure(value='wipe')
         self.catchmode_button.configure(value='catch')
 
@@ -632,10 +693,10 @@ class HometabCatch(Hometab):
 
         if mode == "wipe":
             answer: str = self.root.sonicamp.set_mode(KhzMode())
-            
+
         elif mode == "catch":
             answer: str = self.root.sonicamp.set_mode(MhzMode())
-                
+
         self.insert_feed(answer)
 
     def attach_data(self) -> None:
@@ -645,43 +706,54 @@ class HometabCatch(Hometab):
 
     def publish(self) -> None:
         super().publish()
-        self.freq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.freq_spinbox.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
+        self.scroll_digit.grid(row=0, column=1, padx=10,
+                               pady=10, sticky=tk.NSEW)
 
-        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_spinbox.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
-        self.wipemode_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.catchmode_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipemode_button.grid(
+            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.catchmode_button.grid(
+            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.freq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.set_val_btn.pack(side=tk.TOP, expand=True,
+                              fill=tk.X, padx=10, pady=10)
         self.sonic_measure_button.pack(side=tk.TOP, padx=10, pady=10)
         self.serial_monitor_btn.pack(
             side=tk.TOP, padx=10, pady=5, expand=True, fill=tk.BOTH
         )
 
-        self.control_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.utils_frame.grid(row=1, column=1, padx=20, pady=20, sticky=tk.NSEW)
+        self.control_frame.grid(row=1, column=0, padx=10,
+                                pady=10, sticky=tk.NSEW)
+        self.utils_frame.grid(row=1, column=1, padx=20,
+                              pady=20, sticky=tk.NSEW)
 
-        self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_on_button.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
+        self.us_auto_button.grid(
+            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_off_button.grid(row=0, column=2, padx=10,
+                                pady=10, sticky=tk.NSEW)
 
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
-        
+
         return super().after_publish()
 
 
 class HometabWipe(Hometab):
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
-        
+
         self._initialize_wipeframe()
-        
+
         self.us_on_button: ttk.Button = ttk.Button(
             self.control_frame,
             text="ON",
@@ -711,10 +783,10 @@ class HometabWipe(Hometab):
 
     def _initialize_gain_frame(self) -> None:
         super()._initialize_gain_frame()
-        
+
         self.gain_spinbox.configure(from_=0, to=150)
-        self.gain_scale.configure(from_=0, to=150)     
-        
+        self.gain_scale.configure(from_=0, to=150)
+
     def _initialize_wipeframe(self) -> None:
         self.wipe_frame: ttk.LabelFrame = ttk.LabelFrame(
             self.topframe, text="Set up wiping"
@@ -760,13 +832,14 @@ class HometabWipe(Hometab):
             style="primary.TButton",
             command=self.start_wiping,
         )
-        
+
     def start_wiping(self) -> None:
         wipe_runs: int = self._wipe_inf_or_def.get()
         self.insert_feed(
-            self.serial.send_and_get(Command.SET_WIPE_DEF + self._wipe_var.get())
+            self.serial.send_and_get(
+                Command.SET_WIPE_DEF + self._wipe_var.get())
         ) if wipe_runs else self.insert_feed(self.serial.send_and_get(Command.SET_WIPE_INF))
-        
+
     def handle_wipe_mode(self) -> None:
         self.wipe_spinbox.config(
             state=tk.NORMAL
@@ -778,22 +851,30 @@ class HometabWipe(Hometab):
     def publish(self) -> None:
         """Function to build children of this frame"""
         super().publish()
-        self.freq_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.scroll_digit.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.freq_spinbox.grid(row=0, column=0, padx=10,
+                               pady=10, sticky=tk.NSEW)
+        self.scroll_digit.grid(row=0, column=1, padx=10,
+                               pady=10, sticky=tk.NSEW)
         self.freq_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
-        self.us_on_button.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.set_val_btn.pack(side=tk.TOP, expand=True,
+                              fill=tk.X, padx=10, pady=10)
+        self.us_on_button.pack(side=tk.TOP, expand=True,
+                               fill=tk.X, padx=10, pady=10)
 
-        self.wipe_spinbox.pack(side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X)
-        self.inf_wipe_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.def_wipe_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.wipe_spinbox.pack(side=tk.TOP, expand=True,
+                               padx=10, pady=10, fill=tk.X)
+        self.inf_wipe_button.grid(
+            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.def_wipe_button.grid(
+            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
         self.wipe_mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
         self.start_wipe_button.pack(
             side=tk.TOP, expand=True, padx=10, pady=10, fill=tk.X
         )
 
         self.wipe_frame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.control_frame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.control_frame.grid(row=0, column=1, padx=10,
+                                pady=10, sticky=tk.NSEW)
 
         self.us_off_button.grid(
             row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
