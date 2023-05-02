@@ -45,6 +45,8 @@ class ScriptCommand(Enum):
     STARTLOOP: str = "startloop X\n"
     ENDLOOP: str = "endloop\n"
     SET_RAMP: str = "ramp XXXXXXX XXXXXXX XXXX XXXms\n"
+    SET_FREQ_RAMP: str = "ramp XXXXXXX XXXXXXX XXXX XXXms\n"
+    SET_GAIN_RAMP: str = "ramp XXX XXX XX XXXms\n"
 
 
 class ScriptingTab(ttk.Frame):
@@ -344,42 +346,6 @@ class GUISequence(SonicSequence):
             self.gui.current_task.set(f"Hold: {(target - now).seconds} seconds remaining")
             self.updater("hold", args_)
 
-    def ramp(self, args_: list) -> None:
-        if not self.run: return
-        logger.info("Starting ramp")
-        logger.debug(f"Arguments for ramp: {args_}")
-
-        if len(args_) < 4:
-            raise SyntaxError("Wrong format with ramp command\n The correct format should be: \"ramp start_freq stop_freq step_freq delay delay_unit[ms or s]\"")
-        elif len(args_) == 4:
-            start, stop, step, delay = args_
-            hold_argument: list = [delay]
-        elif len(args_) > 4:
-            start, stop, step, delay, delay_unit = args_
-            hold_argument: list = [delay, delay_unit]
-
-        if start > stop: frq_list: list = list(range(start, stop-step, -step))
-        else: frq_list: list = list(range(start, stop+step, step))
-        
-        logger.debug(f"Ramp: start = {start}\tstop = {stop}\tstep = {step}\tdelay = {delay}\tunit = {delay_unit}")
-        logger.debug(f"\n\n{frq_list}\n\n")
-        logger.debug(f"Freq list: start = {frq_list[0]}\tstop = {frq_list[-1]}")
-         
-        for frq in frq_list:
-            if not self.run: return
-            if isinstance(self.sonicamp, SonicWipe40KHZ):
-                self.gui.current_task.set(f"Ramp is @ {frq}%")
-                logger.info(f"Ramp is at {frq}%")
-                self.sonicamp.set_gain(frq)
-
-            else:
-                self.gui.current_task.set(f"Ramp is @ {frq/1000}kHz")
-                logger.info(f"Ramp is at {frq/1000}kHz")
-                self.sonicamp.set_freq(frq)
-
-            self.updater("ramp", args_)
-            self.hold(hold_argument, ramp_mode=True) 
-
 
 
 class ScriptingGuide(tk.Toplevel):
@@ -483,6 +449,30 @@ class ScriptingGuide(tk.Toplevel):
             self.ramp_btn,
             text="Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps\nExpamle: ramp 50000 1200000 1000 100ms",
         )
+
+        self.ramp_freq_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text="ramp",
+            arg_text="<start f [Hz]> <stop f [Hz]> <step size [Hz]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, nothing defaults to milliseconds)",
+            desc_text=None,
+            command=lambda: self.insert_command(ScriptCommand.SET_FREQ_RAMP),
+        )
+        ToolTip(
+            self.ramp_freq_btn,
+            text="Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps\nExpamle: ramp 50000 1200000 1000 100ms",
+        )
+
+        self.ramp_gain_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text="ramp",
+            arg_text="<start [%]> <stop [%]> <step size [%]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, nothing defaults to milliseconds)",
+            desc_text=None,
+            command=lambda: self.insert_command(ScriptCommand.SET_GAIN_RAMP),
+        )
+        ToolTip(
+            self.ramp_gain_btn,
+            text="Create a gain ramp with a start %, a stop %,\n a step size and a delay between steps\nExpamle: ramp 10 150 10 100ms",
+        )
         self.disclaimer_label: ttk.Label = ttk.Label(
             self,
             text="To insert a function at the cursor position, click on the respective button",
@@ -504,6 +494,8 @@ class ScriptingGuide(tk.Toplevel):
         self.startloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         self.endloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.ramp_freq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.ramp_gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
 
         if (
             not isinstance(self.root.sonicamp, SonicWipeOld) or 
