@@ -32,7 +32,7 @@ from sonicpackage import (
     SonicWipeOld,
     SonicWipeAncient,
     SonicCatch,
-    SonicWipe
+    SonicWipe,
 )
 
 import soniccontrol.constants as const
@@ -46,10 +46,10 @@ from soniccontrol.statusframe import (
 )
 
 from soniccontrol.serialmonitor import (
-    SerialMonitor, 
-    SerialMonitor40KHZ, 
-    SerialMonitorCatch, 
-    SerialMonitorWipe
+    SerialMonitor,
+    SerialMonitor40KHZ,
+    SerialMonitorCatch,
+    SerialMonitorWipe,
 )
 
 from soniccontrol.sonicmeasure import SonicMeasureWindow
@@ -58,12 +58,11 @@ from soniccontrol.helpers import logger
 
 
 class Root(tk.Tk):
-
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    TITLE: str = 'SonicControl'
-    THEME: str = 'sandstone'
+    TITLE: str = "SonicControl"
+    THEME: str = "sandstone"
     LOGGER_LEVEL: int = logging.DEBUG
 
     @property
@@ -100,17 +99,23 @@ class Root(tk.Tk):
         self.wm_title(Root.TITLE)
         ttkb.Style(theme=Root.THEME)
 
-        if platform.system() == 'Windows':
+        if platform.system() == "Windows":
             self.iconbitmap("src//soniccontrol//pictures//welle.ico")
 
         # default font in GUI and custom Fonts
         default_font: font.Font = font.nametofont("TkDefaultFont")
         default_font.configure(family="Arial", size=12)
         self.option_add("*Font", default_font)
-        self.arial12: font.Font = font.Font(family="Arial", size=12, weight=tk.font.BOLD)
-        self.qtype12: font.Font = font.Font(family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD)
+        self.arial12: font.Font = font.Font(
+            family="Arial", size=12, weight=tk.font.BOLD
+        )
+        self.qtype12: font.Font = font.Font(
+            family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD
+        )
         self.qtype30: font.Font = font.Font(family="QTypeOT-CondLight", size=30)
-        self.qtype30b: font.Font = font.Font(family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD)
+        self.qtype30b: font.Font = font.Font(
+            family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD
+        )
 
         # Defining images
         self.REFRESH_IMG: PhotoImage = PhotoImage(const.REFRESH_RAW_IMG)
@@ -142,9 +147,9 @@ class Root(tk.Tk):
         self.__reinit__(True)
 
     def __reinit__(self, first_start: bool = False) -> None:
-        if first_start: 
+        if first_start:
             self.publish_disconnected()
-            return 
+            return
 
         rescue_me: bool = False
         exception: bool = True
@@ -161,92 +166,93 @@ class Root(tk.Tk):
             logger.debug(traceback.format_exc())
             logger.warning(ass_e)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error", 
-                f"{ass_e}\nDo you want to go into rescue mode?"
+                "Data Error", f"{ass_e}\nDo you want to go into rescue mode?"
             )
 
         except MemoryError as mem_e:
             logger.debug(traceback.format_exc())
             logger.warning(mem_e)
             rescue_me: bool = messagebox.askyesno(
-                "Memory Error", 
-                f"{mem_e}Do you want to go into rescue mode?"
+                "Memory Error", f"{mem_e}Do you want to go into rescue mode?"
             )
             messagebox.showerror()
-        
+
         except AttributeError as attr_e:
             logger.debug(traceback.format_exc())
             logger.warning(attr_e)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error", 
-                f"{attr_e}\nDo you want to go into rescue mode?"
+                "Data Error", f"{attr_e}\nDo you want to go into rescue mode?"
             )
-        
+
         except NotImplementedError as nie:
             logger.debug(traceback.format_exc())
             logger.warning(nie)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error",
-                f"{nie}\nDo you want to go into rescue mode?"
+                "Data Error", f"{nie}\nDo you want to go into rescue mode?"
             )
 
         except TypeError as te:
             logger.debug(traceback.format_exc())
             logger.warning(te)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error",
-                f"{te}\nDo you want to go into rescue mode?"
+                "Data Error", f"{te}\nDo you want to go into rescue mode?"
             )
 
         except Exception as e:
             logger.debug(traceback.format_exc())
             logger.warning(e)
             messagebox.showerror("Error", e)
-        
+
         except TclError as tcle:
             logger.debug(traceback.format_exc())
             logger.warning(tcle)
             messagebox.showerror("Tkinter Error", tcle)
-        
+
         else:
             exception: bool = False
-            
+
             self._initialize_data()
             if isinstance(self.sonicamp, SonicWipe40KHZ):
                 return
-            
+
             self.engine()
             self._thread.resume() if self.thread.paused.is_set() else None
-        
-        finally:            
-            if rescue_me and exception: 
+
+        finally:
+            if rescue_me and exception:
                 self.publish_rescue_mode()
             elif not rescue_me and exception:
                 self.publish_disconnected()
 
     def decide_action(self) -> None:
-        self._amp_controller: SonicInterface = SonicInterface(port = self.port.get(), logger_level = self.LOGGER_LEVEL, thread = self.thread)
+        self._amp_controller: SonicInterface = SonicInterface(
+            port=self.port.get(), logger_level=self.LOGGER_LEVEL, thread=self.thread
+        )
         self._sonicamp: SonicAmp = self.amp_controller.sonicamp
         self._serial: SerialConnection = self.amp_controller.serial
 
         logger.info("Succesfully connected and built sonicamp")
         logger.info(f"{self.sonicamp}")
 
-        if isinstance(self.sonicamp, SonicCatchOld) or isinstance(self.sonicamp, SonicCatchAncient):
+        if isinstance(self.sonicamp, SonicCatchOld) or isinstance(
+            self.sonicamp, SonicCatchAncient
+        ):
             self.publish_for_old_catch()
-        
-        elif isinstance(self.sonicamp, SonicWipeOld) or isinstance(self.sonicamp, SonicWipeAncient):
+
+        elif isinstance(self.sonicamp, SonicWipeOld) or isinstance(
+            self.sonicamp, SonicWipeAncient
+        ):
             self.publish_for_old_wipe()
-        
-        elif isinstance(self.sonicamp, SonicWipe40KHZ): 
+
+        elif isinstance(self.sonicamp, SonicWipe40KHZ):
             self.publish_for_wipe40khz()
-        
-        elif isinstance(self.sonicamp, SonicCatch): 
+
+        elif isinstance(self.sonicamp, SonicCatch):
             self.publish_for_catch()
-        
-        elif isinstance(self.sonicamp, SonicWipe): 
+
+        elif isinstance(self.sonicamp, SonicWipe):
             self.publish_for_wipe()
-        
+
         else:
             raise Exception("Do not know which device it is!")
 
@@ -259,13 +265,14 @@ class Root(tk.Tk):
             while self.thread.queue.qsize():
                 status: Status = self.thread.queue.get(0)
                 self.sonicamp._status = status
+                logger.info(f"New status = {status}")
                 self.amp_controller.register_data()
                 self.update_idletasks()
                 self.attach_data()
         except AttributeError as ae:
             print(ae.with_traceback())
-            logger.warning("Could not find status because sonicamp is none")    
-        
+            logger.warning("Could not find status because sonicamp is none")
+
         self.after(100, self.engine)
 
     def attach_data(self) -> None:
@@ -291,7 +298,7 @@ class Root(tk.Tk):
 
         if self.winfo_width() == Root.MAX_WIDTH:
             self._adjust_dimensions()
-        
+
         if tk.Toplevel.winfo_exists(self.sonicmeasure):
             self.sonicmeasure.destroy()
 
@@ -338,8 +345,11 @@ class Root(tk.Tk):
         self.notebook.hometab.sonic_measure_button.config(state=tk.DISABLED)
 
     def publish_serial_monitor(self) -> None:
-        if not self._is_wided(): return
-        self.serial_monitor.pack(anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH) 
+        if not self._is_wided():
+            return
+        self.serial_monitor.pack(
+            anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
+        )
 
     def _is_wided(self) -> bool:
         if self.winfo_width() == Root.MIN_WIDTH:
@@ -358,9 +368,9 @@ class Root(tk.Tk):
         self.status_frame.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
+
 @dataclass
 class ConfigData(object):
-
     hexflash: bool = field(default=False)
     dev_mode: bool = field(default=False)
     transducer: dict = field(default_factory=dict)
@@ -372,16 +382,18 @@ class ConfigData(object):
         with open("config.json", "r") as file:
             data: dict = json.load(file)
             obj: ConfigData = cls()
-            if "hexflash" in data: obj.hexflash = data.get("hexflash")
-            if "dev_mode" in data: obj.dev_mode = data.get("dev_mode")
-            if data.get("transducer") == None: return obj
-            
+            if "hexflash" in data:
+                obj.hexflash = data.get("hexflash")
+            if "dev_mode" in data:
+                obj.dev_mode = data.get("dev_mode")
+            if data.get("transducer") == None:
+                return obj
+
             obj.transducer: dict = data.get("transducer")
             return obj
 
 
 class SonicAgent(SonicThread):
-
     @property
     def root(self):
         return self._root
@@ -395,10 +407,7 @@ class SonicAgent(SonicThread):
             if self.root.serial.is_connected:
                 status: Status = self.root.sonicamp.get_status()
 
-                if (
-                    not isinstance(status, bool)
-                    and status != self.root.sonicamp.status
-                ):
+                if not isinstance(status, bool) and status != self.root.sonicamp.status:
                     self.queue.put(status)
 
         except IndexError as ie:

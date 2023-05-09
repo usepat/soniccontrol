@@ -20,22 +20,21 @@ if typing.TYPE_CHECKING:
 
 
 class ConnectionTab(ttk.Frame):
-
     @property
     def root(self) -> Root:
         return self._root
-        
+
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
         self._root: Root = root
-        
+
         self.hex_file_path: tk.StringVar = tk.StringVar()
         # self.transducer_active: tk.StringVar = tk.StringVar()
         self.transducer_active = tk.StringVar()
-        
+
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
         self.botframe: ttk.Frame = ttk.Frame(self)
-        
+
         self._initialize_topframe()
         self._initialize_botframe()
 
@@ -54,7 +53,7 @@ class ConnectionTab(ttk.Frame):
     def _initialize_botframe(self) -> None:
         self._initialize_firmware_info()
         self._initialize_transducer_menue()
-        
+
         self.serial_monitor_btn: ttk.Button = ttk.Button(
             self.botframe,
             text="Serial Monitor",
@@ -66,10 +65,7 @@ class ConnectionTab(ttk.Frame):
 
     def _initialize_heading(self) -> None:
         self.heading_frame: ttk.Frame = ttk.Frame(self.topframe)
-        self.subtitle: ttk.Label = ttk.Label(
-            self.heading_frame, 
-            padding=(0, 10, 0, 0)
-        )
+        self.subtitle: ttk.Label = ttk.Label(self.heading_frame, padding=(0, 10, 0, 0))
         self.heading1: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(10, 0, 2, 10),
@@ -82,7 +78,7 @@ class ConnectionTab(ttk.Frame):
             font=self.root.qtype30b,
             borderwidth=-2,
         )
-    
+
     def _initialize_control_frame(self) -> None:
         self.control_frame: ttk.Frame = ttk.Frame(self.topframe)
         self.connect_button: ttk.Button = ttkb.Button(
@@ -105,19 +101,20 @@ class ConnectionTab(ttk.Frame):
             image=self.root.REFRESH_IMG,
             command=self.refresh,
         )
-    
+
     def _initialize_firmware_info(self) -> None:
         self.firmware_frame: ttk.Labelframe = ttk.Labelframe(
-            self.botframe, text="Firmware",
+            self.botframe,
+            text="Firmware",
         )
         self.firmware_label: ttk.Label = ttk.Label(
             self.firmware_frame, justify=tk.CENTER, style="dark.TLabel"
         )
-    
+
     def _initialize_transducer_menue(self) -> None:
-        if not self.root.config_file: 
-            return  
-        
+        if not self.root.config_file:
+            return
+
         if not self.root.config_file.transducer:
             return
 
@@ -132,41 +129,69 @@ class ConnectionTab(ttk.Frame):
         self._update_transducer_menue()
         self.transducer_preview: ttk.LabelFrame = ttk.LabelFrame(
             self.botframe,
-            text='Currently configured transducer',
-            style='secondary.TLabelframe',
-            padding=(5,5,5,5)
+            text="Currently configured transducer",
+            style="secondary.TLabelframe",
+            padding=(5, 5, 5, 5),
         )
         self.transducer_preview_label: ttk.Label = ttk.Label(
-            self.transducer_preview,
-            text=''
+            self.transducer_preview, text=""
         )
 
     def set_atf(self) -> None:
-        current_transducer: dict = self.root.config_file.transducer.get(self.transducer_active.get())
+        logger.debug(f"Configuring transducer {self.transducer_active.get()}")
+        current_transducer: dict = self.root.config_file.transducer.get(
+            self.transducer_active.get()
+        )
         self.root.sonicamp.set_threshold_freq(current_transducer.get("threshold_freq"))
-        self.root.serial.send_and_get(Command.SET_PROT_FREQ1 + current_transducer.get("atf1"))
-        self.root.serial.send_and_get(Command.SET_PROT_FREQ2 + current_transducer.get("atf2"))
-        self.root.serial.send_and_get(Command.SET_PROT_FREQ3 + current_transducer.get("atf3"))
+        self.root.serial.send_and_get(
+            Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
+        )
+        self.root.serial.send_and_get(
+            Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
+        )
+        self.root.serial.send_and_get(
+            Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
+        )
         self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
         self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
+        self.transducer_preview_label["text"] = self.config_file_str()
 
     def config_file_str(self) -> str:
-        transducer_data: dict = self.root.config_file.transducer.get(self.transducer_active.get())
-        if not transducer_data: return
-        
+        transducer_data: dict = self.root.config_file.transducer.get(
+            self.transducer_active.get()
+        )
+        logger.debug(f"Looking for data for transducer {transducer_data}")
+        if not transducer_data:
+            return
+
         string: str = ""
         for item in transducer_data:
-            if (item == "atf1" or  item == "atf2" or item == "atf3" or item == "threshold_freq"):
+            if (
+                item == "atf1"
+                or item == "atf2"
+                or item == "atf3"
+                or item == "threshold_freq"
+            ):
                 continue
-            string += item + ":\t" + str(self.root.config_file.transducer[self.transducer_active.get()][item]) + "\n"
-        
+            string += (
+                item
+                + ":\t"
+                + str(
+                    self.root.config_file.transducer[self.transducer_active.get()][item]
+                )
+                + "\n"
+            )
+
         return string
 
     def _update_transducer_menue(self) -> None:
-        if not self.root.config_file: return
-        if not self.root.config_file.transducer: return
+        if not self.root.config_file:
+            return
+        if not self.root.config_file.transducer:
+            return
         transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
         for trd in self.root.config_file.transducer.keys():
+            logger.info(f"Adding transducer value {trd}")
             transducer_menue.add_radiobutton(
                 label=trd,
                 value=trd,
@@ -177,11 +202,11 @@ class ConnectionTab(ttk.Frame):
 
     def attach_data(self, rescue: bool = False) -> None:
         self._update_transducer_menue()
-        
+
         if self.flash_progressbar.winfo_exists():
             self.flash_progressbar.stop()
             self.flash_progressbar.pack_forget()
-        
+
         for child in self.control_frame.winfo_children():
             child.config(state=tk.NORMAL)
 
@@ -193,7 +218,7 @@ class ConnectionTab(ttk.Frame):
             self.subtitle["text"] = "You are connected to"
             self.heading1["text"] = self.root.sonicamp.type_[:5]
             self.heading2["text"] = self.root.sonicamp.type_[5:]
-            
+
             fwmsg: Union[str, list] = self.root.sonicamp.firmware_msg
             self.firmware_label["text"] = fwmsg
 
@@ -202,13 +227,15 @@ class ConnectionTab(ttk.Frame):
             text="Disconnect",
             command=self.disconnect,
         )
-        
+
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
         self.serial_monitor_btn.config(state=tk.NORMAL)
 
-        if not self.root.config_file: return 
-        if not self.root.config_file.transducer: return
+        if not self.root.config_file:
+            return
+        if not self.root.config_file.transducer:
+            return
         self.transducer_menuebutton.config(state=tk.NORMAL)
         self.transducer_preview_label["text"] = self.config_file_str()
 
@@ -216,7 +243,7 @@ class ConnectionTab(ttk.Frame):
         self.subtitle["text"] = "Your device is currently updating"
         self.heading1["text"] = "updating"
         self.heading2["text"] = "device"
-        
+
         self.flash_progressbar.pack()
         self.flash_progressbar.start()
 
@@ -246,8 +273,8 @@ class ConnectionTab(ttk.Frame):
 
         if self.root.config_file and self.root.config_file.transducer:
             self.transducer_menuebutton.config(state=tk.DISABLED)
-            self.transducer_menuebutton['text'] = 'Pick Transducer'
-            self.transducer_preview_label['text'] = ''
+            self.transducer_menuebutton["text"] = "Pick Transducer"
+            self.transducer_preview_label["text"] = ""
 
         self.root.abolish_data()
 
@@ -255,7 +282,7 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue["values"] = self.root.serial.get_ports()
 
     def disconnect(self) -> None:
-        if not self.root.thread.paused.is_set(): 
+        if not self.root.thread.paused.is_set():
             self.root.thread.pause()
 
         self.abolish_data()
@@ -284,21 +311,23 @@ class ConnectionTab(ttk.Frame):
 
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
-        
+
         if self.root.config_file and self.root.config_file.transducer:
             self.transducer_menuebutton.pack()
             self.transducer_frame.grid(row=1, column=1, padx=10, pady=10)
-            self.transducer_preview.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+            self.transducer_preview.grid(
+                row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
+            )
             self.transducer_preview_label.pack()
 
         # if self.root.config_data["hexflash"]:
         #     self.file_entry.pack(padx=10, pady=10, side=tk.TOP)
         #     self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
         #     self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
-        #     self.firmware_frame.grid(row=0, column=0, columnspan=1, padx=10, pady=10) 
-        
+        #     self.firmware_frame.grid(row=0, column=0, columnspan=1, padx=10, pady=10)
+
         self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
-        
+
 
 if __name__ == "__main__":
-    pass    
+    pass
