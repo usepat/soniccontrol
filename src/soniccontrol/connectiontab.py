@@ -138,23 +138,42 @@ class ConnectionTab(ttk.Frame):
         )
 
     def set_atf(self) -> None:
-        logger.debug(f"Configuring transducer {self.transducer_active.get()}")
-        current_transducer: dict = self.root.config_file.transducer.get(
-            self.transducer_active.get()
-        )
-        self.root.sonicamp.set_threshold_freq(current_transducer.get("threshold_freq"))
-        self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
-        )
-        self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
-        )
-        self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
-        )
-        self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
-        self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
-        self.transducer_preview_label["text"] = self.config_file_str()
+        def configure_trd():
+            logger.debug(f"Configuring transducer {self.transducer_active.get()}")
+            current_transducer: dict = self.root.config_file.transducer.get(
+                self.transducer_active.get()
+            )
+            self.root.sonicamp.set_threshold_freq(
+                current_transducer.get("threshold_freq")
+            )
+            self.root.serial.send_and_get(
+                Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
+            )
+            self.root.serial.send_and_get(
+                Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
+            )
+            self.root.serial.send_and_get(
+                Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
+            )
+            logger.debug("sending att and atk commands")
+            self.root.serial.send_and_get(
+                Command.SET_ATT1 + current_transducer.get("att1")
+            )
+            self.root.serial.send_and_get(
+                Command.SET_ATT2 + current_transducer.get("att2")
+            )
+            self.root.serial.send_and_get(
+                Command.SET_ATK1 + current_transducer.get("atk1")
+            )
+            self.root.serial.send_and_get(
+                Command.SET_ATK2 + current_transducer.get("atk2")
+            )
+            self.root.serial.send_and_get(
+                Command.SET_ATK3 + current_transducer.get("atk3")
+            )
+            self.transducer_preview_label["text"] = self.config_file_str()
+        
+        threading.Thread(target=configure_trd, daemon=False).start()
 
     def config_file_str(self) -> str:
         transducer_data: dict = self.root.config_file.transducer.get(
