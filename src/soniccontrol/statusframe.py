@@ -58,8 +58,7 @@ class StatusFrame(ttk.Frame):
         self._phase_using: Optional[int] = None
 
         self.meter_frame: ttk.Frame = ttk.Frame(self)
-        self.overview_frame: ttk.Frame = ttk.Frame(
-            self, style="secondary.TFrame")
+        self.overview_frame: ttk.Frame = ttk.Frame(self, style="secondary.TFrame")
         self.sonsens_frame: ttk.Frame = ttk.Frame(self)
 
         # Meter Frame
@@ -219,8 +218,7 @@ class StatusFrame(ttk.Frame):
 
         self.overview_frame["style"] = "danger.TFrame"
         self.err_status_label["text"] = None  # !Here
-        self.err_status_label.grid(
-            row=0, column=0, padx=10, pady=10, sticky=tk.CENTER)
+        self.err_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.CENTER)
 
     def change_values(self, status: Status) -> None:
         self.update_freq(status)
@@ -241,8 +239,7 @@ class StatusFrame(ttk.Frame):
 
     def update_freq(self, status: Union[int, Status]) -> None:
         if not (
-            isinstance(status.frequency,
-                       int) and status.frequency != self._freq_using
+            isinstance(status.frequency, int) and status.frequency != self._freq_using
         ):
             return
 
@@ -267,11 +264,9 @@ class StatusFrame(ttk.Frame):
         )
 
         if (
-            not (
-                isinstance(status.temperature, float)
-                and status.temperature != self._temp_using
-            )
+            not isinstance(status.temperature, float)
             or status.temperature > 600
+            or status.temperature < -200
         ):
             self.temp_meter["amountused"] = 0
             self.temp_meter["subtext"] = "Thermometer not found"
@@ -359,8 +354,7 @@ class StatusFrameWipeOld(StatusFrame):
         """Function to build the statusframe"""
         self.freq_meter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.seperator.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.wipe_data_frame.grid(
-            row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        self.wipe_data_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
 
         self.wipe_progressbar.pack(
             side=tk.TOP,
@@ -371,16 +365,13 @@ class StatusFrameWipeOld(StatusFrame):
         )
         # self.protocol_status.pack(side=tk.TOP, padx=5, pady=5)
 
-        self.con_status_label.grid(
-            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(
-            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.meter_frame.pack(
             side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10
         )
-        self.overview_frame.pack(
-            side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
+        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
 
 
@@ -393,17 +384,14 @@ class StatusFrameWipe(StatusFrame):
         self.gain_meter.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
         self.temp_meter.grid(row=0, column=2, padx=10, sticky=tk.NSEW)
 
-        self.con_status_label.grid(
-            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(
-            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
         self.sonsens_frame.pack(
             side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
         )
-        self.overview_frame.pack(
-            side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
+        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
 
 
@@ -421,17 +409,14 @@ class StatusFrameCatch(StatusFrame):
         self.irms_label.grid(row=0, column=1, sticky=tk.NSEW)
         self.phase_label.grid(row=0, column=2, sticky=tk.NSEW)
 
-        self.con_status_label.grid(
-            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(
-            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
         self.sonsens_frame.pack(
             side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
         )
-        self.overview_frame.pack(
-            side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
+        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
 
 
@@ -443,16 +428,13 @@ class StatusFrame40KHZ(StatusFrame):
     def publish(self) -> None:
         self.gain_meter.pack()
 
-        self.con_status_label.grid(
-            row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(
-            row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.meter_frame.pack(
             side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10
         )
-        self.overview_frame.pack(
-            side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
+        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
 
     def attach_data(self) -> None:

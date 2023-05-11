@@ -307,6 +307,7 @@ class ConnectionTab(ttk.Frame):
         self.abolish_data()
         self.root.serial.disconnect()
         self.root.publish_disconnected()
+        logger.info("Disconnecting device")
 
     def publish(self) -> None:
         for child in self.children.values():
