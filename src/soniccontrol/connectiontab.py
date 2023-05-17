@@ -172,7 +172,7 @@ class ConnectionTab(ttk.Frame):
                 Command.SET_ATK3 + current_transducer.get("atk3")
             )
             self.transducer_preview_label["text"] = self.config_file_str()
-        
+
         threading.Thread(target=configure_trd, daemon=False).start()
 
     def config_file_str(self) -> str:
@@ -185,11 +185,16 @@ class ConnectionTab(ttk.Frame):
 
         string: str = ""
         for item in transducer_data:
-            if (
-                item == "atf1"
-                or item == "atf2"
-                or item == "atf3"
-                or item == "threshold_freq"
+            if item in (
+                "at1",
+                "atf2",
+                "atf3",
+                "threshold_freq",
+                "att1",
+                "att2",
+                "atk1",
+                "atk2",
+                "atk2",
             ):
                 continue
             string += (
