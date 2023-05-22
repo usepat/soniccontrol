@@ -263,18 +263,21 @@ class Root(tk.Tk):
     def _initialize_data(self) -> None:
         self.config_file: ConfigData = ConfigData().read_json()
         logger.debug(f'read config file: {self.config_file}')
-        if self.config_file.modes:
-            for mode in self.sonicamp._supported_modes:
-                self.custom_modes.update({str(mode): mode})
-            for key, mode in self.config_file.modes.items():
-                logger.info(f'adding mode {mode}')
-                mode = self.sonicamp.define_new_mode(
-                    mode.get('freq_begin'),
-                    mode.get('freq_end'),
-                    mode.get('gain_begin'),
-                    mode.get('gain_end'),
-                )
-                self.custom_modes.update({str(mode): mode})
+        if not self.config_file.modes:
+            self.attach_data()
+            return
+        
+        for mode in self.sonicamp._supported_modes:
+            self.custom_modes.update({str(mode): mode})
+        for key, mode in self.config_file.modes.items():
+            logger.info(f'adding mode {mode}')
+            mode = self.sonicamp.define_new_mode(
+                mode.get('freq_begin'),
+                mode.get('freq_end'),
+                mode.get('gain_begin'),
+                mode.get('gain_end'),
+            )
+            self.custom_modes.update({str(mode): mode})
         self.attach_data()
 
     def engine(self) -> None:
