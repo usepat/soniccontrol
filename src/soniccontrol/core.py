@@ -263,6 +263,9 @@ class Root(tk.Tk):
     def _initialize_data(self) -> None:
         self.config_file: ConfigData = ConfigData().read_json()
         logger.debug(f'read config file: {self.config_file}')
+        if not self.config_file:
+            self.attach_data()
+            return
         if not self.config_file.modes:
             self.attach_data()
             return

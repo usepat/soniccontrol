@@ -236,8 +236,7 @@ class ConnectionTab(ttk.Frame):
             self.heading1["text"] = self.root.sonicamp.type_[:5]
             self.heading2["text"] = self.root.sonicamp.type_[5:]
 
-            fwmsg: Union[str, list] = self.root.sonicamp.firmware_msg
-            self.firmware_label["text"] = fwmsg
+            self.firmware_label["text"] = self.root.sonicamp.serial.send_and_get("?info")
 
         self.connect_button.config(
             bootstyle="danger",
