@@ -23,6 +23,7 @@ class StatusFrame(ttk.Frame):
         ttk (ttk.Frame): the frame object from tkinter the class
         inherets from
     """
+
     NOT_CONN_TXT: str = "not connected"
     CONN_TXT: str = "connected"
     ON_TXT: str = "Signal ON"
@@ -93,24 +94,24 @@ class StatusFrame(ttk.Frame):
 
         # SonSens Frame
         self.urms_label: ttk.Label = ttk.Label(
-            self.sonsens_frame, 
-            font=self.root.qtype12, 
+            self.sonsens_frame,
+            font=self.root.qtype12,
             anchor=tk.CENTER,
-            style='primary.TLabel',
+            style="primary.TLabel",
             padding=(5, 0, 20, 0),
         )
         self.irms_label: ttk.Label = ttk.Label(
-            self.sonsens_frame, 
-            font=self.root.qtype12, 
+            self.sonsens_frame,
+            font=self.root.qtype12,
             anchor=tk.CENTER,
-            style='danger.TLabel',
+            style="danger.TLabel",
             padding=(20, 0, 20, 0),
-        )        
+        )
         self.phase_label: ttk.Label = ttk.Label(
-            self.sonsens_frame, 
-            font=self.root.qtype12, 
+            self.sonsens_frame,
+            font=self.root.qtype12,
             anchor=tk.CENTER,
-            style='success.TLabel',
+            style="success.TLabel",
             padding=(20, 0, 5, 0),
         )
 
@@ -165,14 +166,14 @@ class StatusFrame(ttk.Frame):
 
         self.sig_status_label["image"] = self.root.LED_GREEN_IMG
         self.sig_status_label["text"] = self.ON_TXT
-        
+
         self._is_on = True
-        
+
     def signal_off(self) -> None:
         """
         Method that changes the appearance of the statusframe to
         indicate that the US output signal of the SonicAmp is off
-        """ 
+        """
         if not self._is_on:
             return
 
@@ -209,16 +210,16 @@ class StatusFrame(ttk.Frame):
 
     def show_error(self) -> None:
         """
-        Method to show an internal error, that originates in the 
+        Method to show an internal error, that originates in the
         SonicAmp
         """
         for child in self.overview_frame.children.values():
             child.grid_forget()
 
         self.overview_frame["style"] = "danger.TFrame"
-        self.err_status_label["text"] = None  #!Here
+        self.err_status_label["text"] = None  # !Here
         self.err_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.CENTER)
-    
+
     def change_values(self, status: Status) -> None:
         self.update_freq(status)
         self.update_gain(status)
@@ -237,9 +238,11 @@ class StatusFrame(ttk.Frame):
         self.signal_on() if self.root.sonicamp.status.signal else self.signal_off()
 
     def update_freq(self, status: Union[int, Status]) -> None:
-        if not (isinstance(status.frequency, int) and status.frequency != self._freq_using):
+        if not (
+            isinstance(status.frequency, int) and status.frequency != self._freq_using
+        ):
             return
-
+          
         self.freq_meter['amounttotal'] = self.sonicamp.mode.freq_stop / const.DIVIDE_TO_KHZi
 
         self.freq_meter['amountused'] = status.frequency / const.DIVIDE_TO_KHZ
@@ -249,56 +252,67 @@ class StatusFrame(ttk.Frame):
         if not (isinstance(status.gain, int) and status.gain != self._gain_using):
             return
 
-        self.gain_meter['amountused'] = status.gain
+        self.gain_meter["amountused"] = status.gain
         self._gain_using = status.gain
 
     def update_temp(self, status: Status) -> None:
         temp: float = (
-            status.temperature 
+            status.temperature
             if (status.temperature is None or status.temperature > 0)
             else status.temperature * -1
         )
 
-        if not (
-            isinstance(status.temperature, float) 
-            and status.temperature != self._temp_using
-        ) or status.temperature > 600:
-            self.temp_meter['amountused'] = 0
-            self.temp_meter['subtext'] = 'Thermometer not found'
+        if (
+            not isinstance(status.temperature, float)
+            or status.temperature > 600
+            or status.temperature < -200
+        ):
+            self.temp_meter["amountused"] = 0
+            self.temp_meter["subtext"] = "Thermometer not found"
             return
 
-        if temp < 0:
-            self.temp_meter['amounttotal'] = const.MAX_NEGATIVE_TEMP
-            self.temp_meter['bootstyle'] = ttkb.INFO
-            self.temp_meter['subtext'] = 'Negative Temperature'
+        if status.temperature < 0:
+            self.temp_meter["amounttotal"] = const.MAX_NEGATIVE_TEMP
+            self.temp_meter["bootstyle"] = ttkb.INFO
+            self.temp_meter["subtext"] = "Negative Temperature"
         else:
-            self.temp_meter['amounttotal'] = const.MAX_POSITIVE_TEMP
-            self.temp_meter['bootstyle'] = ttkb.WARNING
-            self.temp_meter['subtext'] = 'Positive Temperature'
+            self.temp_meter["amounttotal"] = const.MAX_POSITIVE_TEMP
+            self.temp_meter["bootstyle"] = ttkb.WARNING
+            self.temp_meter["subtext"] = "Positive Temperature"
 
-        self.temp_meter['amountused'] = temp
+        self.temp_meter["amountused"] = temp
         self._temp_using = temp
 
     def update_urms(self, status: Status) -> None:
-        if not (isinstance(status.urms, int) and status.urms != self._urms_using):
+        if not (
+            (isinstance(status.urms, int) or isinstance(status.urms, float))
+            and status.urms != self._urms_using
+        ):
             return
 
-        self.urms_label['text'] = f'Urms: {status.urms}mV'
+        logger.debug(f"status urms = {status.urms}")
+        self.urms_label["text"] = f"Urms: {status.urms}mV"
         self._urms_using: int = status.urms
 
     def update_irms(self, status: Status) -> None:
-        if not (isinstance(status.irms, int) and status.irms != self._irms_using):
+        if not (
+            (isinstance(status.irms, int) or isinstance(status.irms, float))
+            and status.irms != self._irms_using
+        ):
             return
 
-        self.irms_label['text'] = f'Irms: {status.irms}mA'
+        self.irms_label["text"] = f"Irms: {status.irms}mA"
         self._irms_using = status.irms
 
     def update_phase(self, status: Status) -> None:
-        if not (isinstance(status.phase, int) and status.phase != self._phase_using):
+        if not (
+            (isinstance(status.phase, int) or isinstance(status.phase, float))
+            and status.phase != self._phase_using
+        ):
             return
 
-        self.phase_label['text'] = f'Phase: {status.phase}˚'
-        self._phase_using = status.phase  
+        self.phase_label["text"] = f"Phase: {status.phase}˚"
+        self._phase_using = status.phase
 
     def abolish_data(self) -> None:
         self.connection_off()
@@ -361,7 +375,6 @@ class StatusFrameWipeOld(StatusFrame):
 
 
 class StatusFrameWipe(StatusFrame):
-
     def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
 
@@ -374,7 +387,9 @@ class StatusFrameWipe(StatusFrame):
         self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
-        self.sonsens_frame.pack(side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER)
+        self.sonsens_frame.pack(
+            side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
+        )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
 
@@ -382,7 +397,7 @@ class StatusFrameWipe(StatusFrame):
 class StatusFrameCatch(StatusFrame):
     def __init__(self, parent: ttk.Frame, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, root, *args, **kwargs)
-        self.freq_meter['amounttotal'] = 6_000_000 / const.DIVIDE_TO_KHZ
+        self.freq_meter["amounttotal"] = 6_000_000 / const.DIVIDE_TO_KHZ
 
     def publish(self) -> None:
         self.freq_meter.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
@@ -397,7 +412,9 @@ class StatusFrameCatch(StatusFrame):
         self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
-        self.sonsens_frame.pack(side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER)
+        self.sonsens_frame.pack(
+            side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
+        )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
 
@@ -418,6 +435,6 @@ class StatusFrame40KHZ(StatusFrame):
         )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.pack()
-        
+
     def attach_data(self) -> None:
         pass

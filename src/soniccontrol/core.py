@@ -33,7 +33,7 @@ from sonicpackage import (
     SonicWipeOld,
     SonicWipeAncient,
     SonicCatch,
-    SonicWipe
+    SonicWipe,
 )
 
 import soniccontrol.constants as const
@@ -50,7 +50,7 @@ from soniccontrol.serialmonitor import (
     SerialMonitor,
     SerialMonitor40KHZ,
     SerialMonitorCatch,
-    SerialMonitorWipe
+    SerialMonitorWipe,
 )
 
 from soniccontrol.sonicmeasure import SonicMeasureWindow
@@ -59,12 +59,11 @@ from soniccontrol.helpers import logger
 
 
 class Root(tk.Tk):
-
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
-    TITLE: str = 'SonicControl'
-    THEME: str = 'sandstone'
+    TITLE: str = "SonicControl"
+    THEME: str = "sandstone"
     LOGGER_LEVEL: int = logging.DEBUG
 
     @property
@@ -105,7 +104,7 @@ class Root(tk.Tk):
         self.wm_title(Root.TITLE)
         ttkb.Style(theme=Root.THEME)
 
-        if platform.system() == 'Windows':
+        if platform.system() == "Windows":
             self.iconbitmap("src//soniccontrol//pictures//welle.ico")
 
         # default font in GUI and custom Fonts
@@ -195,16 +194,14 @@ class Root(tk.Tk):
             logger.debug(traceback.format_exc())
             logger.warning(nie)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error",
-                f"{nie}\nDo you want to go into rescue mode?"
+                "Data Error", f"{nie}\nDo you want to go into rescue mode?"
             )
 
         except TypeError as te:
             logger.debug(traceback.format_exc())
             logger.warning(te)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error",
-                f"{te}\nDo you want to go into rescue mode?"
+                "Data Error", f"{te}\nDo you want to go into rescue mode?"
             )
 
         except Exception as e:
@@ -242,7 +239,9 @@ class Root(tk.Tk):
         logger.info("Succesfully connected and built sonicamp")
         logger.info(f"{self.sonicamp}")
 
-        if isinstance(self.sonicamp, SonicCatchOld) or isinstance(self.sonicamp, SonicCatchAncient):
+        if isinstance(self.sonicamp, SonicCatchOld) or isinstance(
+            self.sonicamp, SonicCatchAncient
+        ):
             self.publish_for_old_catch()
 
         elif isinstance(self.sonicamp, SonicWipeOld) or isinstance(self.sonicamp, SonicWipeAncient):
@@ -288,6 +287,7 @@ class Root(tk.Tk):
             while self.thread.queue.qsize():
                 status: Status = self.thread.queue.get(0)
                 self.sonicamp._status = status
+                logger.info(f"New status = {status}")
                 self.amp_controller.register_data()
                 self.update_idletasks()
                 self.attach_data()
@@ -393,7 +393,6 @@ class Root(tk.Tk):
 
 @dataclass
 class ConfigData(object):
-
     hexflash: bool = field(default=False)
     dev_mode: bool = field(default=False)
     transducer: dict = field(default_factory=dict)
@@ -417,7 +416,6 @@ class ConfigData(object):
 
 
 class SonicAgent(SonicThread):
-
     @property
     def root(self):
         return self._root
@@ -431,10 +429,7 @@ class SonicAgent(SonicThread):
             if self.root.serial.is_connected:
                 status: Status = self.root.sonicamp.get_status()
 
-                if (
-                    not isinstance(status, bool)
-                    and status != self.root.sonicamp.status
-                ):
+                if not isinstance(status, bool) and status != self.root.sonicamp.status:
                     self.queue.put(status)
 
         except IndexError as ie:

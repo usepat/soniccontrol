@@ -45,6 +45,8 @@ class ScriptCommand(Enum):
     STARTLOOP: str = "startloop X\n"
     ENDLOOP: str = "endloop\n"
     SET_RAMP: str = "ramp XXXXXXX XXXXXXX XXXX XXXms\n"
+    SET_FREQ_RAMP: str = "ramp XXXXXXX XXXXXXX XXXX XXXms\n"
+    SET_GAIN_RAMP: str = "ramp XXX XXX XX XXXms\n"
 
 
 class ScriptingTab(ttk.Frame):
@@ -449,6 +451,30 @@ class ScriptingGuide(tk.Toplevel):
             self.ramp_btn,
             text="Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps\nExpamle: ramp 50000 1200000 1000 100ms",
         )
+
+        self.ramp_freq_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text="ramp",
+            arg_text="<start f [Hz]> <stop f [Hz]> <step size [Hz]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, nothing defaults to milliseconds)",
+            desc_text=None,
+            command=lambda: self.insert_command(ScriptCommand.SET_FREQ_RAMP),
+        )
+        ToolTip(
+            self.ramp_freq_btn,
+            text="Create a frequency ramp with a start frequency, a stop frequency,\n a step size and a delay between steps\nExpamle: ramp 50000 1200000 1000 100ms",
+        )
+
+        self.ramp_gain_btn: ScriptingGuideRow = ScriptingGuideRow(
+            self,
+            btn_text="ramp",
+            arg_text="<start [%]> <stop [%]> <step size [%]> <delay [ms / s]><unit of time> \nThe delay should be written like a hold (e.g: 100ms, 5s, nothing defaults to milliseconds)",
+            desc_text=None,
+            command=lambda: self.insert_command(ScriptCommand.SET_GAIN_RAMP),
+        )
+        ToolTip(
+            self.ramp_gain_btn,
+            text="Create a gain ramp with a start %, a stop %,\n a step size and a delay between steps\nExpamle: ramp 10 150 10 100ms",
+        )
         self.disclaimer_label: ttk.Label = ttk.Label(
             self,
             text="To insert a function at the cursor position, click on the respective button",
@@ -470,6 +496,8 @@ class ScriptingGuide(tk.Toplevel):
         self.startloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         self.endloop_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         self.ramp_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.ramp_freq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
+        self.ramp_gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
 
         if (
             not isinstance(self.root.sonicamp, SonicWipeOld) or 

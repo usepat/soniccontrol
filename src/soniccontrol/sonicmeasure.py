@@ -251,7 +251,7 @@ class SonicMeasureFrame(ttk.Frame):
             child.config(state=tk.DISABLED)
         
         logger.debug(f'trying to start ramp; Conditions run = {self.run}')
-        try: self.root.sonicamp.ramp(
+        try: self.root.sonicamp.ramp_freq(
             start = start_freq, 
             stop = stop_freq, 
             step = step_freq, 
