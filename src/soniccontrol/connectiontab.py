@@ -13,6 +13,7 @@ from tkinter import messagebox
 
 from soniccontrol.helpers import ToolTip, logger
 from sonicpackage import Command
+import sonicpackage as sp
 
 if typing.TYPE_CHECKING:
     from soniccontrol.core import Root
@@ -65,7 +66,10 @@ class ConnectionTab(ttk.Frame):
 
     def _initialize_heading(self) -> None:
         self.heading_frame: ttk.Frame = ttk.Frame(self.topframe)
-        self.subtitle: ttk.Label = ttk.Label(self.heading_frame, padding=(0, 10, 0, 0))
+        self.subtitle: ttk.Label = ttk.Label(
+            self.heading_frame,
+            padding=(0, 10, 0, 0)
+        )
         self.heading1: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(10, 0, 2, 10),
@@ -114,7 +118,22 @@ class ConnectionTab(ttk.Frame):
     def _initialize_transducer_menue(self) -> None:
         if not self.root.config_file:
             return
-
+          
+        if self.root.config_file.modes:
+            self.mode_frame: ttk.Frame = ttk.Frame(self.botframe)
+            self.modes_menue: ttk.Combobox = ttk.Combobox(
+                master=self.mode_frame,
+                textvariable=self.root.current_mode,
+                width=20,
+                style="dark.TCombobox",
+                state=tk.READABLE,
+            )
+            self.mode_button: ttk.Button = ttkb.Button(
+                self.mode_frame,
+                bootstyle="secondary-outline",
+                command=self.set_mode,
+                text='Set Mode'
+            )
         if not self.root.config_file.transducer:
             return
 
@@ -129,15 +148,38 @@ class ConnectionTab(ttk.Frame):
         self._update_transducer_menue()
         self.transducer_preview: ttk.LabelFrame = ttk.LabelFrame(
             self.botframe,
-            text="Currently configured transducer",
-            style="secondary.TLabelframe",
-            padding=(5, 5, 5, 5),
+            text='Currently configured transducer',
+            style='secondary.TLabelframe',
+            padding=(5, 5, 5, 5)
         )
         self.transducer_preview_label: ttk.Label = ttk.Label(
             self.transducer_preview, text=""
         )
 
+    def set_mode(self) -> None:
+        logger.info(
+            f'Setting mode {self.root.custom_modes.get(self.root.current_mode.get())}')
+        self.root.sonicamp.set_mode(
+            self.root.custom_modes.get(self.root.current_mode.get()))
+
     def set_atf(self) -> None:
+        current_transducer: dict = self.root.config_file.transducer.get(
+            self.transducer_active.get())
+        self.root.sonicamp.set_threshold_freq(
+            current_transducer.get("threshold_freq"))
+        self.root.serial.send_and_get(
+            Command.SET_PROT_FREQ1 + current_transducer.get("atf1"))
+        self.root.serial.send_and_get(
+            Command.SET_PROT_FREQ2 + current_transducer.get("atf2"))
+        self.root.serial.send_and_get(
+            Command.SET_PROT_FREQ3 + current_transducer.get("atf3"))
+        self.root.serial.send_and_get(
+            Command.SET_ATT1 + current_transducer.get("att1"))
+        self.root.serial.send_and_get(
+            Command.SET_ATT2 + current_transducer.get("att2"))
+
+    def config_file_str(self) -> str:
+        transducer_data: dict = self.root.config_file.transducer.get(
         def configure_trd():
             logger.debug(f"Configuring transducer {self.transducer_active.get()}")
             current_transducer: dict = self.root.config_file.transducer.get(
@@ -185,6 +227,11 @@ class ConnectionTab(ttk.Frame):
 
         string: str = ""
         for item in transducer_data:
+            if (item == "atf1" or item == "atf2" or item == "atf3" or item == "threshold_freq"):
+                continue
+            string += item + ":\t" + \
+                str(self.root.config_file.transducer[self.transducer_active.get(
+                )][item]) + "\n"
             if (
                 item == "atf1"
                 or item == "atf2"
@@ -200,15 +247,21 @@ class ConnectionTab(ttk.Frame):
                 )
                 + "\n"
             )
-
         return string
 
     def _update_transducer_menue(self) -> None:
         if not self.root.config_file:
             return
+          
+        if self.root.config_file.modes:
+            self.modes_menue.config(
+                values=list(self.root.custom_modes.keys()),
+            )
+
         if not self.root.config_file.transducer:
             return
         transducer_menue: tk.Menu = tk.Menu(self.transducer_menuebutton, tearoff=0)
+
         for trd in self.root.config_file.transducer.keys():
             logger.info(f"Adding transducer value {trd}")
             transducer_menue.add_radiobutton(
@@ -332,12 +385,18 @@ class ConnectionTab(ttk.Frame):
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)
 
+        if self.root.config_file and self.root.config_file.modes:
+            self.modes_menue.grid(row=0, column=0, padx=10, pady=10)
+            self.mode_button.grid(row=0, column=1, padx=10, pady=10)
+            self.mode_frame.grid(row=1, column=1, padx=10, pady=10)
+
         if self.root.config_file and self.root.config_file.transducer:
             self.transducer_menuebutton.pack()
             self.transducer_frame.grid(row=1, column=1, padx=10, pady=10)
             self.transducer_preview.grid(
                 row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW
             )
+
             self.transducer_preview_label.pack()
 
         # if self.root.config_data["hexflash"]:
@@ -345,8 +404,8 @@ class ConnectionTab(ttk.Frame):
         #     self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
         #     self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
         #     self.firmware_frame.grid(row=0, column=0, columnspan=1, padx=10, pady=10)
-
-        self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+        self.firmware_frame.grid(
+            row=0, column=0, columnspan=2, padx=10, pady=10)
 
 
 if __name__ == "__main__":

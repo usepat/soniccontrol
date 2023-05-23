@@ -310,8 +310,10 @@ class GUISequence(SonicSequence):
         self.gui.end_sequence()
 
     def updater(self, command: str, argument: str) -> None:
-        if not self.run: return
-        if isinstance(self.sonicamp, SonicWipe40KHZ): return 
+        if not self.run: 
+            return
+        if isinstance(self.sonicamp, SonicWipe40KHZ): 
+            return 
         self.amp_controller.update()
         self.gui.status_handler()
 
