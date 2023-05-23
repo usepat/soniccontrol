@@ -240,7 +240,8 @@ class StatusFrame(ttk.Frame):
         if not (isinstance(status.frequency, int) and status.frequency != self._freq_using):
             return
 
-        self.freq_meter['amounttotal'] = self.sonicamp.mode.freq_stop / const.DIVIDE_TO_KHZ
+        self.freq_meter['amounttotal'] = self.sonicamp.mode.freq_stop / const.DIVIDE_TO_KHZi
+
         self.freq_meter['amountused'] = status.frequency / const.DIVIDE_TO_KHZ
         self._freq_using = status.frequency
 
