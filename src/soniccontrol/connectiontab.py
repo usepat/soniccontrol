@@ -161,26 +161,24 @@ class ConnectionTab(ttk.Frame):
             self.root.custom_modes.get(self.root.current_mode.get())
         )
 
-    def set_atf(self) -> None:
-        current_transducer: dict = self.root.config_file.transducer.get(
-            self.transducer_active.get()
-        )
-        self.root.sonicamp.set_threshold_freq(current_transducer.get("threshold_freq"))
-        self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
-        )
-        self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
-        )
-        self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
-        )
-        self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
-        self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
+    # def set_atf(self) -> None:
+    #     current_transducer: dict = self.root.config_file.transducer.get(
+    #         self.transducer_active.get()
+    #     )
+    #     self.root.sonicamp.set_threshold_freq(current_transducer.get("threshold_freq"))
+    #     self.root.serial.send_and_get(
+    #         Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
+    #     )
+    #     self.root.serial.send_and_get(
+    #         Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
+    #     )
+    #     self.root.serial.send_and_get(
+    #         Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
+    #     )
+    #     self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
+    #     self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
 
-    def config_file_str(self) -> str:
-        transducer_data: dict = self.root.config_file.transducer.get()
-
+    def set_atf(self) -> str:
         def configure_trd():
             logger.debug(f"Configuring transducer {self.transducer_active.get()}")
             current_transducer: dict = self.root.config_file.transducer.get(
@@ -228,21 +226,6 @@ class ConnectionTab(ttk.Frame):
 
         string: str = ""
         for item in transducer_data:
-            if (
-                item == "atf1"
-                or item == "atf2"
-                or item == "atf3"
-                or item == "threshold_freq"
-            ):
-                continue
-            string += (
-                item
-                + ":\t"
-                + str(
-                    self.root.config_file.transducer[self.transducer_active.get()][item]
-                )
-                + "\n"
-            )
             if (
                 item == "atf1"
                 or item == "atf2"
