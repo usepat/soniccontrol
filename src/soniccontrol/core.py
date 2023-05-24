@@ -34,6 +34,7 @@ from sonicpackage import (
     SonicWipeAncient,
     SonicCatch,
     SonicWipe,
+    DeviceNotImplementedError,
 )
 
 import soniccontrol.constants as const
@@ -112,13 +113,15 @@ class Root(tk.Tk):
         default_font.configure(family="Arial", size=12)
         self.option_add("*Font", default_font)
         self.arial12: font.Font = font.Font(
-            family="Arial", size=12, weight=tk.font.BOLD)
+            family="Arial", size=12, weight=tk.font.BOLD
+        )
         self.qtype12: font.Font = font.Font(
-            family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD)
-        self.qtype30: font.Font = font.Font(
-            family="QTypeOT-CondLight", size=30)
+            family="QTypeOT-CondMedium", size=12, weight=tk.font.BOLD
+        )
+        self.qtype30: font.Font = font.Font(family="QTypeOT-CondLight", size=30)
         self.qtype30b: font.Font = font.Font(
-            family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD)
+            family="QTypeOT-CondBook", size=30, weight=tk.font.BOLD
+        )
 
         # Defining images
         self.REFRESH_IMG: PhotoImage = PhotoImage(const.REFRESH_RAW_IMG)
@@ -169,16 +172,14 @@ class Root(tk.Tk):
             logger.debug(traceback.format_exc())
             logger.warning(ass_e)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error",
-                f"{ass_e}\nDo you want to go into rescue mode?"
+                "Data Error", f"{ass_e}\nDo you want to go into rescue mode?"
             )
 
         except MemoryError as mem_e:
             logger.debug(traceback.format_exc())
             logger.warning(mem_e)
             rescue_me: bool = messagebox.askyesno(
-                "Memory Error",
-                f"{mem_e}Do you want to go into rescue mode?"
+                "Memory Error", f"{mem_e}Do you want to go into rescue mode?"
             )
             messagebox.showerror()
 
@@ -186,11 +187,10 @@ class Root(tk.Tk):
             logger.debug(traceback.format_exc())
             logger.warning(attr_e)
             rescue_me: bool = messagebox.askyesno(
-                "Data Error",
-                f"{attr_e}\nDo you want to go into rescue mode?"
+                "Data Error", f"{attr_e}\nDo you want to go into rescue mode?"
             )
 
-        except NotImplementedError as nie:
+        except DeviceNotImplementedError as nie:
             logger.debug(traceback.format_exc())
             logger.warning(nie)
             rescue_me: bool = messagebox.askyesno(
@@ -232,7 +232,8 @@ class Root(tk.Tk):
 
     def decide_action(self) -> None:
         self._amp_controller: SonicInterface = SonicInterface(
-            port=self.port.get(), logger_level=self.LOGGER_LEVEL, thread=self.thread)
+            port=self.port.get(), logger_level=self.LOGGER_LEVEL, thread=self.thread
+        )
         self._sonicamp: SonicAmp = self.amp_controller.sonicamp
         self._serial: SerialConnection = self.amp_controller.serial
 
@@ -244,7 +245,9 @@ class Root(tk.Tk):
         ):
             self.publish_for_old_catch()
 
-        elif isinstance(self.sonicamp, SonicWipeOld) or isinstance(self.sonicamp, SonicWipeAncient):
+        elif isinstance(self.sonicamp, SonicWipeOld) or isinstance(
+            self.sonicamp, SonicWipeAncient
+        ):
             self.publish_for_old_wipe()
 
         elif isinstance(self.sonicamp, SonicWipe40KHZ):
@@ -261,23 +264,23 @@ class Root(tk.Tk):
 
     def _initialize_data(self) -> None:
         self.config_file: ConfigData = ConfigData().read_json()
-        logger.debug(f'read config file: {self.config_file}')
+        logger.debug(f"read config file: {self.config_file}")
         if not self.config_file:
             self.attach_data()
             return
         if not self.config_file.modes:
             self.attach_data()
             return
-        
+
         for mode in self.sonicamp._supported_modes:
             self.custom_modes.update({str(mode): mode})
         for key, mode in self.config_file.modes.items():
-            logger.info(f'adding mode {mode}')
+            logger.info(f"adding mode {mode}")
             mode = self.sonicamp.define_new_mode(
-                mode.get('freq_begin'),
-                mode.get('freq_end'),
-                mode.get('gain_begin'),
-                mode.get('gain_end'),
+                mode.get("freq_begin"),
+                mode.get("freq_end"),
+                mode.get("gain_begin"),
+                mode.get("gain_end"),
             )
             self.custom_modes.update({str(mode): mode})
         self.attach_data()
@@ -337,8 +340,7 @@ class Root(tk.Tk):
     def publish_for_old_wipe(self) -> None:
         self._pre_publish()
         self.serial_monitor: SerialMonitor = SerialMonitorWipe(self)
-        self.status_frame: StatusFrame = StatusFrameWipeOld(
-            self.mainframe, self)
+        self.status_frame: StatusFrame = StatusFrameWipeOld(self.mainframe, self)
         self.attach_data()
         self.notebook.publish_for_old_wipe()
         self._after_publish()
@@ -371,7 +373,8 @@ class Root(tk.Tk):
         if not self._is_wided():
             return
         self.serial_monitor.pack(
-            anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH)
+            anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
+        )
 
     def _is_wided(self) -> bool:
         if self.winfo_width() == Root.MIN_WIDTH:

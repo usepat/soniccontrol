@@ -66,10 +66,7 @@ class ConnectionTab(ttk.Frame):
 
     def _initialize_heading(self) -> None:
         self.heading_frame: ttk.Frame = ttk.Frame(self.topframe)
-        self.subtitle: ttk.Label = ttk.Label(
-            self.heading_frame,
-            padding=(0, 10, 0, 0)
-        )
+        self.subtitle: ttk.Label = ttk.Label(self.heading_frame, padding=(0, 10, 0, 0))
         self.heading1: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(10, 0, 2, 10),
@@ -118,7 +115,7 @@ class ConnectionTab(ttk.Frame):
     def _initialize_transducer_menue(self) -> None:
         if not self.root.config_file:
             return
-          
+
         if self.root.config_file.modes:
             self.mode_frame: ttk.Frame = ttk.Frame(self.botframe)
             self.modes_menue: ttk.Combobox = ttk.Combobox(
@@ -132,7 +129,7 @@ class ConnectionTab(ttk.Frame):
                 self.mode_frame,
                 bootstyle="secondary-outline",
                 command=self.set_mode,
-                text='Set Mode'
+                text="Set Mode",
             )
         if not self.root.config_file.transducer:
             return
@@ -148,9 +145,9 @@ class ConnectionTab(ttk.Frame):
         self._update_transducer_menue()
         self.transducer_preview: ttk.LabelFrame = ttk.LabelFrame(
             self.botframe,
-            text='Currently configured transducer',
-            style='secondary.TLabelframe',
-            padding=(5, 5, 5, 5)
+            text="Currently configured transducer",
+            style="secondary.TLabelframe",
+            padding=(5, 5, 5, 5),
         )
         self.transducer_preview_label: ttk.Label = ttk.Label(
             self.transducer_preview, text=""
@@ -158,28 +155,32 @@ class ConnectionTab(ttk.Frame):
 
     def set_mode(self) -> None:
         logger.info(
-            f'Setting mode {self.root.custom_modes.get(self.root.current_mode.get())}')
+            f"Setting mode {self.root.custom_modes.get(self.root.current_mode.get())}"
+        )
         self.root.sonicamp.set_mode(
-            self.root.custom_modes.get(self.root.current_mode.get()))
+            self.root.custom_modes.get(self.root.current_mode.get())
+        )
 
     def set_atf(self) -> None:
         current_transducer: dict = self.root.config_file.transducer.get(
-            self.transducer_active.get())
-        self.root.sonicamp.set_threshold_freq(
-            current_transducer.get("threshold_freq"))
+            self.transducer_active.get()
+        )
+        self.root.sonicamp.set_threshold_freq(current_transducer.get("threshold_freq"))
         self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ1 + current_transducer.get("atf1"))
+            Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
+        )
         self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ2 + current_transducer.get("atf2"))
+            Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
+        )
         self.root.serial.send_and_get(
-            Command.SET_PROT_FREQ3 + current_transducer.get("atf3"))
-        self.root.serial.send_and_get(
-            Command.SET_ATT1 + current_transducer.get("att1"))
-        self.root.serial.send_and_get(
-            Command.SET_ATT2 + current_transducer.get("att2"))
+            Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
+        )
+        self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
+        self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
 
     def config_file_str(self) -> str:
-        transducer_data: dict = self.root.config_file.transducer.get(
+        transducer_data: dict = self.root.config_file.transducer.get()
+
         def configure_trd():
             logger.debug(f"Configuring transducer {self.transducer_active.get()}")
             current_transducer: dict = self.root.config_file.transducer.get(
@@ -214,7 +215,7 @@ class ConnectionTab(ttk.Frame):
                 Command.SET_ATK3 + current_transducer.get("atk3")
             )
             self.transducer_preview_label["text"] = self.config_file_str()
-        
+
         threading.Thread(target=configure_trd, daemon=False).start()
 
     def config_file_str(self) -> str:
@@ -227,11 +228,21 @@ class ConnectionTab(ttk.Frame):
 
         string: str = ""
         for item in transducer_data:
-            if (item == "atf1" or item == "atf2" or item == "atf3" or item == "threshold_freq"):
+            if (
+                item == "atf1"
+                or item == "atf2"
+                or item == "atf3"
+                or item == "threshold_freq"
+            ):
                 continue
-            string += item + ":\t" + \
-                str(self.root.config_file.transducer[self.transducer_active.get(
-                )][item]) + "\n"
+            string += (
+                item
+                + ":\t"
+                + str(
+                    self.root.config_file.transducer[self.transducer_active.get()][item]
+                )
+                + "\n"
+            )
             if (
                 item == "atf1"
                 or item == "atf2"
@@ -252,7 +263,7 @@ class ConnectionTab(ttk.Frame):
     def _update_transducer_menue(self) -> None:
         if not self.root.config_file:
             return
-          
+
         if self.root.config_file.modes:
             self.modes_menue.config(
                 values=list(self.root.custom_modes.keys()),
@@ -404,8 +415,7 @@ class ConnectionTab(ttk.Frame):
         #     self.upload_button.pack(padx=10, pady=10, side=tk.TOP)
         #     self.flash_frame.grid(row=0, column=1, padx=10, pady=10)
         #     self.firmware_frame.grid(row=0, column=0, columnspan=1, padx=10, pady=10)
-        self.firmware_frame.grid(
-            row=0, column=0, columnspan=2, padx=10, pady=10)
+        self.firmware_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
 
 
 if __name__ == "__main__":
