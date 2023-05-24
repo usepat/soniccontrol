@@ -6,6 +6,7 @@ import platform
 import threading
 import tkinter as tk
 import tkinter.ttk as ttk
+import traceback
 
 from typing import TYPE_CHECKING, Union
 from tkinter import filedialog
@@ -232,10 +233,11 @@ class InfoTab(ttk.Frame):
             self.connect_after_hexflash(port)
 
         except Exception as e:
-            logger.warning(e)
+            logger.warning(e.with_traceback())
+            logger.warning(traceback.format_exc())
             messagebox.showerror(
                 "Error",
-                "Something went wrong, please try again. Maybe restart the device and the program",
+                f"Something went wrong, please try again. Maybe restart the device and the program. {e}",
             )
 
     def connect_after_hexflash(self, port: str) -> None:
