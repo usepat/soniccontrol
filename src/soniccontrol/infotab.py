@@ -222,7 +222,7 @@ class InfoTab(ttk.Frame):
                 command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
             )
             logger.info(
-                f"AVRDUDE log:\n\n{commandline_process.communicate()[0].decode()}"
+                f"AVRDUDE log:\n\n{commandline_process.communicate()[0].decode('utf-8' if platform.system() != 'Windows' else 'windows-1252')}"
             )
 
             self.file_entry.configure(
