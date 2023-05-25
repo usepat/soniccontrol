@@ -161,23 +161,6 @@ class ConnectionTab(ttk.Frame):
             self.root.custom_modes.get(self.root.current_mode.get())
         )
 
-    # def set_atf(self) -> None:
-    #     current_transducer: dict = self.root.config_file.transducer.get(
-    #         self.transducer_active.get()
-    #     )
-    #     self.root.sonicamp.set_threshold_freq(current_transducer.get("threshold_freq"))
-    #     self.root.serial.send_and_get(
-    #         Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
-    #     )
-    #     self.root.serial.send_and_get(
-    #         Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
-    #     )
-    #     self.root.serial.send_and_get(
-    #         Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
-    #     )
-    #     self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
-    #     self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
-
     def set_atf(self) -> str:
         def configure_trd():
             logger.debug(f"Configuring transducer {self.transducer_active.get()}")
@@ -212,6 +195,11 @@ class ConnectionTab(ttk.Frame):
             self.root.serial.send_and_get(
                 Command.SET_ATK3 + current_transducer.get("atk3")
             )
+
+            if self.root.config_file.transducer.get("commands"):
+                for command in self.root.config_file.transducer.get("commands"):
+                    self.root.serial.send_and_get(command)
+
             self.transducer_preview_label["text"] = self.config_file_str()
 
         threading.Thread(target=configure_trd, daemon=False).start()
