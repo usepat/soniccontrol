@@ -202,7 +202,23 @@ class ConnectionTab(ttk.Frame):
 
             self.transducer_preview_label["text"] = self.config_file_str()
 
+        if self.root.sonicamp.status.signal:
+            self.root.sonicamp.set_signal_off()
+            signal = True
+            auto = False
+        elif self.root.sonicamp.status.wipe_mode:
+            self.root.sonicamp.set_signal_off()
+            singal = False
+            auto = True
+        else:
+            signal = False
+            auto = False
+
         threading.Thread(target=configure_trd, daemon=False).start()
+        if signal and not auto:
+            self.root.sonicamp.set_signal_on()
+        elif auto:
+            self.root.sonicamp.set_signal_auto()
 
     def config_file_str(self) -> str:
         transducer_data: dict = self.root.config_file.transducer.get(
