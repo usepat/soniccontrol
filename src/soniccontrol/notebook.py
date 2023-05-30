@@ -32,7 +32,7 @@ class ScNotebook(ttk.Notebook):
         super().__init__(parent, *args, **kwargs)
         self._root: Root = root
 
-        self.config(height=560, width=540)
+        # self.config(height=560, width=540)
         self["style"] = "light.TNotebook"
 
         self.hometab: Hometab = ttk.Frame()

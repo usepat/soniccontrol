@@ -65,7 +65,7 @@ class ScriptingTab(ttk.Frame):
 
     def __init__(self, parent: ScNotebook, root: Root, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
-        self.config(height=200, width=200)
+        # self.config(height=200, width=200)
 
         self._root: Root = root
         self._serial: SerialConnection = root.serial
@@ -141,7 +141,7 @@ class ScriptingTab(ttk.Frame):
             autoseparators=False,
             background="white",
             setgrid=False,
-            width=35,
+            # width=35,
             padx=5,
             pady=5,
             font=("Consolas", 12),
@@ -158,7 +158,7 @@ class ScriptingTab(ttk.Frame):
         )
         self.sequence_status: ttk.Progressbar = ttk.Progressbar(
             self.scripting_frame,
-            length=160,
+            # length=160,
             mode="indeterminate",
             orient=tk.HORIZONTAL,
             style="dark.TProgressbar",
@@ -172,8 +172,10 @@ class ScriptingTab(ttk.Frame):
         self.root.update_idletasks()
         self.end_sequence() if not self.sequence.run else None
 
-    def highlight_line(self, current_line: int) -> None:
-        current_line += 1
+    def highlight_line(self, current_line: Optional[int]) -> None:
+        if current_line is None:
+            return 
+        # current_line += 1
         self.scripttext.tag_remove("currentLine", 1.0, "end")
         self.scripttext.tag_add(
             "currentLine", f"{current_line}.0", f"{current_line}.end"
@@ -306,22 +308,16 @@ class GUISequence(SonicSequence):
         self._gui: ScriptingTab = gui
 
     def stop(self) -> None:
-        if self.run: self._run: bool = False
+        super().stop()
         self.gui.end_sequence()
 
-    def updater(self, command: str, argument: str) -> None:
-        if not self.run: 
-            return
-        if isinstance(self.sonicamp, SonicWipe40KHZ): 
-            return 
-        self.amp_controller.update()
+    def updater(self, command: str, argument: str, line: Optional[int] = None, **kwargs) -> None:
+        self.gui.highlight_line(line)
+        current_task: str = f"{kwargs.get('remaining_time')} seconds remaining" if 'remaining_time' in kwargs else str(command)
+        current_task: str = f"Currently at {kwargs.get('currently_at')}" if 'currently_at' in kwargs else current_task
+        self.gui.current_task.set(current_task)
+        super().updater(command, argument, line)
         self.gui.status_handler()
-
-        data_dict: dict = self.sonicamp.status.__dict__
-        data_dict["command"] = command
-        data_dict["argument"] = argument
-        
-        self.file_handler.register_data(data_dict)
 
     def exec_command(self, index: int) -> None:
         self.gui.highlight_line(index+len(self.comment))
@@ -345,7 +341,7 @@ class GUISequence(SonicSequence):
             if ramp_mode: 
                 continue
             
-            self.gui.current_task.set(f"Hold: {(target - now).seconds} seconds remaining")
+            
             self.updater("hold", args_)
 
 

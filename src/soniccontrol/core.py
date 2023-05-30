@@ -99,9 +99,9 @@ class Root(tk.Tk):
         self.config_file: ConfigData = ConfigData().read_json()
 
         # setting up root window, configurations
-        self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
-        self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
-        self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
+        # self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
+        # self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
+        # self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
         ttkb.Style(theme=Root.THEME)
 
