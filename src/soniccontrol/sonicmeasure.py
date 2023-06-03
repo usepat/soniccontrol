@@ -317,7 +317,7 @@ class SonicMeasureFrame(ttk.Frame):
         self.fig_canvas.flush_events()
         self.root.update()
 
-    def updater(self) -> None:
+    def updater(self, *args, **kwargs) -> None:
         self.root.sonicamp.update()
         self.filehandler.register_data(self.root.sonicamp.status.__dict__)
         self.draw()

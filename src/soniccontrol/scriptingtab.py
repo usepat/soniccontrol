@@ -22,7 +22,7 @@ from sonicpackage import (
     SonicSequence,
     SerialConnection,
     FileHandler,
-    ValueNotSupported
+    ValueNotSupported,
 )
 
 from soniccontrol.helpers import logger, ToolTip
@@ -33,7 +33,6 @@ if TYPE_CHECKING:
 
 
 class ScriptCommand(Enum):
-
     SET_FRQ: str = "frequency XXXXXXXX\n"
     SET_GAIN: str = "gain XXX\n"
     SET_KHZ: str = "setkHz\n"
@@ -50,7 +49,6 @@ class ScriptCommand(Enum):
 
 
 class ScriptingTab(ttk.Frame):
-
     @property
     def root(self) -> Root:
         return self._root
@@ -165,7 +163,7 @@ class ScriptingTab(ttk.Frame):
         )
 
     def status_handler(self) -> None:
-        if isinstance(self.root.sonicamp, SonicWipe40KHZ): 
+        if isinstance(self.root.sonicamp, SonicWipe40KHZ):
             return
 
         self.root.attach_data()
@@ -174,7 +172,7 @@ class ScriptingTab(ttk.Frame):
 
     def highlight_line(self, current_line: Optional[int]) -> None:
         if current_line is None:
-            return 
+            return
         # current_line += 1
         self.scripttext.tag_remove("currentLine", 1.0, "end")
         self.scripttext.tag_add(
@@ -227,7 +225,7 @@ class ScriptingTab(ttk.Frame):
 
     def end_sequence(self) -> None:
         logger.debug("End sequence started")
-        if self.sequence._run: 
+        if self.sequence._run:
             self.sequence._run = False
 
         self.logfile = None
@@ -256,7 +254,10 @@ class ScriptingTab(ttk.Frame):
         self.root.amp_controller.set_signal_off()
         self.root.attach_data()
 
-        if not isinstance(self.root.sonicamp, SonicWipe40KHZ) and self.root.thread.paused.is_set():
+        if (
+            not isinstance(self.root.sonicamp, SonicWipe40KHZ)
+            and self.root.thread.paused.is_set()
+        ):
             self.root.thread.resume()
 
     def attach_data(self) -> None:
@@ -291,19 +292,26 @@ class ScriptingTab(ttk.Frame):
         for child in self.button_frame.winfo_children():
             child.pack(side=tk.TOP, padx=5, pady=5)
 
-        self.scripting_frame.pack(anchor=tk.N, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.X)
+        self.scripting_frame.pack(
+            anchor=tk.N, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.X
+        )
         self.scripttext.grid(row=0, column=0, columnspan=2)
-        self.cur_task_label.grid(row=1, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
-        self.sequence_status.grid(row=2, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2)
+        self.cur_task_label.grid(
+            row=1, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2
+        )
+        self.sequence_status.grid(
+            row=2, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2
+        )
 
 
 class GUISequence(SonicSequence):
-
     @property
     def gui(self) -> ScriptingTab:
         return self._gui
-    
-    def __init__(self, amp_controller: SonicInterface, gui: ScriptingTab, logfile: str = None) -> None:
+
+    def __init__(
+        self, amp_controller: SonicInterface, gui: ScriptingTab, logfile: str = None
+    ) -> None:
         super().__init__(amp_controller, logfile)
         self._gui: ScriptingTab = gui
 
@@ -311,20 +319,35 @@ class GUISequence(SonicSequence):
         super().stop()
         self.gui.end_sequence()
 
-    def updater(self, command: str, argument: str, line: Optional[int] = None, **kwargs) -> None:
+    def updater(
+        self, command: str, argument: str = "", line: Optional[int] = None, **kwargs
+    ) -> None:
         self.gui.highlight_line(line)
-        current_task: str = f"{kwargs.get('remaining_time')} seconds remaining" if 'remaining_time' in kwargs else str(command)
-        current_task: str = f"Currently at {kwargs.get('currently_at')}" if 'currently_at' in kwargs else current_task
+        current_task: str = (
+            f"{kwargs.get('remaining_time')} seconds remaining"
+            if kwargs.get("currently_at") is not None
+            else str(command)
+        )
+        current_task: str = (
+            f"Currently at {kwargs.get('currently_at')}"
+            if kwargs.get("currently_at") is not None
+            else current_task
+        )
+
+        if kwargs.get("remaining_time") is None or kwargs.get("currently_at") is None:
+            pass
+
         self.gui.current_task.set(current_task)
         super().updater(command, argument, line)
         self.gui.status_handler()
 
     def exec_command(self, index: int) -> None:
-        self.gui.highlight_line(index+len(self.comment))
+        self.gui.highlight_line(index + len(self.comment))
         super().exec_command(index)
 
     def hold(self, args_: Union[list, int], ramp_mode: bool = False) -> None:
-        if not self.run: return
+        if not self.run:
+            return
         now: datetime.datetime = datetime.datetime.now()
         if isinstance(args_, int):
             target = now + datetime.timedelta(milliseconds=args_)
@@ -332,18 +355,16 @@ class GUISequence(SonicSequence):
             target = now + datetime.timedelta(seconds=args_[0])
         elif (len(args_) > 1 and args_[1] == "ms") or (len(args_) == 1):
             target = now + datetime.timedelta(milliseconds=args_[0])
-        else: 
+        else:
             target = now + datetime.timedelta(milliseconds=args_[0])
 
         while now < target and self.run:
             time.sleep(0.02)
             now = datetime.datetime.now()
-            if ramp_mode: 
+            if ramp_mode:
                 continue
-            
-            
-            self.updater("hold", args_)
 
+            self.updater("hold", args_)
 
 
 class ScriptingGuide(tk.Toplevel):
@@ -495,10 +516,9 @@ class ScriptingGuide(tk.Toplevel):
         self.ramp_freq_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
         self.ramp_gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
 
-        if (
-            not isinstance(self.root.sonicamp, SonicWipeOld) or 
-            isinstance(self.root.sonicamp, SonicWipeAncient
-        )):
+        if not isinstance(self.root.sonicamp, SonicWipeOld) or isinstance(
+            self.root.sonicamp, SonicWipeAncient
+        ):
             self.gain_btn.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.W)
 
         if not isinstance(self.root.sonicamp, SonicWipe40KHZ):
@@ -509,18 +529,30 @@ class ScriptingGuide(tk.Toplevel):
 
 class ScriptingGuideRow(ttk.Frame):
     def __init__(
-        self, parent: ScriptingGuide, btn_text: str, arg_text: str, desc_text: str, command, *args, **kwargs,
+        self,
+        parent: ScriptingGuide,
+        btn_text: str,
+        arg_text: str,
+        desc_text: str,
+        command,
+        *args,
+        **kwargs,
     ) -> None:
         super().__init__(parent, *args, **kwargs)
 
-        self.command_btn: ttk.Button = ttk.Button(self, width=15, style="dark.TButton", text=btn_text, command=command)
+        self.command_btn: ttk.Button = ttk.Button(
+            self, width=15, style="dark.TButton", text=btn_text, command=command
+        )
         self.command_btn.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW)
 
         if arg_text:
-            self.arg_label: ttk.Label = ttk.Label(self, style="inverse.info.TLabel", text=arg_text)
+            self.arg_label: ttk.Label = ttk.Label(
+                self, style="inverse.info.TLabel", text=arg_text
+            )
             self.arg_label.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
 
         if desc_text:
-            self.desc_label: ttk.Label = ttk.Label(self, text=desc_text, style="inverse.primary.TLabel")
+            self.desc_label: ttk.Label = ttk.Label(
+                self, text=desc_text, style="inverse.primary.TLabel"
+            )
             self.desc_label.grid(row=0, column=3, padx=5, pady=5, sticky=tk.NSEW)
-    
