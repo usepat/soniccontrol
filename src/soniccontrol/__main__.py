@@ -8,5 +8,7 @@ if platform.system() == "Windows":
 elif platform.system() == "Linux":
     gui: sc.Root = sc.Root()
     enable_high_dpi_awareness(gui)
+else:
+    gui: sc.Root = sc.Root()
 
 gui.mainloop()

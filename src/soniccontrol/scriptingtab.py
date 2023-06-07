@@ -58,6 +58,10 @@ class ScriptingTab(ttk.Frame):
         return self._serial
 
     @property
+    def sequence(self) -> SonicSequence:
+        return self._sequence
+
+    @property
     def amp_controller(self) -> SonicInterface:
         return self._amp_controller
 
@@ -184,14 +188,15 @@ class ScriptingTab(ttk.Frame):
 
     def button_starter(self):
         try:
-            threading.Thread(target=self.start_sequence).start()
+            self.thread = threading.Thread(target=self.start_sequence)
+            self.thread.start()
         except Exception as exc:
             logger.warning(tb.format_exc(exc))
             self.root.thread.resume() if self.root.thread.paused.is_set() else None
 
     def start_sequence(self) -> None:
         logger.debug("Started sequence")
-        self.sequence: Sequence = GUISequence(self.amp_controller, self, self.logfile)
+        self._sequence: Sequence = GUISequence(self.amp_controller, self, self.logfile)
 
         self.root.thread.pause() if not self.root.thread.paused.is_set() else None
 
@@ -199,7 +204,7 @@ class ScriptingTab(ttk.Frame):
             text="Stop",
             style="danger.TButton",
             image=self.root.PAUSE_IMG,
-            command=self.sequence.stop,
+            command=self.end_sequence,
         )
 
         self.sequence_status.start()
@@ -222,11 +227,14 @@ class ScriptingTab(ttk.Frame):
         except Exception as exc:
             logger.warning(tb.format_exc(exc))
             messagebox.showerror("Syntax Error", exc)
+        finally:
+            self.end_sequence()
 
     def end_sequence(self) -> None:
         logger.debug("End sequence started")
+        self.thread.join(timeout=0.5)
         if self.sequence._run:
-            self.sequence._run = False
+            self.sequence.stop()
 
         self.logfile = None
         self.start_script_btn.configure(
@@ -295,7 +303,13 @@ class ScriptingTab(ttk.Frame):
         self.scripting_frame.pack(
             anchor=tk.N, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.X
         )
-        self.scripttext.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW, )
+        self.scripttext.grid(
+            row=0,
+            column=0,
+            padx=5,
+            pady=5,
+            sticky=tk.NSEW,
+        )
         self.cur_task_label.grid(
             row=1, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2
         )

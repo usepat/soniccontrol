@@ -395,8 +395,19 @@ class Root(tk.Tk):
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
 
     def on_closing(self) -> None:
-        self.notebook.scriptingtab.sequence.stop() if self.notebook.scriptingtab.sequence is not None else None
-        self.abolish_data()
+        from soniccontrol.scriptingtab import ScriptingTab
+
+        if self.sonicamp is None:
+            self.destroy()
+            return
+        if (
+            isinstance(self.notebook.scriptingtab, ScriptingTab)
+            and self.notebook.scriptingtab.sequence is not None
+        ):
+            self.notebook.scriptingtab.sequence.stop()
+        if tk.Toplevel.winfo_exists(self.sonicmeasure):
+            self.sonicmeasure.on_closing()
+        self.thread.pause() if self.thread.paused else None
         self.destroy()
 
 
