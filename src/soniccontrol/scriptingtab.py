@@ -68,7 +68,7 @@ class ScriptingTab(ttk.Frame):
         self._root: Root = root
         self._serial: SerialConnection = root.serial
         self._amp_controller: SonicInterface = root.amp_controller
-        self._sequence: Sequence
+        self._sequence: Sequence = None
         self._filehandler: FileHandler
 
         self.logfile: Optional[str] = None
@@ -295,7 +295,7 @@ class ScriptingTab(ttk.Frame):
         self.scripting_frame.pack(
             anchor=tk.N, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.X
         )
-        self.scripttext.grid(row=0, column=0, columnspan=2)
+        self.scripttext.grid(row=0, column=0, padx=5, pady=5, sticky=tk.NSEW, )
         self.cur_task_label.grid(
             row=1, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2
         )

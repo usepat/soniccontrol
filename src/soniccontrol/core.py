@@ -104,6 +104,7 @@ class Root(tk.Tk):
         # self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
         ttkb.Style(theme=Root.THEME)
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         if platform.system() == "Windows":
             self.iconbitmap("src//soniccontrol//pictures//welle.ico")
@@ -392,6 +393,11 @@ class Root(tk.Tk):
     def _after_publish(self) -> None:
         self.status_frame.publish()
         self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+
+    def on_closing(self) -> None:
+        self.notebook.scriptingtab.sequence.stop() if self.notebook.scriptingtab.sequence is not None else None
+        self.abolish_data()
+        self.destroy()
 
 
 @dataclass
