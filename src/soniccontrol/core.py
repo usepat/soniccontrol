@@ -139,7 +139,7 @@ class Root(tk.Tk):
 
         # Configuring and starting the Thread
         self._thread: SonicThread = SonicAgent(self)
-        self._thread.setDaemon(True)
+        self._thread.daemon = True
         self._thread.start()
         self._thread.pause()
 
@@ -400,14 +400,17 @@ class Root(tk.Tk):
         if self.sonicamp is None:
             self.destroy()
             return
-        if (
-            isinstance(self.notebook.scriptingtab, ScriptingTab)
-            and self.notebook.scriptingtab.sequence is not None
-        ):
-            self.notebook.scriptingtab.sequence.stop()
+        if (isinstance(self.notebook.scriptingtab, ScriptingTab)
+            and self.notebook.scriptingtab.sequence is not None):
+            logger.info("ending sequence")
+            self.notebook.scriptingtab.end_sequence()
         if tk.Toplevel.winfo_exists(self.sonicmeasure):
             self.sonicmeasure.on_closing()
-        self.thread.pause() if self.thread.paused else None
+
+        self.thread.pause() if not self.thread.paused else None
+        self.thread.stop()
+        self.thread.join()
+
         self.destroy()
 
 

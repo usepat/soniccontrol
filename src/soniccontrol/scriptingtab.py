@@ -177,7 +177,6 @@ class ScriptingTab(ttk.Frame):
     def highlight_line(self, current_line: Optional[int]) -> None:
         if current_line is None:
             return
-        # current_line += 1
         self.scripttext.tag_remove("currentLine", 1.0, "end")
         self.scripttext.tag_add(
             "currentLine", f"{current_line}.0", f"{current_line}.end"
@@ -189,6 +188,7 @@ class ScriptingTab(ttk.Frame):
     def button_starter(self):
         try:
             self.thread = threading.Thread(target=self.start_sequence)
+            self.thread.daemon = True
             self.thread.start()
         except Exception as exc:
             logger.warning(tb.format_exc(exc))
