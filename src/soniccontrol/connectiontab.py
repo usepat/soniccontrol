@@ -59,7 +59,6 @@ class ConnectionTab(ttk.Frame):
             self.botframe,
             text="Serial Monitor",
             style="secondary.TButton",
-            width=12,
             state=tk.DISABLED,
             command=self.root.publish_serial_monitor,
         )
@@ -71,7 +70,6 @@ class ConnectionTab(ttk.Frame):
             self.heading_frame,
             padding=(10, 0, 2, 10),
             font=self.root.qtype30,
-            borderwidth=-2,
         )
         self.heading2: ttk.Label = ttk.Label(
             self.heading_frame,
@@ -88,7 +86,6 @@ class ConnectionTab(ttk.Frame):
         self.ports_menue: ttk.Combobox = ttk.Combobox(
             master=self.control_frame,
             textvariable=self.root.port,
-            width=7,
             style="dark.TCombobox",
             state=tk.READABLE,
         )
@@ -121,7 +118,6 @@ class ConnectionTab(ttk.Frame):
             self.modes_menue: ttk.Combobox = ttk.Combobox(
                 master=self.mode_frame,
                 textvariable=self.root.current_mode,
-                width=20,
                 style="dark.TCombobox",
                 state=tk.READABLE,
             )
@@ -361,24 +357,29 @@ class ConnectionTab(ttk.Frame):
         logger.info("Disconnecting device")
 
     def publish(self) -> None:
+        def publish_heading():
+            self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
+            self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
+            self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
+            self.heading_frame.pack(padx=10, pady=10, expand=True)
+
+        def publish_control_frame():
+            self.control_frame.pack(padx=10, pady=10, expand=True)
+            self.ports_menue.grid(
+                row=0, column=0, columnspan=3, pady=10, padx=5, sticky=tk.NSEW
+            )
+            self.connect_button.grid(
+                row=0, column=3, columnspan=3, pady=10, padx=5, sticky=tk.NSEW
+            )
+            self.refresh_button.grid(
+                row=0, column=6, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
+            )
+
+        publish_heading()
+        publish_control_frame()
+
         for child in self.children.values():
             child.pack()
-
-        self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
-        self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
-        self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
-        self.heading_frame.pack(padx=10, pady=10, expand=True)
-
-        self.ports_menue.grid(
-            row=0, column=0, columnspan=2, pady=10, padx=5, sticky=tk.NSEW
-        )
-        self.connect_button.grid(
-            row=0, column=2, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
-        )
-        self.refresh_button.grid(
-            row=0, column=3, columnspan=1, pady=10, padx=5, sticky=tk.NSEW
-        )
-        self.control_frame.pack(padx=10, pady=10, expand=True)
 
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)

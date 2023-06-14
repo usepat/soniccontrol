@@ -85,7 +85,6 @@ class Hometab(ttk.Frame):
             self.us_control_frame,
             text="ON",
             style="success.TButton",
-            width=10,
             command=self.set_signal_on,
         )
         ToolTip(self.us_on_button, text="Turn the ultrasound signal on")
@@ -94,7 +93,6 @@ class Hometab(ttk.Frame):
             self.us_control_frame,
             text="AUTO",
             style="primary.TButton",
-            width=10,
             command=self.set_signal_auto,
         )
         ToolTip(self.us_auto_button, text="Turn on the AUTO mode")
@@ -103,7 +101,6 @@ class Hometab(ttk.Frame):
             self.us_control_frame,
             text="OFF",
             style="danger.TButton",
-            width=10,
             command=self.set_signal_off,
         )
         ToolTip(self.us_off_button, text="Turn the ultrasound signal off")
@@ -114,7 +111,6 @@ class Hometab(ttk.Frame):
             self.freq_frame,
             increment=100,
             textvariable=self._freq,
-            width=16,
             style="dark.TSpinbox",
             command=self.set_freq,
         )
@@ -125,7 +121,6 @@ class Hometab(ttk.Frame):
             from_=1,
             to=6,
             increment=1,
-            width=5,
             style="secondary.TSpinbox",
             command=self.set_scroll_digit,
         )
@@ -136,7 +131,6 @@ class Hometab(ttk.Frame):
             self.gain_frame,
             increment=10,
             textvariable=self._gain,
-            width=5,
             style="dark.TSpinbox",
             command=self.set_gain,
         )
@@ -144,7 +138,6 @@ class Hometab(ttk.Frame):
 
         self.gain_scale: ttk.Scale = ttk.Scale(
             self.gain_frame,
-            length=180,
             orient=tk.HORIZONTAL,
             style="primary.TScale",
             variable=self._gain,
@@ -157,7 +150,6 @@ class Hometab(ttk.Frame):
             text="Wipe mode",
             variable=self._mode,
             bootstyle="dark-outline-toolbutton",
-            width=12,
             command=self.change_mode,
         )
 
@@ -166,7 +158,6 @@ class Hometab(ttk.Frame):
             text="Catch mode",
             variable=self._mode,
             bootstyle="dark-outline-toolbutton",
-            width=12,
             command=self.change_mode,
         )
 
@@ -194,8 +185,6 @@ class Hometab(ttk.Frame):
             self.botframe, text="Feedback")
         self.feedback_frame: ScrolledFrame = ScrolledFrame(
             self.output_frame,
-            height=200,
-            width=475,
         )
 
     def set_val(self) -> None:

@@ -94,7 +94,6 @@ class ScriptingTab(ttk.Frame):
             self.button_frame,
             text="Run",
             style="success.TButton",
-            width=11,
             image=self.root.PLAY_IMG,
             compound=tk.RIGHT,
             command=self.button_starter,
@@ -103,28 +102,24 @@ class ScriptingTab(ttk.Frame):
             self.button_frame,
             text="Open script file",
             style="dark.TButton",
-            width=15,
             command=self.load_file,
         )
         self.save_script_btn: ttk.Button = ttk.Button(
             self.button_frame,
             text="Save script file",
             style="dark.TButton",
-            width=15,
             command=self.save_file,
         )
         self.save_log_btn: ttk.Button = ttk.Button(
             self.button_frame,
             text="Specify logfile path",
             style="dark.TButton",
-            width=15,
             command=self.open_logfile,
         )
         self.script_guide_btn = ttk.Button(
             self.button_frame,
             text="Function Helper",
             style="info.TButton",
-            width=15,
             command=lambda: ScriptingGuide(self.root, self.scripttext),
         )
         ToolTip(self.script_guide_btn, text="Help regarding the scripting commands")
@@ -136,16 +131,12 @@ class ScriptingTab(ttk.Frame):
             self,
             text="Script Editor",
             style="dark.TLabelframe",
-            padding=(5, 5, 5, 5),
         )
         self.scripttext: tk.Text = tk.Text(
             self.scripting_frame,
             autoseparators=False,
             background="white",
             setgrid=False,
-            # width=35,
-            padx=5,
-            pady=5,
             font=("Consolas", 12),
         )
         self.scrollbar: ttk.Scrollbar = ttk.Scrollbar(
@@ -160,7 +151,6 @@ class ScriptingTab(ttk.Frame):
         )
         self.sequence_status: ttk.Progressbar = ttk.Progressbar(
             self.scripting_frame,
-            # length=160,
             mode="indeterminate",
             orient=tk.HORIZONTAL,
             style="dark.TProgressbar",

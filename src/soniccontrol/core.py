@@ -60,9 +60,10 @@ from soniccontrol.helpers import logger
 
 
 class Root(tk.Tk):
-    MIN_WIDTH: int = 555
-    MIN_HEIGHT: int = 900
-    MAX_WIDTH: int = 1110
+    MAX_WIDTH = 1600
+    MAX_HEIGHT = 1600
+    MIN_HEIGHT = 300
+    MIN_WIDTH = 300
     TITLE: str = "SonicControl"
     THEME: str = "sandstone"
     LOGGER_LEVEL: int = logging.DEBUG
@@ -98,10 +99,6 @@ class Root(tk.Tk):
         self.port: tk.StringVar = tk.StringVar()
         self.config_file: ConfigData = ConfigData().read_json()
 
-        # setting up root window, configurations
-        # self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
-        # self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
-        # self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
         ttkb.Style(theme=Root.THEME)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -320,7 +317,7 @@ class Root(tk.Tk):
         self.serial.disconnect()
         self.notebook.publish_disconnected()
         self.status_frame.destroy()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        self.mainframe.pack(side=tk.TOP, fill=tk.BOTH)
 
         if self.winfo_width() == Root.MAX_WIDTH:
             self._adjust_dimensions()
@@ -392,7 +389,7 @@ class Root(tk.Tk):
 
     def _after_publish(self) -> None:
         self.status_frame.publish()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        self.mainframe.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
 
     def on_closing(self) -> None:
         from soniccontrol.scriptingtab import ScriptingTab
@@ -400,8 +397,10 @@ class Root(tk.Tk):
         if self.sonicamp is None:
             self.destroy()
             return
-        if (isinstance(self.notebook.scriptingtab, ScriptingTab)
-            and self.notebook.scriptingtab.sequence is not None):
+        if (
+            isinstance(self.notebook.scriptingtab, ScriptingTab)
+            and self.notebook.scriptingtab.sequence is not None
+        ):
             logger.info("ending sequence")
             self.notebook.scriptingtab.end_sequence()
         if tk.Toplevel.winfo_exists(self.sonicmeasure):
@@ -412,6 +411,34 @@ class Root(tk.Tk):
         self.thread.join()
 
         self.destroy()
+
+
+# class SizeNotifier:
+#     def __init__(self) -> None:
+#         self.root = root
+#         self.size_dict = size_dict
+#         self.current_min_size = None
+
+#         self.window.update()
+
+#         min_height = self.window.winfo_height()
+#         min_width = list(self.size_dict)[0]
+#         self.window.minsize(min_width, min_height)
+
+#         self.root.bind("<Configure>", self.check_size)
+
+#     def check_size(self, event):
+#         width = event.width
+#         checked_size = None
+
+#         for min_size in self.size_dict:
+#             delta = width - min_size
+#             if delta >= 0:
+#                 checked_size = min_size
+
+#         if check_size != self.current_min_size:
+#             self.current_min_size = checked_size
+#             self.size_dict[self.current_min_size]()
 
 
 @dataclass

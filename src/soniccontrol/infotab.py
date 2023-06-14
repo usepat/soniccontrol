@@ -88,9 +88,7 @@ class InfoTab(ttk.Frame):
     def _initialize_flash_frame(self) -> None:
         self.flash_frame = ttk.Labelframe(
             self,
-            height=250,
             text="Update Firmware",
-            width=200,
             padding=(0, 12, 0, 12),
         )
 
@@ -105,7 +103,6 @@ class InfoTab(ttk.Frame):
         self.upload_button = ttk.Button(
             self.flash_frame,
             style="dark.TButton",
-            width=23,
             text="Upload Firmware",
             state=tk.DISABLED,
             command=self.upload_file,
@@ -260,16 +257,13 @@ class HexFlashWindow(tk.Toplevel):
 
         self.flash_frame = ttk.Labelframe(
             self,
-            height=250,
             text="Update Firmware",
-            width=200,
             padding=(0, 12, 0, 12),
         )
 
         self.file_entry = ttk.Button(
             self.flash_frame,
             text="Specify path for Firmware file",
-            width=20,
             style="dark.TButton",
             command=self.hex_file_path_handler,
         )
@@ -277,7 +271,6 @@ class HexFlashWindow(tk.Toplevel):
         self.upload_button = ttk.Button(
             self.flash_frame,
             style="dark.TButton",
-            width=20,
             text="Upload Firmware",
             state=tk.DISABLED,
             command=self.upload_file,

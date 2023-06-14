@@ -69,7 +69,6 @@ class StatusFrame(ttk.Frame):
             amountused=self._freq_using,
             textright="kHz",
             subtext="Current Frequency",
-            metersize=150,
         )
 
         self.gain_meter: ttkb.Meter = ttkb.Meter(
@@ -79,7 +78,6 @@ class StatusFrame(ttk.Frame):
             amountused=self._gain_using,
             textright="%",
             subtext="Current Gain",
-            metersize=150,
         )
 
         self.temp_meter: ttkb.Meter = ttkb.Meter(
@@ -89,7 +87,6 @@ class StatusFrame(ttk.Frame):
             amountused=self._temp_using,
             textright="°C",
             subtext="Thermometer not found",
-            metersize=150,
         )
 
         # SonSens Frame
@@ -98,32 +95,27 @@ class StatusFrame(ttk.Frame):
             font=self.root.qtype12,
             anchor=tk.CENTER,
             style="primary.TLabel",
-            padding=(5, 0, 20, 0),
         )
         self.irms_label: ttk.Label = ttk.Label(
             self.sonsens_frame,
             font=self.root.qtype12,
             anchor=tk.CENTER,
             style="danger.TLabel",
-            padding=(20, 0, 20, 0),
         )
         self.phase_label: ttk.Label = ttk.Label(
             self.sonsens_frame,
             font=self.root.qtype12,
             anchor=tk.CENTER,
             style="success.TLabel",
-            padding=(20, 0, 5, 0),
         )
 
         # Overview Frame
         self.con_status_label: ttkb.Label = ttkb.Label(
             self.overview_frame,
             font="QTypeOT-CondBook 15",
-            padding=(5, 0, 5, 0),
             justify=tk.CENTER,
             anchor=tk.CENTER,
             compound=tk.LEFT,
-            width=15,
             image=self.root.LED_RED_IMG,
             bootstyle="inverse-secondary",
             text=self.NOT_CONN_TXT,
@@ -132,11 +124,9 @@ class StatusFrame(ttk.Frame):
         self.sig_status_label: ttkb.Label = ttkb.Label(
             self.overview_frame,
             font="QTypeOT-CondBook 15",
-            padding=(5, 0, 5, 0),
             justify=tk.CENTER,
             anchor=tk.CENTER,
             compound=tk.LEFT,
-            width=10,
             image=self.root.LED_RED_IMG,
             bootstyle="inverse-secondary",
             text=self.OFF_TXT,
@@ -145,12 +135,10 @@ class StatusFrame(ttk.Frame):
         self.err_status_label: ttkb.Label = ttkb.Label(
             self.overview_frame,
             font="QTypeOT-CondBook 15",
-            padding=(5, 5, 5, 5),
             justify=tk.CENTER,
             anchor=tk.CENTER,
             compound=tk.CENTER,
             relief=tk.RIDGE,
-            width=10,
             text=None,
         )
 

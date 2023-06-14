@@ -198,8 +198,6 @@ class SonicMeasureFrame(ttk.Frame):
             autoseparators=False,
             background="white",
             setgrid=False,
-            width=30,
-            height=7,
         )
         self.material_comment_label: ttk.Label = ttk.Label(
             self.meta_data_frame,
