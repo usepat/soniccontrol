@@ -5,36 +5,55 @@ import random
 import threading
 import time
 
-def producer(queue, event):
-    """Pretend we're getting a number from the network."""
-    while not event.is_set():
-        message = random.randint(1, 101)
-        logging.info("Producer got message: %s", message)
-        queue.put(message)
+import tkinter as tk
 
-    logging.info("Producer received event. Exiting")
+root = tk.Tk()
 
-def consumer(queue, event):
-    """Pretend we're saving a number in the database."""
-    while not event.is_set() or not queue.empty():
-        message = queue.get()
-        logging.info(
-            "Consumer storing message: %s (size=%d)", message, queue.qsize()
-        )
+# Create main frame
+main_frame = tk.Frame(root, bg="blue")
+main_frame.pack(
+    fill=tk.BOTH, expand=True
+)  # expand=True allows the frame to resize with the window
 
-    logging.info("Consumer received event. Exiting")
+# Create bottom frame
+bottom_frame = tk.Frame(root, bg="red", height=100)
+bottom_frame.pack(
+    side="bottom", fill="x"
+)  # side='bottom' positions the frame at the bottom
 
-if __name__ == "__main__":
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO,
-                        datefmt="%H:%M:%S")
+root.mainloop()
 
-    pipeline = queue.Queue(maxsize=10)
-    event = threading.Event()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(producer, pipeline, event)
-        executor.submit(consumer, pipeline, event)
 
-        time.sleep(0.1)
-        logging.info("Main: about to set event")
-        event.set()
+# def producer(queue, event):
+#     """Pretend we're getting a number from the network."""
+#     while not event.is_set():
+#         message = random.randint(1, 101)
+#         logging.info("Producer got message: %s", message)
+#         queue.put(message)
+
+#     logging.info("Producer received event. Exiting")
+
+# def consumer(queue, event):
+#     """Pretend we're saving a number in the database."""
+#     while not event.is_set() or not queue.empty():
+#         message = queue.get()
+#         logging.info(
+#             "Consumer storing message: %s (size=%d)", message, queue.qsize()
+#         )
+
+#     logging.info("Consumer received event. Exiting")
+
+# if __name__ == "__main__":
+#     format = "%(asctime)s: %(message)s"
+#     logging.basicConfig(format=format, level=logging.INFO,
+#                         datefmt="%H:%M:%S")
+
+#     pipeline = queue.Queue(maxsize=10)
+#     event = threading.Event()
+#     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+#         executor.submit(producer, pipeline, event)
+#         executor.submit(consumer, pipeline, event)
+
+#         time.sleep(0.1)
+#         logging.info("Main: about to set event")
+#         event.set()

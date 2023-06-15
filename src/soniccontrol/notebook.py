@@ -79,7 +79,6 @@ class ScNotebook(ttk.Notebook):
         self._reorder_tabs()
         self._publish_children()
         self.select(self.connectiontab)
-        self.pack(padx=5, pady=5, expand=True, fill=tk.BOTH)
 
     def _rescue_or_disconnected(
         self, disconnected: bool = False, rescue: bool = False

@@ -141,7 +141,7 @@ class Root(tk.Tk):
         self._thread.pause()
 
         # Starting the main graphical parts of the GUI
-        self.mainframe: ttk.Frame = ttk.Frame(self)
+        self.mainframe: ttk.Frame = ttkb.Frame(self, bootstyle="success")
         self.notebook: ScNotebook = ScNotebook(self.mainframe, self)
         self.status_frame: ttk.Frame = ttk.Frame(self.mainframe)
         self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self)
@@ -318,6 +318,7 @@ class Root(tk.Tk):
         self.notebook.publish_disconnected()
         self.status_frame.destroy()
         self.mainframe.pack(side=tk.TOP, fill=tk.BOTH)
+        self.notebook.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         if self.winfo_width() == Root.MAX_WIDTH:
             self._adjust_dimensions()
@@ -390,6 +391,8 @@ class Root(tk.Tk):
     def _after_publish(self) -> None:
         self.status_frame.publish()
         self.mainframe.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
+        self.status_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        self.notebook.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
 
     def on_closing(self) -> None:
         from soniccontrol.scriptingtab import ScriptingTab
@@ -397,12 +400,14 @@ class Root(tk.Tk):
         if self.sonicamp is None:
             self.destroy()
             return
+
         if (
             isinstance(self.notebook.scriptingtab, ScriptingTab)
             and self.notebook.scriptingtab.sequence is not None
         ):
             logger.info("ending sequence")
             self.notebook.scriptingtab.end_sequence()
+
         if tk.Toplevel.winfo_exists(self.sonicmeasure):
             self.sonicmeasure.on_closing()
 

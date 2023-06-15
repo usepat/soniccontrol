@@ -69,6 +69,7 @@ class StatusFrame(ttk.Frame):
             amountused=self._freq_using,
             textright="kHz",
             subtext="Current Frequency",
+            metersize=150,
         )
 
         self.gain_meter: ttkb.Meter = ttkb.Meter(
@@ -78,6 +79,7 @@ class StatusFrame(ttk.Frame):
             amountused=self._gain_using,
             textright="%",
             subtext="Current Gain",
+            metersize=150,
         )
 
         self.temp_meter: ttkb.Meter = ttkb.Meter(
@@ -87,6 +89,7 @@ class StatusFrame(ttk.Frame):
             amountused=self._temp_using,
             textright="°C",
             subtext="Thermometer not found",
+            metersize=150,
         )
 
         # SonSens Frame
@@ -361,7 +364,6 @@ class StatusFrameWipeOld(StatusFrame):
             side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10
         )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
 
 
 class StatusFrameWipe(StatusFrame):
@@ -394,19 +396,25 @@ class StatusFrameCatch(StatusFrame):
         self.gain_meter.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
         self.temp_meter.grid(row=0, column=2, padx=10, sticky=tk.NSEW)
 
-        self.urms_label.grid(row=0, column=0, sticky=tk.NSEW)
-        self.irms_label.grid(row=0, column=1, sticky=tk.NSEW)
-        self.phase_label.grid(row=0, column=2, sticky=tk.NSEW)
+        self.urms_label.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
+        self.irms_label.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
+        self.phase_label.grid(row=0, column=2, padx=10, sticky=tk.NSEW)
 
-        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        # self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
+        # self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
 
-        self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
-        self.sonsens_frame.pack(
-            side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
+        self.con_status_label.pack(
+            side=tk.LEFT, expand=True, anchor=tk.CENTER, padx=10, pady=5, fill=tk.BOTH
         )
-        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
+        self.sig_status_label.pack(
+            side=tk.LEFT, expand=True, anchor=tk.CENTER, padx=10, pady=5, fill=tk.BOTH
+        )
+
+        self.meter_frame.pack(side=tk.TOP, expand=True, anchor=tk.CENTER)
+        self.sonsens_frame.pack(side=tk.TOP, expand=True, anchor=tk.CENTER)
+        self.overview_frame.pack(
+            side=tk.TOP, expand=True, padx=0, pady=0, anchor=tk.CENTER, fill=tk.X
+        )
 
 
 class StatusFrame40KHZ(StatusFrame):
