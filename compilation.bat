@@ -1,5 +1,5 @@
 python -m PyInstaller --noconfirm --log-level=WARN ^
-    --noconsole ^
+    --console ^
     --collect-submodules=src//soniccontrol ^
     --icon=src//soniccontrol//pictures//welle.ico ^
     --name=SonicControl-1.9.5-alpha ^
