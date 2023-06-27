@@ -222,7 +222,6 @@ class ScriptingTab(ttk.Frame):
 
     def end_sequence(self) -> None:
         logger.debug("End sequence started")
-        self.thread.join(timeout=0.5)
         if self.sequence._run:
             self.sequence.stop()
 
@@ -285,27 +284,15 @@ class ScriptingTab(ttk.Frame):
         logger.debug(f"The new logfile path is: {self.logfile}")
 
     def publish(self):
-        self.button_frame.pack(anchor=tk.N, side=tk.LEFT, padx=5, pady=5)
+        self.button_frame.pack(side=tk.LEFT, padx=5, pady=5, fill=tk.Y)
 
         for child in self.button_frame.winfo_children():
-            child.pack(side=tk.TOP, padx=5, pady=5)
+            child.pack(side=tk.TOP, padx=5, pady=5, fill=tk.X)
 
-        self.scripting_frame.pack(
-            anchor=tk.N, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.X
-        )
-        self.scripttext.grid(
-            row=0,
-            column=0,
-            padx=5,
-            pady=5,
-            sticky=tk.NSEW,
-        )
-        self.cur_task_label.grid(
-            row=1, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2
-        )
-        self.sequence_status.grid(
-            row=2, column=0, padx=0, pady=5, sticky=tk.EW, columnspan=2
-        )
+        self.scripting_frame.pack(side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.X)
+        self.scripttext.pack(side=tk.TOP, padx=5, pady=5, fill=tk.BOTH, expand=True)
+        self.cur_task_label.pack(side=tk.TOP, padx=5, pady=5, fill=tk.X)
+        self.sequence_status.pack(side=tk.TOP, padx=5, pady=5, fill=tk.X)
 
 
 class GUISequence(SonicSequence):

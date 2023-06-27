@@ -197,6 +197,8 @@ class SonicMeasureFrame(ttk.Frame):
             self.meta_data_frame,
             autoseparators=False,
             background="white",
+            width=20,
+            height=6,
             setgrid=False,
         )
         self.material_comment_label: ttk.Label = ttk.Label(
@@ -335,11 +337,11 @@ class SonicMeasureFrame(ttk.Frame):
     def publish(self) -> None:
         self.fig_frame.pack(fill=tk.BOTH, expand=True)
         self.fig_canvas._tkcanvas.pack(fill=tk.BOTH, expand=True)
-        self.control_frame.pack()
+        self.control_frame.pack(fill=tk.X)
 
         self.util_ctrl_frame.grid(row=0, column=0, padx=10, pady=10)
         self.freq_frame.grid(row=0, column=1, padx=10, pady=10)
-        self.meta_data_frame.grid(row=0, column=2, padx=10, pady=10)
+        self.meta_data_frame.grid(row=0, column=2, padx=10, pady=10, sticky=tk.EW)
 
         self.start_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
         self.save_log_btn.pack(expand=True, fill=tk.BOTH, padx=3, pady=3)
@@ -358,7 +360,7 @@ class SonicMeasureFrame(ttk.Frame):
         self.gain_entry.grid(row=3, column=1, padx=3, pady=3)
 
         # self.meta_comment_label.grid(row=0, column=0, padx=3, pady=3)
-        self.meta_comment.grid(row=0, column=1, padx=3, pady=3)
+        self.meta_comment.grid(row=0, column=1, padx=3, pady=3, sticky=tk.EW)
 
 
 class MeasureCanvas(FigureCanvasTkAgg):

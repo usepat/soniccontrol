@@ -10,6 +10,7 @@ import ttkbootstrap as ttkb
 
 from tkinter import filedialog
 from tkinter import messagebox
+from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol.helpers import ToolTip, logger
 from sonicpackage import Command
@@ -32,7 +33,6 @@ class ConnectionTab(ttk.Frame):
         self.hex_file_path: tk.StringVar = tk.StringVar()
         # self.transducer_active: tk.StringVar = tk.StringVar()
         self.transducer_active = tk.StringVar()
-
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
         self.botframe: ttk.Frame = ttk.Frame(self)
 
@@ -165,32 +165,32 @@ class ConnectionTab(ttk.Frame):
             )
             self.root.sonicamp.set_threshold_freq(
                 current_transducer.get("threshold_freq")
-            )
+            ) if current_transducer.get("threshold_freq") else None
             self.root.serial.send_and_get(
                 Command.SET_PROT_FREQ1 + current_transducer.get("atf1")
-            )
+            ) if current_transducer.get("atf1") else None
             self.root.serial.send_and_get(
                 Command.SET_PROT_FREQ2 + current_transducer.get("atf2")
-            )
+            ) if current_transducer.get("atf2") else None
             self.root.serial.send_and_get(
                 Command.SET_PROT_FREQ3 + current_transducer.get("atf3")
-            )
+            ) if current_transducer.get("atf3") else None
             logger.debug("sending att and atk commands")
             self.root.serial.send_and_get(
                 Command.SET_ATT1 + current_transducer.get("att1")
-            )
+            ) if current_transducer.get("att1") else None
             self.root.serial.send_and_get(
                 Command.SET_ATT2 + current_transducer.get("att2")
-            )
+            ) if current_transducer.get("att2") else None
             self.root.serial.send_and_get(
                 Command.SET_ATK1 + current_transducer.get("atk1")
-            )
+            ) if current_transducer.get("atk1") else None
             self.root.serial.send_and_get(
                 Command.SET_ATK2 + current_transducer.get("atk2")
-            )
+            ) if current_transducer.get("atk2") else None
             self.root.serial.send_and_get(
                 Command.SET_ATK3 + current_transducer.get("atk3")
-            )
+            ) if current_transducer.get("atk3") else None
 
             if self.root.config_file.transducer.get("commands"):
                 for command in self.root.config_file.transducer.get("commands"):
@@ -361,10 +361,10 @@ class ConnectionTab(ttk.Frame):
             self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
             self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
             self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
-            self.heading_frame.pack(padx=10, pady=10, expand=True)
+            self.heading_frame.pack(anchor=tk.CENTER, padx=10, pady=10, expand=True)
 
         def publish_control_frame():
-            self.control_frame.pack(padx=10, pady=10, expand=True)
+            self.control_frame.pack(anchor=tk.CENTER, padx=10, pady=10, expand=True)
             self.ports_menue.grid(
                 row=0, column=0, columnspan=3, pady=10, padx=5, sticky=tk.NSEW
             )
@@ -379,7 +379,7 @@ class ConnectionTab(ttk.Frame):
         publish_control_frame()
 
         for child in self.children.values():
-            child.pack()
+            child.pack(anchor=tk.CENTER, side=tk.TOP, fill=tk.Y, expand=True)
 
         self.firmware_label.pack()
         self.serial_monitor_btn.grid(row=1, column=0, padx=10, pady=10)

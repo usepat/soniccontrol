@@ -32,7 +32,6 @@ class ScNotebook(ttk.Notebook):
         self._root: Root = root
 
         self["style"] = "light.TNotebook"
-
         self.hometab: Hometab = ttk.Frame()
         self.scriptingtab: ScriptingTab = ttk.Frame()
         self.connectiontab: ConnectionTab = ConnectionTab(self, self.root)

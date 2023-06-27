@@ -95,6 +95,7 @@ class Root(tk.Tk):
         # deprecated
         self.custom_modes: dict[str, sp.Mode] = {}
         self.current_mode = tk.StringVar()
+        self.serial_monitor_published: bool = True
 
         self.port: tk.StringVar = tk.StringVar()
         self.config_file: ConfigData = ConfigData().read_json()
@@ -318,7 +319,7 @@ class Root(tk.Tk):
         self.notebook.publish_disconnected()
         self.status_frame.destroy()
         self.mainframe.pack(side=tk.TOP, fill=tk.BOTH)
-        self.notebook.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.notebook.pack(side=tk.TOP, fill=tk.BOTH)
 
         if self.winfo_width() == Root.MAX_WIDTH:
             self._adjust_dimensions()
@@ -368,12 +369,23 @@ class Root(tk.Tk):
         self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self)
         self.notebook.hometab.sonic_measure_button.config(state=tk.DISABLED)
 
+    # def publish_serial_monitor(self) -> None:
+    #     if not self._is_wided():
+    #         return
+    #     self.serial_monitor.pack(
+    #         anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
+    #     )
+
     def publish_serial_monitor(self) -> None:
-        if not self._is_wided():
+        if self.serial_monitor_published:
+            self.serial_monitor.focus_force()
             return
-        self.serial_monitor.pack(
-            anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
-        )
+        self.serial_monitor = SerialMonitor(self)
+        self.serial_monitor_published = True
+
+    def unpublish_serial_monitor(self) -> None:
+        self.serial_monitor.destroy()
+        self.serial_monitor_published = False
 
     def _is_wided(self) -> bool:
         if self.winfo_width() == Root.MIN_WIDTH:
@@ -391,8 +403,8 @@ class Root(tk.Tk):
     def _after_publish(self) -> None:
         self.status_frame.publish()
         self.mainframe.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
-        self.status_frame.pack(side=tk.BOTTOM, fill=tk.X)
-        self.notebook.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
+        self.notebook.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.status_frame.pack(side=tk.TOP, fill=tk.X)
 
     def on_closing(self) -> None:
         from soniccontrol.scriptingtab import ScriptingTab
