@@ -1,40 +1,27 @@
-import concurrent.futures
-import logging
-import queue
-import random
-import threading
-import time
+import customtkinter
 
-def producer(queue, event):
-    """Pretend we're getting a number from the network."""
-    while not event.is_set():
-        message = random.randint(1, 101)
-        logging.info("Producer got message: %s", message)
-        queue.put(message)
 
-    logging.info("Producer received event. Exiting")
+class App(customtkinter.CTk):
+    def __init__(self):
+        super().__init__()
+        self.geometry("400x150")
 
-def consumer(queue, event):
-    """Pretend we're saving a number in the database."""
-    while not event.is_set() or not queue.empty():
-        message = queue.get()
-        logging.info(
-            "Consumer storing message: %s (size=%d)", message, queue.qsize()
+        self.button = customtkinter.CTkButton(
+            self, text="my button", command=self.button_callbck
         )
+        self.button.pack(padx=20, pady=20, fill=customtkinter.X)
+        self.bind("<Configure>", self.on_resizing)
+        self.button.bind("<Configure>", self.button_resizing)
 
-    logging.info("Consumer received event. Exiting")
+    def button_callbck(self):
+        print("button clicked")
 
-if __name__ == "__main__":
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO,
-                        datefmt="%H:%M:%S")
+    def on_resizing(self, event):
+        print(f"WINDOW: {event}")
 
-    pipeline = queue.Queue(maxsize=10)
-    event = threading.Event()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(producer, pipeline, event)
-        executor.submit(consumer, pipeline, event)
+    def button_resizing(self, event):
+        print(f"BUTTON: {event}")
 
-        time.sleep(0.1)
-        logging.info("Main: about to set event")
-        event.set()
+
+app = App()
+app.mainloop()
