@@ -6,16 +6,26 @@ from ttkbootstrap.scrolled import ScrolledFrame
 import PIL
 from soniccontrol.interfaces import RootChild, WidthLayout
 import soniccontrol.constants as const
-from soniccontrol.interfaces.layout import Layout
+from soniccontrol.interfaces import Layout, Connectable
 
 logger = logging.getLogger(__name__)
 
 
-class HomeFrame(RootChild):
+class HomeFrame(RootChild, Connectable):
     def __init__(
         self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
     ):
         super().__init__(parent_frame, tab_title, image, *args, **kwargs)
+        self._width_layouts = (
+            WidthLayout(
+                min_width=400,
+                command=self.set_large_width_uscontrolframe
+            ),
+            WidthLayout(
+                min_width=10,
+                command=self.set_small_width_uscontrolframe
+            ),
+        )        
         # Tkinter variables
         self._freq: tk.IntVar = tk.IntVar()
         self._gain: tk.IntVar = tk.IntVar()
@@ -108,6 +118,13 @@ class HomeFrame(RootChild):
             height=200,
             width=475,
         )
+        self.bind_events()
+        
+    def on_connect(self, connection_data: Connectable.ConnectionData) -> None:
+        return self.publish()
+    
+    def on_refresh(self, event=None) -> None:
+        pass
 
     def publish(self) -> None:
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
@@ -147,25 +164,4 @@ class HomeFrame(RootChild):
         self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
 
 
-class HomeFrameWidthLayout100(WidthLayout):
-    def __init__(self, subject: HomeFrame) -> None:
-        super().__init__(subject)
 
-    @property
-    def minimum_size(self) -> int:
-        return 300
-
-    def apply(self, event) -> None:
-        self.subject.set_small_width_uscontrolframe()
-
-
-class HomeFrameWidthLayout300(WidthLayout):
-    def __init__(self, subject: HomeFrame) -> None:
-        super().__init__(subject)
-
-    @property
-    def minimum_size(self) -> int:
-        return 400
-
-    def apply(self, event) -> None:
-        self.subject.set_large_width_uscontrolframe()

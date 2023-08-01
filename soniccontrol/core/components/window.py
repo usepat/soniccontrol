@@ -23,13 +23,13 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         super().__init__(*args, **kwargs)
         self._width_layouts: Iterable[Layout] = (
             WidthLayout(
+                min_width=800,
+                command=self.add_secondary_notebook
+            ),
+            WidthLayout(
                 min_width=100,
                 command=self.remove_secondary_notebook
             ),
-            WidthLayout(
-                min_width=1000,
-                command=self.add_secondary_notebook
-            )
         )
         # self._height_layouts: Iterable[Layout] = ()
 
@@ -37,11 +37,16 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         self.minsize(width=201, height=300)
         self.wm_title("SonicControl")
         ttk.Style("sandstone")
-
+        
+        self.connected: bool = False
+        self.main_frame: ttk.Panedwindow = ttk.Panedwindow(self, orient=ttk.HORIZONTAL)
         self.util_frame: ttk.Frame = ttk.Frame(self)
 
-        self.notebook_frame: ttk.Frame = ttk.Frame(self)
-        self.notebook: RootChild = components.Notebook(self.notebook_frame)
+        self.notebook_frame: ttk.Frame = ttk.Frame(self.main_frame)
+        self.notebook: components.Notebook = components.Notebook(self.notebook_frame)
+
+        self.secondary_notebook_frame: ttk.Frame = ttk.Frame(self.main_frame)
+        self.secondary_notebook: components.Notebook = components.Notebook(self.secondary_notebook_frame)
 
         self.home_frame: RootChild = components.HomeFrame(
             self, tab_title="Home", image=const.HOME_RAW_IMG
@@ -77,7 +82,8 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
             self.settings_frame,
             self.sonicmeasure_frame,
             self.serialmonitor_frame,
-            self.statusframe_frame
+            self.statusframe_frame,
+            self.notebook,
         })
 
         self.disconnectables: Set[RootComponent] = set()
@@ -114,6 +120,17 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
             self.settings_frame,
             self.info_frame,
         )
+        self.frames_for_primary_notebook: Tuple[RootChild] = (
+            self.home_frame,
+            self.scripting_frame,
+            self.connection_frame,
+            self.settings_frame,
+            self.info_frame,
+        )
+        self.frames_for_secondary_notebook: Tuple[RootChild] = (
+            self.sonicmeasure_frame,
+            self.serialmonitor_frame,
+        )
 
         self.bind_events()
         self.publish()
@@ -127,15 +144,32 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         self.bind(const.Events.CONNECTION_ATTEMPT, self.on_connect)
 
     def publish(self) -> None:
-        self.notebook_frame.pack(expand=True, fill=ttk.BOTH)
+        self.main_frame.pack(expand=True, fill=ttk.BOTH)
+        self.main_frame.add(self.notebook_frame)
+        # self.notebook_frame.pack(expand=True, fill=ttk.BOTH)
         self.notebook.pack(expand=True, fill=ttk.BOTH)
+        self.secondary_notebook.pack(expand=True, fill=ttk.BOTH)
 
     def remove_secondary_notebook(self) -> None:
-        pass
+        if not self.connected:
+            return
+        logger.debug(f'removing secondary notebook')
+        # self.secondary_notebook_frame.pack_forget()
+        self.main_frame.remove(self.secondary_notebook_frame)
+        self.secondary_notebook.forget_tabs()
+        # self.notebook_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
+        if self.connected:
+            self.notebook.forget_and_add_tabs(self.frames_for_soniccatch)
 
     def add_secondary_notebook(self) -> None:
-        pass
-
+        if not self.connected:
+            return
+        self.notebook.forget_and_add_tabs(self.frames_for_primary_notebook)
+        self.secondary_notebook.forget_and_add_tabs(self.frames_for_secondary_notebook)
+        # self.notebook_frame.pack(side=ttk.LEFT, expand=True, fill=ttk.BOTH, pady=5, padx=0)
+        # self.secondary_notebook_frame.pack(side=ttk.LEFT, expand=True, fill=ttk.BOTH, pady=5, padx=0)
+        self.main_frame.add(self.secondary_notebook_frame)
+        
     def on_disconnect(self, event=None) -> None:
         self.stop_status_engine()
         self.notebook.forget_and_add_tabs(self.frames_for_disconnected_state)
@@ -144,11 +178,32 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
             logger.debug(f"calling on_disconnect for {child}")
             child.on_disconnect(event)
         logger.debug("Reacted to disconnect event")
+        self.connected = False
 
     def stop_status_engine(self) -> None:
         pass
 
     def on_connect(self, event=None) -> None:
+        logger.debug('Connection attempt')
+        if not self.connect_to_amp():
+            return
+        self.start_status_engine()
+        for connectable in self.connectables:
+            connectable.on_connect(
+                Connectable.ConnectionData(
+                    heading1='sonic',
+                    heading2='catch',
+                    subtitle='You are connected to',
+                    firmware_info='SONICCATCH FIRMWARE',
+                    tabs=self.frames_for_soniccatch,
+                )
+            )
+        self.connected = True
+    
+    def connect_to_amp(self) -> bool:
+        return True
+    
+    def start_status_engine(self) -> None:
         pass
     
     def on_configuration(self, event=None) -> None:

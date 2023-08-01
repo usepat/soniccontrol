@@ -1,12 +1,13 @@
 import abc
 import logging
-from typing import Set, Iterable, List, Optional, Any
+from dataclasses import dataclass, field
+from typing import Set, Iterable, List, Optional, Any, Tuple
 
 from soniccontrol.interfaces.layout import Layout
 from soniccontrol.interfaces.exceptions import WrongArgument
 
 logger = logging.getLogger(__name__)
-# logger.setLevel(logging.WARNING)
+logger.setLevel(logging.WARNING)
 
 
 class Disconnectable(abc.ABC):
@@ -15,13 +16,20 @@ class Disconnectable(abc.ABC):
         ...
 
 
+class Tabable(abc.ABC):
+    pass
+
 class Connectable(abc.ABC):
+    @dataclass
+    class ConnectionData:
+        heading1: str = field(default='not')
+        heading2: str = field(default='connected')
+        subtitle: str = field(default='Please connect to a SonicAmp system')
+        firmware_info: str = field(default_factory=str)
+        tabs: Tuple[Tabable] = field(default_factory=tuple)
+    
     @abc.abstractmethod
     def on_connect(self, event=None) -> None:
-        ...
-        
-    @abc.abstractmethod
-    def on_refresh(self, event=None) -> None:
         ...
 
  

@@ -24,13 +24,13 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         super().__init__(parent_frame, tab_title, image, *args, **kwargs)
         self._width_layouts: Iterable[Layout] = (
             WidthLayout(
+                min_width=300,
+                command=self.set_large_layout
+            ),
+            WidthLayout(
                 min_width=100,
                 command=self.set_small_layout
             ),
-            WidthLayout(
-                min_width=300,
-                command=self.set_large_layout
-            )
         )
         
         ### tkinter variables
@@ -166,7 +166,7 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
             bootstyle=ttk.DANGER if disconnected else ttk.SUCCESS,
             text="Disconnect" if disconnected else "Connect",
             command=lambda: self.event_generate(
-                const.Events.CONNECTED if disconnected else const.Events.CONNECTION_ATTEMPT
+                const.Events.DISCONNECTED if disconnected else const.Events.CONNECTION_ATTEMPT
             ),
         )
         
@@ -184,8 +184,12 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.heading_frame.unbind("<Enter>")
         self.heading_frame.unbind("<Leave>")
 
-    def on_connect(self) -> None:
-        # self.change_heading(**connection_dict)
+    def on_connect(self, connection_data: Connectable.ConnectionData) -> None:
+        self.change_heading(
+            title_part1=connection_data.heading1,
+            title_part2=connection_data.heading2,
+            subtitle=connection_data.subtitle,
+        )
         self.change_button_to(disconnected=True)
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)

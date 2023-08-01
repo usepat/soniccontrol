@@ -25,9 +25,11 @@ class Layout():
         return f"Layout({self.min_size, self._condition, self._command})"
 
     def should_be_applied(self, event) -> bool:
+        logger.debug(f'Should be applied?: {event.widget, self._condition}')
         return self._condition(event)
 
     def apply(self, event: Any = None) -> None:
+        logger.debug(f'Applying: {event.widget, self._command}')
         return self._command()
 
 
@@ -40,6 +42,9 @@ class WidthLayout(Layout):
         )
     
     def should_be_applied(self, event) -> bool:
+        logger.debug(f'event width: {event.width},')
+        logger.debug(f'width: {self.min_size},')
+        logger.debug(f'condition: {(event.width - self.min_size) >= 0}')
         return (event.width - self.min_size) >= 0
     
     def __repr__(self) -> str:

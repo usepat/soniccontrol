@@ -1,4 +1,5 @@
 import ttkbootstrap as ttk
+from ttkbootstrap.scrolled import ScrolledFrame
 import logging
 import abc
 from typing import Any, Iterable, Optional, Set
@@ -18,12 +19,17 @@ class RootNotebook(ttk.Notebook, Resizable):
         self._height_layouts: Optional[Iterable[Layout]] = None
         self._resizer: Resizer = Resizer(self)
         self._currently_managed_tabs: Iterable[RootChild] = list()
+        self._last_focused_tab: Optional[RootChild] = None
         self._currently_with_images: bool = False
         self._currently_with_titles: bool = False
 
     @property
     def resizer(self) -> Resizer:
         return self._resizer
+
+    @property
+    def last_focused_tab(self) -> RootChild:
+        return self._last_focused_tab
 
     @property
     def width_layouts(self) -> Iterable[Layout]:
@@ -61,7 +67,10 @@ class RootNotebook(ttk.Notebook, Resizable):
             else {}
         )
 
-        tab_id: str = self.add(frame.container, **kwargs)
+        tab_id: str = self.add(
+            frame.container if isinstance(frame, ScrolledFrame) else frame,
+            **kwargs
+        )
         self._currently_managed_tabs.append(frame)
         return tab_id
 
@@ -81,6 +90,7 @@ class RootNotebook(ttk.Notebook, Resizable):
         self._currently_with_titles = with_tab_titles
 
     def forget_tabs(self, frames: Optional[RootChild] = None) -> None:
+        self._last_focused_tab = self.select()
         frames = self.currently_managed_tabs.copy() if frames is None else frames
         for frame in frames:
             self.forget_tab(frame)
@@ -88,7 +98,7 @@ class RootNotebook(ttk.Notebook, Resizable):
     def forget_tab(self, frame: Optional[RootChild] = None) -> None:
         if frame not in self.currently_managed_tabs:
             return
-        self.forget(frame.container)
+        self.forget(frame.container if isinstance(frame, ScrolledFrame) else frame)
         self._currently_managed_tabs.remove(frame)
 
     def configure_tabs(
@@ -96,7 +106,6 @@ class RootNotebook(ttk.Notebook, Resizable):
     ) -> None:
         if not len(self.tabs()):
             return
-        focused_child: RootChild = self.select()
         temporary_tabs: Set[RootChild] = self.currently_managed_tabs.copy()
         self.forget_tabs()
         self.add_tabs(
@@ -106,14 +115,13 @@ class RootNotebook(ttk.Notebook, Resizable):
             if tab_titles is None
             else tab_titles,
         )
-        self.select(focused_child)
+        self.select(self._last_focused_tab)
         
     def forget_and_add_tabs(self, tabs: Iterable[RootChild]) -> None:
-        selected_tab: RootChild = self.select()
         self.forget_tabs()
         self.add_tabs(tabs)
-        if selected_tab in self.currently_managed_tabs:
-            self.select(selected_tab)
+        try: self.select(self._last_focused_tab)
+        except Exception as e: logger.debug(e)
 
     def hide_images(self) -> None:
         logger.debug('hiding images')
@@ -122,6 +130,10 @@ class RootNotebook(ttk.Notebook, Resizable):
     def show_images(self) -> None:
         logger.debug('showing images')
         self.configure_tabs(images=True)
+        
+    def show_images_without_titles(self) -> None:
+        logger.debug('showing images without titles')
+        self.configure_tabs(images=True, tab_titles=False)
 
     def show_tab_titles(self) -> None:
         logger.debug('showing tab titles')

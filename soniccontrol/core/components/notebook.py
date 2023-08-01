@@ -9,32 +9,34 @@ from soniccontrol.interfaces import (
     Layout,
 )
 import soniccontrol.constants as const
-from soniccontrol.interfaces.layout import Layout
+from soniccontrol.interfaces import Layout, Connectable, RootChild
 
-class Notebook(RootNotebook):
+
+class Notebook(RootNotebook, Connectable):
     def __init__(self, parent_frame: ttk.Frame, *args, **kwargs):
         super().__init__(parent_frame, *args, **kwargs)
         self._width_layouts: Iterable[Layout] = (
-            Layout(
-                condition=lambda event: len(self.tabs()) and (event.width / len(self.tabs())) < 60,
-                command=lambda event: self.configure_tabs(tab_titles=False, images=True)
-            ),
             WidthLayout(
-                min_width=300,
+                min_width=400,
                 command=self.show_tab_titles
             ),
-        )
-        self._height_layouts: Iterable[Layout] = (
-            HeightLayout(
-                min_height=100,
-                command=self.hide_images
+            Layout(
+                condition=lambda event: len(self.tabs()) and (event.width / len(self.tabs())) < 60,
+                command=self.show_images_without_titles
             ),
-            HeightLayout(
-                min_height=400,
-                command=self.show_images
-            )
         )
+        self._height_layouts: Iterable[Layout] = tuple()
+        
         self.bind_events()
+    
+    def on_connect(self, connection_data: Connectable.ConnectionData) -> None:
+        selected_tab: RootChild = self.select()
+        self.forget_tabs()
+        self.add_tabs(connection_data.tabs)
+        self.select(selected_tab)
+        
+    def on_refresh(self, event=None) -> None:
+        pass
     
     def bind_events(self) -> None:
         super().bind_events()

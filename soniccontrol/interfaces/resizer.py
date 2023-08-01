@@ -1,6 +1,10 @@
 from typing import Optional, Iterable, Any
 from soniccontrol.interfaces.layout import Layout
 from soniccontrol.interfaces.gui_interfaces import Resizable
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Resizer():
     def __init__(
@@ -32,18 +36,24 @@ class Resizer():
             if not self.subject.width_layouts:
                 return
             for layout in self.subject.width_layouts:
-                if layout.should_be_applied(event) and self.active_width_layout != layout:
+                if layout.should_be_applied(event):
+                    if self.active_width_layout == layout:
+                        return
                     layout.apply(event=event)
                     self._active_width_layout = layout
+                    return
 
         def check_height() -> None:
             if not self.subject.height_layouts:
                 return
             for layout in self.subject.height_layouts:
-                if layout.should_be_applied(event) and self.active_height_layout != layout:
+                if layout.should_be_applied(event):
+                    if self.active_height_layout == layout:
+                        return
                     layout.apply(event=event)
                     self._active_height_layout = layout
+                    return
 
-        print(event)
+        logger.debug(event)
         check_width()
         check_height()
