@@ -35,7 +35,7 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         
         ### tkinter variables
         self.port: tk.StringVar = tk.StringVar()
-        self.refresh_image: PhotoImage = PhotoImage(const.REFRESH_RAW_IMG)
+        self.refresh_image: PhotoImage = const.Images.get_image(const.Images.REFRESH_IMG_GREY, const.Images.BUTTON_ICON_SIZE)
 
         ### TOPFRAME
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
@@ -45,7 +45,7 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.heading1: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(10, 0, 2, 10),
-            font=("QTypeOT-CondBook", 30),
+            font=("QTypeOT-CondLight", 30),
             justify=ttk.CENTER,
             anchor=ttk.CENTER,
             borderwidth=-2,

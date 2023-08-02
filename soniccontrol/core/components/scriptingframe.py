@@ -22,21 +22,23 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         self.top_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self.button_frame: ttk.Frame = ttk.Frame(self.top_frame)
         
-        self.start_image: PhotoImage = PhotoImage(const.PLAY_RAW_IMG)
-        self.menue_image: PhotoImage = PhotoImage(const.MENUE_RAW_IMG)
+        self.start_image: PhotoImage = const.Images.get_image(const.Images.PLAY_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.menue_image: PhotoImage =const.Images.get_image(const.Images.MENUE_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.info_image: PhotoImage = const.Images.get_image(const.Images.INFO_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
         self.start_script_btn = ttk.Button(
             self.button_frame,
             text="Run",
             style=ttk.SUCCESS,
             image=self.start_image,
-            compound=ttk.RIGHT,
+            compound=ttk.LEFT,
             command=lambda event: self.event_generate(const.Events.START_SCRIPT),
         )
         self.script_guide_btn = ttk.Button(
             self.button_frame,
             text="Function Helper",
-            style="info.TButton",
-            # width=15,
+            style=ttk.INFO,
+            image=self.info_image,
+            compound=ttk.LEFT,
             command=self.open_help,
         )
         
@@ -45,7 +47,7 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
             self.button_frame,
             image=self.menue_image,
             menu=self.menue,
-            bootstyle='dark-outline'
+            bootstyle='dark'
         )
         self.menue.add_command(label='Save Script', command=self.save_file)
         self.menue.add_command(label='Load Script', command=self.load_file)

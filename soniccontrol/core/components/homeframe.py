@@ -128,25 +128,25 @@ class HomeFrame(RootChild, Connectable):
 
     def publish(self) -> None:
         self.topframe.pack(side=tk.TOP, padx=10, pady=10)
-        self.control_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.freq_spinbox.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.control_frame.pack(side=tk.TOP, fill=tk.X)
+        self.freq_spinbox.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
 
-        self.gain_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.gain_frame.pack(side=tk.TOP, fill=tk.X)
+        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
+        self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
 
-        self.mode_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.wipemode_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.catchmode_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.mode_frame.pack(side=tk.TOP, fill=tk.X)
+        self.wipemode_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
+        self.catchmode_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
 
-        self.set_val_btn.pack(side=tk.TOP, expand=True, fill=tk.X, padx=10, pady=10)
+        self.set_val_btn.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
 
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
 
         self.botframe.pack(side=tk.TOP)
-        self.feedback_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.feedback_frame.pack(side=tk.LEFT,)
         self.output_frame.pack(
-            anchor=tk.N, side=tk.TOP, padx=10, pady=10, expand=True, fill=tk.BOTH
+            anchor=tk.N, side=tk.TOP, padx=10, pady=10, fill=tk.BOTH
         )
 
     def set_small_width_uscontrolframe(self) -> None:
@@ -159,9 +159,9 @@ class HomeFrame(RootChild, Connectable):
     def set_large_width_uscontrolframe(self) -> None:
         for i, child in enumerate(self.us_control_frame.children.values()):
             child.pack_forget()
-        self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
-        self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
+        self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
+        self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.EW)
 
 
 

@@ -23,7 +23,7 @@ class RootChild(ScrolledFrame, Resizable):
         self._width_layouts: Optional[Iterable[Layout]] = None
         self._height_layouts: Optional[Iterable[Layout]] = None
         self._tab_title: str = tab_title
-        self._image: PhotoImage = PhotoImage(image)
+        self._image: PhotoImage = image
         self._resizer: Resizer = Resizer(self)
         self.root: Root = parent_frame
 
@@ -65,7 +65,7 @@ class RootChildFrame(ttk.Frame, Resizable):
         self._width_layouts: Optional[Iterable[Layout]] = None
         self._height_layouts: Optional[Iterable[Layout]] = None
         self._tab_title: str = tab_title
-        self._image: PhotoImage = PhotoImage(image)
+        self._image: PhotoImage = image
         self._resizer: Resizer = Resizer(self)
         self.root: Root = parent_frame
 

@@ -49,28 +49,28 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         self.secondary_notebook: components.Notebook = components.Notebook(self.secondary_notebook_frame)
 
         self.home_frame: RootChild = components.HomeFrame(
-            self, tab_title="Home", image=const.HOME_RAW_IMG
+            self, tab_title="Home", image=const.Images.get_image(const.Images.HOME_IMG_BLACK, const.Images.TAB_ICON_SIZE)
         )
         self.scripting_frame: RootChild = components.ScriptingFrame(
-            self, tab_title="Scripting", image=const.SCRIPT_RAW_IMG
+            self, tab_title="Scripting", image=const.Images.get_image(const.Images.SCRIPT_IMG_BLACK, const.Images.TAB_ICON_SIZE)
         )
         self.connection_frame: RootChild = components.ConnectionFrame(
-            self, tab_title="Connection", image=const.CONNECTION_RAW_IMG
+            self, tab_title="Connection", image=const.Images.get_image(const.Images.CONNECTION_IMG_BLACK, const.Images.TAB_ICON_SIZE)
         )
         self.settings_frame: RootChild = components.SettingsFrame(
-            self, tab_title="Settings", image=const.SETTINGS_RAW_IMG
+            self, tab_title="Settings", image=const.Images.get_image(const.Images.SETTINGS_IMG_BLACK, const.Images.TAB_ICON_SIZE)
         )
         self.info_frame: RootChild = components.InfoFrame(
-            self, tab_title="About", image=const.INFO_RAW_IMG
+            self, tab_title="About", image=const.Images.get_image(const.Images.INFO_IMG_BLACK, const.Images.TAB_ICON_SIZE)
         )
         self.sonicmeasure_frame: RootChild = components.SonicMeasureFrame(
-            self, tab_title="Sonic Measure", image=const.SONIC_MEASURE_RAW_IMG
+            self, tab_title="Sonic Measure", image=const.Images.get_image(const.Images.LINECHART_IMG_BLACK, const.Images.TAB_ICON_SIZE)
         )
         self.serialmonitor_frame: RootChild = components.SerialMonitorFrame(
-            self, tab_title="Serial Monitor", image=const.CONSOLE_RAW_IMG
+            self, tab_title="Serial Monitor", image=const.Images.get_image(const.Images.CONSOLE_IMG_BLACK, (30, 30))
         )
         self.statusframe_frame: RootChild = components.StatusFrame(
-            self, tab_title="Status", image=const.STATUS_RAW_IMG
+            self, tab_title="Status", image=const.Images.get_image(const.Images.STATUS_IMG_BLACK, const.Images.TAB_ICON_SIZE)
         )
 
         # INITIALIZING Event iterables
@@ -148,6 +148,7 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         self.main_frame.add(self.notebook_frame)
         # self.notebook_frame.pack(expand=True, fill=ttk.BOTH)
         self.notebook.pack(expand=True, fill=ttk.BOTH)
+        self.statusframe_frame.pack(side=ttk.BOTTOM, fill=ttk.BOTH)
         self.secondary_notebook.pack(expand=True, fill=ttk.BOTH)
 
     def remove_secondary_notebook(self) -> None:
@@ -157,7 +158,7 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         # self.secondary_notebook_frame.pack_forget()
         self.main_frame.remove(self.secondary_notebook_frame)
         self.secondary_notebook.forget_tabs()
-        # self.notebook_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
+        self.notebook_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
         if self.connected:
             self.notebook.forget_and_add_tabs(self.frames_for_soniccatch)
 

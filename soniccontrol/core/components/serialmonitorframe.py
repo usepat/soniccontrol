@@ -46,10 +46,10 @@ class SerialMonitorFrame(RootChildFrame, Connectable, Updatable):
         self.command_field.pack(anchor=ttk.S, padx=10,pady=10, fill=ttk.X, expand=True, side=ttk.LEFT)
         self.send_button.pack(anchor=ttk.S, padx=10, pady=10, side=ttk.RIGHT)
         self.scrolled_frame.pack(
-            anchor=ttk.N, expand=True, fill=ttk.BOTH, padx=10, pady=10, side=ttk.TOP)
+            anchor=ttk.N, fill=ttk.BOTH, padx=10, pady=10, side=ttk.TOP)
 
         self.input_frame.pack(anchor=ttk.S, fill=ttk.X, side=ttk.BOTTOM, padx=5, pady=5)
-        self.output_frame.pack(anchor=ttk.N, expand=True,
+        self.output_frame.pack(anchor=ttk.N,
                                fill=ttk.BOTH, pady=5, padx=5, side=ttk.TOP)
     
     def send_command(self, event) -> None:

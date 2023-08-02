@@ -1,14 +1,16 @@
 import logging
 import PIL
+from PIL.ImageTk import PhotoImage
 from typing import Iterable
 import ttkbootstrap as ttk
-from soniccontrol.interfaces import RootChild, Layout
-
+from soniccontrol.interfaces import RootChild, Layout, Connectable
+from soniccontrol.interfaces.rootchild import RootChildFrame
+import soniccontrol.constants as const
 
 logger = logging.getLogger(__name__)
 
 
-class StatusFrame(RootChild):
+class StatusFrame(RootChildFrame, Connectable):
     def __init__(
         self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
     ):
@@ -16,55 +18,132 @@ class StatusFrame(RootChild):
         # self._width_layouts: Iterable[Layout] = ()
         # self._height_layouts: Iterable[Layout] = ()
         # Small status
+        self.configure(bootstyle=ttk.SECONDARY)
+        self.connection_image: PhotoImage = const.Images.get_image(const.Images.CONNECTION_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.signal_image: PhotoImage = const.Images.get_image(const.Images.LIGHTNING_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        
+        self.soniccontrol_state_frame: ttk.Frame = ttk.Frame(self)
+        self.soniccontrol_state_label: ttk.Label = ttk.Label(self.soniccontrol_state_frame, bootstyle="inverse-secondary")
+        self.soniccontrol_value_label: ttk.Label = ttk.Label(self.soniccontrol_state_frame, bootstyle="inverse-secondary")
+        
         self.freq_frame: ttk.Frame = ttk.Frame(self)
-        self.freq_label: ttk.Label = ttk.Label(self.freq_frame)
-        self.freq_value_label: ttk.Label = ttk.Label(self.freq_frame)
+        self.freq_label: ttk.Label = ttk.Label(
+            self.freq_frame,
+            text="Freq.:",
+            bootstyle='inverse-secondary',
+        )
+        self.freq_value_label: ttk.Label = ttk.Label(
+            self.freq_frame,
+            bootstyle='inverse-secondary',
+        )
 
         self.gain_frame: ttk.Frame = ttk.Frame(self)
         self.gain_label: ttk.Label = ttk.Label(
             self.gain_frame,
-            font=("QTypeOT-CondBook", 15),
+            bootstyle='inverse-secondary',
+            text="Gain:",
         )
-        self.gain_value_label: ttk.Label = ttk.Label(self.gain_frame)
+        self.gain_value_label: ttk.Label = ttk.Label(
+            self.gain_frame,
+            bootstyle='inverse-secondary',
+        )
 
         self.mode_frame: ttk.Frame = ttk.Frame(self)
         self.mode_label: ttk.Label = ttk.Label(
             self.mode_frame,
-            font=("QTypeOT-CondBook", 15),
+            bootstyle='inverse-secondary',
+            text="Mode:",
         )
-        self.mode_value_label: ttk.Label = ttk.Label(self.mode_frame)
+        self.mode_value_label: ttk.Label = ttk.Label(
+            self.mode_frame,
+            bootstyle='inverse-secondary',
+        )
 
         self.urms_frame: ttk.Frame = ttk.Frame(self)
         self.urms_label: ttk.Label = ttk.Label(
             self.urms_frame,
-            font=("QTypeOT-CondBook", 15),
+            text="urms:",
+            font=("QTypeOT-CondExtraLight", 15),
         )
         self.urms_value_label: ttk.Label = ttk.Label(self.urms_frame)
 
         self.irms_frame: ttk.Frame = ttk.Frame(self)
         self.irms_label: ttk.Label = ttk.Label(
             self.irms_frame,
-            font=("QTypeOT-CondBook", 15),
+            font=("QTypeOT-CondExtraLight", 15),
+            text="irms:",
         )
         self.irms_value_label: ttk.Label = ttk.Label(self.irms_frame)
 
         self.phase_frame: ttk.Frame = ttk.Frame(self)
         self.phase_label: ttk.Label = ttk.Label(
             self.phase_frame,
-            font=("QTypeOT-CondBook", 15),
+            text="phase:",
+            font=("QTypeOT-CondExtraLight", 15),
         )
         self.phase_value_label: ttk.Label = ttk.Label(self.phase_frame)
 
         self.signal_frame: ttk.Frame = ttk.Frame(self)
         self.connection_label: ttk.Label = ttk.Label(
             self.signal_frame,
-            font=("QTypeOT-CondBook", 15),
+            bootstyle='inverse-secondary',
+            # text='Not connected',
+            image=self.connection_image,
+            compound=ttk.LEFT,
+            font=("QTypeOT-CondExtraLight", 15),
         )
         self.signal_label: ttk.Label = ttk.Label(
             self.signal_frame,
-            font=("QTypeOT-CondBook", 15),
+            bootstyle='inverse-secondary',
+            # text='No signal output',
+            image=self.signal_image,
+            compound=ttk.LEFT,
+            font=("QTypeOT-CondExtraLight", 15),
         )
-
+        self.bind_events()
+        self.publish()
+    
+    def on_connect(self, event=None) -> None:
+        self.soniccontrol_state_frame.pack(side=ttk.LEFT, padx=5)
+        self.soniccontrol_value_label.configure(text="Manual")
+        
+        self.freq_frame.pack(side=ttk.LEFT, padx=5)
+        self.freq_value_label.configure(text="1000 kHz")
+        
+        self.gain_frame.pack(side=ttk.LEFT, padx=5)
+        self.gain_value_label.configure(text="60 %")
+        
+        self.mode_frame.pack(side=ttk.LEFT, padx=5)
+        self.mode_value_label.configure(text="Catch")
+        
+        self.connection_label.configure(bootstyle='inverse-success')
+    
+    def publish(self) -> None:
+        # self.soniccontrol_state_frame.pack(side=ttk.LEFT)
+        self.soniccontrol_state_label.pack(side=ttk.LEFT)
+        self.soniccontrol_value_label.pack(side=ttk.LEFT)
+        
+        self.freq_label.pack(side=ttk.LEFT)
+        self.freq_value_label.pack(side=ttk.LEFT)
+        
+        self.gain_label.pack(side=ttk.LEFT)
+        self.gain_value_label.pack(side=ttk.LEFT)
+        
+        self.mode_label.pack(side=ttk.LEFT)
+        self.mode_value_label.pack(side=ttk.LEFT)
+        
+        self.urms_label.pack(side=ttk.LEFT)
+        self.urms_value_label.pack(side=ttk.LEFT)
+        
+        self.irms_label.pack(side=ttk.LEFT)
+        self.irms_value_label.pack(side=ttk.LEFT)
+        
+        self.phase_label.pack(side=ttk.LEFT)
+        self.phase_value_label.pack(side=ttk.LEFT)
+        
+        self.signal_frame.pack(side=ttk.RIGHT)
+        self.connection_label.pack(side=ttk.RIGHT, ipadx=3, ipady=2)
+        self.signal_label.pack(side=ttk.RIGHT, ipadx=3, ipady=2)
 
 """
 StatusFrameParent = Union[ttk.Frame, SCNotebook]

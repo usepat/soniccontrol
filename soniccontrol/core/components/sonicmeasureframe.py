@@ -30,9 +30,11 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
     #     self._width_layouts: Iterable[Layout] = ()
     #     self._height_layouts: Iterable[Layout] = ()
         self.configure(width=200)
-        self.start_image: PhotoImage = PhotoImage(const.PLAY_RAW_IMG)
-        self.stop_image: PhotoImage = PhotoImage(const.PAUSE_RAW_IMG)
-        self.restart_image: PhotoImage = PhotoImage(const.REFRESH_RAW_IMG)
+        self.start_image: PhotoImage = const.Images.get_image(const.Images.PLAY_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.stop_image: PhotoImage = const.Images.get_image(const.Images.PAUSE_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.restart_image: PhotoImage = const.Images.get_image(const.Images.REFRESH_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.back_image: PhotoImage = const.Images.get_image(const.Images.BACK_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.forward_image: PhotoImage = const.Images.get_image(const.Images.FORWARDS_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
         
         self.main_frame: ttk.Frame = ttk.Frame(self)
         self.button_frame: ttk.Frame = ttk.Frame(self.main_frame)
@@ -54,7 +56,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         )
         
         self.plot_frame: ttk.Frame = ttk.Frame(self.main_frame)
-        self.figure: Figure = Figure(figsize=(6,4), dpi=100)
+        self.figure: Figure = Figure(figsize=(3,2), dpi=100)
         self.figure_canvas: FigureCanvasTkAgg = FigureCanvasTkAgg(self.figure, self.plot_frame)
         NavigationToolbar2Tk(self.figure_canvas, self.plot_frame)
         
@@ -64,12 +66,16 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
             self.navigation_bar,
             text='Back',
             bootstyle=ttk.DARK,
+            image=self.back_image,
+            compound=ttk.LEFT,
             command=self.show_mainframe,
         )
         self.submit_button: ttk.Button = ttk.Button(
             self.navigation_bar,
             text='Start Sonicmeasure',
             bootstyle=ttk.SUCCESS,
+            image=self.forward_image,
+            compound=ttk.RIGHT,
             command=self.start_sonicmeasure,
         )
         
@@ -97,24 +103,24 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
     
     def restart_sonicmeasure(self) -> None:
         self.main_frame.pack_forget()
-        self.configuration_frame.pack(expand=True, padx=15)
+        self.configuration_frame.pack(padx=15)
         
     def start_sonicmeasure(self) -> None:
         self.show_mainframe()
         
     def show_mainframe(self) -> None:
         self.configuration_frame.pack_forget()
-        self.main_frame.pack(expand=True, fill=ttk.BOTH)
+        self.main_frame.pack(fill=ttk.BOTH)
     
     def publish(self) -> None:
-        self.main_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
+        self.main_frame.pack(fill=ttk.BOTH, padx=3, pady=3)
         
         self.button_frame.pack(fill=ttk.X, padx=3, pady=3)
         self.pause_resume_button.pack(side=ttk.LEFT, padx=3, pady=3)
         self.restart_button.pack(side=ttk.LEFT, padx=3, pady=3)
         
-        self.plot_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
-        self.figure_canvas.get_tk_widget().pack(expand=True, fill=ttk.BOTH)
+        self.plot_frame.pack(padx=3, pady=3)
+        self.figure_canvas.get_tk_widget().pack(fill=ttk.BOTH)
         
         self.navigation_bar.pack(pady=5, fill=ttk.X)
         self.back_button.pack( pady=5, side=ttk.LEFT)
