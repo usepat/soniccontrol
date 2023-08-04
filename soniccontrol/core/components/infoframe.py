@@ -21,12 +21,12 @@ class InfoFrame(RootChild):
         "a light-weight application to\n"
         "control   sonicamp    systems\n"
         "over  the  serial  interface.\n"
-        'For        help,        click\n'
+        "For        help,        click\n"
         'the  "Manual"   button  below\n'
         "\n"
         "(c) usePAT G.m.b.H\n"
     )
-    
+
     def __init__(
         self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
     ):
@@ -40,16 +40,10 @@ class InfoFrame(RootChild):
                 min_width=400,
                 command=self.set_small_info,
             ),
-            WidthLayout(
-                min_width=300,
-                command=self.set_large_width_heading
-            ),
-            WidthLayout(
-                min_width=100,
-                command=self.set_small_width_heading
-            ),
+            WidthLayout(min_width=300, command=self.set_large_width_heading),
+            WidthLayout(min_width=100, command=self.set_small_width_heading),
         )
-    #     self._height_layouts: Iterable[Layout] = ()
+        #     self._height_layouts: Iterable[Layout] = ()
         self.heading_frame: ttk.Frame = ttk.Frame(self)
 
         self.soniccontrol_logo1: ttk.Label = ttk.Label(
@@ -79,30 +73,30 @@ class InfoFrame(RootChild):
         )
         self.bind_events()
         self.publish()
-    
-    def set_small_width_heading(self) -> None:
+
+    def set_small_width_heading(self, *args, **kwargs) -> None:
         for child in self.heading_frame.children.values():
             child.grid_forget()
         self.soniccontrol_logo1.pack(fill=ttk.X, anchor=ttk.CENTER)
         self.soniccontrol_logo2.pack(fill=ttk.X, anchor=ttk.CENTER)
-    
-    def set_large_width_heading(self) -> None:
+
+    def set_large_width_heading(self, *args, **kwargs) -> None:
         for child in self.heading_frame.children.values():
             child.pack_forget()
         self.soniccontrol_logo1.grid(row=1, column=0, columnspan=1, sticky=ttk.E)
         self.soniccontrol_logo2.grid(row=1, column=1, columnspan=1, sticky=ttk.W)
-    
-    def set_small_info(self) -> None:
-        logger.debug('setting small info text')
-        self.info_label['text'] = InfoFrame.INFOTEXT_SMALL
-    
-    def set_large_info(self) -> None:
-        self.info_label['text'] = InfoFrame.INFOTEXT
-    
+
+    def set_small_info(self, *args, **kwargs) -> None:
+        logger.debug("setting small info text")
+        self.info_label["text"] = InfoFrame.INFOTEXT_SMALL
+
+    def set_large_info(self, *args, **kwargs) -> None:
+        self.info_label["text"] = InfoFrame.INFOTEXT
+
     @staticmethod
     def open_manual() -> None:
         pass
-    
+
     def publish(self) -> None:
         self.soniccontrol_logo1.grid(row=0, column=0)
         self.soniccontrol_logo2.grid(row=0, column=1)

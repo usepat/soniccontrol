@@ -16,15 +16,21 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
     ):
         super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-    #     self._width_layouts: Iterable[Layout] = ()
-    #     self._height_layouts: Iterable[Layout] = ()
+        #     self._width_layouts: Iterable[Layout] = ()
+        #     self._height_layouts: Iterable[Layout] = ()
         self.current_task: ttk.StringVar = ttk.StringVar(value="Idle")
         self.top_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
-        self.button_frame: ttk.Frame = ttk.Frame(self.top_frame)
-        
-        self.start_image: PhotoImage = const.Images.get_image(const.Images.PLAY_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
-        self.menue_image: PhotoImage =const.Images.get_image(const.Images.MENUE_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
-        self.info_image: PhotoImage = const.Images.get_image(const.Images.INFO_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
+        self.button_frame: ttk.Frame = ttk.Frame(self)
+
+        self.start_image: PhotoImage = const.Images.get_image(
+            const.Images.PLAY_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
+        )
+        self.menue_image: PhotoImage = const.Images.get_image(
+            const.Images.MENUE_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
+        )
+        self.info_image: PhotoImage = const.Images.get_image(
+            const.Images.INFO_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
+        )
         self.start_script_btn = ttk.Button(
             self.button_frame,
             text="Run",
@@ -41,18 +47,15 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
             compound=ttk.LEFT,
             command=self.open_help,
         )
-        
+
         self.menue: ttk.Menu = ttk.Menu(self.button_frame)
         self.menue_button: ttk.Menubutton = ttk.Menubutton(
-            self.button_frame,
-            image=self.menue_image,
-            menu=self.menue,
-            bootstyle='dark'
+            self.button_frame, image=self.menue_image, menu=self.menue, bootstyle="dark"
         )
-        self.menue.add_command(label='Save Script', command=self.save_file)
-        self.menue.add_command(label='Load Script', command=self.load_file)
-        self.menue.add_command(label='Specify Log file path', command=self.open_logfile)
-        
+        self.menue.add_command(label="Save Script", command=self.save_file)
+        self.menue.add_command(label="Load Script", command=self.load_file)
+        self.menue.add_command(label="Specify Log file path", command=self.open_logfile)
+
         self.scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self.top_frame,
             text="Script Editor",
@@ -63,7 +66,7 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
             autohide=True,
             height=30,
             width=50,
-            font=('QType Square Light', 12),
+            font=("QType Square Light", 12),
         )
         self.script_status_frame: ttk.Frame = ttk.Frame(self)
         self.cur_task_label: ttk.Label = ttk.Label(
@@ -78,16 +81,16 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
             length=160,
             mode="indeterminate",
             orient=ttk.HORIZONTAL,
-            bootstyle=ttk.DARK
+            bootstyle=ttk.DARK,
         )
         self.bind_events()
-        
+
     def on_connect(self, event=None) -> None:
         return self.publish()
-    
+
     def on_script_start(self, event=None) -> None:
         pass
-    
+
     def on_script_stop(self, event=None) -> None:
         pass
 
@@ -125,14 +128,13 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         self.menue_button.pack(side=ttk.RIGHT, padx=5, pady=3)
 
     def publish(self):
-        self.top_frame.pack(expand=True, fill=ttk.BOTH)
-        # self.top_frame.place(relheight=1, relwidth=1, relx=0, rely=0)
         self.button_frame.pack(anchor=ttk.N, padx=15, pady=5, fill=ttk.X)
+        self.top_frame.pack(expand=True, fill=ttk.BOTH)
         self.set_horizontal_button_layout()
-        
+
         self.scripting_frame.pack(padx=20, pady=5, fill=ttk.BOTH, expand=True)
         self.scripttext.pack(fill=ttk.BOTH, expand=True)
-        
+
         self.script_status_frame.pack(side=ttk.BOTTOM, fill=ttk.X)
         self.cur_task_label.pack(fill=ttk.X, padx=5, pady=3, side=ttk.LEFT)
         self.sequence_status.pack(fill=ttk.X, padx=5, pady=3, side=ttk.RIGHT)

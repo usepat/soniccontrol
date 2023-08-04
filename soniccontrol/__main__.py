@@ -1,5 +1,6 @@
 from soniccontrol import SonicControl
 
+
 def soniccontrol_gui_main() -> None:
     sc: SonicControl = SonicControl()
     sc.mainloop()

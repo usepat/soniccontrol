@@ -34,7 +34,7 @@ class RootNotebook(ttk.Notebook, Resizable):
     @property
     def width_layouts(self) -> Iterable[Layout]:
         return self._width_layouts
-    
+
     @property
     def height_layouts(self) -> Iterable[Layout]:
         return self._height_layouts
@@ -68,8 +68,7 @@ class RootNotebook(ttk.Notebook, Resizable):
         )
 
         tab_id: str = self.add(
-            frame.container if isinstance(frame, ScrolledFrame) else frame,
-            **kwargs
+            frame.container if isinstance(frame, ScrolledFrame) else frame, **kwargs
         )
         self._currently_managed_tabs.append(frame)
         return tab_id
@@ -116,29 +115,31 @@ class RootNotebook(ttk.Notebook, Resizable):
             else tab_titles,
         )
         self.select(self._last_focused_tab)
-        
+
     def forget_and_add_tabs(self, tabs: Iterable[RootChild]) -> None:
         self.forget_tabs()
         self.add_tabs(tabs)
-        try: self.select(self._last_focused_tab)
-        except Exception as e: logger.debug(e)
+        try:
+            self.select(self._last_focused_tab)
+        except Exception as e:
+            logger.debug(e)
 
     def hide_images(self) -> None:
-        logger.debug('hiding images')
+        logger.debug("hiding images")
         self.configure_tabs(images=False)
 
     def show_images(self) -> None:
-        logger.debug('showing images')
+        logger.debug("showing images")
         self.configure_tabs(images=True)
-        
-    def show_images_without_titles(self) -> None:
-        logger.debug('showing images without titles')
+
+    def show_images_without_titles(self, *args, **kwargs) -> None:
+        logger.debug("showing images without titles")
         self.configure_tabs(images=True, tab_titles=False)
 
-    def show_tab_titles(self) -> None:
-        logger.debug('showing tab titles')
+    def show_tab_titles(self, *args, **kwargs) -> None:
+        logger.debug("showing tab titles")
         self.configure_tabs(tab_titles=True)
 
     def hide_tab_titles(self) -> None:
-        logger.debug('hiding tab titles')
+        logger.debug("hiding tab titles")
         self.configure_tabs(tab_titles=False)

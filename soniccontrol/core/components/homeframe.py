@@ -17,15 +17,9 @@ class HomeFrame(RootChild, Connectable):
     ):
         super().__init__(parent_frame, tab_title, image, *args, **kwargs)
         self._width_layouts = (
-            WidthLayout(
-                min_width=400,
-                command=self.set_large_width_uscontrolframe
-            ),
-            WidthLayout(
-                min_width=10,
-                command=self.set_small_width_uscontrolframe
-            ),
-        )        
+            WidthLayout(min_width=400, command=self.set_large_width_uscontrolframe),
+            WidthLayout(min_width=10, command=self.set_small_width_uscontrolframe),
+        )
         # Tkinter variables
         self._freq: tk.IntVar = tk.IntVar()
         self._gain: tk.IntVar = tk.IntVar()
@@ -119,10 +113,10 @@ class HomeFrame(RootChild, Connectable):
             width=475,
         )
         self.bind_events()
-        
+
     def on_connect(self, connection_data: Connectable.ConnectionData) -> None:
         return self.publish()
-    
+
     def on_refresh(self, event=None) -> None:
         pass
 
@@ -144,24 +138,21 @@ class HomeFrame(RootChild, Connectable):
         self.us_control_frame.pack(side=tk.TOP, padx=10, pady=10)
 
         self.botframe.pack(side=tk.TOP)
-        self.feedback_frame.pack(side=tk.LEFT,)
-        self.output_frame.pack(
-            anchor=tk.N, side=tk.TOP, padx=10, pady=10, fill=tk.BOTH
+        self.feedback_frame.pack(
+            side=tk.LEFT,
         )
+        self.output_frame.pack(anchor=tk.N, side=tk.TOP, padx=10, pady=10, fill=tk.BOTH)
 
-    def set_small_width_uscontrolframe(self) -> None:
+    def set_small_width_uscontrolframe(self, *args, **kwargs) -> None:
         for child in self.us_control_frame.children.values():
             child.grid_forget()
         self.us_on_button.pack(side=ttk.TOP, fill=ttk.X, padx=5, pady=5)
         self.us_auto_button.pack(side=ttk.TOP, fill=ttk.X, padx=5, pady=5)
         self.us_off_button.pack(side=ttk.TOP, fill=ttk.X, padx=5, pady=5)
 
-    def set_large_width_uscontrolframe(self) -> None:
+    def set_large_width_uscontrolframe(self, *args, **kwargs) -> None:
         for i, child in enumerate(self.us_control_frame.children.values()):
             child.pack_forget()
         self.us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
         self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
         self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.EW)
-
-
-

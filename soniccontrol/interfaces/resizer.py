@@ -4,9 +4,10 @@ from soniccontrol.interfaces.gui_interfaces import Resizable
 import logging
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 
 
-class Resizer():
+class Resizer:
     def __init__(
         self,
         subject: Resizable,
@@ -23,7 +24,7 @@ class Resizer():
     @property
     def active_height_layout(self) -> Layout:
         return self._active_height_layout
-    
+
     @property
     def active_width_layout(self) -> Layout:
         return self._active_width_layout

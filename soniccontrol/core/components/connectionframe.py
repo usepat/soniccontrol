@@ -11,7 +11,7 @@ from soniccontrol.interfaces import (
     WidthLayout,
     Disconnectable,
     Connectable,
-    Layout
+    Layout,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,19 +23,15 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
     ):
         super().__init__(parent_frame, tab_title, image, *args, **kwargs)
         self._width_layouts: Iterable[Layout] = (
-            WidthLayout(
-                min_width=300,
-                command=self.set_large_layout
-            ),
-            WidthLayout(
-                min_width=100,
-                command=self.set_small_layout
-            ),
+            WidthLayout(min_width=300, command=self.set_large_layout),
+            WidthLayout(min_width=100, command=self.set_small_layout),
         )
-        
+
         ### tkinter variables
         self.port: tk.StringVar = tk.StringVar()
-        self.refresh_image: PhotoImage = const.Images.get_image(const.Images.REFRESH_IMG_GREY, const.Images.BUTTON_ICON_SIZE)
+        self.refresh_image: PhotoImage = const.Images.get_image(
+            const.Images.REFRESH_IMG_GREY, const.Images.BUTTON_ICON_SIZE
+        )
 
         ### TOPFRAME
         self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
@@ -97,8 +93,8 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.botframe: ttk.Frame = ttk.Frame(self)
         self.bind_events()
         self.publish()
-        logger.debug('ConnectionFrame initialized')
-    
+        logger.debug("ConnectionFrame initialized")
+
     def bind_events(self) -> None:
         super().bind_events()
 
@@ -117,14 +113,14 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.heading_frame.configure(bootstyle=ttk.DEFAULT)
         for child in self.heading_frame.children.values():
             child.configure(bootstyle=ttk.DEFAULT)
-            
-    def set_small_layout(self) -> None:
-        logger.debug('setting small layout')
+
+    def set_small_layout(self, *args, **kwargs) -> None:
+        logger.debug("setting small layout")
         self.set_small_width_heading()
         self.set_small_width_control_frame()
-    
-    def set_large_layout(self) -> None:
-        logger.debug('setting large layout')
+
+    def set_large_layout(self, *args, **kwargs) -> None:
+        logger.debug("setting large layout")
         self.set_large_width_heading()
         self.set_large_width_control_frame()
 
@@ -154,29 +150,35 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.port_frame.grid(row=0, column=0)
         self.connect_button.grid(row=0, column=1)
 
-    def change_heading(self, title_part1: str, title_part2: str, subtitle: str, **kwargs) -> None:
+    def change_heading(
+        self, title_part1: str, title_part2: str, subtitle: str, **kwargs
+    ) -> None:
         self.subtitle["text"] = subtitle
         self.heading1["text"] = title_part1
         self.heading2["text"] = title_part2
 
-    def change_button_to(self, connected: bool = False, disconnected: bool = False, **kwargs) -> None:
+    def change_button_to(
+        self, connected: bool = False, disconnected: bool = False, **kwargs
+    ) -> None:
         if not connected ^ disconnected:
             return
         self.connect_button.configure(
             bootstyle=ttk.DANGER if disconnected else ttk.SUCCESS,
             text="Disconnect" if disconnected else "Connect",
             command=lambda: self.event_generate(
-                const.Events.DISCONNECTED if disconnected else const.Events.CONNECTION_ATTEMPT
+                const.Events.DISCONNECTED
+                if disconnected
+                else const.Events.CONNECTION_ATTEMPT
             ),
         )
-        
+
     def enable_firmware_info(self) -> None:
         self.heading_frame.bind("<Button-1>", self.show_firmware)
         for child in self.heading_frame.children.values():
             child.bind("<Button-1>", self.show_firmware)
         self.heading_frame.bind("<Enter>", self.mark_heading_frame)
         self.heading_frame.bind("<Leave>", self.unmark_heading_frame)
-        
+
     def disable_firmware_info(self) -> None:
         self.heading_frame.unbind("<Button-1>")
         for child in self.heading_frame.children.values():
@@ -194,21 +196,25 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
         self.enable_firmware_info()
-        logger.debug('Connectionframe shows itself connected')
-    
+        logger.debug("Connectionframe shows itself connected")
+
     def on_refresh(self) -> None:
         pass
 
     def on_disconnect(self, event) -> None:
-        self.change_heading(title_part1='not', title_part2='connected', subtitle="Please connect to a SonicAmp system")
+        self.change_heading(
+            title_part1="not",
+            title_part2="connected",
+            subtitle="Please connect to a SonicAmp system",
+        )
         self.firmware_label["text"] = ""
         self.change_button_to(connected=True)
-        self.ports_menue['state'] = ttk.NORMAL
-        self.refresh_button['state'] = ttk.NORMAL
+        self.ports_menue["state"] = ttk.NORMAL
+        self.refresh_button["state"] = ttk.NORMAL
         self.event_generate(const.Events.PORT_REFRESH)
         self.disable_firmware_info()
-        logger.debug('Connectionframe shows itself disconnected')
-        
+        logger.debug("Connectionframe shows itself disconnected")
+
     def publish(self) -> None:
         self.topframe.pack(expand=True, fill=ttk.BOTH)
         self.heading_frame.pack(ipadx=10, ipady=10)

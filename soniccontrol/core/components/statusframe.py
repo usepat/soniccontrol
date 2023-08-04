@@ -1,16 +1,17 @@
 import logging
 import PIL
 from PIL.ImageTk import PhotoImage
-from typing import Iterable
+from typing import Iterable, Any, Optional
 import ttkbootstrap as ttk
-from soniccontrol.interfaces import RootChild, Layout, Connectable
+from soniccontrol.interfaces import RootChild, Layout, Connectable, Disconnectable
 from soniccontrol.interfaces.rootchild import RootChildFrame
 import soniccontrol.constants as const
+from soniccontrol.interfaces.root import Root
 
 logger = logging.getLogger(__name__)
 
 
-class StatusFrame(RootChildFrame, Connectable):
+class StatusBarFrame(RootChildFrame, Connectable, Disconnectable):
     def __init__(
         self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
     ):
@@ -19,145 +20,344 @@ class StatusFrame(RootChildFrame, Connectable):
         # self._height_layouts: Iterable[Layout] = ()
         # Small status
         self.configure(bootstyle=ttk.SECONDARY)
-        self.connection_image: PhotoImage = const.Images.get_image(const.Images.CONNECTION_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
-        self.signal_image: PhotoImage = const.Images.get_image(const.Images.LIGHTNING_IMG_WHITE, const.Images.BUTTON_ICON_SIZE)
-        
-        self.soniccontrol_state_frame: ttk.Frame = ttk.Frame(self)
-        self.soniccontrol_state_label: ttk.Label = ttk.Label(self.soniccontrol_state_frame, bootstyle="inverse-secondary")
-        self.soniccontrol_value_label: ttk.Label = ttk.Label(self.soniccontrol_state_frame, bootstyle="inverse-secondary")
-        
-        self.freq_frame: ttk.Frame = ttk.Frame(self)
-        self.freq_label: ttk.Label = ttk.Label(
-            self.freq_frame,
-            text="Freq.:",
-            bootstyle='inverse-secondary',
+        self.connection_image: PhotoImage = const.Images.get_image(
+            const.Images.CONNECTION_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
         )
+        self.signal_image: PhotoImage = const.Images.get_image(
+            const.Images.LIGHTNING_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
+        )
+
+        self.soniccontrol_state_frame: ttk.Frame = ttk.Frame(self)
+        self.soniccontrol_state_label: ttk.Label = ttk.Label(
+            self.soniccontrol_state_frame, bootstyle="inverse-secondary"
+        )
+        self.soniccontrol_value_label: ttk.Label = ttk.Label(
+            self.soniccontrol_state_frame, bootstyle="inverse-secondary"
+        )
+
+        self.freq_frame: ttk.Frame = ttk.Frame(self)
         self.freq_value_label: ttk.Label = ttk.Label(
             self.freq_frame,
-            bootstyle='inverse-secondary',
+            textvariable=self.root.frequency_text,
+            bootstyle="inverse-secondary",
         )
 
         self.gain_frame: ttk.Frame = ttk.Frame(self)
-        self.gain_label: ttk.Label = ttk.Label(
-            self.gain_frame,
-            bootstyle='inverse-secondary',
-            text="Gain:",
-        )
         self.gain_value_label: ttk.Label = ttk.Label(
             self.gain_frame,
-            bootstyle='inverse-secondary',
+            textvariable=self.root.gain_text,
+            bootstyle="inverse-secondary",
+        )
+
+        self.temperature_frame: ttk.Frame = ttk.Frame(self)
+        self.temperature_value_label: ttk.Label = ttk.Label(
+            self.temperature_frame,
+            textvariable=self.root.temperature_text,
+            bootstyle="inverse-secondary",
         )
 
         self.mode_frame: ttk.Frame = ttk.Frame(self)
         self.mode_label: ttk.Label = ttk.Label(
             self.mode_frame,
-            bootstyle='inverse-secondary',
+            bootstyle="inverse-secondary",
             text="Mode:",
         )
         self.mode_value_label: ttk.Label = ttk.Label(
             self.mode_frame,
-            bootstyle='inverse-secondary',
+            textvariable=self.root.mode,
+            bootstyle="inverse-secondary",
         )
 
         self.urms_frame: ttk.Frame = ttk.Frame(self)
-        self.urms_label: ttk.Label = ttk.Label(
+        self.urms_value_label: ttk.Label = ttk.Label(
             self.urms_frame,
-            text="urms:",
-            font=("QTypeOT-CondExtraLight", 15),
+            textvariable=self.root.urms_text,
+            bootstyle="inverse-secondary",
         )
-        self.urms_value_label: ttk.Label = ttk.Label(self.urms_frame)
 
         self.irms_frame: ttk.Frame = ttk.Frame(self)
-        self.irms_label: ttk.Label = ttk.Label(
+        self.irms_value_label: ttk.Label = ttk.Label(
             self.irms_frame,
-            font=("QTypeOT-CondExtraLight", 15),
-            text="irms:",
+            textvariable=self.root.irms_text,
+            bootstyle="inverse-secondary",
         )
-        self.irms_value_label: ttk.Label = ttk.Label(self.irms_frame)
 
         self.phase_frame: ttk.Frame = ttk.Frame(self)
-        self.phase_label: ttk.Label = ttk.Label(
+        self.phase_value_label: ttk.Label = ttk.Label(
             self.phase_frame,
-            text="phase:",
-            font=("QTypeOT-CondExtraLight", 15),
+            textvariable=self.root.phase_text,
+            bootstyle="inverse-secondary",
         )
-        self.phase_value_label: ttk.Label = ttk.Label(self.phase_frame)
 
         self.signal_frame: ttk.Frame = ttk.Frame(self)
         self.connection_label: ttk.Label = ttk.Label(
             self.signal_frame,
-            bootstyle='inverse-secondary',
-            # text='Not connected',
+            bootstyle="inverse-secondary",
+            # textvariable=self.root.connection_status,
             image=self.connection_image,
             compound=ttk.LEFT,
-            font=("QTypeOT-CondExtraLight", 15),
         )
         self.signal_label: ttk.Label = ttk.Label(
             self.signal_frame,
-            bootstyle='inverse-secondary',
+            bootstyle="inverse-secondary",
             # text='No signal output',
             image=self.signal_image,
             compound=ttk.LEFT,
-            font=("QTypeOT-CondExtraLight", 15),
         )
         self.bind_events()
         self.publish()
-    
+
+    def on_error(self) -> None:
+        pass
+
+    def on_signal_change(self, event: Any = None) -> None:
+        pass
+
+    def on_frequency_change(self, event: Any = None) -> None:
+        pass
+
+    def on_gain_change(self, event: Any = None) -> None:
+        pass
+
+    def on_urms_change(self, event: Any = None) -> None:
+        pass
+
+    def on_irms_change(self, event: Any = None) -> None:
+        pass
+
+    def on_phase_change(self, event: Any = None) -> None:
+        pass
+
+    def on_mode_change(self, event: Any = None) -> None:
+        pass
+
+    def on_disconnect(self, event: Any = None) -> None:
+        for child in self.winfo_children():
+            child.pack_forget()
+        self.publish_signal_connection_frame()
+        self.connection_label.configure(bootstyle="inverse-secondary")
+        self.signal_label.configure(bootstyle="inverse-secondary")
+
+    def publish_signal_connection_frame(self, *args, **kwargs) -> None:
+        self.signal_frame.pack(side=ttk.RIGHT)
+        self.connection_label.pack(side=ttk.RIGHT, ipadx=3)
+        self.signal_label.pack(side=ttk.RIGHT, ipadx=3)
+
     def on_connect(self, event=None) -> None:
         self.soniccontrol_state_frame.pack(side=ttk.LEFT, padx=5)
         self.soniccontrol_value_label.configure(text="Manual")
-        
+
         self.freq_frame.pack(side=ttk.LEFT, padx=5)
-        self.freq_value_label.configure(text="1000 kHz")
-        
         self.gain_frame.pack(side=ttk.LEFT, padx=5)
-        self.gain_value_label.configure(text="60 %")
-        
         self.mode_frame.pack(side=ttk.LEFT, padx=5)
-        self.mode_value_label.configure(text="Catch")
-        
-        self.connection_label.configure(bootstyle='inverse-success')
-    
+        self.temperature_frame.pack(side=ttk.LEFT, padx=5)
+
+        self.urms_frame.pack(side=ttk.LEFT, padx=5)
+        self.irms_frame.pack(side=ttk.LEFT, padx=5)
+        self.phase_frame.pack(side=ttk.LEFT, padx=5)
+
+        self.connection_label.configure(bootstyle="inverse-success")
+
     def publish(self) -> None:
-        # self.soniccontrol_state_frame.pack(side=ttk.LEFT)
         self.soniccontrol_state_label.pack(side=ttk.LEFT)
         self.soniccontrol_value_label.pack(side=ttk.LEFT)
-        
-        self.freq_label.pack(side=ttk.LEFT)
+
         self.freq_value_label.pack(side=ttk.LEFT)
-        
-        self.gain_label.pack(side=ttk.LEFT)
         self.gain_value_label.pack(side=ttk.LEFT)
-        
         self.mode_label.pack(side=ttk.LEFT)
         self.mode_value_label.pack(side=ttk.LEFT)
-        
-        self.urms_label.pack(side=ttk.LEFT)
+        self.temperature_value_label.pack(side=ttk.LEFT)
         self.urms_value_label.pack(side=ttk.LEFT)
-        
-        self.irms_label.pack(side=ttk.LEFT)
         self.irms_value_label.pack(side=ttk.LEFT)
-        
-        self.phase_label.pack(side=ttk.LEFT)
         self.phase_value_label.pack(side=ttk.LEFT)
-        
-        self.signal_frame.pack(side=ttk.RIGHT)
-        self.connection_label.pack(side=ttk.RIGHT, ipadx=3, ipady=2)
-        self.signal_label.pack(side=ttk.RIGHT, ipadx=3, ipady=2)
+
+        self.publish_signal_connection_frame()
+
+
+class StatusFrame(RootChildFrame, Connectable):
+    def __init__(
+        self, parent_frame: Root, tab_title: str, image: PIL.Image, *args, **kwargs
+    ) -> None:
+        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
+        # self._width_layouts: Iterable[Layout] = ()
+        # self._height_layouts: Iterable[Layout] = ()
+        self.signal_off_image: PhotoImage = const.Images.get_image(
+            const.Images.LED_RED_IMG,
+            (25, 25),
+        )
+        self.signal_on_image: PhotoImage = const.Images.get_image(
+            const.Images.LED_GREEN_IMG, (25, 25)
+        )
+        self._initialize_tkinter_components()
+        self.bind_events()
+
+    def _initialize_tkinter_components(self) -> None:
+        self.meter_frame: ttk.Frame = ttk.Label(self)
+        self.overview_frame: ttk.Frame = ttk.Frame(self)
+        self.sonicmeasure_frame: ttk.Frame = ttk.Frame(self)
+
+        # Meter Frame
+        self.freq_meter: ttk.Meter = ttk.Meter(
+            self.meter_frame,
+            bootstyle=ttk.DARK,
+            # amounttotal=self.sonicamp.mode.freq_stop / const.DIVIDE_TO_KHZ,
+            amountused=self.root.frequency.get(),
+            textright="kHz",
+            subtext="Frequency",
+            metersize=150,
+        )
+
+        self.gain_meter: ttk.Meter = ttk.Meter(
+            self.meter_frame,
+            bootstyle=ttk.SUCCESS,
+            amounttotal=150,
+            amountused=self.root.gain.get(),
+            textright="%",
+            subtext="Gain",
+            metersize=150,
+        )
+
+        self.temp_meter: ttk.Meter = ttk.Meter(
+            self.meter_frame,
+            bootstyle=ttk.WARNING,
+            amounttotal=100,
+            amountused=self.root.temperature.get(),
+            textright="°C",
+            subtext="Thermometer not found",
+            metersize=150,
+        )
+
+        # SonSens Frame
+        self.urms_frame: ttk.Frame = ttk.Frame(self.sonicmeasure_frame)
+        self.urms_value_label: ttk.Label = ttk.Label(
+            self.urms_frame,
+            textvariable=self.root.urms_text,
+            anchor=ttk.CENTER,
+            bootstyle=ttk.PRIMARY,
+        )
+
+        self.irms_frame: ttk.Frame = ttk.Frame(self.sonicmeasure_frame)
+        self.irms_value_label: ttk.Label = ttk.Label(
+            self.irms_frame,
+            textvariable=self.root.irms_text,
+            anchor=ttk.CENTER,
+            bootstyle=ttk.DANGER,
+        )
+
+        self.phase_frame: ttk.Frame = ttk.Frame(self.sonicmeasure_frame)
+        self.phase_value_label: ttk.Label = ttk.Label(
+            self.phase_frame,
+            textvariable=self.root.phase_text,
+            bootstyle=ttk.DANGER,
+            anchor=ttk.CENTER,
+        )
+
+        # Overview Frame
+        self.connection_status_label: ttk.Label = ttk.Label(
+            self.overview_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5, 0, 5, 0),
+            justify=ttk.CENTER,
+            anchor=ttk.CENTER,
+            compound=ttk.LEFT,
+            width=15,
+            image=self.signal_off_image,
+            bootstyle="inverse-light",
+            text="not connected",
+        )
+
+        self.signal_status_label: ttk.Label = ttk.Label(
+            self.overview_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5, 0, 5, 0),
+            justify=ttk.CENTER,
+            anchor=ttk.CENTER,
+            compound=ttk.LEFT,
+            width=10,
+            image=self.signal_off_image,
+            # bootstyle="inverse-secondary",
+            bootstyle="inverse-light",
+            text="signal off",
+        )
+
+        self.error_status_label: ttk.Label = ttk.Label(
+            self.overview_frame,
+            font="QTypeOT-CondBook 15",
+            padding=(5, 5, 5, 5),
+            justify=ttk.CENTER,
+            anchor=ttk.CENTER,
+            compound=ttk.CENTER,
+            relief=ttk.RIDGE,
+            width=10,
+            text=None,
+        )
+
+    def on_error(self) -> None:
+        pass
+
+    def on_signal_change(self, event: Any = None) -> None:
+        pass
+
+    def on_frequency_change(self, event: Any = None) -> None:
+        pass
+
+    def on_gain_change(self, event: Any = None) -> None:
+        pass
+
+    def on_urms_change(self, event: Any = None) -> None:
+        pass
+
+    def on_irms_change(self, event: Any = None) -> None:
+        pass
+
+    def on_phase_change(self, event: Any = None) -> None:
+        pass
+
+    def on_mode_change(self, event: Any = None) -> None:
+        pass
+
+    def on_connect(self, event: Any = None) -> None:
+        self.connection_status_label["image"] = self.signal_on_image
+        return self.publish()
+
+    def on_update(self, event: Any = None) -> None:
+        pass
+
+    def publish(self) -> None:
+        self.meter_frame.pack(fill=ttk.X, anchor=ttk.CENTER, pady=3)
+        self.freq_meter.pack(side=ttk.LEFT, fill=ttk.X, expand=True, anchor=ttk.E)
+        self.gain_meter.pack(side=ttk.LEFT, fill=ttk.X, expand=True, anchor=ttk.CENTER)
+        self.temp_meter.pack(side=ttk.LEFT, fill=ttk.X, expand=True, anchor=ttk.W)
+
+        self.sonicmeasure_frame.pack(fill=ttk.X, anchor=ttk.CENTER, expand=True, pady=3)
+        self.urms_value_label.pack(side=ttk.LEFT, anchor=ttk.E, expand=True)
+        self.irms_value_label.pack(side=ttk.LEFT, anchor=ttk.CENTER, expand=True)
+        self.phase_value_label.pack(side=ttk.LEFT, anchor=ttk.W, expand=True)
+
+        self.urms_frame.pack(
+            side=ttk.LEFT, padx=5, fill=ttk.X, expand=True, anchor=ttk.E
+        )
+        self.irms_frame.pack(
+            side=ttk.LEFT, padx=5, fill=ttk.X, expand=True, anchor=ttk.CENTER
+        )
+        self.phase_frame.pack(
+            side=ttk.LEFT, padx=5, fill=ttk.X, expand=True, anchor=ttk.W
+        )
+
+        # self.urms_frame.grid(row=0, column=0, sticky=ttk.NSEW)
+        # self.irms_frame.grid(row=0, column=1, sticky=ttk.NSEW)
+        # self.phase_frame.grid(row=0, column=2, sticky=ttk.NSEW)
+
+        self.overview_frame.pack(fill=ttk.X, ipadx=3, ipady=3)
+        self.connection_status_label.pack(fill=ttk.X, side=ttk.LEFT, expand=True)
+        self.signal_status_label.pack(fill=ttk.X, side=ttk.LEFT, expand=True)
+
 
 """
-StatusFrameParent = Union[ttk.Frame, SCNotebook]
-StatusData = Union[bool, int, Optional[int], Optional[float]]
-StatusUpdater = Callable[[StatusData], None]
-UpdateRegisterDict = Dict[str, Dict[str, Union[StatusData, StatusUpdater]]]
-
-
-class SCStatusFrame(SCTab):
+class SCStatusFrame(RootChildFrame, Connectable):
     def __init__(
         self,
-        parent: StatusFrameParent,
-        root: Root,
-        tab_position: int,
+        parent: ttk.Frame,
         image,
         *args,
         **kwargs,
@@ -177,106 +377,9 @@ class SCStatusFrame(SCTab):
             self.update_register_dict
         )
 
-    def _initialize_tkinter_components(self) -> None:
-        self.meter_frame: ttk.Frame = ttk.Frame(self)
-        self.overview_frame: ttk.Frame = ttk.Frame(self, style="secondary.TFrame")
-        self.sonsens_frame: ttk.Frame = ttk.Frame(self)
+    
 
-        # Meter Frame
-        self.freq_meter: ttkb.Meter = ttkb.Meter(
-            self.meter_frame,
-            bootstyle=ttkb.DARK,
-            amounttotal=self.sonicamp.mode.freq_stop / const.DIVIDE_TO_KHZ,
-            amountused=self._freq_using,
-            textright="kHz",
-            subtext="Current Frequency",
-            metersize=150,
-        )
-
-        self.gain_meter: ttkb.Meter = ttkb.Meter(
-            self.meter_frame,
-            bootstyle=ttkb.SUCCESS,
-            amounttotal=150,
-            amountused=self._gain_using,
-            textright="%",
-            subtext="Current Gain",
-            metersize=150,
-        )
-
-        self.temp_meter: ttkb.Meter = ttkb.Meter(
-            self.meter_frame,
-            bootstyle=ttkb.WARNING,
-            amounttotal=100,
-            amountused=self._temp_using,
-            textright="°C",
-            subtext="Thermometer not found",
-            metersize=150,
-        )
-
-        # SonSens Frame
-        self.urms_label: ttk.Label = ttk.Label(
-            self.sonsens_frame,
-            font=self.root.qtype12,
-            anchor=tk.CENTER,
-            style="primary.TLabel",
-            padding=(5, 0, 20, 0),
-        )
-        self.irms_label: ttk.Label = ttk.Label(
-            self.sonsens_frame,
-            font=self.root.qtype12,
-            anchor=tk.CENTER,
-            style="danger.TLabel",
-            padding=(20, 0, 20, 0),
-        )
-        self.phase_label: ttk.Label = ttk.Label(
-            self.sonsens_frame,
-            font=self.root.qtype12,
-            anchor=tk.CENTER,
-            style="success.TLabel",
-            padding=(20, 0, 5, 0),
-        )
-
-        # Overview Frame
-        self.connection_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5, 0, 5, 0),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.LEFT,
-            width=15,
-            image=self.root.LED_RED_IMG,
-            bootstyle="inverse-secondary",
-            text=self.NOT_CONN_TXT,
-        )
-
-        self.signal_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5, 0, 5, 0),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.LEFT,
-            width=10,
-            image=self.root.LED_RED_IMG,
-            bootstyle="inverse-secondary",
-            text=self.OFF_TXT,
-        )
-
-        self.error_status_label: ttkb.Label = ttkb.Label(
-            self.overview_frame,
-            font="QTypeOT-CondBook 15",
-            padding=(5, 5, 5, 5),
-            justify=tk.CENTER,
-            anchor=tk.CENTER,
-            compound=tk.CENTER,
-            relief=tk.RIDGE,
-            width=10,
-            text=None,
-        )
-
-    def show_error(self) -> None:
-        pass
+    
 
     def attach_data(self, status: Status) -> None:
         self.check_error(status.error)

@@ -15,9 +15,13 @@ logger = logging.getLogger(__name__)
 
 class RootChild(ScrolledFrame, Resizable):
     def __init__(
-        self, parent_frame: Root, tab_title: str, image: PIL.Image, 
+        self,
+        parent_frame: Root,
+        tab_title: str,
+        image: PIL.Image,
         autohide: bool = True,
-        *args, **kwargs
+        *args,
+        **kwargs
     ) -> None:
         super().__init__(master=parent_frame, autohide=autohide, *args, **kwargs)
         self._width_layouts: Optional[Iterable[Layout]] = None
@@ -25,18 +29,24 @@ class RootChild(ScrolledFrame, Resizable):
         self._tab_title: str = tab_title
         self._image: PhotoImage = image
         self._resizer: Resizer = Resizer(self)
-        self.root: Root = parent_frame
 
-        logger.debug('RootChild initialized')
+        style = ttk.Style()
+        style.configure("LightGreyLabel.TLabel", background="grey")
+
+        logger.debug("RootChild initialized")
+
+    @property
+    def root(self) -> Root:
+        return self.winfo_toplevel()
 
     @property
     def resizer(self) -> Resizer:
         return self._resizer
-    
+
     @property
     def width_layouts(self) -> Iterable[Layout]:
         return self._width_layouts
-    
+
     @property
     def height_layouts(self) -> Iterable[Layout]:
         return self._height_layouts
@@ -48,18 +58,17 @@ class RootChild(ScrolledFrame, Resizable):
     @property
     def image(self) -> PhotoImage:
         return self._image
-    
+
     def bind_events(self) -> None:
         self.bind(const.Events.RESIZING, self.on_resizing)
 
     def on_resizing(self, event: Any) -> None:
         return self.resizer.resize(event=event)
-    
+
 
 class RootChildFrame(ttk.Frame, Resizable):
     def __init__(
-        self, parent_frame: Root, tab_title: str, image: PIL.Image, 
-        *args, **kwargs
+        self, parent_frame: Root, tab_title: str, image: PIL.Image, *args, **kwargs
     ) -> None:
         super().__init__(master=parent_frame, *args, **kwargs)
         self._width_layouts: Optional[Iterable[Layout]] = None
@@ -67,18 +76,21 @@ class RootChildFrame(ttk.Frame, Resizable):
         self._tab_title: str = tab_title
         self._image: PhotoImage = image
         self._resizer: Resizer = Resizer(self)
-        self.root: Root = parent_frame
 
-        logger.debug('RootChild initialized')
+        logger.debug("RootChild initialized")
+
+    @property
+    def root(self) -> Root:
+        return self.winfo_toplevel()
 
     @property
     def resizer(self) -> Resizer:
         return self._resizer
-    
+
     @property
     def width_layouts(self) -> Iterable[Layout]:
         return self._width_layouts
-    
+
     @property
     def height_layouts(self) -> Iterable[Layout]:
         return self._height_layouts
@@ -90,7 +102,7 @@ class RootChildFrame(ttk.Frame, Resizable):
     @property
     def image(self) -> PhotoImage:
         return self._image
-    
+
     def bind_events(self) -> None:
         self.bind(const.Events.RESIZING, self.on_resizing)
 
