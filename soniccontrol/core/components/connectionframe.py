@@ -1,6 +1,7 @@
 import logging
 from typing import Dict, Iterable
 import tkinter as tk
+import serial.tools.list_ports as list_ports
 import ttkbootstrap as ttk
 import PIL
 import soniccontrol.constants as const
@@ -13,6 +14,7 @@ from soniccontrol.interfaces import (
     Connectable,
     Layout,
 )
+from soniccontrol.interfaces.rootchild import RootLabel
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,6 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         )
 
         ### tkinter variables
-        self.port: tk.StringVar = tk.StringVar()
         self.refresh_image: PhotoImage = const.Images.get_image(
             const.Images.REFRESH_IMG_GREY, const.Images.BUTTON_ICON_SIZE
         )
@@ -46,7 +47,7 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
             anchor=ttk.CENTER,
             borderwidth=-2,
         )
-        self.heading2: ttk.Label = ttk.Label(
+        self.heading2: RootLabel = RootLabel(
             self.heading_frame,
             padding=(2, 0, 0, 10),
             font=("QTypeOT-CondBook", 30),
@@ -66,13 +67,14 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.connect_button: ttk.Button = ttk.Button(
             self.control_frame,
             width=10,
-            style="success.TButton",
-            command=lambda: self.event_generate(const.Events.CONNECTION_ATTEMPT),
+            style=ttk.SUCCESS,
+            command=self.on_connection_attempt,
         )
         self.port_frame: ttk.Frame = ttk.Frame(self.control_frame)
         self.ports_menue: ttk.Combobox = ttk.Combobox(
             master=self.port_frame,
-            textvariable=self.port,
+            textvariable=self.root.port,
+            values=[port.device for port in list_ports.comports()],
             width=7,
             style="dark.TCombobox",
             state=tk.READABLE,
@@ -81,7 +83,9 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
             self.port_frame,
             bootstyle="secondary-outline",
             image=self.refresh_image,
-            command=lambda: self.event_generate(const.Events.PORT_REFRESH),
+            command=lambda: self.ports_menue.configure(
+                values=[port.device for port in list_ports.comports()]
+            ),
         )
         ### OTHER
         self.flash_progressbar: ttk.Progressbar = ttk.Progressbar(
@@ -163,13 +167,12 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         if not connected ^ disconnected:
             return
         self.connect_button.configure(
+            state=ttk.NORMAL,
             bootstyle=ttk.DANGER if disconnected else ttk.SUCCESS,
             text="Disconnect" if disconnected else "Connect",
-            command=lambda: self.event_generate(
-                const.Events.DISCONNECTED
-                if disconnected
-                else const.Events.CONNECTION_ATTEMPT
-            ),
+            command=lambda: self.event_generate(const.Events.DISCONNECTED)
+            if disconnected
+            else self.on_connection_attempt(),
         )
 
     def enable_firmware_info(self) -> None:
@@ -186,7 +189,22 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.heading_frame.unbind("<Enter>")
         self.heading_frame.unbind("<Leave>")
 
+    def on_connection_attempt(self) -> None:
+        logger.debug("This is starting an connection attempt")
+        self.change_heading(title_part1="Connecting", title_part2="", subtitle="")
+        self.heading2.animate_dots()
+        for child in self.port_frame.winfo_children():
+            child.configure(state=ttk.DISABLED)
+        self.connect_button.configure(
+            text="Cancel",
+            bootstyle=ttk.DANGER,
+            command=lambda: self.event_generate(const.Events.DISCONNECTED),
+        )
+        self.update()
+        self.event_generate(const.Events.CONNECTION_ATTEMPT)
+
     def on_connect(self, connection_data: Connectable.ConnectionData) -> None:
+        self.heading2.stop_animation_of_dots()
         self.change_heading(
             title_part1=connection_data.heading1,
             title_part2=connection_data.heading2,
@@ -202,6 +220,7 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         pass
 
     def on_disconnect(self, event) -> None:
+        self.heading2.is_dot_animation_running = False
         self.change_heading(
             title_part1="not",
             title_part2="connected",

@@ -17,7 +17,15 @@ class Disconnectable(abc.ABC):
 
 
 class Tabable(abc.ABC):
-    pass
+    @property
+    @abc.abstractmethod
+    def tab_title(self) -> None:
+        ...
+
+    @property
+    @abc.abstractmethod
+    def image(self) -> None:
+        ...
 
 
 class Connectable(abc.ABC):
@@ -97,4 +105,10 @@ class Resizable(abc.ABC):
     @property
     @abc.abstractmethod
     def height_layouts(self) -> Iterable[Layout]:
+        ...
+
+
+class Feedbackable(abc.ABC):
+    @abc.abstractmethod
+    def on_feedback(self, event: Any = None) -> None:
         ...

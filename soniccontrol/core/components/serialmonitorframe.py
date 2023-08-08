@@ -3,8 +3,9 @@ from typing import Iterable, List, Union
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 import PIL
-from soniccontrol.interfaces import RootChild, Layout, Connectable
+from soniccontrol.interfaces import RootChild, Layout, Connectable, Feedbackable
 from soniccontrol.interfaces.rootchild import RootChildFrame
+from soniccontrol.sonicamp import Command
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,14 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
         self.insert_text(f">>> {command}")
 
         if not self.is_internal_command(command=command):
-            self.insert_text(f"sending command... {command}\n")
+            self.root.sonicamp.add_job(
+                Command(
+                    message=command,
+                    type_="serialmonitor",
+                    callback=self.insert_text,
+                ),
+                0,
+            )
 
         self.scrolled_frame.yview_moveto(1)
         self.command_field.delete(0, ttk.END)

@@ -66,3 +66,29 @@ class HeightLayout(Layout):
 
     def __repr__(self) -> str:
         return f"Layout({self.min_size, self._command})"
+
+
+# class LayoutType(type):
+#     def __call__(cls, type_, *args, **kwargs):
+#         if type_ == "width":
+#             return WidthLayout(*args, **kwargs)
+#         elif type_ == "height":
+#             return HeightLayout(*args, **kwargs)
+#         else:
+#             raise ValueError("Invalid type")
+
+
+# class Layout(metaclass=LayoutType):
+#     pass
+
+
+# class WidthLayout(Layout):
+#     pass
+
+
+# class HeightLayout(Layout):
+#     pass
+
+
+# width_layout = Layout("width")
+# print(isinstance(width_layout, WidthLayout))  # Output: True

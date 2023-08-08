@@ -1,4 +1,4 @@
-from typing import Set, Dict, Tuple, Any, Callable, Iterable
+from typing import Set, Dict, Tuple, Any, Callable, Iterable, Optional
 import ttkbootstrap as ttk
 import logging
 import soniccontrol.constants as const
@@ -13,8 +13,11 @@ from soniccontrol.interfaces import (
     Updatable,
     Scriptable,
     Configurable,
+    Feedbackable,
 )
 from soniccontrol.interfaces.layout import Layout, HeightLayout
+import sonicpackage as sp
+from soniccontrol.sonicamp import SonicAmpAgent, Command
 
 logger = logging.getLogger(__name__)
 
@@ -126,12 +129,6 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
             }
         )
 
-        self.disconnectables: Set[RootComponent] = set()
-        self.connectables: Set[RootComponent] = set()
-        self.configurables: Set[RootComponent] = set()
-        self.updatables: Set[RootComponent] = set()
-        self.scriptables: Set[RootComponent] = set()
-
         for child in self.smart_children:
             if isinstance(child, Disconnectable):
                 self.disconnectables.add(child)
@@ -143,6 +140,8 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
                 self.updatables.add(child)
             if isinstance(child, Scriptable):
                 self.scriptables.add(child)
+            if isinstance(child, Feedbackable):
+                self.feedbackables.add(child)
 
         # INITIALIZING Notebook States
         self.frames_for_disconnected_state: Tuple[RootChild] = (
@@ -185,6 +184,10 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         self.bind(const.Events.DISCONNECTED, self.on_disconnect)
         self.bind(const.Events.CONNECTION_ATTEMPT, self.on_connect)
 
+    def check_output_queue(self, command: Command) -> None:
+        if command.callback is not None:
+            command.callback(command.answer)
+
     def publish(self) -> None:
         self.main_frame.pack(expand=True, fill=ttk.BOTH)
         self.main_frame.add(self.notebook_frame, weight=1)
@@ -218,11 +221,12 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
             return
         self.notebook.forget_and_add_tabs(self.frames_for_primary_notebook)
         self.secondary_notebook.forget_and_add_tabs(self.frames_for_secondary_notebook)
-        self.main_frame.add(self.secondary_notebook_frame, weight=1)
+        self.main_frame.add(self.secondary_notebook_frame, weight=2)
 
     def on_disconnect(self, event=None) -> None:
         self.stop_status_engine()
         self.status_frame.pack_forget()
+        self.remove_secondary_notebook()
         self.notebook.forget_and_add_tabs(self.frames_for_disconnected_state)
         logger.debug(f"disconnectables {self.disconnectables}")
         for child in self.disconnectables:
@@ -230,44 +234,5 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
             child.on_disconnect(event)
         self.connected = False
 
-    def stop_status_engine(self) -> None:
-        pass
-
-    def on_connect(self, event=None) -> None:
-        logger.debug("Connection attempt")
-        if not self.connect_to_amp():
-            return
-        self.start_status_engine()
-        for connectable in self.connectables:
-            connectable.on_connect(
-                Connectable.ConnectionData(
-                    heading1="sonic",
-                    heading2="catch",
-                    subtitle="You are connected to",
-                    firmware_info="SONICCATCH FIRMWARE",
-                    tabs=self.frames_for_soniccatch,
-                )
-            )
-
-        self.frequency.set(1000)
-        self.gain.set(10)
-        self.temperature.set(23.5)
-        self.urms.set(1007)
-        self.irms.set(100)
-        self.phase.set(74)
-        self.connected = True
-
-    def connect_to_amp(self) -> bool:
-        return True
-
-    def start_status_engine(self) -> None:
-        pass
-
     def on_configuration(self, event=None) -> None:
-        pass
-
-    def on_refresh(self, event=None) -> None:
-        pass
-
-    def on_update(self, event=None) -> None:
         pass

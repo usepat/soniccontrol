@@ -1,7 +1,9 @@
 import logging
-from typing import Iterable
+from typing import Iterable, Any
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledText, ScrolledFrame
+from ttkbootstrap.tableview import Tableview, TableRow, TableColumn
+import ttkbootstrap.constants as ttkconst
 import PIL
 from PIL.ImageTk import PhotoImage
 import soniccontrol.constants as const
@@ -118,7 +120,7 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         logger.debug(f"The new logfile path is: {self.logfile}")
 
     def open_help(self) -> None:
-        pass
+        ScriptGuide(self, self.scripttext)
 
     def set_horizontal_button_layout(self) -> None:
         for child in self.button_frame.children.values():
@@ -138,3 +140,134 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         self.script_status_frame.pack(side=ttk.BOTTOM, fill=ttk.X)
         self.cur_task_label.pack(fill=ttk.X, padx=5, pady=3, side=ttk.LEFT)
         self.sequence_status.pack(fill=ttk.X, padx=5, pady=3, side=ttk.RIGHT)
+
+
+class ScriptGuide(ttk.Toplevel):
+    def __init__(self, parent, scripttext, *args, **kwargs) -> None:
+        super().__init__(parent, *args, **kwargs)
+        self.scripttext: ttk.ScrolledText = scripttext
+        column_data: Iterable[Any] = (
+            (
+                "frequency",
+                "frequency: int",
+                "Set the frequency of the device",
+                "frequency 1000000",
+            ),
+            ("gain", "gain: int", "Set the Gain of the device", "gain 100"),
+            (
+                "hold",
+                "hold: int,\nunit: 'ms' or 's'",
+                "Hold the state of the device\nfor a certain amount of time",
+                "hold 10s",
+            ),
+            (
+                "ramp_freq",
+                "start: int,\nstop: int,\nstep: int,\non_signal_hold: int,\nunit: 'ms' or 's',\noff_signal_hold: int,\nunit: 'ms' or 's'",
+                "Ramp up the frequency from\none point to another",
+                "ramp_freq 1000000 2000000 1000 100ms 100ms",
+            ),
+        )
+        self.scrolled_frame: ScrolledFrame = ScrolledFrame(self)
+        self.scrolled_frame.pack(expand=True, fill=ttk.BOTH)
+        for data in column_data:
+            label: ttk.Labelframe = ttk.Labelframe(self.scrolled_frame, text=data[2])
+
+            def insert_text(event: Any = None, data_for_script=data) -> None:
+                logger.debug("inserting text...")
+                self.scripttext.insert(
+                    self.scripttext.index(ttk.INSERT), f"{data_for_script[3]}\n"
+                )
+
+            def unmark_label(event: Any = None, lbl: ttk.Label = label) -> None:
+                lbl.configure(bootstyle=ttk.DEFAULT)
+                for child in lbl.children.values():
+                    child.configure(bootstyle=ttk.DEFAULT)
+
+            def mark_label(event: Any = None, lbl: ttk.Label = label) -> None:
+                lbl.configure(bootstyle=ttk.PRIMARY)
+                for child in lbl.children.values():
+                    child.configure(bootstyle=ttk.PRIMARY)
+
+            label.pack(expand=True, fill=ttk.X, padx=25, pady=15)
+            ttk.Label(
+                label,
+                font=("QType CondBook", 20),
+                text=data[0],
+            ).pack(expand=True, fill=ttk.X, padx=10, pady=5)
+
+            ttk.Label(label, text=f"Arguments:", font=("Arial", 15, "bold")).pack(
+                expand=True, fill=ttk.X, pady=0, padx=10
+            )
+            ttk.Label(label, text=f"{data[1]}").pack(
+                expand=True, fill=ttk.X, padx=10, pady=0
+            )
+
+            ttk.Label(label, text=f"Example:", font=("Arial", 15, "bold")).pack(
+                expand=True, fill=ttk.X, pady=0, padx=10
+            )
+            ttk.Label(label, text=f"Example:\n{data[3]}").pack(
+                expand=True, fill=ttk.X, pady=0, padx=10
+            )
+
+            label.bind("<Button-1>", insert_text)
+            for child in label.children.values():
+                child.bind("<Button-1>", insert_text)
+            label.bind("<Enter>", mark_label)
+            label.bind("<Leave>", unmark_label)
+
+    def insert_text(self) -> None:
+        print("lol")
+
+
+class ScriptingGuideCard(ttk.Labelframe):
+    def __init__(self, *args, **kwargs) -> None:
+        self.keyword_label: ttk.Label = ttk.Label(
+            self,
+            font=("QType CondBook", 20),
+            text=self.data["keyword"],
+        )
+
+        self.description_frame: ttk.Frame = ttk.Frame(self)
+        self.description_title: ttk.Label = ttk.Label(
+            self.description_frame, text=f"Description:", font=("Arial", 13, "bold")
+        )
+        self.description_label: ttk.Label = ttk.Label(
+            self.description_frame, text=self.data["Description"]
+        )
+
+        self.arguments_frame: ttk.Frame = ttk.Frame(self)
+        self.arguments_title: ttk.Label = ttk.Label(
+            self.arguments_frame, text=f"Arguments:", font=("Arial", 13, "bold")
+        )
+        self.arguments_label: ttk.Label = ttk.Label(
+            self.arguments_frame, text=self.data["arguments"]
+        )
+
+        self.example_frame: ttk.Frame = ttk.Frame(self)
+        self.example_title: ttk.Label = ttk.Label(
+            self.example_frame, text=f"Example:", font=("Arial", 13, "bold")
+        )
+        self.example_label: ttk.Label = ttk.Label(
+            self.example_frame, text=self.data["example"]
+        )
+
+        self.bind_deep(self, "<Button-1>", self.insert_text)
+        self.bind_deep(self, "<Enter>", self.mark)
+        self.bind_deep(self, "<Leave>", self.unmark)
+
+    @staticmethod
+    def bind_deep(widget, event, handler) -> None:
+        widget.bind(event, handler)
+        for child in widget.winfo_children():
+            ScriptGuide.bind_deep(child, event, handler)
+
+    def unmark(self) -> None:
+        self.configure(bootstyle=ttk.DEFAULT)
+        for child in self.winfo_children():
+            self.configure(bootstyle=ttk.DEFAULT)
+
+    def mark(self) -> None:
+        pass
+
+    def insert_text(self) -> None:
+        pass

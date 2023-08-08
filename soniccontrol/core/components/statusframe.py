@@ -3,7 +3,13 @@ import PIL
 from PIL.ImageTk import PhotoImage
 from typing import Iterable, Any, Optional
 import ttkbootstrap as ttk
-from soniccontrol.interfaces import RootChild, Layout, Connectable, Disconnectable
+from soniccontrol.interfaces import (
+    RootChild,
+    Layout,
+    Connectable,
+    Disconnectable,
+    Updatable,
+)
 from soniccontrol.interfaces.rootchild import RootChildFrame
 import soniccontrol.constants as const
 from soniccontrol.interfaces.root import Root
@@ -11,7 +17,7 @@ from soniccontrol.interfaces.root import Root
 logger = logging.getLogger(__name__)
 
 
-class StatusBarFrame(RootChildFrame, Connectable, Disconnectable):
+class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
     def __init__(
         self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
     ):
@@ -107,10 +113,16 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable):
         self.bind_events()
         self.publish()
 
+    def on_update(self) -> None:
+        pass
+
     def on_error(self) -> None:
         pass
 
     def on_signal_change(self, event: Any = None) -> None:
+        pass
+
+    def on_temperature_change(self, event: Any = None) -> None:
         pass
 
     def on_frequency_change(self, event: Any = None) -> None:
@@ -130,6 +142,12 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable):
 
     def on_mode_change(self, event: Any = None) -> None:
         pass
+
+    def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:
+        if self.root.signal.get():
+            self.signal_label.configure(bootstyle="inverse-success")
+        else:
+            self.signal_label.configure(bootstyle="inverse-danger")
 
     def on_disconnect(self, event: Any = None) -> None:
         for child in self.winfo_children():
@@ -174,7 +192,7 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable):
         self.publish_signal_connection_frame()
 
 
-class StatusFrame(RootChildFrame, Connectable):
+class StatusFrame(RootChildFrame, Connectable, Updatable):
     def __init__(
         self, parent_frame: Root, tab_title: str, image: PIL.Image, *args, **kwargs
     ) -> None:
@@ -194,13 +212,13 @@ class StatusFrame(RootChildFrame, Connectable):
     def _initialize_tkinter_components(self) -> None:
         self.meter_frame: ttk.Frame = ttk.Label(self)
         self.overview_frame: ttk.Frame = ttk.Frame(self)
-        self.sonicmeasure_frame: ttk.Frame = ttk.Frame(self)
+        self.sonicmeasure_frame: ttk.Frame = ttk.Frame(self, padding=(0, 3, 3, 0))
 
         # Meter Frame
         self.freq_meter: ttk.Meter = ttk.Meter(
             self.meter_frame,
             bootstyle=ttk.DARK,
-            # amounttotal=self.sonicamp.mode.freq_stop / const.DIVIDE_TO_KHZ,
+            amounttotal=6_000,
             amountused=self.root.frequency.get(),
             textright="kHz",
             subtext="Frequency",
@@ -220,7 +238,7 @@ class StatusFrame(RootChildFrame, Connectable):
         self.temp_meter: ttk.Meter = ttk.Meter(
             self.meter_frame,
             bootstyle=ttk.WARNING,
-            amounttotal=100,
+            amounttotal=500,
             amountused=self.root.temperature.get(),
             textright="°C",
             subtext="Thermometer not found",
@@ -299,10 +317,14 @@ class StatusFrame(RootChildFrame, Connectable):
         pass
 
     def on_frequency_change(self, event: Any = None) -> None:
-        pass
+        self.freq_meter.configure(amountused=self.root.frequency.get())
 
     def on_gain_change(self, event: Any = None) -> None:
-        pass
+        self.gain_meter.configure(amountused=self.root.gain.get())
+
+    def on_temperature_change(self, event: Any = None) -> None:
+        logger.debug("Executing temp update....")
+        self.temp_meter.configure(amountused=self.root.temperature.get())
 
     def on_urms_change(self, event: Any = None) -> None:
         pass
@@ -315,6 +337,18 @@ class StatusFrame(RootChildFrame, Connectable):
 
     def on_mode_change(self, event: Any = None) -> None:
         pass
+
+    def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:
+        if self.root.signal.get():
+            self.signal_status_label.configure(
+                text="signal ON",
+                image=self.signal_on_image,
+            )
+        else:
+            self.signal_status_label.configure(
+                text="signal OFF",
+                image=self.signal_off_image,
+            )
 
     def on_connect(self, event: Any = None) -> None:
         self.connection_status_label["image"] = self.signal_on_image
@@ -348,7 +382,7 @@ class StatusFrame(RootChildFrame, Connectable):
         # self.irms_frame.grid(row=0, column=1, sticky=ttk.NSEW)
         # self.phase_frame.grid(row=0, column=2, sticky=ttk.NSEW)
 
-        self.overview_frame.pack(fill=ttk.X, ipadx=3, ipady=3)
+        self.overview_frame.pack(fill=ttk.X, ipadx=3, pady=3)
         self.connection_status_label.pack(fill=ttk.X, side=ttk.LEFT, expand=True)
         self.signal_status_label.pack(fill=ttk.X, side=ttk.LEFT, expand=True)
 

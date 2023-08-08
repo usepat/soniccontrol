@@ -1,6 +1,7 @@
 import logging
 from typing import Iterable, Any
 import ttkbootstrap as ttk
+import pandas as pd
 from ttkbootstrap.scrolled import ScrolledText
 import matplotlib
 
@@ -8,7 +9,7 @@ matplotlib.use("TkAgg")
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
+from matplotlib.animation import FuncAnimation
 
 import PIL
 from PIL.ImageTk import PhotoImage
@@ -27,6 +28,9 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         #     self._width_layouts: Iterable[Layout] = ()
         #     self._height_layouts: Iterable[Layout] = ()
         self.configure(width=200)
+
+        self.last_read_line = 0
+
         self.start_image: PhotoImage = const.Images.get_image(
             const.Images.PLAY_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
         )
@@ -63,7 +67,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         )
 
         self.plot_frame: ttk.Frame = ttk.Frame(self.main_frame)
-        self.figure: Figure = Figure(figsize=(3, 2), dpi=100)
+        self.figure: Figure = Figure(figsize=(4, 3), dpi=100)
         self.figure_canvas: FigureCanvasTkAgg = FigureCanvasTkAgg(
             self.figure, self.plot_frame
         )
@@ -132,6 +136,9 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
     def on_mode_change(self, event: Any = None) -> None:
         pass
 
+    def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:
+        pass
+
     def open_log_file(self, event=None) -> None:
         pass
 
@@ -140,7 +147,71 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.configuration_frame.pack(padx=15)
 
     def start_sonicmeasure(self) -> None:
+        self.sonicmeasure_engine()
         self.show_mainframe()
+
+    def sonicmeasure_engine(self) -> None:
+        self.figure.clear()
+        self.ax1 = self.figure.add_subplot(1, 1, 1)  # Main axis for frequency
+        self.ax2 = self.ax1.twinx()  # Secondary axis for urms
+        self.ax3 = self.ax1.twinx()  # Tertiary axis for irms
+        self.ax3.spines["right"].set_position(
+            ("outward", 60)
+        )  # Move tertiary axis to the right
+
+        (self.line1,) = self.ax1.plot([], [], lw=2, label="Frequency")
+        (self.line2,) = self.ax2.plot([], [], lw=2, label="Urms", color="red")
+        (self.line3,) = self.ax3.plot([], [], lw=2, label="Irms", color="green")
+
+        self.xdata = []
+        self.ydata_phase = []
+        self.ydata_urms = []
+        self.ydata_irms = []
+
+        def init():
+            self.line1.set_data([], [])
+            self.line2.set_data([], [])
+            self.line3.set_data([], [])
+            return (
+                self.line1,
+                self.line2,
+                self.line3,
+            )
+
+        self.ani = FuncAnimation(
+            self.figure, self.update_graph, init_func=init, blit=True, interval=1000
+        )  # 100ms interval
+        self.figure_canvas.draw()
+
+    def update_graph(self, frame) -> None:
+        data = pd.read_csv(
+            self.root.status_log_filepath, skiprows=range(1, self.last_read_line)
+        )
+        # Update last_read_line
+        self.last_read_line += len(data)
+        data["timestamp"] = pd.to_datetime(data["timestamp"])
+        # Append new data to existing data
+        self.xdata += data["timestamp"].tolist()
+        self.ydata_phase += data["phase"].tolist()
+        self.ydata_urms += data["urms"].tolist()
+        self.ydata_irms += data["irms"].tolist()
+
+        self.line1.set_data(self.xdata, self.ydata_phase)
+        self.line2.set_data(self.xdata, self.ydata_urms)
+        self.line3.set_data(self.xdata, self.ydata_irms)
+
+        self.ax1.relim()  # Recalculate limits
+        self.ax1.autoscale_view()  # Autoscale
+        self.ax2.relim()
+        self.ax2.autoscale_view()
+        self.ax3.relim()
+        self.ax3.autoscale_view()
+
+        return (
+            self.line1,
+            self.line2,
+            self.line3,
+        )
 
     def show_mainframe(self) -> None:
         self.configuration_frame.pack_forget()
