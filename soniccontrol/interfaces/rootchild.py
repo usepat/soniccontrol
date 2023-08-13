@@ -1,25 +1,27 @@
-import PIL
 import logging
 import tkinter as tk
-from typing import Iterable, Optional, TYPE_CHECKING, Set, Any
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Set, Union
+
+import PIL
 import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
 from PIL.ImageTk import PhotoImage
-from soniccontrol.interfaces.layout import Layout
+from ttkbootstrap.scrolled import ScrolledFrame
+
 import soniccontrol.constants as const
-from soniccontrol.interfaces.root import Root
 from soniccontrol.interfaces.gui_interfaces import Resizable, Tabable
+from soniccontrol.interfaces.layout import Layout
 from soniccontrol.interfaces.resizer import Resizer
+from soniccontrol.interfaces.root import Root
 
 logger = logging.getLogger(__name__)
 
 
-class RootChild(ScrolledFrame, Resizable):
+class RootChild(ScrolledFrame, Resizable, Tabable):
     def __init__(
         self,
         parent_frame: Root,
         tab_title: str,
-        image: PIL.Image,
+        image: PhotoImage,
         autohide: bool = True,
         *args,
         **kwargs,
@@ -37,7 +39,7 @@ class RootChild(ScrolledFrame, Resizable):
         logger.debug("RootChild initialized")
 
     @property
-    def root(self) -> Root:
+    def root(self) -> Union[tk.Tk, tk.Toplevel]:
         return self.winfo_toplevel()
 
     @property
@@ -45,11 +47,11 @@ class RootChild(ScrolledFrame, Resizable):
         return self._resizer
 
     @property
-    def width_layouts(self) -> Iterable[Layout]:
+    def width_layouts(self) -> Optional[Iterable[Layout]]:
         return self._width_layouts
 
     @property
-    def height_layouts(self) -> Iterable[Layout]:
+    def height_layouts(self) -> Optional[Iterable[Layout]]:
         return self._height_layouts
 
     @property
@@ -67,7 +69,7 @@ class RootChild(ScrolledFrame, Resizable):
         return self.resizer.resize(event=event)
 
 
-class RootChildFrame(ttk.Frame, Resizable):
+class RootChildFrame(ttk.Frame, Resizable, Tabable):
     def __init__(
         self, parent_frame: Root, tab_title: str, image: PIL.Image, *args, **kwargs
     ) -> None:

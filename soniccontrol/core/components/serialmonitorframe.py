@@ -17,16 +17,25 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
         super().__init__(parent_frame, tab_title, image, *args, **kwargs)
         # self._width_layouts: Iterable[Layout] = ()
         # self._height_layouts: Iterable[Layout] = ()
+
+        self.is_read_running: ttk.BooleanVar = ttk.BooleanVar(value=False)
         self.command_history: List[str] = list()
         self.index_history: int = -1
 
-        self.output_frame: ttk.Frame = ttk.LabelFrame(self, text="OUTPUT")
+        self.output_frame: ttk.Labelframe = ttk.LabelFrame(self, text="OUTPUT")
 
         self.scrolled_frame: ScrolledFrame = ScrolledFrame(self.output_frame)
         self.scrolled_frame.autohide_scrollbar()
         self.scrolled_frame.enable_scrolling()
 
         self.input_frame: ttk.LabelFrame = ttk.LabelFrame(self, text="INPUT")
+        self.read_button: ttk.Checkbutton = ttk.Checkbutton(
+            self.input_frame,
+            text="Autoread",
+            variable=self.is_read_running,
+            style="dark-square-toggle",
+            command=self.read_engine,
+        )
         self.command_field: ttk.Entry = ttk.Entry(self.input_frame, style=ttk.DARK)
 
         self.command_field.bind("<Return>", self.send_command)
@@ -42,7 +51,27 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
 
         self.publish()
 
+    def read_engine(self) -> None:
+        if not self.is_read_running.get():
+            return
+        self.root.sonicamp.add_job(
+            Command(
+                message="",
+                type_="serialmonitor",
+                callback=self.insert_text,
+            ),
+            1,
+        )
+        self.after(1000, self.read_engine)
+
     def publish(self) -> None:
+        self.read_button.pack(
+            anchor=ttk.S,
+            padx=10,
+            pady=10,
+            side=ttk.LEFT,
+        )
+
         self.command_field.pack(
             anchor=ttk.S, padx=10, pady=10, fill=ttk.X, side=ttk.LEFT, expand=True
         )
@@ -72,7 +101,6 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
                 0,
             )
 
-        self.scrolled_frame.yview_moveto(1)
         self.command_field.delete(0, ttk.END)
 
     def is_internal_command(self, command: str) -> bool:
@@ -93,6 +121,7 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
             fill=ttk.X, side=ttk.TOP, anchor=ttk.W
         )
         self.scrolled_frame.update()
+        self.scrolled_frame.yview_moveto(1)
 
     def history_up(self, event) -> None:
         if (

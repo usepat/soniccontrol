@@ -10,7 +10,7 @@ from soniccontrol.interfaces import (
     Disconnectable,
     Updatable,
 )
-from soniccontrol.interfaces.rootchild import RootChildFrame
+from soniccontrol.interfaces.rootchild import RootChildFrame, RootLabel
 import soniccontrol.constants as const
 from soniccontrol.interfaces.root import Root
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
     def __init__(
-        self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
+        self, parent_frame: Root, tab_title: str, image: PhotoImage, *args, **kwargs
     ):
         super().__init__(parent_frame, tab_title, image, *args, **kwargs)
         # self._width_layouts: Iterable[Layout] = ()
@@ -34,11 +34,10 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
         )
 
         self.soniccontrol_state_frame: ttk.Frame = ttk.Frame(self)
-        self.soniccontrol_state_label: ttk.Label = ttk.Label(
-            self.soniccontrol_state_frame, bootstyle="inverse-secondary"
-        )
-        self.soniccontrol_value_label: ttk.Label = ttk.Label(
-            self.soniccontrol_state_frame, bootstyle="inverse-secondary"
+        self.soniccontrol_state_label: RootLabel = RootLabel(
+            self.soniccontrol_state_frame,
+            bootstyle="inverse-secondary",
+            textvariable=self.root.soniccontrol_state,
         )
 
         self.freq_frame: ttk.Frame = ttk.Frame(self)
@@ -143,6 +142,21 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
     def on_mode_change(self, event: Any = None) -> None:
         pass
 
+    def on_wipe_mode_change(self, event: Any = None) -> None:
+        logger.debug("Statuus on wipe mode change")
+        if self.root.wipe_mode.get():
+            logger.debug("wipe mode true")
+            self.soniccontrol_state_label.animate_dots(
+                self.root.soniccontrol_state.get()
+            )
+            self.soniccontrol_state_frame.configure(bootstyle=ttk.PRIMARY)
+            self.soniccontrol_state_label.configure(bootstyle="inverse-primary")
+            return
+        logger.debug("wipe mode false")
+        self.soniccontrol_state_label.stop_animation_of_dots()
+        self.soniccontrol_state_frame.configure(bootstyle=ttk.SECONDARY)
+        self.soniccontrol_state_label.configure(bootstyle="inverse-secondary")
+
     def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:
         if self.root.signal.get():
             self.signal_label.configure(bootstyle="inverse-success")
@@ -162,8 +176,7 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
         self.signal_label.pack(side=ttk.RIGHT, ipadx=3)
 
     def on_connect(self, event=None) -> None:
-        self.soniccontrol_state_frame.pack(side=ttk.LEFT, padx=5)
-        self.soniccontrol_value_label.configure(text="Manual")
+        self.soniccontrol_state_frame.pack(side=ttk.LEFT)
 
         self.freq_frame.pack(side=ttk.LEFT, padx=5)
         self.gain_frame.pack(side=ttk.LEFT, padx=5)
@@ -177,8 +190,7 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
         self.connection_label.configure(bootstyle="inverse-success")
 
     def publish(self) -> None:
-        self.soniccontrol_state_label.pack(side=ttk.LEFT)
-        self.soniccontrol_value_label.pack(side=ttk.LEFT)
+        self.soniccontrol_state_label.pack(side=ttk.LEFT, padx=5)
 
         self.freq_value_label.pack(side=ttk.LEFT)
         self.gain_value_label.pack(side=ttk.LEFT)
@@ -266,7 +278,7 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
         self.phase_value_label: ttk.Label = ttk.Label(
             self.phase_frame,
             textvariable=self.root.phase_text,
-            bootstyle=ttk.DANGER,
+            bootstyle=ttk.SUCCESS,
             anchor=ttk.CENTER,
         )
 
@@ -336,6 +348,9 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
         pass
 
     def on_mode_change(self, event: Any = None) -> None:
+        pass
+
+    def on_wipe_mode_change(self, event: Any = None) -> None:
         pass
 
     def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:

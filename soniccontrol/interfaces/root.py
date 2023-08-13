@@ -36,7 +36,7 @@ class Root(tk.Tk, Resizable, Updatable):
         self._gain: tk.IntVar = tk.IntVar()
         self._wipe_inf_or_def: tk.BooleanVar = tk.BooleanVar()
         self._wipe_cycles: tk.IntVar = tk.IntVar()
-
+        self.connected: bool = True
         # (glabal read) tkinter variables
         self.frequency: ttk.DoubleVar = ttk.DoubleVar(value=1000)
         self.frequency_text: ttk.StringVar = ttk.StringVar()
@@ -46,24 +46,27 @@ class Root(tk.Tk, Resizable, Updatable):
         self.gain_text: ttk.StringVar = ttk.StringVar()
         self.gain.trace(ttk.W, self.on_gain_change)
 
-        self.temperature: ttk.IntVar = ttk.IntVar(value=23.5)
+        self.temperature: ttk.DoubleVar = ttk.DoubleVar(value=23.5)
         self.temperature_text: ttk.StringVar = ttk.StringVar()
         self.temperature.trace(ttk.W, self.on_temperature_change)
 
         self.urms: ttk.IntVar = ttk.IntVar(value=1003)
-        self.urms_text: ttk.IntVar = ttk.StringVar()
+        self.urms_text: ttk.StringVar = ttk.StringVar()
         self.urms.trace(ttk.W, self.on_urms_change)
 
         self.irms: ttk.IntVar = ttk.IntVar(value=134)
-        self.irms_text: ttk.IntVar = ttk.StringVar()
+        self.irms_text: ttk.StringVar = ttk.StringVar()
         self.irms.trace(ttk.W, self.on_irms_change)
 
         self.phase: ttk.IntVar = ttk.IntVar(value=75)
-        self.phase_text: ttk.IntVar = ttk.StringVar()
+        self.phase_text: ttk.StringVar = ttk.StringVar()
         self.phase.trace(ttk.W, self.on_phase_change)
 
         self.signal: ttk.BooleanVar = ttk.BooleanVar(value=False)
         self.signal.trace(ttk.W, self.on_signal_change)
+
+        self.wipe_mode: ttk.BooleanVar = ttk.BooleanVar(value=False)
+        self.wipe_mode.trace(ttk.W, self.on_wipe_mode_change)
 
         self.mode: ttk.StringVar = ttk.StringVar(value="Catch")
         self.soniccontrol_state: ttk.StringVar = ttk.StringVar(value="Manual")
@@ -95,6 +98,7 @@ class Root(tk.Tk, Resizable, Updatable):
             "irms": self.irms,
             "phase": self.phase,
             "signal": self.signal,
+            "wipe_mode": self.wipe_mode,
         }
 
         self.disconnectables: Set[Disconnectable] = set()
@@ -110,11 +114,11 @@ class Root(tk.Tk, Resizable, Updatable):
         return self._resizer
 
     @property
-    def width_layouts(self) -> Iterable[Layout]:
+    def width_layouts(self) -> Optional[Iterable[Layout]]:
         return self._width_layouts
 
     @property
-    def height_layouts(self) -> Iterable[Layout]:
+    def height_layouts(self) -> Optional[Iterable[Layout]]:
         return self._height_layouts
 
     def bind_events(self) -> None:
@@ -143,61 +147,15 @@ class Root(tk.Tk, Resizable, Updatable):
             return False
 
     def after_connect(self) -> None:
-        for connectable in self.connectables:
-            connectable.on_connect(
-                Connectable.ConnectionData(
-                    heading1="sonic",
-                    heading2="catch",
-                    subtitle="You are connected to",
-                    firmware_info="SONICCATCH FIRMWARE",
-                    tabs=self.frames_for_soniccatch,
-                )
-            )
-        self.connected = True
+        pass
 
     def status_engine(self) -> None:
-        def is_connection_ready() -> None:
+        def is_connection_ready() -> bool:
             if self.sonicamp.connection_established.is_set():
                 self.after_connect()
+                self.connected = True
                 self.sonicamp.connection_established.clear()
             return self.sonicamp.connection.is_set()
-
-        def check_output_queue() -> None:
-            while self.sonicamp.output_queue.qsize():
-                priority, command = self.sonicamp.output_queue.get()
-                logger.debug(f"Command: {command}, Prio: {priority}")
-
-                if command.type_ == "status":
-                    if command.message == "-":
-                        if self.old_status is None:
-                            status: sp.Status = sp.Status().from_string(command.answer)
-                        else:
-                            status: sp.Status = copy.deepcopy(
-                                self.old_status
-                            ).update_status(command.answer)
-                    else:
-                        status: sp.Status = copy.deepcopy(self.old_status).from_sens(
-                            command.answer
-                        )
-                    logger.debug(status)
-                    self.serialize_data(status)
-                    self.on_update(status)
-
-                elif command.type_ == "feedback":
-                    for child in self.feedbackables:
-                        child.on_feedback(command.answer)
-
-                self.check_output_queue(command)
-                self.sonicamp.output_queue.task_done()
-            self.sonicamp.add_job(
-                Command(message="-", type_="status"), self.priority_counter
-            )
-            self.priority_counter += 1
-            if self.old_status.signal:
-                self.sonicamp.add_job(
-                    Command(message="?sens", type_="status"), self.priority_counter
-                )
-                self.priority_counter += 1
 
         def check_exceptions_queue() -> None:
             if not self.sonicamp.exceptions_queue.empty():
@@ -217,11 +175,52 @@ class Root(tk.Tk, Resizable, Updatable):
 
                 self.sonicamp.exceptions_queue.task_done()
 
-        self.status_engine_after_id = self.after(100, self.status_engine)
+        self.status_engine_after_id = self.after(200, self.status_engine)
         if self.sonicamp is None or not is_connection_ready():
             return
-        check_output_queue()
+        self.check_output_queue()
         check_exceptions_queue()
+
+    def update_sonicamp(self, priority: int = 5) -> None:
+        self.sonicamp.add_job(Command(message="-", type_="status"), priority)
+        if self.old_status.signal:
+            self.sonicamp.add_job(Command(message="?sens", type_="status"), priority)
+
+    def check_output_queue(self) -> None:
+        while self.sonicamp.output_queue.qsize():
+            priority, command = self.sonicamp.output_queue.get()
+            logger.debug(f"Command: {command}, Prio: {priority}")
+
+            if command.type_ == "status":
+                if command.message == "-":
+                    if self.old_status is None:
+                        status: sp.Status = sp.Status().from_string(command.answer)
+                    else:
+                        status: sp.Status = copy.deepcopy(
+                            self.old_status
+                        ).update_status(command.answer)
+                else:
+                    status: sp.Status = copy.deepcopy(self.old_status).from_sens(
+                        command.answer
+                    )
+                logger.debug(status)
+                self.serialize_data(status)
+                self.on_update(status)
+
+            elif command.type_ == "feedback":
+                for child in self.feedbackables:
+                    child.on_feedback(command.answer)
+
+            elif command.type_ == "script":
+                # self.sonicamp.add_job(Command("-", type_="status"), 0)
+                for child in self.scriptables:
+                    child.on_feedback(command.answer)
+
+            if command.callback is not None:
+                command.callback(command.answer)
+
+            self.update_sonicamp(0 if command.type_ == "script" else 5)
+            self.sonicamp.output_queue.task_done()
 
     def serialize_data(self, status: sp.Status) -> None:
         with self.status_log_filepath.open(mode="a", newline="") as file:
@@ -232,9 +231,6 @@ class Root(tk.Tk, Resizable, Updatable):
                 writer.writeheader()
                 self.status_log_filepath_existed = True
             writer.writerow(status.dump())
-
-    def check_output_queue(self, command: Command) -> None:
-        pass
 
     def stop_status_engine(self) -> None:
         if self.sonicamp is not None:
@@ -269,6 +265,14 @@ class Root(tk.Tk, Resizable, Updatable):
         self.gain_text.set(f"Gain: {self.gain.get()} %")
         for child in self.updatables:
             child.on_gain_change()
+
+    def on_wipe_mode_change(self, event: Any = None, *args, **kwargs) -> None:
+        if self.wipe_mode.get():
+            self.soniccontrol_state.set("Auto")
+        else:
+            self.soniccontrol_state.set("Manual")
+        for child in self.updatables:
+            child.on_wipe_mode_change()
 
     def on_temperature_change(self, event: Any = None, *args, **kwargs) -> None:
         self.temperature_text.set(f"Temp.: {self.temperature.get()} °C")

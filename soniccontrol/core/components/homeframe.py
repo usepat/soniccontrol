@@ -47,13 +47,12 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
             from_=0,
             to=150,
             textvariable=self.root._gain,
-            width=5,
             style=ttk.DARK,
             command=self.set_gain,
         )
         self.gain_scale: ttk.Scale = ttk.Scale(
             self.gain_frame,
-            length=180,
+            # length=170,
             from_=0,
             to=150,
             orient=tk.HORIZONTAL,
@@ -69,7 +68,6 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
             variable=self.root.mode,
             value="Wipe",
             bootstyle="dark-outline-toolbutton",
-            width=12,
             command=self.set_wipe_mode,
         )
         self.catchmode_button: ttk.Radiobutton = ttk.Radiobutton(
@@ -78,7 +76,6 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
             variable=self.root.mode,
             value="Catch",
             bootstyle="dark-outline-toolbutton",
-            width=12,
             command=self.set_catch_mode,
         )
         self.set_val_btn: ttk.Button = ttk.Button(
@@ -172,12 +169,16 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
         self.freq_spinbox.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
 
         self.gain_frame.pack(side=tk.TOP, fill=tk.X)
-        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
+        self.gain_spinbox.grid(row=0, column=0, padx=10, pady=10)
         self.gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
 
         self.mode_frame.pack(side=tk.TOP, fill=tk.X)
-        self.wipemode_button.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
-        self.catchmode_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
+        self.wipemode_button.pack(
+            side=ttk.LEFT, expand=True, fill=ttk.X, padx=10, pady=10
+        )
+        self.catchmode_button.pack(
+            side=ttk.LEFT, expand=True, fill=ttk.X, padx=10, pady=10
+        )
 
         self.set_val_btn.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
 

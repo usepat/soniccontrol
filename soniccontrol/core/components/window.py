@@ -6,10 +6,12 @@ import soniccontrol.core.components as components
 from soniccontrol.interfaces import (
     Root,
     RootChild,
+    RootChildFrame,
     WidthLayout,
     RootComponent,
     Disconnectable,
     Connectable,
+    Tabable,
     Updatable,
     Scriptable,
     Configurable,
@@ -58,7 +60,7 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
                 const.Images.HOME_IMG_BLACK, const.Images.TAB_ICON_SIZE
             ),
         )
-        self.scripting_frame: RootChild = components.ScriptingFrame(
+        self.scripting_frame: RootChildFrame = components.ScriptingFrame(
             self,
             tab_title="Scripting",
             image=const.Images.get_image(
@@ -86,26 +88,26 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
                 const.Images.INFO_IMG_BLACK, const.Images.TAB_ICON_SIZE
             ),
         )
-        self.sonicmeasure_frame: RootChild = components.SonicMeasureFrame(
+        self.sonicmeasure_frame: RootChildFrame = components.SonicMeasureFrame(
             self,
             tab_title="Sonic Measure",
             image=const.Images.get_image(
                 const.Images.LINECHART_IMG_BLACK, const.Images.TAB_ICON_SIZE
             ),
         )
-        self.serialmonitor_frame: RootChild = components.SerialMonitorFrame(
+        self.serialmonitor_frame: RootChildFrame = components.SerialMonitorFrame(
             self,
             tab_title="Serial Monitor",
             image=const.Images.get_image(const.Images.CONSOLE_IMG_BLACK, (30, 30)),
         )
-        self.statusbar_frame: RootChild = components.StatusBarFrame(
+        self.statusbar_frame: RootChildFrame = components.StatusBarFrame(
             self,
             tab_title="Status",
             image=const.Images.get_image(
                 const.Images.STATUS_IMG_BLACK, const.Images.TAB_ICON_SIZE
             ),
         )
-        self.status_frame: RootChild = components.StatusFrame(
+        self.status_frame: RootChildFrame = components.StatusFrame(
             self.notebook_frame,
             tab_title="Status",
             image=const.Images.get_image(
@@ -144,15 +146,15 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
                 self.feedbackables.add(child)
 
         # INITIALIZING Notebook States
-        self.frames_for_disconnected_state: Tuple[RootChild] = (
+        self.frames_for_disconnected_state: Tuple[Tabable, ...] = (
             self.connection_frame,
             self.settings_frame,
             self.info_frame,
         )
         self.frames_for_unkown_device_state: Tuple[
-            RootChild
+            Tabable, ...
         ] = self.frames_for_disconnected_state + (self.serialmonitor_frame,)
-        self.frames_for_soniccatch: Tuple[RootChild] = (
+        self.frames_for_soniccatch: Tuple[Tabable, ...] = (
             self.home_frame,
             self.scripting_frame,
             self.sonicmeasure_frame,
@@ -161,14 +163,14 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
             self.settings_frame,
             self.info_frame,
         )
-        self.frames_for_primary_notebook: Tuple[RootChild] = (
+        self.frames_for_primary_notebook: Tuple[Tabable, ...] = (
             self.home_frame,
             self.scripting_frame,
             self.connection_frame,
             self.settings_frame,
             self.info_frame,
         )
-        self.frames_for_secondary_notebook: Tuple[RootChild] = (
+        self.frames_for_secondary_notebook: Tuple[Tabable, ...] = (
             self.sonicmeasure_frame,
             self.serialmonitor_frame,
         )
@@ -184,9 +186,18 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
         self.bind(const.Events.DISCONNECTED, self.on_disconnect)
         self.bind(const.Events.CONNECTION_ATTEMPT, self.on_connect)
 
-    def check_output_queue(self, command: Command) -> None:
-        if command.callback is not None:
-            command.callback(command.answer)
+    def after_connect(self) -> None:
+        super().after_connect()
+        for connectable in self.connectables:
+            connectable.on_connect(
+                Connectable.ConnectionData(
+                    heading1="sonic",
+                    heading2="catch",
+                    subtitle="You are connected to",
+                    firmware_info="SONICCATCH FIRMWARE",
+                    tabs=self.frames_for_soniccatch,
+                )
+            )
 
     def publish(self) -> None:
         self.main_frame.pack(expand=True, fill=ttk.BOTH)

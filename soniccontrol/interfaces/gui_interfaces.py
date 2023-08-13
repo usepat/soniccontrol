@@ -57,6 +57,10 @@ class Scriptable(abc.ABC):
     def on_script_stop(self, event: Any = None) -> None:
         ...
 
+    @abc.abstractmethod
+    def on_feedback(self, event: Any = None) -> None:
+        ...
+
 
 class Updatable(abc.ABC):
     @abc.abstractmethod
@@ -89,6 +93,10 @@ class Updatable(abc.ABC):
 
     @abc.abstractmethod
     def on_mode_change(self, event: Any = None) -> None:
+        ...
+
+    @abc.abstractmethod
+    def on_signal_change(self, event: Any = None) -> None:
         ...
 
 

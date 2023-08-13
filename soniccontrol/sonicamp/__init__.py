@@ -3,6 +3,7 @@ import serial.tools.list_ports as list_ports
 from typing import Callable, Any, Optional
 import logging
 import sys
+import time
 import threading
 from dataclasses import dataclass, field
 import sonicpackage as sp
@@ -67,7 +68,11 @@ class SonicAmpAgent(sp.SonicThread):
 
 @dataclass
 class Command:
-    message: str = ""
-    answer: str = ""
-    type_: str = ""
-    callback: Optional[Callable[[Any], Any]] = None
+    message: str = field(default="")
+    answer: str = field(default="")
+    type_: str = field(default="")
+    callback: Optional[Callable[[Any], Any]] = field(default=None)
+    timestamp: float = field(default_factory=time.time)
+
+    def __lt__(self, other):
+        return self.timestamp < other.timestamp

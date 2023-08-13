@@ -11,7 +11,7 @@ from typing import (
     Any,
 )
 
-from soniccontrol.interfaces.rootchild import RootChild
+from soniccontrol.interfaces.rootchild import RootChild, RootChildFrame
 from soniccontrol.interfaces.rootnotebook import RootNotebook
 
-RootComponent = Union[RootChild, RootNotebook]
+RootComponent = Union[RootChild, RootNotebook, RootChildFrame]
