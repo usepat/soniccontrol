@@ -10,9 +10,13 @@ from soniccontrol.interfaces import (
     Disconnectable,
     Updatable,
 )
-from soniccontrol.interfaces.rootchild import RootChildFrame, RootLabel
+from soniccontrol.interfaces.rootchild import (
+    RootChildFrame,
+    RootLabel,
+)
 import soniccontrol.constants as const
 from soniccontrol.interfaces.root import Root
+from soniccontrol.interfaces.horizontal_scrolled import HorizontalScrolledFrame
 
 logger = logging.getLogger(__name__)
 
@@ -40,28 +44,33 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
             textvariable=self.root.soniccontrol_state,
         )
 
-        self.freq_frame: ttk.Frame = ttk.Frame(self)
+        self.scrolled_info: HorizontalScrolledFrame = HorizontalScrolledFrame(
+            self, bootstyle=ttk.SECONDARY, autohide=False
+        )
+        self.scrolled_info.hide_scrollbars()
+
+        self.freq_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.freq_value_label: ttk.Label = ttk.Label(
             self.freq_frame,
             textvariable=self.root.frequency_text,
             bootstyle="inverse-secondary",
         )
 
-        self.gain_frame: ttk.Frame = ttk.Frame(self)
+        self.gain_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.gain_value_label: ttk.Label = ttk.Label(
             self.gain_frame,
             textvariable=self.root.gain_text,
             bootstyle="inverse-secondary",
         )
 
-        self.temperature_frame: ttk.Frame = ttk.Frame(self)
+        self.temperature_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.temperature_value_label: ttk.Label = ttk.Label(
             self.temperature_frame,
             textvariable=self.root.temperature_text,
             bootstyle="inverse-secondary",
         )
 
-        self.mode_frame: ttk.Frame = ttk.Frame(self)
+        self.mode_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.mode_label: ttk.Label = ttk.Label(
             self.mode_frame,
             bootstyle="inverse-secondary",
@@ -73,21 +82,21 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
             bootstyle="inverse-secondary",
         )
 
-        self.urms_frame: ttk.Frame = ttk.Frame(self)
+        self.urms_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.urms_value_label: ttk.Label = ttk.Label(
             self.urms_frame,
             textvariable=self.root.urms_text,
             bootstyle="inverse-secondary",
         )
 
-        self.irms_frame: ttk.Frame = ttk.Frame(self)
+        self.irms_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.irms_value_label: ttk.Label = ttk.Label(
             self.irms_frame,
             textvariable=self.root.irms_text,
             bootstyle="inverse-secondary",
         )
 
-        self.phase_frame: ttk.Frame = ttk.Frame(self)
+        self.phase_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.phase_value_label: ttk.Label = ttk.Label(
             self.phase_frame,
             textvariable=self.root.phase_text,
@@ -145,15 +154,10 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
     def on_wipe_mode_change(self, event: Any = None) -> None:
         logger.debug("Statuus on wipe mode change")
         if self.root.wipe_mode.get():
-            logger.debug("wipe mode true")
-            self.soniccontrol_state_label.animate_dots(
-                self.root.soniccontrol_state.get()
-            )
             self.soniccontrol_state_frame.configure(bootstyle=ttk.PRIMARY)
             self.soniccontrol_state_label.configure(bootstyle="inverse-primary")
             return
         logger.debug("wipe mode false")
-        self.soniccontrol_state_label.stop_animation_of_dots()
         self.soniccontrol_state_frame.configure(bootstyle=ttk.SECONDARY)
         self.soniccontrol_state_label.configure(bootstyle="inverse-secondary")
 
@@ -177,6 +181,7 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
 
     def on_connect(self, event=None) -> None:
         self.soniccontrol_state_frame.pack(side=ttk.LEFT)
+        self.scrolled_info.pack(side=ttk.LEFT, fill=ttk.X, expand=True)
 
         self.freq_frame.pack(side=ttk.LEFT, padx=5)
         self.gain_frame.pack(side=ttk.LEFT, padx=5)
@@ -190,7 +195,7 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
         self.connection_label.configure(bootstyle="inverse-success")
 
     def publish(self) -> None:
-        self.soniccontrol_state_label.pack(side=ttk.LEFT, padx=5)
+        self.soniccontrol_state_label.pack(side=ttk.LEFT, ipadx=5)
 
         self.freq_value_label.pack(side=ttk.LEFT)
         self.gain_value_label.pack(side=ttk.LEFT)

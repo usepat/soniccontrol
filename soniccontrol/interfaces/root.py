@@ -19,6 +19,7 @@ from soniccontrol.interfaces import (
     Resizer,
     Layout,
 )
+from soniccontrol.interfaces.tkinter_vars import RootStringVar
 import sonicpackage as sp
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,9 @@ class Root(tk.Tk, Resizable, Updatable):
         self.wipe_mode.trace(ttk.W, self.on_wipe_mode_change)
 
         self.mode: ttk.StringVar = ttk.StringVar(value="Catch")
-        self.soniccontrol_state: ttk.StringVar = ttk.StringVar(value="Manual")
+        self.soniccontrol_state: RootStringVar = RootStringVar(
+            value="Manual", master=self
+        )
         self.port: ttk.StringVar = ttk.StringVar()
         self.connection_status: ttk.StringVar = ttk.StringVar()
 
@@ -268,8 +271,9 @@ class Root(tk.Tk, Resizable, Updatable):
 
     def on_wipe_mode_change(self, event: Any = None, *args, **kwargs) -> None:
         if self.wipe_mode.get():
-            self.soniccontrol_state.set("Auto")
+            self.soniccontrol_state.animate_dots(text="Auto")
         else:
+            self.soniccontrol_state.stop_animation_of_dots()
             self.soniccontrol_state.set("Manual")
         for child in self.updatables:
             child.on_wipe_mode_change()

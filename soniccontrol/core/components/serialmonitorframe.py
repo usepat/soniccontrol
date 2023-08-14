@@ -22,13 +22,18 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
         self.command_history: List[str] = list()
         self.index_history: int = -1
 
-        self.output_frame: ttk.Labelframe = ttk.LabelFrame(self, text="OUTPUT")
+        self.mainframe: ttk.Frame = ttk.Frame(self)
 
+        self.output_frame: ttk.Labelframe = ttk.LabelFrame(
+            self.mainframe, text="OUTPUT"
+        )
         self.scrolled_frame: ScrolledFrame = ScrolledFrame(self.output_frame)
         self.scrolled_frame.autohide_scrollbar()
         self.scrolled_frame.enable_scrolling()
 
-        self.input_frame: ttk.LabelFrame = ttk.LabelFrame(self, text="INPUT")
+        self.input_frame: ttk.LabelFrame = ttk.LabelFrame(
+            self.mainframe, text="INPUT", padding=(5, 0, 5, 3)
+        )
         self.read_button: ttk.Checkbutton = ttk.Checkbutton(
             self.input_frame,
             text="Autoread",
@@ -65,25 +70,20 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
         self.after(1000, self.read_engine)
 
     def publish(self) -> None:
-        self.read_button.pack(
-            anchor=ttk.S,
-            padx=10,
-            pady=10,
-            side=ttk.LEFT,
-        )
+        self.read_button.pack(padx=5, pady=10, side=ttk.LEFT)
 
-        self.command_field.pack(
-            anchor=ttk.S, padx=10, pady=10, fill=ttk.X, side=ttk.LEFT, expand=True
-        )
-        self.send_button.pack(anchor=ttk.S, padx=10, pady=10, side=ttk.RIGHT)
+        self.command_field.pack(padx=5, pady=10, fill=ttk.X, side=ttk.LEFT, expand=True)
+        self.send_button.pack(padx=5, pady=10, side=ttk.RIGHT)
         self.scrolled_frame.pack(
-            anchor=ttk.N, fill=ttk.BOTH, padx=10, pady=10, side=ttk.TOP, expand=True
+            anchor=ttk.N, fill=ttk.BOTH, pady=5, side=ttk.TOP, expand=True
         )
 
-        self.input_frame.pack(anchor=ttk.S, fill=ttk.X, side=ttk.BOTTOM, padx=5, pady=5)
+        self.input_frame.pack(fill=ttk.X, side=ttk.BOTTOM, padx=5, pady=5)
         self.output_frame.pack(
             anchor=ttk.N, fill=ttk.BOTH, pady=5, padx=5, side=ttk.TOP, expand=True
         )
+
+        self.mainframe.pack(fill=ttk.BOTH, expand=True, padx=5, pady=5)
 
     def send_command(self, event) -> None:
         command: str = self.command_field.get()

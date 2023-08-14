@@ -12,8 +12,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.animation import FuncAnimation
 import matplotlib.dates as mdates
+import functools
 
-import PIL
 from PIL.ImageTk import PhotoImage
 import soniccontrol.constants as const
 from soniccontrol.interfaces import RootChild, Layout, Connectable, Updatable, Root
@@ -73,6 +73,13 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
             compound=ttk.RIGHT,
             command=self.restart_sonicmeasure,
         )
+        self.popup_sonicmeasure_button: ttk.Button(
+            self.button_frame,
+            text="PopUp",
+            style=ttk.DARK,
+            command=self.popup_sonicmeasure,
+        )
+
         self.toggle_button_frame: ttk.Frame = ttk.Frame(self.main_frame)
         self.toggle_urms_button = ttk.Checkbutton(
             self.toggle_button_frame,
@@ -183,7 +190,8 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         pass
 
     def resume_sonicmeasure(self) -> None:
-        self._paused.clear()
+        # self._paused.clear()
+        self.ani.resume()
         self.pause_resume_button.configure(
             text="Pause",
             image=self.stop_image,
@@ -192,13 +200,17 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         )
 
     def pause_sonicmeasure(self) -> None:
-        self._paused.set()
+        # self._paused.set()
+        self.ani.pause()
         self.pause_resume_button.configure(
             text="Resume",
             image=self.start_image,
             bootstyle=ttk.SUCCESS,
             command=self.resume_sonicmeasure,
         )
+        
+    def popup_sonicmeasure(self) -> None:
+        pass
 
     def restart_sonicmeasure(self) -> None:
         self.main_frame.pack_forget()
@@ -304,18 +316,8 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.ax3_irms.set_yticks(self.ax1_frequency.get_yticks())
         self.ax4_phase.set_yticks(self.ax4_phase.get_yticks())
 
+    @functools.cache
     def update_graph(self, frame) -> Tuple[Any, ...]:
-        if self._paused.is_set():
-            self.ax1_frequency.relim()
-            self.ax1_frequency.autoscale_view()
-            self.ax2_urms.relim()
-            self.ax2_urms.autoscale_view()
-            self.ax3_irms.relim()
-            self.ax3_irms.autoscale_view()
-            self.ax4_phase.relim()
-            self.ax4_phase.autoscale_view()
-            return self.line_frequency, self.line_urms, self.line_irms, self.line_phase
-
         data = pd.read_csv(
             self.root.status_log_filepath, skiprows=range(1, self.last_read_line)
         )
@@ -343,10 +345,6 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.ax3_irms.autoscale_view()
         self.ax4_phase.relim()
         self.ax4_phase.autoscale_view()
-
-        # self.ax1_frequency.legend(loc="upper left")
-        # self.ax2_urms.legend(loc="upper right")
-        # self.ax3_irms.legend(loc="center right")
 
         return self.line_frequency, self.line_urms, self.line_irms, self.line_phase
 
@@ -398,3 +396,8 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 
         self.comment_frame.pack(pady=5)
         self.comment_entry.pack(padx=5, pady=5)
+
+
+class SonicMeasure(ttk.Toplevel):
+    def __init__(self) -> None:
+        pass

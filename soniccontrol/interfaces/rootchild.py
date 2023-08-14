@@ -1,5 +1,6 @@
 import logging
 import tkinter as tk
+from tkinter import Misc
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Set, Union
 
 import PIL
@@ -12,11 +13,65 @@ from soniccontrol.interfaces.gui_interfaces import Resizable, Tabable
 from soniccontrol.interfaces.layout import Layout
 from soniccontrol.interfaces.resizer import Resizer
 from soniccontrol.interfaces.root import Root
+from soniccontrol.interfaces.horizontal_scrolled import HorizontalScrolledFrame
 
 logger = logging.getLogger(__name__)
 
 
 class RootChild(ScrolledFrame, Resizable, Tabable):
+    def __init__(
+        self,
+        parent_frame: Root,
+        tab_title: str,
+        image: PhotoImage,
+        autohide: bool = True,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(master=parent_frame, autohide=autohide, *args, **kwargs)
+        self._width_layouts: Optional[Iterable[Layout]] = None
+        self._height_layouts: Optional[Iterable[Layout]] = None
+        self._tab_title: str = tab_title
+        self._image: PhotoImage = image
+        self._resizer: Resizer = Resizer(self)
+
+        style = ttk.Style()
+        style.configure("LightGreyLabel.TLabel", background="grey")
+
+        logger.debug("RootChild initialized")
+
+    @property
+    def root(self) -> Union[tk.Tk, tk.Toplevel]:
+        return self.winfo_toplevel()
+
+    @property
+    def resizer(self) -> Resizer:
+        return self._resizer
+
+    @property
+    def width_layouts(self) -> Optional[Iterable[Layout]]:
+        return self._width_layouts
+
+    @property
+    def height_layouts(self) -> Optional[Iterable[Layout]]:
+        return self._height_layouts
+
+    @property
+    def tab_title(self) -> str:
+        return self._tab_title
+
+    @property
+    def image(self) -> PhotoImage:
+        return self._image
+
+    def bind_events(self) -> None:
+        self.bind(const.Events.RESIZING, self.on_resizing)
+
+    def on_resizing(self, event: Any) -> None:
+        return self.resizer.resize(event=event)
+
+
+class RootChildHorizontalScrolled(HorizontalScrolledFrame, Resizable, Tabable):
     def __init__(
         self,
         parent_frame: Root,

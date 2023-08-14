@@ -66,7 +66,7 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         self.menue.add_command(label="Save Script", command=self.save_file)
         self.menue.add_command(label="Load Script", command=self.load_file)
         self.menue.add_command(label="Specify Log file path", command=self.open_logfile)
-
+        
         self.scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self.top_frame,
             text="Script Editor",
