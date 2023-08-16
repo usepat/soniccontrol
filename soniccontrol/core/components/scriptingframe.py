@@ -66,7 +66,7 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         self.menue.add_command(label="Save Script", command=self.save_file)
         self.menue.add_command(label="Load Script", command=self.load_file)
         self.menue.add_command(label="Specify Log file path", command=self.open_logfile)
-        
+
         self.scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self.top_frame,
             text="Script Editor",
@@ -474,7 +474,16 @@ class Sequence(SonicThread):
         *args,
         **kwargs,
     ) -> None:
-        pass
+        return self.ramp(
+            type_="frequency",
+            start=start,
+            stop=stop,
+            step=step,
+            hold_on_time=hold_on_time,
+            hold_on_timeunit=hold_on_timeunit,
+            hold_off_time=hold_off_time,
+            hold_off_timeunit=hold_off_timeunit
+        )
 
     def ramp_gain(
         self,
@@ -488,7 +497,46 @@ class Sequence(SonicThread):
         *args,
         **kwargs,
     ) -> None:
-        pass
+        return self.ramp(
+            type_="gain",
+            start=start,
+            stop=stop,
+            step=step,
+            hold_on_time=hold_on_time,
+            hold_on_timeunit=hold_on_timeunit,
+            hold_off_time=hold_off_time,
+            hold_off_timeunit=hold_off_timeunit
+        )
+
+    def ramp(
+        self,
+        type_: str,
+        start: int,
+        stop: int,
+        step: int,
+        hold_on_time: int,
+        hold_on_timeunit: str,
+        hold_off_time: int,
+        hold_off_timeunit: str,
+    ) -> None:
+        self._sonicamp.add_job(Command("!ON", type_="script"), 0)
+        if type_ == "frequency":
+            to_send: str = "!f="
+        else:
+            to_send: str = "!g="
+        if start > stop:
+            step = -step
+
+        values: Iterable[int] = range(start, stop, step)
+        for value in values:
+            self._sonicamp.add_job(Command(f"{to_send}{value}", type_="script"), 0)
+            self._sonicamp.add_job(Command("-", type_="status"), 0)
+            self._sonicamp.add_job(Command("?sens", type_="status"), 0)
+
+            if hold_on_time:
+                self.hold(hold_on_time, hold_on_timeunit)
+            if hold_off_time:
+                self.hold(hold_off_time, hold_off_timeunit)
 
     def hold(self, time_: int = 10, unit: str = "ms", *args, **kwargs) -> None:
         if isinstance(time_, tuple) or isinstance(time_, list):
@@ -503,8 +551,18 @@ class Sequence(SonicThread):
         while now < target:
             time.sleep(0.001)
             now = datetime.datetime.now()
-            remaining_time: int = (target - now).microseconds
+            remaining_time: int = (target - now).seconds
             remaining_time = remaining_time if remaining_time < 10_000 else 0
+
+            self.output_queue.put(
+                {
+                    "line": self._current_line,
+                    "command": self._commands[self._current_line],
+                    "arguments": self._args_[self._current_line],
+                    "info": f"{remaining_time} seconds remaining on hold",
+                }
+            )
+
             logger.debug(f"Currently remaining {remaining_time})")
 
 

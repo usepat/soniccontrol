@@ -401,3 +401,4 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 class SonicMeasure(ttk.Toplevel):
     def __init__(self) -> None:
         pass
+    
