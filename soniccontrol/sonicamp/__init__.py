@@ -76,3 +76,30 @@ class Command:
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp
+
+
+def main() -> None:
+    sonicamp = SonicAmpAgent(port="/dev/cu.usbserial-AB0M45SW")
+    sonicamp.daemon = True
+    sonicamp.start()
+    sonicamp.resume()
+
+    sonicamp.add_job(Command(message="!OFF"), 0)
+    sonicamp.add_job(Command(message="?"), 0)
+    sonicamp.add_job(Command(message="-"), 0)
+    sonicamp.add_job(Command(message="!f=1000000"), 0)
+    sonicamp.add_job(Command(message="="), 0)
+
+    oldcommand = None
+    hertz = 0
+    while True:
+        sonicamp.add_job(Command(message="-"), 0)
+        prio, command = sonicamp.output_queue.get()
+        if oldcommand:
+            hertz = 1 / (command.timestamp - oldcommand.timestamp)
+        print(f"{command} with {hertz} Hz")
+        oldcommand = command
+
+
+if __name__ == "__main__":
+    main()

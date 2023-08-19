@@ -208,7 +208,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
             bootstyle=ttk.SUCCESS,
             command=self.resume_sonicmeasure,
         )
-        
+
     def popup_sonicmeasure(self) -> None:
         pass
 
@@ -401,4 +401,3 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 class SonicMeasure(ttk.Toplevel):
     def __init__(self) -> None:
         pass
-    

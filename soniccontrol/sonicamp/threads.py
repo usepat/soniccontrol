@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Tuple, Type
 from types import TracebackType
 from sonicpackage.helpers import logger
-from soniccontrol.sonicamp.serial_interface import Command
+from soniccontrol.sonicamp.command import Command
 
 
 class SonicThread(ABC, threading.Thread):
