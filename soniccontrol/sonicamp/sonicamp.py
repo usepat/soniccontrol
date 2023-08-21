@@ -249,25 +249,103 @@ class Ramp(SonicThread):
 
 
 # class SonicAmp:
+#     @dataclass
+#     class Data:
+#         type_: str = field(default="")
+#         version: float = field(default=0.0)
+#         firmware_msg: str = field(default="")
+#         modules: Optional[SonicAmp.Modules] = field(default=None)
+#         status: Optional[SonicAmp.Status] = field(default=None)
+
+#     @dataclass(frozen=True)
+#     class Modules:
+#         buffer: bool = field(default=False)
+#         display: bool = field(default=False)
+#         eeprom: bool = field(default=False)
+#         fram: bool = field(default=False)
+#         i_current: bool = field(default=False)
+#         current1: bool = field(default=False)
+#         current2: bool = field(default=False)
+#         io_serial: bool = field(default=False)
+#         thermo_ext: bool = field(default=False)
+#         thermo_int: bool = field(default=False)
+#         khz: bool = field(default=False)
+#         mhz: bool = field(default=False)
+#         portexpander: bool = field(default=False)
+#         protocol: bool = field(default=False)
+#         protocol_fix: bool = field(default=False)
+#         relais: bool = field(default=False)
+#         scanning: bool = field(default=False)
+#         sonsens: bool = field(default=False)
+#         tuning: bool = field(default=False)
+#         switch: bool = field(default=False)
+#         switch2: bool = field(default=False)
+
+#     @dataclass
+#     class Status:
+#         error: int = field(default=0, repr=False)
+#         frequency: int = field(default=0)
+#         gain: int = field(default=0)
+#         current_protocol: int = field(default=0, repr=False)
+#         wipe_mode: bool = field(default=False, repr=False)
+#         temperature: float = field(default=0)
+#         signal: bool = field(default=False)
+#         urms: Union[float, int] = field(default=0)
+#         irms: Union[float, int] = field(default=0)
+#         phase: Union[float, int] = field(default=0)
+#         timestamp: datetime.datetime = field(
+#             default_factory=datetime.datetime.now, compare=False
+#         )
+
+#         default_adapter: StatusAdapter = field(
+#             default=BasicStatusAdapter, repr=False, compare=False, hash=False
+#         )
+
+#         @classmethod
+#         def from_data(
+#             cls, data: str, adapter: Optional[StatusAdapter] = None
+#         ) -> SonicAmp.Status:
+#             return cls(
+#                 adapter.convert_data(data)
+#                 if adapter
+#                 else cls.default_adapter.convert_data(data)
+#             )
+
+#         @classmethod
+#         def from_updated_data(
+#             cls,
+#             old_status: SonicAmp.Status,
+#             data: str,
+#             adapter: Optional[StatusAdapter] = None,
+#         ) -> SonicAmp.Status:
+#             return cls(
+#                 adapter.update_data(old_status, data)
+#                 if adapter
+#                 else cls.default_adapter.update_data(old_status, data)
+#             )
+
+#         def dump(self) -> Dict[str, Any]:
+#             return self.__dict__
+
 #     def __init__(
 #         self,
-#         serial_connection: SerialAgent,
-#         data: Data,
+#         serial_agent: SerialAgent,
+#         data: SonicAmp.Data,
 #         update_strategy: StatusAdapter,
 #         frequency_controller: FrequencyController,
 #         gain_controller: GainController,
 #         mode_controller: ModeController,
 #     ) -> None:
-#         self._serial_agent: SerialAgent = serial_connection
+#         self._serial_agent: SerialAgent = serial_agent
 #         self._frequency_controller: FrequencyController = frequency_controller
 #         self._gain_controller: GainController = gain_controller
 #         self._mode_controller: ModeController = mode_controller
 #         self._update_strategy: StatusAdapter = update_strategy
 
-#         self._data: Data = data
+#         self._data: SonicAmp.Data = data
 
 #     @property
-#     def serial_connection(self) -> SerialAgent:
+#     def serial_agent(self) -> SerialAgent:
 #         return self._serial_agent
 
 #     @staticmethod

@@ -190,6 +190,7 @@ class Root(tk.Tk, Resizable, Updatable):
             self.sonicamp.add_job(Command(message="?sens", type_="status"), priority)
 
     def check_output_queue(self) -> None:
+        command: Optional[Command] = None
         while self.sonicamp.output_queue.qsize():
             priority, command = self.sonicamp.output_queue.get()
             logger.debug(f"Command: {command}, Prio: {priority}")
@@ -222,8 +223,8 @@ class Root(tk.Tk, Resizable, Updatable):
             if command.callback is not None:
                 command.callback(command.answer)
 
-            self.update_sonicamp(0 if command.type_ == "script" else 5)
             self.sonicamp.output_queue.task_done()
+        self.update_sonicamp(0 if command and command.type_ == "script" else 5)
 
     def serialize_data(self, status: sp.Status) -> None:
         with self.status_log_filepath.open(mode="a", newline="") as file:

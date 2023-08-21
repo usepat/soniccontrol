@@ -83,8 +83,8 @@ class SonicInterface(SonicThread):
 
 
 def main() -> None:
-    sonicagent = SonicInterface(port="COM6")
-    # sonicagent = SonicInterface(port="/dev/cu.usbserial-AB0M45SW")
+    # sonicagent = SonicInterface(port="COM6")
+    sonicagent = SonicInterface(port="/dev/cu.usbserial-AB0M45SW")
     sonicagent.daemon = True
     sonicagent.start()
     sonicagent.resume()

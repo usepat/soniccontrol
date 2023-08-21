@@ -55,6 +55,7 @@ class SonicAmpAgent(sp.SonicThread):
             command.answer = self.sonicamp.serial.send_and_get(command.message)
             logger.debug(f"Processed {command = }, with priority {priority = }")
             self.output_queue.put((priority, command))
+            command.processed.set()
             self.input_queue.task_done()
         except Exception as e:
             self.exceptions_queue.put(sys.exc_info())
@@ -73,6 +74,7 @@ class Command:
     type_: str = field(default="")
     callback: Optional[Callable[[Any], Any]] = field(default=None)
     timestamp: float = field(default_factory=time.time)
+    processed: threading.Event = threading.Event()
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp

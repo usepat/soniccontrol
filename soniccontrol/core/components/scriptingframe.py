@@ -1,13 +1,15 @@
 import logging
-from typing import Iterable, Any, Dict, Callable, Tuple, Union
+from typing import Iterable, Any, Dict, Callable, Tuple, Union, Literal, Optional
 import copy
 import queue
 import time
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledText, ScrolledFrame
 from ttkbootstrap.tableview import Tableview, TableRow, TableColumn
+from ttkbootstrap.dialogs.dialogs import Messagebox
 import ttkbootstrap.constants as ttkconst
 import PIL
+import sys
 from PIL.ImageTk import PhotoImage
 import datetime
 import soniccontrol.constants as const
@@ -115,6 +117,9 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
             command=self.stop_script,
         )
 
+        self.root.soniccontrol_state.animate_dots(text="Script Running")
+        self.root.statusbar_frame.configure(bootstyle=ttk.SUCCESS)
+
         self.sequence_status.start()
         self.menue_button.configure(state=ttk.DISABLED)
         self.sequence.start()
@@ -122,25 +127,45 @@ class ScriptingFrame(RootChildFrame, Connectable, Scriptable):
         self.script_engine()
 
     def script_engine(self) -> None:
+        logger.debug("Scripting engine...")
         if self.sequence.shutdown_request.is_set():
             self.stop_script()
             return
+
+        logger.debug("Checking exceptions...")
+        if self.sequence.exceptions_queue.qsize():
+            exc_info = self.sequence.exceptions_queue.get()
+            logger.warning(f"{exc_info}")
+            e: Exception = exc_info[1]
+            Messagebox.show_warning(f"{e}")
+            self.stop_script()
+            return
+
+        logger.debug("Checking output...")
         while self.sequence.output_queue.qsize():
             sequence_dict: Dict[str, Any] = self.sequence.output_queue.get()
             logger.debug(f"Script info {sequence_dict}")
             self.highlight_line(sequence_dict["line"])
+            # self.cur_task_label["text"] = sequence_dict.get("info")
+            self.current_task.set((sequence_dict["info"]))
         self.after(100, self.script_engine)
 
     def stop_script(self) -> None:
         logger.debug(f"Stopping script")
         if not self.sequence.shutdown_request.is_set():
             self.sequence.shutdown()
+
+        self.root.soniccontrol_state.stop_animation_of_dots()
+        self.root.statusbar_frame.configure(bootstyle=ttk.SECONDARY)
+        self.root.soniccontrol_state.set("Manual")
+
         self.start_script_btn.configure(
             text="Run",
             style="success.TButton",
             image=self.start_image,
             command=self.start_script,
         )
+        self.current_task.set("Idle")
         self.menue_button.configure(state=ttk.NORMAL)
         self.scripttext.tag_remove("currentLine", 1.0, "end")
         self.sequence_status.stop()
@@ -360,9 +385,12 @@ class Sequence(SonicThread):
         self.output_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
 
     def setup(self) -> None:
-        parsed_script: dict[str, Union[tuple[Any, ...], str]] = self._parser.parse_text(
-            self._scripttext
-        )
+        try:
+            parsed_script: dict[
+                str, Union[tuple[Any, ...], str]
+            ] = self._parser.parse_text(self._scripttext)
+        except Exception as e:
+            self.exceptions_queue.put(sys.exc_info())
         self._commands, self._args_, self._loops, self._comment = parsed_script.values()  # type: ignore
         self._original_loops = copy.deepcopy(self._loops)
 
@@ -374,6 +402,8 @@ class Sequence(SonicThread):
         self._current_line: int = 0
 
     def worker(self) -> None:
+        if self.shutdown_request.is_set():
+            return
         if self._current_line > len(self._commands) - 1:
             logger.info(f"End of script")
             self.shutdown()
@@ -384,26 +414,27 @@ class Sequence(SonicThread):
                 "line": self._current_line,
                 "command": self._commands[self._current_line],
                 "arguments": self._args_[self._current_line],
+                "info": f"{self._commands[self._current_line]} with {self._args_[self._current_line]}",
             }
         )
-        if self._commands[self._current_line] == "startloop":
-            self._current_line = self.startloop_response(self._current_line)
-        elif self._commands[self._current_line] == "endloop":
-            self._current_line = self.endloop_response(self._current_line)
-        else:
-            self.exec_command(self._current_line)
-            self._sonicamp.add_job(Command("-", type_="status"), 0)
-            self._sonicamp.add_job(Command("?sens", type_="status"), 0)
-            self._current_line += 1
-            time.sleep(0.2)
+        try:
+            if self._commands[self._current_line] == "startloop":
+                self._current_line = self.startloop_response(self._current_line)
+            elif self._commands[self._current_line] == "endloop":
+                self._current_line = self.endloop_response(self._current_line)
+            else:
+                self.exec_command(self._current_line)
+                self._sonicamp.add_job(Command("-", type_="status"), 0)
+                self._sonicamp.add_job(Command("?sens", type_="status"), 0)
+                self._current_line += 1
+                time.sleep(0.2)
+        except Exception as e:
+            self.exceptions_queue.put(sys.exc_info())
 
     def startloop_response(self, line: int) -> int:
         logger.debug(
             f"'startloop' @ {line}; quantifier = {self._loops[line].get('quantifier')}"
         )
-        if not self.run:
-            return 0
-
         if (
             self._loops[line].get("quantifier")
             and isinstance(self._loops[line].get("quantifier"), int)
@@ -422,9 +453,6 @@ class Sequence(SonicThread):
 
     def endloop_response(self, line: int) -> int:
         logger.debug(f"'endloop' @ {line}")
-        if not self.run:
-            return 0
-
         current_loop: dict[str, int] = list(
             filter(lambda x: (x.get("end") == line), self._loops)
         )[0]
@@ -454,13 +482,17 @@ class Sequence(SonicThread):
         elif current_command in ("!AUTO", "AUTO"):
             self._sonicamp.add_job(Command(f"!AUTO", type_="script"), 0)
         elif current_command == "hold":
-            self.hold(*current_argument)
+            self.hold(None, *current_argument)
         elif current_command == "on":
             self._sonicamp.add_job(Command(f"!ON", type_="script"), 0)
         elif current_command == "off":
             self._sonicamp.add_job(Command(f"!OFF", type_="script"), 0)
         else:
             raise SyntaxError(f"Syntax of the command {current_command} is not known!")
+
+    def shutdown(self) -> None:
+        logger.debug("SHUTTING DOWN SEQUENCE THREAD")
+        return super().shutdown()
 
     def ramp_freq(
         self,
@@ -482,7 +514,7 @@ class Sequence(SonicThread):
             hold_on_time=hold_on_time,
             hold_on_timeunit=hold_on_timeunit,
             hold_off_time=hold_off_time,
-            hold_off_timeunit=hold_off_timeunit
+            hold_off_timeunit=hold_off_timeunit,
         )
 
     def ramp_gain(
@@ -505,7 +537,7 @@ class Sequence(SonicThread):
             hold_on_time=hold_on_time,
             hold_on_timeunit=hold_on_timeunit,
             hold_off_time=hold_off_time,
-            hold_off_timeunit=hold_off_timeunit
+            hold_off_timeunit=hold_off_timeunit,
         )
 
     def ramp(
@@ -514,10 +546,10 @@ class Sequence(SonicThread):
         start: int,
         stop: int,
         step: int,
-        hold_on_time: int,
-        hold_on_timeunit: str,
-        hold_off_time: int,
-        hold_off_timeunit: str,
+        hold_on_time: int = 1,
+        hold_on_timeunit: Literal["ms", "s"] = "ms",
+        hold_off_time: int = 0,
+        hold_off_timeunit: Literal["ms", "s"] = "ms",
     ) -> None:
         self._sonicamp.add_job(Command("!ON", type_="script"), 0)
         if type_ == "frequency":
@@ -529,48 +561,86 @@ class Sequence(SonicThread):
 
         values: Iterable[int] = range(start, stop, step)
         for value in values:
-            self._sonicamp.add_job(Command(f"{to_send}{value}", type_="script"), 0)
-            self._sonicamp.add_job(Command("-", type_="status"), 0)
-            self._sonicamp.add_job(Command("?sens", type_="status"), 0)
-
-            if hold_on_time:
-                self.hold(hold_on_time, hold_on_timeunit)
-            if hold_off_time:
-                self.hold(hold_off_time, hold_off_timeunit)
-
-    def hold(self, time_: int = 10, unit: str = "ms", *args, **kwargs) -> None:
-        if isinstance(time_, tuple) or isinstance(time_, list):
-            time_, unit = time_
-        now = datetime.datetime.now()
-        unit_dict: Dict[str, str] = {
-            "ms": "milliseconds",
-            "s": "seconds",
-        }
-        target = now + datetime.timedelta(**{unit_dict[unit]: time_})
-
-        while now < target:
-            time.sleep(0.001)
-            now = datetime.datetime.now()
-            remaining_time: int = (target - now).seconds
-            remaining_time = remaining_time if remaining_time < 10_000 else 0
-
+            logger.warning(f"Shutdown request? {self.shutdown_request.is_set()}")
+            if self.shutdown_request.is_set():
+                return
+            command = Command(f"{to_send}{value}", type_="script")
             self.output_queue.put(
                 {
                     "line": self._current_line,
                     "command": self._commands[self._current_line],
                     "arguments": self._args_[self._current_line],
-                    "info": f"{remaining_time} seconds remaining on hold",
+                    "info": f"Ramp @ {value} {type_}",
                 }
             )
+            self._sonicamp.add_job(command, 0)
+            command.processed.wait()
+            command.processed.clear()
 
+            if hold_off_time:
+                command = Command(f"!ON", type_="script")
+                self._sonicamp.add_job(command, 0)
+                command.processed.wait()
+                command.processed.clear()
+
+            self.hold(command, hold_on_time, hold_on_timeunit)
+            if hold_off_time:
+                command = Command(f"!OFF", type_="script")
+                self._sonicamp.add_job(Command(f"!OFF", type_="script"), 0)
+                command.processed.wait()
+                command.processed.clear()
+
+                self.hold(command, hold_off_time, hold_off_timeunit)
+
+            if self.shutdown_request.is_set():
+                return
+
+    def hold(
+        self,
+        command: Optional[Command] = None,
+        duration: int = 10,
+        unit: str = "ms",
+        *args,
+        **kwargs,
+    ) -> None:
+        duration /= 1000.0 if unit == "ms" else 1
+        end_time = (command.timestamp if command else time.time()) + duration
+
+        while time.time() < end_time and not self.shutdown_request.is_set():
+            time.sleep(0.001)
+            remaining_time: int = end_time - time.time()
+            remaining_time = remaining_time if remaining_time < 10_000 else 0
+            self.output_queue.put(
+                {
+                    "line": self._current_line,
+                    "command": self._commands[self._current_line],
+                    "arguments": self._args_[self._current_line],
+                    "info": f"{round(remaining_time, 2)} seconds remaining on hold",
+                }
+            )
             logger.debug(f"Currently remaining {remaining_time})")
+
+            if time.time() > end_time and self.shutdown_request.is_set():
+                return
+
+            command = Command("-", type_="status")
+            self._sonicamp.add_job(command, 0)
+            command.processed.wait()
+            command.processed.clear()
+
+            if time.time() > end_time and self.shutdown_request.is_set():
+                return
+
+            command = Command("?sens", type_="status")
+            self._sonicamp.add_job(command, 0)
+            command.processed.wait()
+            command.processed.clear()
 
 
 class SonicParser:
     SUPPORTED_TOKENS: list[str] = [
         "frequency",
         "gain",
-        "ramp",
         "ramp_freq",
         "ramp_gain",
         "on",
@@ -578,7 +648,8 @@ class SonicParser:
         "hold",
         "startloop",
         "endloop",
-        "chirp_ramp",
+        # "chirp_ramp_freq",
+        # "chirp_ramp_gain",
         "!AUTO",
         "AUTO",
     ]

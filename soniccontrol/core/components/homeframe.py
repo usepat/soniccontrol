@@ -33,7 +33,7 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
         self.freq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self.control_frame,
             increment=100,
-            from_=0,
+            from_=20_000,
             to=6_000_000,
             textvariable=self.root._freq,
             width=16,
