@@ -1,6 +1,6 @@
 from typing import Literal
 from soniccontrol.sonicamp.sonicagent import SerialAgent
-from soniccontrol.sonicamp.serial_interface import SerialCommand
+from soniccontrol.sonicamp.command import SerialCommand, Command, SonicAmpCommand
 
 import soniccontrol.sonicamp.constants as const
 
@@ -9,7 +9,7 @@ class Controller:
     def __init__(self, serial_agent: SerialAgent) -> None:
         self._serial_agent: SerialAgent = serial_agent
 
-    def operation(self, *args, **kwargs) -> None:
+    def operation(self, command: Command, *args, **kwargs) -> None:
         pass
 
 
@@ -17,20 +17,18 @@ class FrequencyController(Controller):
     def __init__(self, serial_agent: SerialAgent) -> None:
         super().__init__(serial_agent)
 
-    def operation(self, frequency: int) -> None:
-        self._serial_agent.add_job(
-            SerialCommand(message=f"!f={frequency}"), const.Priority.TOP
-        )
+    def operation(self, command: SonicAmpCommand) -> None:
+        command.message = f"!f={command.method_args}"
+        self._serial_agent.add_job(command, const.Priority.TOP)
 
 
 class GainController(Controller):
     def __init__(self, serial_agent: SerialAgent) -> None:
         super().__init__(serial_agent)
 
-    def operation(self, gain: int) -> None:
-        self._serial_agent.add_job(
-            SerialCommand(message=f"!g={gain}"), const.Priority.TOP
-        )
+    def operation(self, command: SonicAmpCommand) -> None:
+        command.message = f"!g={command.method_args}"
+        self._serial_agent.add_job(command, const.Priority.TOP)
 
 
 class SignalController(Controller):

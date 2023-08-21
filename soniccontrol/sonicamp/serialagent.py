@@ -3,6 +3,7 @@ import threading
 import platform
 import sys
 import serial
+import copy
 import time
 import logging
 import serial.tools.list_ports as list_ports
@@ -19,8 +20,7 @@ class SerialAgent(SonicThread):
         self._port: str = port
 
         self._baudrate: int = 115200
-        self._serial: serial.Serial = None
-        self.device_list: list[str] = self.get_ports()
+        self._serial: Optional[serial.Serial] = None
         self.encoding: str = (
             "windows-1252" if platform.system() == "Windows" else "utf-8"
         )
@@ -64,9 +64,10 @@ class SerialAgent(SonicThread):
         try:
             priority, command = self.input_queue.get()  # Blocking call
             logger.debug(f"Receiving {command = }, with priority {priority = }")
-            command.answer = self.send_and_get(command)
+            command.update_answer(self.send_and_get(command))
             logger.debug(f"Processed {command = }, with priority {priority = }")
             self.output_queue.put((priority, command))
+            command.processed.set()
             self.input_queue.task_done()
         except Exception as e:
             self.exceptions_queue.put(sys.exc_info())
@@ -88,8 +89,9 @@ class SerialAgent(SonicThread):
         self._serial.flush()
         self._serial.write(f"{command.message}\n".encode(self.encoding))
 
-    def send_and_get(self, command: SerialCommand) -> None:
+    def send_and_get(self, command: SerialCommand) -> str:
         self.send_message(command=command)
+        time.sleep(0.2)
         return self.read_message(command.expected_big_answer)
 
     def shutdown(self) -> None:

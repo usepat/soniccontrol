@@ -3,10 +3,10 @@ import sys
 import logging
 import threading
 
-from soniccontrol.sonicamp.threads import SonicThread
 from soniccontrol.sonicamp.command import Command, SonicAmpCommand
-from soniccontrol.sonicamp.sonicamp import SonicAmp
 from soniccontrol.sonicamp.serialagent import SerialAgent
+from soniccontrol.sonicamp.threads import SonicThread
+from soniccontrol.sonicamp.sonicamp import SonicAmp
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class SonicInterface(SonicThread):
 
         try:
             print("building amp")
-            self.sonicamp = SonicAmp.build_amp(self.serial)
+            self.sonicamp = SonicAmp.build_amp(self, self.serial)
         except Exception as e:
             exc_info = sys.exc_info()
             logger.warning(exc_info)
@@ -56,29 +56,24 @@ class SonicInterface(SonicThread):
         try:
             if self.serial.exceptions_queue.qsize():
                 self.exceptions_queue.put(self.serial.exceptions_queue.get())
+            if not (
+                self.sonicamp.ramp_running.is_set() or self.sonicamp.holding.is_set()
+            ):
+                priority, input_command = self.input_queue.get()  # Blocking call
+                print(f"SonicAgent got {input_command}")
+                input_command = self.sonicamp.react_on_command(command=input_command)
 
-            priority, input_command = self.input_queue.get()  # Blocking call
-            logger.debug(f"Receiving {input_command = }, with priority {priority = }")
-            input_command.method(
-                input_command, *input_command.method_args, **input_command.method_kwargs
-            )
-            logger.debug(f"Processed {input_command = }, with priority {priority = }")
-            priority, output_command = self.serial.output_queue.get()
+            priority, output_command = self.serial.get_job()
+            print(f"SonicAgenn processed {output_command}")
             output_command = self.sonicamp.process_output_command(output_command)
-            self.output_queue.put((priority, input_command))
+            self.output_queue.put((priority, output_command))
 
             self.input_queue.task_done()
+            # self.sonicamp.get_status(SonicAmpCommand(type_="status"))
         except Exception as e:
             self.exceptions_queue.put(sys.exc_info())
 
     def add_job(self, priority: int, method_name: str, *args, **kwargs) -> None:
-        if not self.sonicamp and not (
-            isinstance(method_name, str) and hasattr(self.sonicamp, method_name)
-        ):
-            raise AttributeError(
-                f"{method_name} is not an attribute of {self.sonicamp}"
-            )
-        method_name = getattr(self.sonicamp, method_name)
         self.input_queue.put(
             (priority, SonicAmpCommand(method_name=method_name, *args, **kwargs))
         )
@@ -88,7 +83,8 @@ class SonicInterface(SonicThread):
 
 
 def main() -> None:
-    sonicagent = SonicInterface(port="/dev/cu.usbserial-AB0M45SW")
+    sonicagent = SonicInterface(port="COM6")
+    # sonicagent = SonicInterface(port="/dev/cu.usbserial-AB0M45SW")
     sonicagent.daemon = True
     sonicagent.start()
     sonicagent.resume()
@@ -101,8 +97,11 @@ def main() -> None:
     sonicagent.add_important_job("get_status")
     sonicagent.add_important_job("set_frequency", 1000000)
     sonicagent.add_important_job("get_modules")
-    # sonicagent.add_important_job("set_signal_auto")
+    # sonicagent.add_important_job("ramp", 1000000, 2000000, 10000, 1000, "ms")
     sonicagent.add_important_job("ramp", 1000000, 2000000, 10000)
+    sonicagent.add_important_job("ramp", 2000000, 1000000, 10000)
+    # sonicagent.add_important_job("set_signal_auto")
+    sonicagent.add_important_job("ramp", 1000000, 1055000, 10000, 5, "s", 5, "s")
 
     oldcommand = None
     hertz = 0
@@ -112,14 +111,15 @@ def main() -> None:
     while True:
         if sonicagent.exceptions_queue.qsize():
             print(sonicagent.exceptions_queue.get())
-        sonicagent.add_important_job("get_status")
-        sonicagent.add_important_job("get_sens")
-        prio, command = sonicagent.output_queue.get()
-        if oldcommand:
-            hertz = 1 / (command.timestamp - oldcommand.timestamp)
-            hertz_collection.append(hertz)
-            hertz_collection.pop(0) if len(hertz_collection) == 10 else None
-            mean_hertz = sum(hertz_collection) / len(hertz_collection)
+        # sonicagent.add_important_job("get_status")
+        # sonicagent.add_important_job("get_sens")
+        prio, command = sonicagent.get_job()
+        # if oldcommand:
+        #     hertz = 1 / (command.timestamp - oldcommand.timestamp)
+        #     hertz_collection.append(hertz)
+        #     hertz_collection.pop(0) if len(hertz_collection) == 10 else None
+        #     mean_hertz = sum(hertz_collection) / len(hertz_collection)
+        print("Getting from SonicAgent")
         print(f"{command} with {mean_hertz} Hz")
         oldcommand = command
 

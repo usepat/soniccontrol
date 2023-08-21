@@ -23,6 +23,7 @@ class SonicThread(ABC, threading.Thread):
     def __init__(self) -> None:
         """Initializes the parent constructor with a worker function for the target"""
         threading.Thread.__init__(self, target=self._run)
+        self._lock: threading.Lock = threading.Lock()
         self.pause_request: threading.Event = threading.Event()
         self.shutdown_request: threading.Event = threading.Event()
         self.pause_cond: threading.Condition = threading.Condition(threading.Lock())
@@ -61,10 +62,20 @@ class SonicThread(ABC, threading.Thread):
         self.shutdown_request.set()
 
     def add_job(self, command: Command, priority: int) -> None:
+        # with self._lock:
         self.input_queue.put((priority, command))
+
+    def get_job(self) -> Any:
+        # with self._lock:
+        return self.output_queue.get()
+
+    def add_output_job(self, command: Command, priority: int = 0) -> None:
+        # with self._lock:
+        self.output_queue.put((priority, command))
 
     def pause(self) -> None:
         """Function to pause the thread"""
+        # with self._lock:
         if self.pause_request.is_set():
             return
         self.pause_request.set()
@@ -73,6 +84,7 @@ class SonicThread(ABC, threading.Thread):
 
     def resume(self) -> None:
         """Function to resume the thread"""
+        # with self._lock:
         if not self.pause_request.is_set():
             return
         self.pause_request.clear()
