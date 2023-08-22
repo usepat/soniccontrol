@@ -107,9 +107,8 @@ class SonicAmp:
         # self.holding_condition.notify_all()
 
         duration /= 1000.0 if unit == "ms" else 1
-        end_time = command.timestamp + duration
+        end_time = command.processed_timestamp + duration
         while time.time() < end_time:
-            print("waiting")
             self._sonicagent.add_output_job(
                 SonicAmpCommand(type_=f"hold {end_time - time.time()} {unit} remaining")
             )

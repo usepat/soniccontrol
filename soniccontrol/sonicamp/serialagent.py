@@ -64,10 +64,9 @@ class SerialAgent(SonicThread):
         try:
             priority, command = self.input_queue.get()  # Blocking call
             logger.debug(f"Receiving {command = }, with priority {priority = }")
-            command.update_answer(self.send_and_get(command))
+            command.set_processed(self.send_and_get(command))
             logger.debug(f"Processed {command = }, with priority {priority = }")
             self.output_queue.put((priority, command))
-            command.processed.set()
             self.input_queue.task_done()
         except Exception as e:
             self.exceptions_queue.put(sys.exc_info())

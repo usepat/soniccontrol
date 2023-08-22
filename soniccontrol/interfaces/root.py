@@ -33,10 +33,21 @@ class Root(tk.Tk, Resizable, Updatable):
         self._resizer: Resizer = Resizer(self)
 
         # (global set) tkinter variables
-        self._freq: tk.IntVar = tk.IntVar()
-        self._gain: tk.IntVar = tk.IntVar()
-        self._wipe_inf_or_def: tk.BooleanVar = tk.BooleanVar()
-        self._wipe_cycles: tk.IntVar = tk.IntVar()
+        self._freq: ttk.IntVar = ttk.IntVar()
+        self._gain: ttk.IntVar = ttk.IntVar()
+        self._wipe_inf_or_def: ttk.BooleanVar = ttk.BooleanVar()
+        self._wipe_cycles: ttk.IntVar = ttk.IntVar()
+
+        self._atf1: ttk.IntVar = ttk.IntVar(value=0)
+        self._atk1: ttk.DoubleVar = ttk.DoubleVar(value=0)
+
+        self._atf2: ttk.IntVar = ttk.IntVar(value=0)
+        self._atk2: ttk.DoubleVar = ttk.DoubleVar(value=0)
+
+        self._atf3: ttk.IntVar = ttk.IntVar(value=0)
+        self._atk3: ttk.DoubleVar = ttk.DoubleVar(value=0)
+        self._att1: ttk.DoubleVar = ttk.DoubleVar(value=0)
+
         self.connected: bool = True
         # (glabal read) tkinter variables
         self.frequency: ttk.DoubleVar = ttk.DoubleVar(value=1000)

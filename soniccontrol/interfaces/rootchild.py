@@ -41,7 +41,7 @@ class RootChild(ScrolledFrame, Resizable, Tabable):
         logger.debug("RootChild initialized")
 
     @property
-    def root(self) -> Union[tk.Tk, tk.Toplevel]:
+    def root(self) -> Root:
         return self.winfo_toplevel()
 
     @property
