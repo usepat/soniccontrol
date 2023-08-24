@@ -52,7 +52,9 @@ class SonicAmpAgent(sp.SonicThread):
         try:
             priority, command = self.input_queue.get()  # Blocking call
             logger.debug(f"Receiving {command = }, with priority {priority = }")
-            command.answer = self.sonicamp.serial.send_and_get(command.message)
+            command.answer = self.sonicamp.serial.send_and_get(
+                command.message, expected_big_answer=command.big_answer
+            )
             logger.debug(f"Processed {command = }, with priority {priority = }")
             self.output_queue.put((priority, command))
             command.processed.set()
@@ -75,6 +77,7 @@ class Command:
     callback: Optional[Callable[[Any], Any]] = field(default=None)
     timestamp: float = field(default_factory=time.time)
     processed: threading.Event = threading.Event()
+    big_answer: bool = field(default=False)
 
     def __lt__(self, other):
         return self.timestamp < other.timestamp

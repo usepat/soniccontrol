@@ -257,7 +257,10 @@ class SettingsFrame(RootChild, Connectable):
         self.root.sonicamp.add_job(Command(message=f"!att1={self.root._att1.get()}"), 0)
 
     def request_current_config(self) -> None:
-        pass
+        self.root.sonicamp.add_job(Command(message=f"?atf1"), 0)
+        self.root.sonicamp.add_job(Command(message=f"?atf2"), 0)
+        self.root.sonicamp.add_job(Command(message=f"?atf3"), 0)
+        self.root.sonicamp.add_job(Command(message=f"?att1"), 0)
 
     def upload_file(self) -> None:
         answer: str = Messagebox.okcancel(

@@ -349,6 +349,9 @@ class Root(tk.Tk, Resizable, Updatable):
             priority, command = self.sonicamp.output_queue.get()
             logger.debug(f"Command: {command}, Prio: {priority}")
 
+            if command.message in ("?atf1", "?atf2", "?atf3", "?att1"):
+                self.check_atf_data(command)
+
             if command.type_ == "status":
                 if command.message == "-":
                     if self.old_status is None:
@@ -379,6 +382,30 @@ class Root(tk.Tk, Resizable, Updatable):
 
             self.sonicamp.output_queue.task_done()
         self.update_sonicamp(0 if command and command.type_ == "script" else 5)
+
+    def check_atf_data(self, command: Command):
+        if command.message == "?att1":
+            self._att1.set(float(command.answer))
+            logger.debug(f"att1: {command}, {float(command.answer)}")
+            return
+
+        atf: int = 0
+        atk: int = 0
+        lines = command.answer.splitlines()
+        logger.debug(lines)
+
+        atf, atk, *_ = lines
+
+        if command.message == "?atf1":
+            self._atf1.set(atf)
+            self._atk1.set(atk)
+        elif command.message == "?atf2":
+            self._atf2.set(atf)
+            self._atk2.set(atk)
+        elif command.message == "?atf3":
+            self._atf3.set(atf)
+            self._atk3.set(atk)
+        logger.debug(f"atf setting: {command}, {atf, atk}")
 
     def serialize_data(self, status: sp.Status) -> None:
         with self.status_log_filepath.open(mode="a", newline="") as file:
