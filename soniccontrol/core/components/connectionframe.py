@@ -11,6 +11,7 @@ from soniccontrol.interfaces import (
     RootChild,
     WidthLayout,
     Disconnectable,
+    Flashable,
     Connectable,
     Layout,
 )
@@ -19,7 +20,7 @@ from soniccontrol.interfaces.rootchild import RootLabel
 logger = logging.getLogger(__name__)
 
 
-class ConnectionFrame(RootChild, Disconnectable, Connectable):
+class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
     def __init__(
         self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
     ):
@@ -233,6 +234,22 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable):
         self.event_generate(const.Events.PORT_REFRESH)
         self.disable_firmware_info()
         logger.debug("Connectionframe shows itself disconnected")
+
+    def on_validation(self) -> None:
+        self.change_heading(
+            title_part1="Validating Firmware File", title_part2="", subtitle=""
+        )
+        self.heading2.animate_dots()
+
+    def on_firmware_upload(self) -> None:
+        self.change_heading(
+            title_part1="Uploading Firmware", title_part2="", subtitle="This might take a while. Make sure the device stays on and connected."
+        )
+
+    def on_validation_success(self) -> None:
+        self.change_heading(
+            title_part1="Validation successfull", title_part2="", subtitle=""
+        )
 
     def publish(self) -> None:
         self.topframe.pack(expand=True, fill=ttk.BOTH)

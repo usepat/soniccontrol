@@ -48,6 +48,20 @@ class Configurable(abc.ABC):
         ...
 
 
+class Flashable(abc.ABC):
+    @abc.abstractmethod
+    def on_validation(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def on_validation_success(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def on_firmware_upload(self) -> None:
+        ...
+
+
 class Scriptable(abc.ABC):
     @abc.abstractmethod
     def on_script_start(self, event: Any = None) -> None:

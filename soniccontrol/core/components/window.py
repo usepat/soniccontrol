@@ -14,6 +14,7 @@ from soniccontrol.interfaces import (
     Tabable,
     Updatable,
     Scriptable,
+    Flashable,
     Configurable,
     Feedbackable,
 )
@@ -144,11 +145,13 @@ class SonicControl(Root, Disconnectable, Connectable, Configurable, Updatable):
                 self.scriptables.add(child)
             if isinstance(child, Feedbackable):
                 self.feedbackables.add(child)
+            if isinstance(child, Flashable):
+                self.flashables.add(child)
 
         # INITIALIZING Notebook States
         self.frames_for_disconnected_state: Tuple[Tabable, ...] = (
             self.connection_frame,
-            self.settings_frame,
+            # self.settings_frame,
             self.info_frame,
         )
         self.frames_for_unkown_device_state: Tuple[

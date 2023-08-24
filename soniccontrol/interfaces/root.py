@@ -1,12 +1,17 @@
 from typing import Any, Optional, Iterable, Set, Dict
 import tkinter as tk
 import ttkbootstrap as ttk
+from ttkbootstrap.dialogs import Messagebox
 import abc
+import platform
+import sys
+import subprocess
 import csv
 import logging
 import pathlib
 import soniccontrol.constants as const
 import copy
+import threading
 from soniccontrol.sonicamp import SonicAmpAgent, Command
 from soniccontrol.interfaces import (
     Resizable,
@@ -15,6 +20,7 @@ from soniccontrol.interfaces import (
     Configurable,
     Connectable,
     Scriptable,
+    Flashable,
     Feedbackable,
     Resizer,
     Layout,
@@ -32,12 +38,21 @@ class Root(tk.Tk, Resizable, Updatable):
         self._height_layouts: Optional[Iterable[Layout]] = None
         self._resizer: Resizer = Resizer(self)
 
+        # miscellous global vars
+        self.byte_encoding: str = (
+            "utf-8" if platform.system() != "Windows" else "windows-1252"
+        )
+        self.firmware_flash_file: Optional[pathlib.Path] = None
+        self.validation_successfull: threading.Event = threading.Event()
+        self.flashing_successfull: threading.Event = threading.Event()
+
         # (global set) tkinter variables
         self._freq: ttk.IntVar = ttk.IntVar()
         self._gain: ttk.IntVar = ttk.IntVar()
         self._wipe_inf_or_def: ttk.BooleanVar = ttk.BooleanVar()
         self._wipe_cycles: ttk.IntVar = ttk.IntVar()
 
+        self.atf_configuration_name: ttk.StringVar = ttk.StringVar(value="None")
         self._atf1: ttk.IntVar = ttk.IntVar(value=0)
         self._atk1: ttk.DoubleVar = ttk.DoubleVar(value=0)
 
@@ -121,6 +136,7 @@ class Root(tk.Tk, Resizable, Updatable):
         self.updatables: Set[Updatable] = set()
         self.scriptables: Set[Scriptable] = set()
         self.feedbackables: Set[Feedbackable] = set()
+        self.flashables: Set[Flashable] = set()
         logger.debug("initialized Root")
 
     @property
@@ -139,9 +155,136 @@ class Root(tk.Tk, Resizable, Updatable):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.bind(const.Events.RESIZING, self.on_resizing)
         self.bind(const.Events.SET_GAIN, self.on_gain_set)
+        self.bind(const.Events.FIRMWARE_FLASH, self.on_firmware_flash)
 
     def on_resizing(self, event: Any, *args, **kwargs) -> None:
         return self.resizer.resize(event=event)
+
+    def on_firmware_flash(self, *args, **kwargs) -> None:
+        self.event_generate(const.Events.DISCONNECTED)
+
+        for flashable in self.flashables:
+            flashable.on_validation()
+
+        self.validation_thread: threading.Thread = threading.Thread(
+            target=self.validate_flash_file_thread,
+            args=(
+                self.port.get(),
+                self.firmware_flash_file,
+            ),
+            daemon=True,
+        )
+        self.validation_thread.start()
+        self.check_firware_validation()
+
+    def check_firware_validation(self) -> None:
+        if self.validation_thread.is_alive():
+            self.after(100, self.check_firware_validation)
+            return
+        if self.validation_successfull.is_set():
+            for flashable in self.flashables:
+                flashable.on_validation_success()
+            self.upload_firmware()
+            self.validation_successfull.clear()
+        else:
+            Messagebox.show_error(
+                "AVRDUDE Test was not passed. The file seems to be invalid or corrupted",
+                "Validation Error",
+            )
+            self.event_generate(const.Events.CONNECTION_ATTEMPT)
+
+    def upload_firmware(self) -> None:
+        for flashable in self.flashables:
+            flashable.on_firmware_upload()
+
+        self.flashing_thread: threading.Thread = threading.Thread(
+            target=self.flashing_worker,
+            args=(
+                self.port.get(),
+                self.firmware_flash_file,
+            ),
+            daemon=True,
+        )
+        self.flashing_thread.start()
+        self.check_flashing_state()
+
+    def check_flashing_state(self) -> None:
+        if self.flashing_thread.is_alive():
+            self.after(100, self.check_flashing_state)
+            return
+        if self.flashing_successfull.is_set():
+            self.flashing_successfull.clear()
+            self.event_generate(const.Events.CONNECTION_ATTEMPT)
+        else:
+            Messagebox.show_error(
+                "AVRDUDE Upload was not passed. Something went wrong during the process.",
+                "Firmware Flash Error",
+            )
+            self.event_generate(const.Events.DISCONNECTED)
+
+    @staticmethod
+    def flash_command(port: str, hex_file_path: str, test: bool = False) -> str:
+        logger.info(f"Getting flash command for Platform {platform.system()}")
+
+        if platform.system() == "Linux" and test:
+            command = f'"avrdude/Linux/avrdude" -n -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
+        elif platform.system() == "Linux" and not test:
+            command = f'"avrdude/Linux/avrdude" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
+
+        if platform.system() == "Darwin" and test:
+            command = f'"avrdude/Darwin/avrdude" -n -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
+        elif platform.system() == "Darwin" and not test:
+            command = f'"avrdude/Darwin/avrdude" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
+
+        elif platform.system() == "Windows" and test:
+            command = f'"avrdude/Windows/avrdude.exe" -n -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
+        elif platform.system() == "Windows" and not test:
+            command = f'"avrdude/Windows/avrdude.exe" -v -p atmega328p -c arduino -P {port} -b 115200 -D -U flash:w:"{hex_file_path}":i'
+        else:
+            raise ValueError("Illegal values passed into flash_command method")
+        return command
+
+    def validate_flash_file_thread(self, flash_file: str, port: str) -> None:
+        try:
+            logger.debug(f"Validating firmware file")
+            command: str = self.flash_command(flash_file, port, test=True)
+            commandline_process: subprocess.Popen = subprocess.Popen(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            command_result, _ = commandline_process.communicate()
+            command_result = command_result.decode(self.byte_encoding)
+            logger.debug(f"AVRDUDE Test log: {command_result}")
+
+            if commandline_process.returncode > 0:
+                logger.error("Errors occurred during the firmware flash")
+                return
+        except Exception as e:
+            logger.error(sys.exc_info())
+            return
+        else:
+            self.validation_successfull.set()
+
+    def flashing_worker(self, flash_file: str, port: str) -> None:
+        try:
+            logger.debug(f"Uploading Firmware File...")
+            command: str = self.flash_command(flash_file, port, test=False)
+            commandline_process: subprocess.Popen = subprocess.Popen(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            command_result, _ = commandline_process.communicate()
+            command_result = command_result.decode(self.byte_encoding)
+            logger.debug(f"AVRDUDE Test log: {command_result}")
+        except Exception as e:
+            logger.error(sys.exc_info())
+            return
+        else:
+            self.flashing_successfull.set()
 
     def on_connect(self, event=None) -> None:
         logger.debug("Connection attempt")
@@ -166,9 +309,9 @@ class Root(tk.Tk, Resizable, Updatable):
     def status_engine(self) -> None:
         def is_connection_ready() -> bool:
             if self.sonicamp.connection_established.is_set():
+                self.sonicamp.connection_established.clear()
                 self.after_connect()
                 self.connected = True
-                self.sonicamp.connection_established.clear()
             return self.sonicamp.connection.is_set()
 
         def check_exceptions_queue() -> None:

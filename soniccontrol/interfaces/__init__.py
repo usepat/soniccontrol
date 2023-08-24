@@ -6,6 +6,7 @@ from soniccontrol.interfaces.gui_interfaces import (
     Disconnectable,
     Updatable,
     Tabable,
+    Flashable,
     Feedbackable,
 )
 from soniccontrol.interfaces.layout import Layout, WidthLayout, HeightLayout
