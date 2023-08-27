@@ -19,7 +19,7 @@ class SonicInterface(SonicThread):
         )
         self.serial: SerialAgent = SerialAgent(port)
         self.serial.daemon = True
-        self.sonicamp: Optional[SonicAmp] = None
+        self.sonicamp: SonicAmp = SonicAmp(self, self.serial)
 
     def setup(self) -> None:
         self.serial.start()
