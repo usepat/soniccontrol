@@ -179,13 +179,13 @@ from async_tkinter_loop import async_handler, async_mainloop
 class Root(tk.Tk):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.serial = SerialCommunicator("COM6")
+        self.serial = SerialCommunicator("/dev/cu.usbserial-AB0M45SW")
 
         self.connect_button = ttk.Button(
             self,
             text="Connect",
             bootstyle=ttk.SUCCESS,
-            command=async_handler(self.connect, "COM6"),
+            command=async_handler(self.connect, "/dev/cu.usbserial-AB0M45SW"),
         )
         self.connect_button.pack()
         self.button = ttk.Button(
@@ -196,12 +196,6 @@ class Root(tk.Tk):
         self.button.pack()
         self.label = ttk.Label(self, text="None")
         self.label.pack()
-        # self.after(100, async_handler(self.engine))
-
-    # async def engine(self) -> None:
-
-    #     command = await device.answer_queue.get()
-    #     self.after(100, async_handler(self.engine))
 
     async def connect(self, port: str) -> None:
         await self.serial.setup()

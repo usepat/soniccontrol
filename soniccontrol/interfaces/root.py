@@ -116,6 +116,14 @@ class Root(tk.Tk, Resizable, Updatable):
             "temperature",
         ]
 
+        self.sonicmeasure_log_var: ttk.StringVar = ttk.StringVar(
+            value="logs//sonicmeasure.csv"
+        )
+        self.sonicmeasure_log_var.trace_add("write", self.sonicmeasure_log_changed)
+        self.sonicmeasure_log: pathlib.Path = pathlib.Path(
+            self.sonicmeasure_log_var.get()
+        )
+
         self.sonicamp: Optional[SonicAmpAgent] = None
         self.priority_counter: int = 5
         self.old_status: Optional[sp.Status] = None
@@ -159,6 +167,12 @@ class Root(tk.Tk, Resizable, Updatable):
 
     def on_resizing(self, event: Any, *args, **kwargs) -> None:
         return self.resizer.resize(event=event)
+
+    def sonicmeasure_log_changed(self, event: Any = None, *args, **kwargs) -> None:
+        self.sonicmeasure_log = pathlib.Path(self.sonicmeasure_log_var.get())
+
+        if not self.sonicmeasure_log.exists():
+            self.sonicmeasure_log.parent.mkdir(parents=True, exist_ok=True)
 
     def on_firmware_flash(self, *args, **kwargs) -> None:
         self.event_generate(const.Events.DISCONNECTED)
@@ -338,9 +352,15 @@ class Root(tk.Tk, Resizable, Updatable):
         self.check_output_queue()
         check_exceptions_queue()
 
-    def update_sonicamp(self, priority: int = 5) -> None:
+    def update_sonicamp(self, priority: int = 5, mode: str = "status") -> None:
+        if mode == "sonicmeasure":
+            self.sonicamp.add_job(
+                Command(message="?sens", type_="sonicmeasure"), priority
+            )
+            
+            return
         self.sonicamp.add_job(Command(message="-", type_="status"), priority)
-        if self.old_status.signal:
+        if self.old_status and self.old_status.signal:
             self.sonicamp.add_job(Command(message="?sens", type_="status"), priority)
 
     def check_output_queue(self) -> None:
@@ -362,7 +382,7 @@ class Root(tk.Tk, Resizable, Updatable):
                         ).update_status(command.answer)
                 else:
                     status: sp.Status = copy.deepcopy(self.old_status).from_sens(
-                        command.answer
+                        command.answer, fullscale_values=True
                     )
                 logger.debug(status)
                 self.serialize_data(status)
@@ -373,15 +393,54 @@ class Root(tk.Tk, Resizable, Updatable):
                     child.on_feedback(command.answer)
 
             elif command.type_ == "script":
-                # self.sonicamp.add_job(Command("-", type_="status"), 0)
                 for child in self.scriptables:
                     child.on_feedback(command.answer)
+
+            elif command.type_ == "sonicmeasure":
+                self.react_on_sonicmeasure(command)
 
             if command.callback is not None:
                 command.callback(command.answer)
 
             self.sonicamp.output_queue.task_done()
-        self.update_sonicamp(0 if command and command.type_ == "script" else 5)
+
+        self.update_sonicamp(
+            0 if command and command.type_ in ("sonicmeasure", "script") else 5,
+            command.type_ if command is not None else "status",
+        )
+
+    def react_on_sonicmeasure(self, command: Command) -> None:
+        if command.message != "?sens":
+            return
+
+        status = sp.Status()
+        if not "Error" in command.answer:
+            convert_sonicmeasure_field = lambda x: float(x) if "." in x else int(x)
+            freq, urms, irms, phase = map(
+                convert_sonicmeasure_field, command.answer.split(" ")
+            )
+
+            if all(isinstance(var, int) for var in (urms, irms, phase)):
+                urms = urms if urms > 282300 else 282300
+                urms = (urms * 0.000400571 - 1130.669402) * 1000 + 0.5
+                irms = irms if irms > 3038000 else 303800
+                irms = (irms * 0.000015601 - 47.380671) * 1000 + 0.5
+                phase = (phase * 0.125) * 100
+
+            status = sp.Status(
+                frequency=freq,
+                gain=self.gain.get(),
+                signal=True,
+                urms=urms,
+                irms=irms,
+                phase=phase,
+            )
+
+        with self.sonicmeasure_log.open(mode="a", newline="") as file:
+            writer = csv.DictWriter(
+                file, fieldnames=self.fieldnames, extrasaction="ignore"
+            )
+            writer.writerow(status.dump())
 
     def check_atf_data(self, command: Command):
         if command.message == "?att1":

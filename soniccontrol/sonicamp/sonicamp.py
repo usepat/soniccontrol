@@ -1,7 +1,7 @@
 from __future__ import annotations
 import asyncio
 from asyncio import Queue, Event
-from typing import Optional, Callable, List, Dict, Literal, Union, Iterable
+from typing import Optional, Callable, List, Dict, Literal, Union, Iterable, Set
 import serial_asyncio as serial
 import sys
 import attrs
@@ -155,7 +155,7 @@ class Status:
             phase = (phase * 0.125) * 100
 
         if old_status:
-            
+            return attrs.evolve(self, )
             
 
 
