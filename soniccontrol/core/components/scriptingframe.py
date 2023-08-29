@@ -561,7 +561,6 @@ class Sequence(SonicThread):
 
         values: Iterable[int] = range(start, stop, step)
         for value in values:
-            logger.warning(f"Shutdown request? {self.shutdown_request.is_set()}")
             if self.shutdown_request.is_set():
                 return
             command = Command(f"{to_send}{value}", type_="script")

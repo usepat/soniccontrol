@@ -357,7 +357,7 @@ class Root(tk.Tk, Resizable, Updatable):
             self.sonicamp.add_job(
                 Command(message="?sens", type_="sonicmeasure"), priority
             )
-            
+
             return
         self.sonicamp.add_job(Command(message="-", type_="status"), priority)
         if self.old_status and self.old_status.signal:
@@ -372,7 +372,7 @@ class Root(tk.Tk, Resizable, Updatable):
             if command.message in ("?atf1", "?atf2", "?atf3", "?att1"):
                 self.check_atf_data(command)
 
-            if command.type_ == "status":
+            if command.message in ("?sens", "-"):
                 if command.message == "-":
                     if self.old_status is None:
                         status: sp.Status = sp.Status().from_string(command.answer)
@@ -421,11 +421,19 @@ class Root(tk.Tk, Resizable, Updatable):
             )
 
             if all(isinstance(var, int) for var in (urms, irms, phase)):
-                urms = urms if urms > 282300 else 282300
-                urms = (urms * 0.000400571 - 1130.669402) * 1000 + 0.5
-                irms = irms if irms > 3038000 else 303800
-                irms = (irms * 0.000015601 - 47.380671) * 1000 + 0.5
-                phase = (phase * 0.125) * 100
+                # if urms < 2823000:
+                #     urms = 2823000
+                # urms = urms * 0.000400571 - 1.130669402 * 1000
+
+                # if irms < 3038000:
+                #     irms = 3038000
+                # irms = irms * 0.000015601 - 0.047380671 * 1000
+
+                # phase = phase * 0.125
+
+                urms /= 1000
+                irms /= 1000
+                phase /= 1_000_000
 
             status = sp.Status(
                 frequency=freq,

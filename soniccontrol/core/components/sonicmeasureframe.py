@@ -413,7 +413,6 @@ class SonicMeasure(ttk.Toplevel):
         self._last_read_line = 0
 
         self.ramp_thread: Optional[SonicThread] = None
-        self.sonicmeasure_running: threading.Event = threading.Event()
 
         self.time_units: Tuple[str] = ("ms", "s")
 
@@ -615,26 +614,30 @@ class SonicMeasure(ttk.Toplevel):
         logger.debug(f"The new logfile path is: {self.logfile}")
 
     def on_closing(self) -> None:
+        if self.ramp_thread is not None:
+            self.ramp_thread.running.clear()
         self.parent.spectrum_button.configure(state=ttk.NORMAL)
         self.destroy()
 
     def resume_sonicmeasure(self) -> None:
-        self.ani.resume()
         self.pause_resume_button.configure(
             text="Pause",
             image=self.stop_image,
             bootstyle=ttk.DANGER,
             command=self.pause_sonicmeasure,
         )
+        self.ramp_thread.pause()
+        self.ani.resume()
 
     def pause_sonicmeasure(self) -> None:
-        self.ani.pause()
         self.pause_resume_button.configure(
             text="Resume",
             image=self.start_image,
             bootstyle=ttk.SUCCESS,
             command=self.resume_sonicmeasure,
         )
+        self.ramp_thread.pause()
+        self.ani.pause()
 
     def start_sonicmeasure(self) -> None:
         self.main_frame.pack_forget()
@@ -645,13 +648,21 @@ class SonicMeasure(ttk.Toplevel):
 
     def start_sonicmeasure_process(self) -> None:
         self.start_stop_button.configure(
+            text="Stop",
             bootstyle=ttk.DANGER,
             image=self.stop_image,
             compound=ttk.RIGHT,
             command=self.stop_sonicmeasure,
         )
+        self.pause_resume_button.configure(
+            text="Pause",
+            bootstyle=ttk.DANGER,
+            image=self.stop_image,
+            compound=ttk.RIGHT,
+            state=ttk.NORMAL,
+            command=self.pause_sonicmeasure,
+        )
         self.show_mainframe()
-        self.sonicmeasure_running.set()
         self.sonicmeasure_engine()
 
     def sonicmeasure_engine(self) -> None:
@@ -760,11 +771,16 @@ class SonicMeasure(ttk.Toplevel):
             self.hold_off_time_unit_var.get(),
         )
         self.ramp_thread.daemon = True
+        self.ramp_thread.running.set()
         self.ramp_thread.start()
         self.ramp_thread.resume()
 
     def stop_sonicmeasure(self) -> None:
-        self.sonicmeasure_running.clear()
+        self.pause_resume_button.configure(
+            state=ttk.DISABLED,
+            command=self.resume_sonicmeasure,
+        )
+        self.ramp_thread.shutdown()
         self.ani.pause()
 
     def show_mainframe(self) -> None:
@@ -847,7 +863,7 @@ class SonicMeasureRamp(SonicThread):
         self.measure_frame = parent
         self._sonicamp = self.measure_frame.root.sonicamp
 
-        self.running: threading.Event = parent.sonicmeasure_running
+        self.running: threading.Event = threading.Event()
         self.to_send: str = "!f=" if type_ == "frequency" else "!g="
 
         self.start_value: int = start
@@ -866,40 +882,44 @@ class SonicMeasureRamp(SonicThread):
         self._sonicamp.add_job(Command("!ON", type_="sonicmeasure"), 0)
 
     def worker(self) -> None:
-        while self.running.is_set():
-            for value in self.values:
-                command = Command(f"{self.to_send}{value}", type_="")
+        
+        for value in self.values:
+            if not self.running.is_set() or self.shutdown_request.is_set():
+                return
+
+            command = Command(f"{self.to_send}{value}", type_="")
+            self._sonicamp.add_job(command, 0)
+            command.processed.wait()
+            command.processed.clear()
+
+            if self.hold_off_time:
+                command = Command(f"!ON", type_="")
                 self._sonicamp.add_job(command, 0)
                 command.processed.wait()
                 command.processed.clear()
 
-                if self.hold_off_time:
-                    command = Command(f"!ON", type_="")
-                    self._sonicamp.add_job(command, 0)
-                    command.processed.wait()
-                    command.processed.clear()
+            command = Command("?sens", type_="sonicmeasure")
+            self._sonicamp.add_job(command, 0)
+            command.processed.wait()
+            command.processed.clear()
+
+            self.hold(command, self.hold_on_time, self.hold_on_time_unit)
+
+            if self.hold_off_time:
+                command = Command(f"!OFF", type_="")
+                self._sonicamp.add_job(Command(f"!OFF", type_=""), 0)
+                command.processed.wait()
+                command.processed.clear()
 
                 command = Command("?sens", type_="sonicmeasure")
                 self._sonicamp.add_job(command, 0)
                 command.processed.wait()
                 command.processed.clear()
 
-                self.hold(command, self.hold_on_time, self.hold_on_time_unit)
-                if self.hold_off_time:
-                    command = Command(f"!OFF", type_="")
-                    self._sonicamp.add_job(Command(f"!OFF", type_=""), 0)
-                    command.processed.wait()
-                    command.processed.clear()
+                self.hold(command, self.hold_off_time, self.hold_off_time_unit)
 
-                    command = Command("?sens", type_="sonicmeasure")
-                    self._sonicamp.add_job(command, 0)
-                    command.processed.wait()
-                    command.processed.clear()
-
-                    self.hold(command, self.hold_off_time, self.hold_off_time_unit)
-
-                if self.shutdown_request.is_set():
-                    return
+            if not self.running.is_set() or self.shutdown_request.is_set():
+                return
 
     def hold(
         self,
@@ -912,12 +932,19 @@ class SonicMeasureRamp(SonicThread):
         duration /= 1000.0 if unit == "ms" else 1
         end_time = (command.timestamp if command else time.time()) + duration
 
-        while time.time() < end_time and not self.shutdown_request.is_set():
+        while (
+            time.time() < end_time
+            and not self.shutdown_request.is_set()
+            and self.running.is_set()
+        ):
             time.sleep(0.001)
             remaining_time: int = end_time - time.time()
             remaining_time = remaining_time if remaining_time < 10_000 else 0
 
             if time.time() > end_time and self.shutdown_request.is_set():
+                return
+            
+            if not self.running.is_set() or self.shutdown_request.is_set():
                 return
 
             # self.measure_frame.root.update_sonicamp(0, "sonicmeasure")
