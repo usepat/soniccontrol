@@ -63,25 +63,17 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 
         self.main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self.button_frame: ttk.Frame = ttk.Frame(self)
-        self.pause_resume_button: ttk.Button = ttk.Button(
+        self.start_stop_button: ttk.Button = ttk.Button(
             self.button_frame,
-            text="Pause",
-            style=ttk.DANGER,
-            image=self.stop_image,
+            text="Start",
+            style=ttk.SUCCESS,
+            image=self.start_image,
             compound=ttk.RIGHT,
-            command=self.pause_sonicmeasure,
-        )
-        self.restart_button: ttk.Button = ttk.Button(
-            self.button_frame,
-            text="Restart",
-            style="info",
-            image=self.restart_image,
-            compound=ttk.RIGHT,
-            command=self.restart_sonicmeasure,
+            command=self.start_sonicmeasure,
         )
         self.spectrum_button: ttk.Button = ttk.Button(
             self.button_frame,
-            text="Spectrum",
+            text="Open SonicMeasure Graph",
             style=ttk.DARK,
             command=self.open_spectrum_measure,
         )
@@ -197,7 +189,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
     def resume_sonicmeasure(self) -> None:
         # self._paused.clear()
         self.ani.resume()
-        self.pause_resume_button.configure(
+        self.start_stop_button.configure(
             text="Pause",
             image=self.stop_image,
             bootstyle=ttk.DANGER,
@@ -207,7 +199,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
     def pause_sonicmeasure(self) -> None:
         # self._paused.set()
         self.ani.pause()
-        self.pause_resume_button.configure(
+        self.start_stop_button.configure(
             text="Resume",
             image=self.start_image,
             bootstyle=ttk.SUCCESS,
@@ -223,8 +215,18 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.configuration_frame.pack(padx=15)
 
     def start_sonicmeasure(self) -> None:
+        self.start_stop_button.configure(
+            bootstyle=ttk.DANGER, text="Stop", image=self.stop_image ,command=self.stop_sonicmeasure
+        )
         self.sonicmeasure_engine()
         self.show_mainframe()
+
+    def stop_sonicmeasure(self) -> None:
+        self.start_stop_button.configure(
+            bootstyle=ttk.SUCCESS, text="Start", image=self.start_image, command=self.start_sonicmeasure
+        )
+        self.figure.clear(keep_observers=False)
+        self.ani = None
 
     def sonicmeasure_engine(self) -> None:
         self.figure.clear()
@@ -378,8 +380,8 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 
     def publish(self) -> None:
         self.button_frame.pack(fill=ttk.X, padx=3, pady=3)
-        self.pause_resume_button.pack(side=ttk.LEFT, padx=3, pady=3)
-        self.restart_button.pack(side=ttk.LEFT, padx=3, pady=3)
+        self.start_stop_button.pack(side=ttk.LEFT, padx=3, pady=3)
+        # self.restart_button.pack(side=ttk.LEFT, padx=3, pady=3)
         self.spectrum_button.pack(side=ttk.LEFT, padx=3, pady=3)
 
         self.main_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
@@ -726,9 +728,16 @@ class SonicMeasure(ttk.Toplevel):
         self._last_read_line += len(data)
 
         self.frequency_data += data["frequency"].tolist()
+        logger.debug(self.frequency_data)
+
         self.urms_data += data["urms"].tolist()
+        logger.debug(self.urms_data)
+
         self.irms_data += data["irms"].tolist()
+        logger.debug(self.irms_data)
+
         self.phase_data += data["phase"].tolist()
+        logger.debug(self.phase_data)
 
         self.line_urms.set_data(self.frequency_data, self.urms_data)
         self.line_irms.set_data(self.frequency_data, self.irms_data)
@@ -776,12 +785,18 @@ class SonicMeasure(ttk.Toplevel):
         self.ramp_thread.resume()
 
     def stop_sonicmeasure(self) -> None:
+        self.ramp_thread.shutdown()
+        self.ani.pause()
+        self.start_stop_button.configure(
+            bootstyle=ttk.SUCCESS,
+            text='Start',
+            image=self.start_image,
+            command=self.start_sonicmeasure
+        )
         self.pause_resume_button.configure(
             state=ttk.DISABLED,
             command=self.resume_sonicmeasure,
         )
-        self.ramp_thread.shutdown()
-        self.ani.pause()
 
     def show_mainframe(self) -> None:
         self.configuration_frame.pack_forget()
@@ -793,7 +808,7 @@ class SonicMeasure(ttk.Toplevel):
 
         self.button_frame.pack(fill=ttk.X, padx=3, pady=3)
         self.start_stop_button.pack(side=ttk.LEFT, padx=3, pady=3)
-        self.pause_resume_button.pack(side=ttk.LEFT, padx=3, pady=3)
+        # self.pause_resume_button.pack(side=ttk.LEFT, padx=3, pady=3)
 
         self.plot_frame.pack(padx=3, pady=3)
         self.figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
@@ -882,7 +897,6 @@ class SonicMeasureRamp(SonicThread):
         self._sonicamp.add_job(Command("!ON", type_="sonicmeasure"), 0)
 
     def worker(self) -> None:
-        
         for value in self.values:
             if not self.running.is_set() or self.shutdown_request.is_set():
                 return
@@ -943,7 +957,7 @@ class SonicMeasureRamp(SonicThread):
 
             if time.time() > end_time and self.shutdown_request.is_set():
                 return
-            
+
             if not self.running.is_set() or self.shutdown_request.is_set():
                 return
 

@@ -357,7 +357,6 @@ class Root(tk.Tk, Resizable, Updatable):
             self.sonicamp.add_job(
                 Command(message="?sens", type_="sonicmeasure"), priority
             )
-
             return
         self.sonicamp.add_job(Command(message="-", type_="status"), priority)
         if self.old_status and self.old_status.signal:
@@ -381,9 +380,17 @@ class Root(tk.Tk, Resizable, Updatable):
                             self.old_status
                         ).update_status(command.answer)
                 else:
-                    status: sp.Status = copy.deepcopy(self.old_status).from_sens(
-                        command.answer, fullscale_values=True
-                    )
+                    if self.old_status is None:
+                        status: sp.Status = sp.Status().from_sens(
+                            command.answer, factorised=True
+                        )
+                    else:
+                        status: sp.Status = copy.deepcopy(self.old_status).from_sens(
+                            command.answer, factorised=True
+                        )
+
+                if command.type_ == "sonicmeasure":
+                    self.react_on_sonicmeasure(status)
                 logger.debug(status)
                 self.serialize_data(status)
                 self.on_update(status)
@@ -396,9 +403,6 @@ class Root(tk.Tk, Resizable, Updatable):
                 for child in self.scriptables:
                     child.on_feedback(command.answer)
 
-            elif command.type_ == "sonicmeasure":
-                self.react_on_sonicmeasure(command)
-
             if command.callback is not None:
                 command.callback(command.answer)
 
@@ -409,41 +413,7 @@ class Root(tk.Tk, Resizable, Updatable):
             command.type_ if command is not None else "status",
         )
 
-    def react_on_sonicmeasure(self, command: Command) -> None:
-        if command.message != "?sens":
-            return
-
-        status = sp.Status()
-        if not "Error" in command.answer:
-            convert_sonicmeasure_field = lambda x: float(x) if "." in x else int(x)
-            freq, urms, irms, phase = map(
-                convert_sonicmeasure_field, command.answer.split(" ")
-            )
-
-            if all(isinstance(var, int) for var in (urms, irms, phase)):
-                # if urms < 2823000:
-                #     urms = 2823000
-                # urms = urms * 0.000400571 - 1.130669402 * 1000
-
-                # if irms < 3038000:
-                #     irms = 3038000
-                # irms = irms * 0.000015601 - 0.047380671 * 1000
-
-                # phase = phase * 0.125
-
-                urms /= 1000
-                irms /= 1000
-                phase /= 1_000_000
-
-            status = sp.Status(
-                frequency=freq,
-                gain=self.gain.get(),
-                signal=True,
-                urms=urms,
-                irms=irms,
-                phase=phase,
-            )
-
+    def react_on_sonicmeasure(self, status: sp.Status) -> None:
         with self.sonicmeasure_log.open(mode="a", newline="") as file:
             writer = csv.DictWriter(
                 file, fieldnames=self.fieldnames, extrasaction="ignore"

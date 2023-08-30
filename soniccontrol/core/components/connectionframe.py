@@ -243,7 +243,9 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
 
     def on_firmware_upload(self) -> None:
         self.change_heading(
-            title_part1="Uploading Firmware", title_part2="", subtitle="This might take a while. Make sure the device stays on and connected."
+            title_part1="Uploading Firmware",
+            title_part2="",
+            subtitle="This might take a while. Make sure the device stays on and connected.",
         )
 
     def on_validation_success(self) -> None:
