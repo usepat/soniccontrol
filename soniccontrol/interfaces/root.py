@@ -123,6 +123,7 @@ class Root(tk.Tk, Resizable, Updatable):
         self.sonicmeasure_log: pathlib.Path = pathlib.Path(
             self.sonicmeasure_log_var.get()
         )
+        self.sonicmeasure_running: threading.Event = threading.Event()
 
         self.sonicamp: Optional[SonicAmpAgent] = None
         self.priority_counter: int = 5
@@ -346,21 +347,29 @@ class Root(tk.Tk, Resizable, Updatable):
 
                 self.sonicamp.exceptions_queue.task_done()
 
-        self.status_engine_after_id = self.after(200, self.status_engine)
+        self.status_engine_after_id = self.after(300, self.status_engine)
         if self.sonicamp is None or not is_connection_ready():
             return
         self.check_output_queue()
         check_exceptions_queue()
 
     def update_sonicamp(self, priority: int = 5, mode: str = "status") -> None:
-        if mode == "sonicmeasure":
+        if self.sonicmeasure_running.is_set():
+            command = Command(message="?sens", type_="sonicmeasure")
             self.sonicamp.add_job(
                 Command(message="?sens", type_="sonicmeasure"), priority
             )
             return
-        self.sonicamp.add_job(Command(message="-", type_="status"), priority)
+            # command.processed.wait()
+
+        command = Command(message="-", type_="status")
+        self.sonicamp.add_job(command, priority)
+        # command.processed.wait()
+
         if self.old_status and self.old_status.signal:
-            self.sonicamp.add_job(Command(message="?sens", type_="status"), priority)
+            command = Command(message="?sens", type_="status")
+            self.sonicamp.add_job(command, priority)
+            # command.processed.wait()
 
     def check_output_queue(self) -> None:
         command: Optional[Command] = None
@@ -409,7 +418,7 @@ class Root(tk.Tk, Resizable, Updatable):
             self.sonicamp.output_queue.task_done()
 
         self.update_sonicamp(
-            0 if command and command.type_ in ("sonicmeasure", "script") else 5,
+            1 if command and command.type_ in ("sonicmeasure", "script") else 5,
             command.type_ if command is not None else "status",
         )
 

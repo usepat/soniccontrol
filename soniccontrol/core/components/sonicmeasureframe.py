@@ -37,6 +37,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         #     self._height_layouts: Iterable[Layout] = ()
         self.configure(width=200)
 
+        self.sonicmeasure: Optional[SonicMeasure] = None
         self._paused: threading.Event = threading.Event()
         self.last_read_line = 0
 
@@ -208,7 +209,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 
     def open_spectrum_measure(self) -> None:
         self.spectrum_button.configure(state=ttk.DISABLED)
-        sonicmeasure: SonicMeasure = SonicMeasure(self.root, self)
+        self.sonicmeasure = SonicMeasure(self.root, self)
 
     def restart_sonicmeasure(self) -> None:
         self.main_frame.pack_forget()
@@ -216,14 +217,20 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 
     def start_sonicmeasure(self) -> None:
         self.start_stop_button.configure(
-            bootstyle=ttk.DANGER, text="Stop", image=self.stop_image ,command=self.stop_sonicmeasure
+            bootstyle=ttk.DANGER,
+            text="Stop",
+            image=self.stop_image,
+            command=self.stop_sonicmeasure,
         )
         self.sonicmeasure_engine()
         self.show_mainframe()
 
     def stop_sonicmeasure(self) -> None:
         self.start_stop_button.configure(
-            bootstyle=ttk.SUCCESS, text="Start", image=self.start_image, command=self.start_sonicmeasure
+            bootstyle=ttk.SUCCESS,
+            text="Start",
+            image=self.start_image,
+            command=self.start_sonicmeasure,
         )
         self.figure.clear(keep_observers=False)
         self.ani = None
@@ -489,7 +496,6 @@ class SonicMeasure(ttk.Toplevel):
             command=self.start_sonicmeasure_process,
         )
 
-        self.ramp_program_frame: ttk.Frame = ttk.Frame(self.configuration_frame)
         self.ramp_program_frame: HorizontalScrolledFrame = HorizontalScrolledFrame(
             self.configuration_frame, autohide=True, height=80
         )
@@ -587,6 +593,32 @@ class SonicMeasure(ttk.Toplevel):
             values=self.time_units,
         )
 
+        self.static_values_frame: ttk.Labelframe = ttk.Labelframe(
+            self.configuration_frame,
+            text="Set up values, that are set before the ramp algorithm",
+        )
+        self.gain_frame: ttk.Labelframe = ttk.Labelframe(
+            self.static_values_frame, text="Gain"
+        )
+        self.gain_entry: ttk.Spinbox = ttk.Spinbox(
+            self.gain_frame,
+            width=8,
+            textvariable=self.root._gain,
+            from_=0,
+            to=150,
+        )
+
+        self.freq_frame: ttk.Labelframe = ttk.Labelframe(
+            self.static_values_frame, text="Frequency"
+        )
+        self.freq_entry: ttk.Spinbox = ttk.Spinbox(
+            self.freq_frame,
+            width=8,
+            textvariable=self.root._freq,
+            from_=0,
+            to=10_000_000,
+        )
+
         self.logfile_specifier_frame: ttk.Labelframe = ttk.Labelframe(
             self.configuration_frame, text="Specify the filepath for the data storage"
         )
@@ -645,7 +677,7 @@ class SonicMeasure(ttk.Toplevel):
         self.main_frame.pack_forget()
         self.configuration_frame.pack(padx=15)
         self.root.sonicmeasure_log_var.set(
-            f"logs//sonicmeasure_{datetime.datetime.now()}"
+            f"logs//sonicmeasure_{str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')}"
         )
 
     def start_sonicmeasure_process(self) -> None:
@@ -728,16 +760,9 @@ class SonicMeasure(ttk.Toplevel):
         self._last_read_line += len(data)
 
         self.frequency_data += data["frequency"].tolist()
-        logger.debug(self.frequency_data)
-
         self.urms_data += data["urms"].tolist()
-        logger.debug(self.urms_data)
-
         self.irms_data += data["irms"].tolist()
-        logger.debug(self.irms_data)
-
         self.phase_data += data["phase"].tolist()
-        logger.debug(self.phase_data)
 
         self.line_urms.set_data(self.frequency_data, self.urms_data)
         self.line_irms.set_data(self.frequency_data, self.irms_data)
@@ -769,6 +794,13 @@ class SonicMeasure(ttk.Toplevel):
             )
             writer.writeheader()
 
+        try:
+            self.root.sonicamp.add_job(Command(f"!f={self.root._freq.get()}"), 0)
+            self.root.sonicamp.add_job(Command(f"!g={self.root._gain.get()}"), 0)
+        except Exception as e:
+            logger.warning(e)
+
+        self.root.sonicmeasure_running.set()
         self.ramp_thread = SonicMeasureRamp(
             self,
             self.start_var.get(),
@@ -778,20 +810,24 @@ class SonicMeasure(ttk.Toplevel):
             self.hold_on_time_unit_var.get(),
             self.hold_off_time_var.get(),
             self.hold_off_time_unit_var.get(),
+            type_="frequency" if self.ramp_mode.get() == "ramp_freq" else "gain",
+            event=self.root.sonicmeasure_running,
         )
         self.ramp_thread.daemon = True
-        self.ramp_thread.running.set()
         self.ramp_thread.start()
         self.ramp_thread.resume()
 
     def stop_sonicmeasure(self) -> None:
-        self.ramp_thread.shutdown()
+        self.root.sonicmeasure_running.clear()
+        if self.ramp_thread is not None:
+            self.ramp_thread.shutdown()
+        self.root.sonicamp.add_job(Command("-", type_="status"), 0)
         self.ani.pause()
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
-            text='Start',
+            text="Start",
             image=self.start_image,
-            command=self.start_sonicmeasure
+            command=self.start_sonicmeasure,
         )
         self.pause_resume_button.configure(
             state=ttk.DISABLED,
@@ -817,8 +853,13 @@ class SonicMeasure(ttk.Toplevel):
         self.back_button.pack(pady=5, side=ttk.LEFT)
         self.submit_button.pack(pady=5, side=ttk.RIGHT)
 
-        self.ramp_program_frame.pack(padx=3, pady=3, fill=ttk.X, expand=True)
+        self.static_values_frame.pack(padx=3, pady=3, fill=ttk.X, expand=True)
+        self.gain_frame.pack(side=ttk.LEFT, expand=True, padx=3, pady=3)
+        self.gain_entry.pack(fill=ttk.BOTH, padx=2, pady=2)
+        self.freq_frame.pack(side=ttk.LEFT, expand=True, padx=3, pady=3)
+        self.freq_entry.pack(fill=ttk.BOTH, padx=2, pady=2)
 
+        self.ramp_program_frame.pack(padx=3, pady=3, fill=ttk.X, expand=True)
         self.ramp_mode_frame.pack(
             side=ttk.LEFT, fill=ttk.X, expand=True, padx=3, pady=3
         )
@@ -857,7 +898,7 @@ class SonicMeasure(ttk.Toplevel):
         self.logfile_entry.pack(side=ttk.LEFT, fill=ttk.X, padx=5, pady=5, expand=True)
         self.browse_files_button.pack(side=ttk.RIGHT, fill=ttk.X, padx=5, pady=5)
 
-        self.comment_frame.pack(pady=5)
+        # self.comment_frame.pack(pady=5)
         self.comment_entry.pack(padx=5, pady=5)
 
 
@@ -873,12 +914,13 @@ class SonicMeasureRamp(SonicThread):
         hold_off_time: float = 0,
         hold_off_time_unit: Literal["ms", "s"] = "ms",
         type_: Literal["gain", "frequency"] = "frequency",
+        event: threading.Event = threading.Event(),
     ) -> None:
         super().__init__()
         self.measure_frame = parent
         self._sonicamp = self.measure_frame.root.sonicamp
 
-        self.running: threading.Event = threading.Event()
+        self.running: threading.Event = event
         self.to_send: str = "!f=" if type_ == "frequency" else "!g="
 
         self.start_value: int = start
@@ -891,74 +933,83 @@ class SonicMeasureRamp(SonicThread):
         self.hold_on_time: float = hold_on_time
         self.hold_on_time_unit: Literal["ms", "s"] = hold_on_time_unit
         self.hold_off_time: float = hold_off_time
-        self.hold_off_time_unit: Literal["ms", "s"] = (hold_off_time_unit,)
+        self.hold_off_time_unit: Literal["ms", "s"] = hold_off_time_unit
 
     def setup(self) -> None:
         self._sonicamp.add_job(Command("!ON", type_="sonicmeasure"), 0)
 
+    def can_run(self) -> bool:
+        return self.running.is_set() and not self.shutdown_request.is_set()
+
     def worker(self) -> None:
         for value in self.values:
-            if not self.running.is_set() or self.shutdown_request.is_set():
+            if not self.can_run():
                 return
 
             command = Command(f"{self.to_send}{value}", type_="")
             self._sonicamp.add_job(command, 0)
             command.processed.wait()
-            command.processed.clear()
+
+            if not self.can_run():
+                return
 
             if self.hold_off_time:
                 command = Command(f"!ON", type_="")
                 self._sonicamp.add_job(command, 0)
                 command.processed.wait()
-                command.processed.clear()
+
+            if not self.can_run():
+                return
 
             command = Command("?sens", type_="sonicmeasure")
             self._sonicamp.add_job(command, 0)
             command.processed.wait()
-            command.processed.clear()
+
+            if not self.can_run():
+                return
 
             self.hold(command, self.hold_on_time, self.hold_on_time_unit)
+
+            if not self.can_run():
+                return
 
             if self.hold_off_time:
                 command = Command(f"!OFF", type_="")
                 self._sonicamp.add_job(Command(f"!OFF", type_=""), 0)
                 command.processed.wait()
-                command.processed.clear()
+
+                if not self.can_run():
+                    return
 
                 command = Command("?sens", type_="sonicmeasure")
                 self._sonicamp.add_job(command, 0)
                 command.processed.wait()
-                command.processed.clear()
+
+                if not self.can_run():
+                    return
 
                 self.hold(command, self.hold_off_time, self.hold_off_time_unit)
 
-            if not self.running.is_set() or self.shutdown_request.is_set():
+            if not self.can_run():
                 return
 
     def hold(
         self,
         command: Optional[Command] = None,
-        duration: int = 10,
+        duration: float = 10.0,
         unit: str = "ms",
         *args,
         **kwargs,
     ) -> None:
-        duration /= 1000.0 if unit == "ms" else 1
+        duration /= 1000.0 if unit == "ms" else 1.0
         end_time = (command.timestamp if command else time.time()) + duration
 
-        while (
-            time.time() < end_time
-            and not self.shutdown_request.is_set()
-            and self.running.is_set()
-        ):
+        while time.time() < end_time and self.can_run():
             time.sleep(0.001)
-            remaining_time: int = end_time - time.time()
+            remaining_time: float = end_time - time.time()
             remaining_time = remaining_time if remaining_time < 10_000 else 0
 
-            if time.time() > end_time and self.shutdown_request.is_set():
-                return
-
-            if not self.running.is_set() or self.shutdown_request.is_set():
+            if time.time() > end_time or not self.can_run():
                 return
 
             # self.measure_frame.root.update_sonicamp(0, "sonicmeasure")
@@ -966,3 +1017,6 @@ class SonicMeasureRamp(SonicThread):
             self._sonicamp.add_job(command, 0)
             command.processed.wait()
             command.processed.clear()
+
+            if time.time() > end_time or not self.can_run():
+                return

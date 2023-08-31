@@ -76,7 +76,7 @@ class Command:
     type_: str = field(default="")
     callback: Optional[Callable[[Any], Any]] = field(default=None)
     timestamp: float = field(default_factory=time.time)
-    processed: threading.Event = threading.Event()
+    processed: threading.Event = field(default_factory=threading.Event)
     big_answer: bool = field(default=False)
 
     def __lt__(self, other):
