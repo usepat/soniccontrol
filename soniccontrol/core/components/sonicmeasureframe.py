@@ -686,7 +686,7 @@ class SonicMeasure(ttk.Toplevel):
         self.main_frame.pack_forget()
         self.configuration_frame.pack(padx=15, fill=ttk.BOTH, expand=True)
         self.root.sonicmeasure_log_var.set(
-            f"logs//sonicmeasure_{str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')}"
+            f"logs//sonicmeasure_{str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')}.csv"
         )
 
     def start_sonicmeasure_process(self) -> None:
@@ -837,8 +837,18 @@ class SonicMeasure(ttk.Toplevel):
         self.root.sonicmeasure_running.clear()
         if self.ramp_thread is not None:
             self.ramp_thread.shutdown()
-        self.root.sonicamp.add_job(Command("-", type_="status"), 0)
+
+        self._last_read_line = 1
+        self.frequency_data.clear()
+        self.urms_data.clear()
+        self.irms_data.clear()
+        self.phase_data.clear()
+
         self.ani.pause()
+        self.ani.event_source.stop()
+        del self.ani
+
+        self.root.sonicamp.add_job(Command("-", type_="status"), 0)
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
             text="Start",

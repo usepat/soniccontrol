@@ -355,6 +355,7 @@ class Root(tk.Tk, Resizable, Updatable):
 
     def update_sonicamp(self, priority: int = 5, mode: str = "status") -> None:
         if self.sonicmeasure_running.is_set():
+            logger.debug("SonicMeasure update!")
             command = Command(message="?sens", type_="sonicmeasure")
             self.sonicamp.add_job(
                 Command(message="?sens", type_="sonicmeasure"), priority
@@ -423,6 +424,8 @@ class Root(tk.Tk, Resizable, Updatable):
         )
 
     def react_on_sonicmeasure(self, status: sp.Status) -> None:
+        if not self.sonicmeasure_running.is_set():
+            return
         with self.sonicmeasure_log.open(mode="a", newline="") as file:
             writer = csv.DictWriter(
                 file, fieldnames=self.fieldnames, extrasaction="ignore"
