@@ -237,6 +237,13 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
 
     def sonicmeasure_engine(self) -> None:
         self.figure.clear()
+        self.figure_canvas.get_tk_widget().destroy()
+        # del self.figure_canvas
+        self.figure_canvas = FigureCanvasTkAgg(
+            self.figure, master=self.plot_frame
+        )  # Adjust master if needed
+        self.figure_canvas.draw()
+        self.figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
 
         self.ax1_frequency = self.figure.add_subplot(1, 1, 1)  # Main axis for frequency
         self.ax1_frequency.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
@@ -483,6 +490,7 @@ class SonicMeasure(ttk.Toplevel):
             self.navigation_bar,
             text="Back",
             style=ttk.DARK,
+            state=ttk.DISABLED,
             image=self.back_image,
             compound=ttk.LEFT,
             command=self.show_mainframe,
@@ -638,6 +646,7 @@ class SonicMeasure(ttk.Toplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.publish()
+        self.start_sonicmeasure()
 
     def open_log_file(self, event=None) -> None:
         self.log_file_path_var.set(
@@ -675,12 +684,13 @@ class SonicMeasure(ttk.Toplevel):
 
     def start_sonicmeasure(self) -> None:
         self.main_frame.pack_forget()
-        self.configuration_frame.pack(padx=15)
+        self.configuration_frame.pack(padx=15, fill=ttk.BOTH, expand=True)
         self.root.sonicmeasure_log_var.set(
             f"logs//sonicmeasure_{str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')}"
         )
 
     def start_sonicmeasure_process(self) -> None:
+        self.back_button.configure(state=ttk.NORMAL)
         self.start_stop_button.configure(
             text="Stop",
             bootstyle=ttk.DANGER,
@@ -705,6 +715,12 @@ class SonicMeasure(ttk.Toplevel):
 
     def graph_engine(self) -> None:
         self.figure.clear()
+        self.figure_canvas.get_tk_widget().destroy()
+        self.figure_canvas = FigureCanvasTkAgg(
+            self.figure, master=self.plot_frame
+        )  # Adjust master if needed
+        self.figure_canvas.draw()
+        self.figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
 
         self.ax_urms = self.figure.add_subplot(111)
         self.figure.subplots_adjust(right=0.8)

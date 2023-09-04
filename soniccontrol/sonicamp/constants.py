@@ -1,4 +1,3 @@
-class Priority:
-    TOP: int = 0
-    MEDIUM: int = 1
-    LOW: int = 3
+import platform
+
+ENCODING: str = "windows-1252" if platform.system() == "Windows" else "utf-8"
