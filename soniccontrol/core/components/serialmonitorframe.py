@@ -1,24 +1,24 @@
-import logging
-from typing import Iterable, List, Union
+from typing import Optional, List, Union
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
-import PIL
-from soniccontrol.interfaces import RootChild, Layout, Connectable, Feedbackable
-from soniccontrol.interfaces.rootchild import RootChildFrame
-from soniccontrol.sonicamp import Command
-
-logger = logging.getLogger(__name__)
+from async_tkinter_loop import async_handler
+from PIL.ImageTk import PhotoImage
+from soniccontrol.core.interfaces import RootChild, Connectable, Root
+from soniccontrol.sonicpackage.sonicamp import Command
 
 
-class SerialMonitorFrame(RootChildFrame, Connectable):
+class SerialMonitorFrame(RootChild, Connectable):
     def __init__(
-        self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
-    ):
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-        # self._width_layouts: Iterable[Layout] = ()
-        # self._height_layouts: Iterable[Layout] = ()
+        self,
+        master: Root,
+        tab_title: str = "Serial Monitor",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(master, tab_title, image=image, *args, **kwargs)
 
-        self.is_read_running: ttk.BooleanVar = ttk.BooleanVar(value=False)
+        self.autoread: ttk.BooleanVar = ttk.BooleanVar(value=False)
         self.command_history: List[str] = list()
         self.index_history: int = -1
 
@@ -37,7 +37,7 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
         self.read_button: ttk.Checkbutton = ttk.Checkbutton(
             self.input_frame,
             text="Autoread",
-            variable=self.is_read_running,
+            variable=self.autoread,
             style="dark-square-toggle",
             command=self.read_engine,
         )
@@ -56,17 +56,11 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
 
         self.publish()
 
-    def read_engine(self) -> None:
-        if not self.is_read_running.get():
+    @async_handler
+    async def read_engine(self) -> None:
+        if not self.autoread.get():
             return
-        self.root.sonicamp.add_job(
-            Command(
-                message="",
-                type_="serialmonitor",
-                callback=self.insert_text,
-            ),
-            1,
-        )
+        self.insert_text(await self.root.sonicamp.send_command(""))
         self.after(1000, self.read_engine)
 
     def publish(self) -> None:
@@ -85,21 +79,15 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
 
         self.mainframe.pack(fill=ttk.BOTH, expand=True, padx=5, pady=5)
 
-    def send_command(self, event) -> None:
+    @async_handler
+    async def send_command(self, event) -> None:
         command: str = self.command_field.get()
         self.command_history.insert(0, command)
 
         self.insert_text(f">>> {command}")
 
         if not self.is_internal_command(command=command):
-            self.root.sonicamp.add_job(
-                Command(
-                    message=command,
-                    type_="serialmonitor",
-                    callback=self.insert_text,
-                ),
-                0,
-            )
+            self.insert_text(await self.root.sonicamp.send_command(command))
 
         self.command_field.delete(0, ttk.END)
 
@@ -143,6 +131,3 @@ class SerialMonitorFrame(RootChildFrame, Connectable):
 
     def on_connect(self, event=None) -> None:
         return self.publish()
-
-    def on_update(self, event=None) -> None:
-        pass

@@ -1,11 +1,9 @@
-import logging
-from typing import Iterable
+from typing import Iterable, Optional
 import ttkbootstrap as ttk
-import PIL
-from soniccontrol.interfaces import RootChild, Layout, WidthLayout
+from ttkbootstrap.scrolled import ScrolledFrame
+from PIL.ImageTk import PhotoImage
+from soniccontrol.core.interfaces import RootChild, WidthLayout, Root
 from soniccontrol import __version__
-
-logger = logging.getLogger(__name__)
 
 
 class InfoFrame(RootChild):
@@ -28,23 +26,25 @@ class InfoFrame(RootChild):
     )
 
     def __init__(
-        self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
-    ):
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-        self._width_layouts: Iterable[Layout] = (
-            WidthLayout(
-                min_width=450,
-                command=self.set_large_info,
-            ),
-            WidthLayout(
-                min_width=400,
-                command=self.set_small_info,
-            ),
-            WidthLayout(min_width=300, command=self.set_large_width_heading),
-            WidthLayout(min_width=100, command=self.set_small_width_heading),
+        self,
+        master: Root,
+        tab_title: str = "About",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(master, tab_title, image=image, *args, **kwargs)
+        self.set_layouts(
+            [
+                WidthLayout(min_size=450, command=self.set_large_info),
+                WidthLayout(min_size=400, command=self.set_small_info),
+                WidthLayout(min_size=300, command=self.set_large_width_heading),
+                WidthLayout(min_size=100, command=self.set_small_width_heading),
+            ]
         )
-        #     self._height_layouts: Iterable[Layout] = ()
-        self.heading_frame: ttk.Frame = ttk.Frame(self)
+
+        self.main_frame: ScrolledFrame = ScrolledFrame(self)
+        self.heading_frame: ttk.Frame = ttk.Frame(self.main_frame)
 
         self.soniccontrol_logo1: ttk.Label = ttk.Label(
             self.heading_frame,
@@ -62,13 +62,13 @@ class InfoFrame(RootChild):
             borderwidth=-2,
         )
 
-        self.info_label: ttk.Label = ttk.Label(self, text=InfoFrame.INFOTEXT)
-        self.controlframe: ttk.Frame = ttk.Frame(self)
+        self.info_label: ttk.Label = ttk.Label(self.main_frame, text=InfoFrame.INFOTEXT)
+        self.controlframe: ttk.Frame = ttk.Frame(self.main_frame)
         self.manual_btn: ttk.Button = ttk.Button(
             self.controlframe, text="Help Manual", command=self.open_manual
         )
         self.version_label: ttk.Label = ttk.Label(
-            self,
+            self.main_frame,
             text=f"Version: {__version__}",
         )
         self.bind_events()
@@ -87,7 +87,6 @@ class InfoFrame(RootChild):
         self.soniccontrol_logo2.grid(row=1, column=1, columnspan=1, sticky=ttk.W)
 
     def set_small_info(self, *args, **kwargs) -> None:
-        logger.debug("setting small info text")
         self.info_label["text"] = InfoFrame.INFOTEXT_SMALL
 
     def set_large_info(self, *args, **kwargs) -> None:
@@ -98,10 +97,11 @@ class InfoFrame(RootChild):
         pass
 
     def publish(self) -> None:
+        self.main_frame.pack(expand=True, fill=ttk.BOTH)
         self.soniccontrol_logo1.grid(row=0, column=0)
         self.soniccontrol_logo2.grid(row=0, column=1)
-        self.heading_frame.pack(padx=20, pady=20)
-        self.info_label.pack()
-        self.controlframe.pack()
+        self.heading_frame.pack(padx=20, pady=20, expand=True)
+        self.info_label.pack(expand=True)
+        self.controlframe.pack(expand=True)
         self.manual_btn.pack()
         self.version_label.pack(anchor=ttk.S, side=ttk.BOTTOM, padx=10, pady=10)

@@ -1,23 +1,15 @@
-import logging
-from typing import Iterable, List, Dict, Any, Optional
-import ttkbootstrap as ttk
+from typing import Optional, Dict, Any
 from tkinter import filedialog
-from ttkbootstrap.dialogs import Messagebox
-import PIL
-from PIL.ImageTk import PhotoImage
-from dataclasses import dataclass, field, asdict
-from soniccontrol.interfaces import RootChild, Layout, Connectable
-from soniccontrol.sonicamp import Command
-from soniccontrol.interfaces.tkinter_vars import RootStringVar
-
-import platform
-import subprocess
-import sys
-import json
-import time
-import threading
 import pathlib
-
+import logging
+import json
+import attrs
+import ttkbootstrap as ttk
+from ttkbootstrap.scrolled import ScrolledFrame
+from ttkbootstrap.dialogs import Messagebox
+from async_tkinter_loop import async_handler
+from PIL.ImageTk import PhotoImage
+from soniccontrol.core.interfaces import RootChild, Connectable, Root
 import soniccontrol.constants as const
 
 logger = logging.getLogger(__name__)
@@ -25,33 +17,26 @@ logger = logging.getLogger(__name__)
 
 class SettingsFrame(RootChild, Connectable):
     def __init__(
-        self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
-    ):
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-
-        self.restart_image: PhotoImage = const.Images.get_image(
-            const.Images.REFRESH_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-
-        self.validation_ended: threading.Event = threading.Event()
-        self.validation_result: threading.Event = threading.Event()
-
-        self.file_entry_textvar: RootStringVar = RootStringVar(
-            value="Specify and validate Firmwarefile", master=self
-        )
-        self.config_json_file: pathlib.Path = pathlib.Path("config.json")
+        self,
+        master: Root,
+        tab_title: str = "Settings",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(master, tab_title, image=image, *args, **kwargs)
 
         self.navigation_bar: ttk.Frame = ttk.Frame(self)
         self.load_config_button: ttk.Button = ttk.Button(
             self.navigation_bar,
             text="Refresh config.json",
             bootstyle=ttk.INFO,
-            image=self.restart_image,
+            image=self.root.restart_image,
             compound=ttk.LEFT,
             command=self.load_config_json,
         )
 
-        self.mainframe: ttk.Frame = ttk.Frame(self)
+        self.mainframe: ScrolledFrame = ScrolledFrame(self)
 
         self.flash_frame_container: ttk.Frame = ttk.Frame(self.mainframe)
         self.flash_frame: ttk.Labelframe = ttk.Labelframe(
@@ -59,7 +44,7 @@ class SettingsFrame(RootChild, Connectable):
         )
         self.file_entry = ttk.Button(
             self.flash_frame,
-            textvariable=self.file_entry_textvar,
+            textvariable=self.root.firmware_flash_file_var,
             style=ttk.DARK,
             command=self.get_flash_file,
         )
@@ -98,7 +83,7 @@ class SettingsFrame(RootChild, Connectable):
             from_=0,
             to=20_000_000,
             increment=1000,
-            textvariable=self.root._atf1,
+            textvariable=self.root.atf1,
         )
 
         self.atk1_frame: ttk.Frame = ttk.Frame(self.at1_frame)
@@ -110,7 +95,7 @@ class SettingsFrame(RootChild, Connectable):
             from_=(-20_000_000),
             to=20_000_000,
             increment=100,
-            textvariable=self.root._atk1,
+            textvariable=self.root.atk1,
         )
 
         self.at2_frame: ttk.Frame = ttk.Frame(self.atf_configuration_frame)
@@ -121,7 +106,7 @@ class SettingsFrame(RootChild, Connectable):
             from_=0,
             to=20_000_000,
             increment=1000,
-            textvariable=self.root._atf2,
+            textvariable=self.root.atf2,
         )
 
         self.atk2_frame: ttk.Frame = ttk.Frame(self.at2_frame)
@@ -133,7 +118,7 @@ class SettingsFrame(RootChild, Connectable):
             from_=(-20_000_000),
             to=20_000_000,
             increment=100,
-            textvariable=self.root._atk2,
+            textvariable=self.root.atk2,
         )
 
         self.at3_frame: ttk.Frame = ttk.Frame(self.atf_configuration_frame)
@@ -144,7 +129,7 @@ class SettingsFrame(RootChild, Connectable):
             from_=0,
             to=20_000_000,
             increment=1000,
-            textvariable=self.root._atf3,
+            textvariable=self.root.atf3,
         )
 
         self.atk3_frame: ttk.Frame = ttk.Frame(self.at3_frame)
@@ -156,7 +141,7 @@ class SettingsFrame(RootChild, Connectable):
             from_=(-20_000_000),
             to=20_000_000,
             increment=100,
-            textvariable=self.root._atk3,
+            textvariable=self.root.atk3,
         )
 
         self.att1_frame: ttk.Frame = ttk.Frame(self.atf_configuration_frame)
@@ -168,7 +153,7 @@ class SettingsFrame(RootChild, Connectable):
             from_=(-273.15),
             to=2_000,
             increment=10,
-            textvariable=self.root._att1,
+            textvariable=self.root.att1,
         )
 
         self.atf_config_action_frame: ttk.Frame = ttk.Frame(
@@ -197,7 +182,7 @@ class SettingsFrame(RootChild, Connectable):
         self.navigation_bar.pack(fill=ttk.X)
         self.load_config_button.pack(side=ttk.LEFT, padx=5, pady=5)
 
-        self.mainframe.pack()
+        self.mainframe.pack(expand=True, fill=ttk.BOTH)
 
         self.flash_frame_container.pack(fill=ttk.X)
         # self.flash_frame.pack(padx=5, pady=10, fill=ttk.X)
@@ -242,25 +227,34 @@ class SettingsFrame(RootChild, Connectable):
         self.request_current_config_button.pack(side=ttk.LEFT, padx=5, pady=5)
         self.submit_button.pack(side=ttk.LEFT, padx=5, pady=5)
 
-    def submit_atf_configuration(self) -> None:
+    @async_handler
+    async def submit_atf_configuration(self) -> None:
         self.save_atf_config()
+        await self.root.sonicamp.set_atf(1, self.root.atf1.get())
+        await self.root.sonicamp.set_atk(1, self.root.atk1.get())
+        await self.root.sonicamp.set_atf(2, self.root.atf2.get())
+        await self.root.sonicamp.set_atk(2, self.root.atk2.get())
+        await self.root.sonicamp.set_atf(3, self.root.atf3.get())
+        await self.root.sonicamp.set_atk(3, self.root.atk3.get())
+        await self.root.sonicamp.set_att1(3, self.root.atk1.get())
+        logger.debug(self.root.sonicamp.status)
 
-        self.root.sonicamp.add_job(Command(message=f"!atf1={self.root._atf1.get()}"), 0)
-        self.root.sonicamp.add_job(Command(message=f"!atk1={self.root._atk1.get()}"), 0)
+    @async_handler
+    async def request_current_config(self) -> None:
+        await self.root.sonicamp.get_atf(1)
+        self.root.atf1.set(self.root.sonicamp.status.atf1)
+        self.root.atk1.set(self.root.sonicamp.status.atk1)
 
-        self.root.sonicamp.add_job(Command(message=f"!atf2={self.root._atf2.get()}"), 0)
-        self.root.sonicamp.add_job(Command(message=f"!atk2={self.root._atk2.get()}"), 0)
+        await self.root.sonicamp.get_atf(2)
+        self.root.atf2.set(self.root.sonicamp.status.atf2)
+        self.root.atk2.set(self.root.sonicamp.status.atk2)
 
-        self.root.sonicamp.add_job(Command(message=f"!atf3={self.root._atf3.get()}"), 0)
-        self.root.sonicamp.add_job(Command(message=f"!atk3={self.root._atk3.get()}"), 0)
+        await self.root.sonicamp.get_atf(3)
+        self.root.atf3.set(self.root.sonicamp.status.atf3)
+        self.root.atk3.set(self.root.sonicamp.status.atk3)
 
-        self.root.sonicamp.add_job(Command(message=f"!att1={self.root._att1.get()}"), 0)
-
-    def request_current_config(self) -> None:
-        self.root.sonicamp.add_job(Command(message=f"?atf1"), 0)
-        self.root.sonicamp.add_job(Command(message=f"?atf2"), 0)
-        self.root.sonicamp.add_job(Command(message=f"?atf3"), 0)
-        self.root.sonicamp.add_job(Command(message=f"?att1"), 0)
+        await self.root.sonicamp.get_att1()
+        self.root.att1.set(self.root.sonicamp.status.att1)
 
     def upload_file(self) -> None:
         answer: str = Messagebox.okcancel(
@@ -286,30 +280,26 @@ class SettingsFrame(RootChild, Connectable):
             Messagebox.show_error("File does not exist", "Invalid File")
             return
 
-        logger.debug("Validation succeeded!")
         self.file_entry.configure(bootstyle=ttk.SUCCESS)
         self.file_entry_textvar.set("File specified and validated")
         self.upload_button.configure(state=ttk.NORMAL)
 
     def load_config_json(self) -> None:
-        if not self.config_json_file.exists():
+        if not const.CONFIG_JSON.exists():
             self.create_template()
-        with open(self.config_json_file, "r") as file:
+        with open(const.CONFIG_JSON, "r") as file:
             file_content: str = file.read()
-            logger.debug(f"File content: {file_content}")
             if len(file_content) == 0:
                 self.create_template()
 
-        with open(self.config_json_file, "r") as file:
+        with open(const.CONFIG_JSON, "r") as file:
             config_dict: Dict[str, Any] = json.load(file)
-            logger.debug(f"Dictionary: {config_dict}")
             if not config_dict:
                 self.create_template()
 
-        with open(self.config_json_file, "r") as file:
+        with open(const.CONFIG_JSON, "r") as file:
             config_dict: Dict[str, Any] = json.load(file)
             self.sc_configuration = SonicControlConfig(**config_dict)
-            logger.debug(f"Dataclass: {self.sc_configuration}")
 
             if self.sc_configuration.hexflash:
                 self.flash_frame.pack(padx=5, pady=10, fill=ttk.X)
@@ -331,37 +321,31 @@ class SettingsFrame(RootChild, Connectable):
         )
         if action_answer == "cancel":
             return
-        self.config_json_file: pathlib.Path = pathlib.Path("config.json")
+        const.CONFIG_JSON: pathlib.Path = pathlib.Path("config.json")
         self.sc_configuration = SonicControlConfig()
-        with open(self.config_json_file, "w+") as file:
-            logger.debug(asdict(self.sc_configuration))
-            file.write(json.dumps(asdict(self.sc_configuration), indent=4))
+        with open(const.CONFIG_JSON, "w+") as file:
+            file.write(json.dumps(attrs.asdict(self.sc_configuration), indent=4))
             return file.read()
 
     def load_atf_config(self) -> None:
         if self.sc_configuration is None:
             self.load_config_json()
 
-        logger.debug(f"Loading {self.root.atf_configuration_name.get()}")
         transducer_config: TransducerConfig = (
             self.sc_configuration.transducer_configs.get(
                 self.root.atf_configuration_name.get(), "Template Config"
             )
         )
-        logger.debug(f"Transducer config: {transducer_config}")
-        self.root._atf1.set(transducer_config.atf1)
-        self.root._atk1.set(transducer_config.atk1)
-
-        self.root._atf2.set(transducer_config.atf2)
-        self.root._atk2.set(transducer_config.atk2)
-
-        self.root._atf3.set(transducer_config.atf3)
-        self.root._atk3.set(transducer_config.atk3)
-
-        self.root._att1.set(transducer_config.att1)
+        self.root.atf1.set(transducer_config.atf1)
+        self.root.atk1.set(transducer_config.atk1)
+        self.root.atf2.set(transducer_config.atf2)
+        self.root.atk2.set(transducer_config.atk2)
+        self.root.atf3.set(transducer_config.atf3)
+        self.root.atk3.set(transducer_config.atk3)
+        self.root.att1.set(transducer_config.att1)
 
     def save_atf_config(self) -> None:
-        with open(self.config_json_file, "w") as file:
+        with open(const.CONFIG_JSON, "w") as file:
             name: str = self.root.atf_configuration_name.get()
 
             if self.sc_configuration.transducer_configs.get(name) is not None:
@@ -374,37 +358,37 @@ class SettingsFrame(RootChild, Connectable):
 
             transducer_config: TransducerConfig = TransducerConfig(
                 name=name,
-                atf1=self.root._atf1.get(),
-                atk1=self.root._atk1.get(),
-                atf2=self.root._atf2.get(),
-                atk2=self.root._atk2.get(),
-                atf3=self.root._atf3.get(),
-                atk3=self.root._atk3.get(),
-                att1=self.root._att1.get(),
+                atf1=self.root.atf1.get(),
+                atk1=self.root.atk1.get(),
+                atf2=self.root.atf2.get(),
+                atk2=self.root.atk2.get(),
+                atf3=self.root.atf3.get(),
+                atk3=self.root.atk3.get(),
+                att1=self.root.att1.get(),
             )
             self.sc_configuration.transducer_configs[name] = transducer_config
-            file.write(json.dumps(asdict(self.sc_configuration)))
+            file.write(json.dumps(attrs.asdict(self.sc_configuration), indent=4))
 
 
-@dataclass
+@attrs.define
 class TransducerConfig:
-    name: str = field(default="Template Config")
-    atf1: int = field(default=0)
-    atk1: float = field(default=0.0)
-    atf2: int = field(default=0)
-    atk2: float = field(default=0.0)
-    atf3: int = field(default=0)
-    atk3: float = field(default=0.0)
-    att1: float = field(default=0.0)
+    name: str = attrs.field(default="Template Config")
+    atf1: int = attrs.field(default=0)
+    atk1: float = attrs.field(default=0.0)
+    atf2: int = attrs.field(default=0)
+    atk2: float = attrs.field(default=0.0)
+    atf3: int = attrs.field(default=0)
+    atk3: float = attrs.field(default=0.0)
+    att1: float = attrs.field(default=0.0)
 
 
-@dataclass
+@attrs.define
 class SonicControlConfig:
-    hexflash: bool = field(default=False)
-    devmode: bool = field(default=False)
-    transducer_configs: Dict[str, TransducerConfig] = field(default_factory=dict)
+    hexflash: bool = attrs.field(default=False)
+    devmode: bool = attrs.field(default=False)
+    transducer_configs: Dict[str, TransducerConfig] = attrs.field(factory=dict)
 
-    def __post_init__(self) -> None:
+    def __attrs_post_init__(self) -> None:
         if not self.transducer_configs:
             transducer: TransducerConfig = TransducerConfig()
             self.transducer_configs[transducer.name] = transducer

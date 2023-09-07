@@ -1,74 +1,88 @@
-import logging
+from typing import Optional, Any
 import tkinter as tk
-from typing import Iterable, Any
+
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
-import PIL
-from soniccontrol.interfaces import RootChild, WidthLayout
-import soniccontrol.constants as const
-from soniccontrol.interfaces import Layout, Connectable, Feedbackable
-from soniccontrol.sonicamp import Command
-
-logger = logging.getLogger(__name__)
+from async_tkinter_loop import async_handler
+from PIL.ImageTk import PhotoImage
+from soniccontrol.core.interfaces import RootChild, Connectable, WidthLayout, Root
 
 
-class HomeFrame(RootChild, Connectable, Feedbackable):
+class HomeFrame(RootChild, Connectable):
     def __init__(
-        self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
-    ):
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-        self._width_layouts = (
-            WidthLayout(min_width=400, command=self.set_large_width_uscontrolframe),
-            WidthLayout(min_width=10, command=self.set_small_width_uscontrolframe),
+        self,
+        master: Root,
+        tab_title: str = "Home",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(master, tab_title, image=image, *args, **kwargs)
+        self.set_layouts(
+            [
+                WidthLayout(min_size=400, command=self.set_large_width_uscontrolframe),
+                WidthLayout(min_size=10, command=self.set_small_width_uscontrolframe),
+            ]
         )
 
         self._debounce_time_ms: int = 250
         self._debounce_job: Any = None
 
-        self.topframe: ttk.Frame = ttk.Frame(self)
-        # control frame
+        self.main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
+        self.top_frame: ttk.Frame = ttk.Frame(self.main_frame)
         self.control_frame: ttk.LabelFrame = ttk.LabelFrame(
-            self.topframe, text="Manual Control"
+            self.top_frame, text="Manual Control"
         )
+
         self.freq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self.control_frame,
             increment=100,
             from_=20_000,
             to=6_000_000,
-            textvariable=self.root._freq,
+            textvariable=self.root.set_frequency_var,
             width=16,
             bootstyle=ttk.DARK,
             command=self.set_frequency,
         )
+        self.freq_spinbox_placeholder = "Set Frequency..."
+        self.freq_spinbox.delete(0, tk.END)
+        self.freq_spinbox.insert(0, self.freq_spinbox_placeholder)
+        self.freq_spinbox.bind("<FocusIn>", self.on_freq_spinbox_focus_in)
+        self.freq_spinbox.bind("<FocusOut>", self.on_freq_spinbox_focus_out)
+
         self.gain_frame: ttk.Frame = ttk.Frame(self.control_frame)
         self.gain_spinbox: ttk.Spinbox = ttk.Spinbox(
             self.gain_frame,
             increment=10,
             from_=0,
             to=150,
-            textvariable=self.root._gain,
+            textvariable=self.root.set_gain_var,
             style=ttk.DARK,
             command=self.set_gain,
         )
         self.gain_scale: ttk.Scale = ttk.Scale(
             self.gain_frame,
-            # length=170,
             from_=0,
             to=150,
             orient=tk.HORIZONTAL,
             style=ttk.SUCCESS,
-            variable=self.root._gain,
+            variable=self.root.set_gain_var,
             command=self.set_gain,
         )
-        self.mode_frame: ttk.Label = ttk.Label(self.control_frame)
+        self.gain_spinbox_placeholder = "Set Gain..."
+        self.gain_spinbox.delete(0, tk.END)
+        self.gain_spinbox.insert(0, self.gain_spinbox_placeholder)
+        self.gain_spinbox.bind("<FocusIn>", self.on_gain_spinbox_focus_in)
+        self.gain_spinbox.bind("<FocusOut>", self.on_gain_spinbox_focus_out)
 
+        self.mode_frame: ttk.Label = ttk.Label(self.control_frame)
         self.wipemode_button: ttk.Radiobutton = ttk.Radiobutton(
             self.mode_frame,
             text="Wipe mode",
             variable=self.root.mode,
             value="Wipe",
             bootstyle="dark-outline-toolbutton",
-            command=self.set_wipe_mode,
+            command=self.set_relay_mode_khz,
         )
         self.catchmode_button: ttk.Radiobutton = ttk.Radiobutton(
             self.mode_frame,
@@ -76,24 +90,23 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
             variable=self.root.mode,
             value="Catch",
             bootstyle="dark-outline-toolbutton",
-            command=self.set_catch_mode,
+            command=self.set_relay_mode_mhz,
         )
+
         self.set_val_btn: ttk.Button = ttk.Button(
             self.control_frame,
             text="Set Frequency and Gain",
             bootstyle=ttk.DARK,
             command=self.set_values,
         )
-        # signal control
-        self.us_control_frame: ttk.Frame = ttk.Frame(self)
+
+        self.us_control_frame: ttk.Frame = ttk.Frame(self.main_frame)
         self.us_on_button: ttk.Button = ttk.Button(
             self.us_control_frame,
             text="ON",
             bootstyle=ttk.SUCCESS,
             width=10,
-            command=lambda: self.root.sonicamp.add_job(
-                Command("!ON", callback=self.on_feedback), 0
-            ),
+            command=self.set_signal_on,
         )
 
         self.us_auto_button: ttk.Button = ttk.Button(
@@ -101,9 +114,7 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
             text="AUTO",
             bootstyle=ttk.PRIMARY,
             width=10,
-            command=lambda: self.root.sonicamp.add_job(
-                Command("!AUTO", callback=self.on_feedback), 0
-            ),
+            command=self.set_signal_auto,
         )
 
         self.us_off_button: ttk.Button = ttk.Button(
@@ -111,12 +122,10 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
             text="OFF",
             bootstyle=ttk.DANGER,
             width=10,
-            command=lambda: self.root.sonicamp.add_job(
-                Command("!OFF", callback=self.on_feedback), 0
-            ),
+            command=self.set_signal_off,
         )
 
-        self.botframe: ttk.Frame = ttk.Frame(self)
+        self.botframe: ttk.Frame = ttk.Frame(self.main_frame)
         self.output_frame: ttk.Frame = ttk.LabelFrame(self.botframe, text="Feedback")
         self.feedback_frame: ScrolledFrame = ScrolledFrame(
             self.output_frame,
@@ -124,18 +133,6 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
             width=475,
         )
         self.bind_events()
-
-        self.freq_spinbox_placeholder = "Set Frequency..."
-        self.freq_spinbox.delete(0, tk.END)
-        self.freq_spinbox.insert(0, self.freq_spinbox_placeholder)
-        self.freq_spinbox.bind("<FocusIn>", self.on_freq_spinbox_focus_in)
-        self.freq_spinbox.bind("<FocusOut>", self.on_freq_spinbox_focus_out)
-
-        self.gain_spinbox_placeholder = "Set Gain..."
-        self.gain_spinbox.delete(0, tk.END)
-        self.gain_spinbox.insert(0, self.gain_spinbox_placeholder)
-        self.gain_spinbox.bind("<FocusIn>", self.on_gain_spinbox_focus_in)
-        self.gain_spinbox.bind("<FocusOut>", self.on_gain_spinbox_focus_out)
 
     def on_gain_spinbox_focus_in(self, event):
         current_value = self.gain_spinbox.get()
@@ -164,7 +161,8 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
         pass
 
     def publish(self) -> None:
-        self.topframe.pack(side=tk.TOP, padx=10, pady=10)
+        self.main_frame.pack(side=tk.TOP, expand=True, fill=ttk.BOTH)
+        self.top_frame.pack(side=tk.TOP, padx=10, pady=10)
         self.control_frame.pack(side=tk.TOP, fill=tk.X)
         self.freq_spinbox.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
 
@@ -204,53 +202,64 @@ class HomeFrame(RootChild, Connectable, Feedbackable):
         self.us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
         self.us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.EW)
 
-    def set_frequency(self, event: Any = None) -> None:
-        def _set_frequency() -> None:
-            self.root.sonicamp.add_job(
-                Command(
-                    message=f"!f={self.root._freq.get()}", callback=self.on_feedback
-                ),
-                0,
+    @async_handler
+    async def set_frequency(self, event: Any = None, *args, **kwargs) -> None:
+        @async_handler
+        async def _set_frequency() -> None:
+            answer = await self.root.sonicamp.set_frequency(
+                self.root.set_frequency_var.get()
             )
+            self.on_feedback(answer)
             self._debounce_job = None
 
         if self._debounce_job is not None:
             self.after_cancel(self._debounce_job)
         self._debounce_job = self.after(self._debounce_time_ms, _set_frequency)
 
-    def set_gain(self, event: Any = None) -> None:
-        logger.debug(event)
-
-        def _set_gain() -> None:
-            self.root.sonicamp.add_job(
-                Command(
-                    message=f"!g={self.root._gain.get()}", callback=self.on_feedback
-                ),
-                0,
-            )
+    @async_handler
+    async def set_gain(self, event: Any = None, *args, **kwargs) -> None:
+        @async_handler
+        async def _set_gain() -> None:
+            answer = await self.root.sonicamp.set_gain(self.root.set_gain_var.get())
+            self.on_feedback(answer)
             self._debounce_job = None
 
         if self._debounce_job is not None:
             self.after_cancel(self._debounce_job)
         self._debounce_job = self.after(self._debounce_time_ms, _set_gain)
 
-    def set_wipe_mode(self) -> None:
-        self.root.sonicamp.add_job(Command("!KHZ", callback=self.on_feedback), 0)
+    @async_handler
+    async def set_relay_mode_khz(self) -> None:
+        self.on_feedback(await self.root.sonicamp.set_relay_mode_khz())
         for child in self.gain_frame.winfo_children():
             child.configure(state=ttk.DISABLED)
 
-    def set_catch_mode(self) -> None:
-        self.root.sonicamp.add_job(Command("!MHZ", callback=self.on_feedback), 0)
+    @async_handler
+    async def set_relay_mode_mhz(self) -> None:
+        self.on_feedback(await self.root.sonicamp.set_relay_mode_mhz())
         for child in self.gain_frame.winfo_children():
             child.configure(state=ttk.NORMAL)
 
-    def set_values(self) -> None:
-        self.root.sonicamp.add_job(
-            Command(message=f"!f={self.root._freq.get()}", callback=self.on_feedback), 0
+    @async_handler
+    async def set_values(self) -> None:
+        self.on_feedback(
+            await self.root.sonicamp.set_frequency(self.root.set_frequency_var.get())
         )
-        self.root.sonicamp.add_job(
-            Command(message=f"!g={self.root._gain.get()}", callback=self.on_feedback), 1
+        self.on_feedback(
+            await self.root.sonicamp.set_gain(self.root.set_gain_var.get())
         )
+
+    @async_handler
+    async def set_signal_on(self) -> None:
+        self.on_feedback(await self.root.sonicamp.set_signal_on())
+
+    @async_handler
+    async def set_signal_off(self) -> None:
+        self.on_feedback(await self.root.sonicamp.set_signal_off())
+
+    @async_handler
+    async def set_signal_auto(self) -> None:
+        self.on_feedback(await self.root.sonicamp.set_signal_auto())
 
     def on_feedback(self, text: str) -> None:
         ttk.Label(self.feedback_frame, text=text, font=("Consolas", 10)).pack(

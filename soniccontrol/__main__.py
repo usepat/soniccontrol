@@ -1,14 +1,11 @@
+import sys
+from async_tkinter_loop import async_handler, async_mainloop
 from soniccontrol import SonicControl
 
 
-def soniccontrol_gui_main() -> None:
-    sc: SonicControl = SonicControl()
-    sc.mainloop()
-
-
-def soniccontrol_cli_main() -> None:
-    print("this application was not implemented")
-
-
 if __name__ == "__main__":
-    soniccontrol_gui_main()
+    if not "3.10" in sys.version:
+        print("Warning: Please use Python 3.10 to run SonicControl")
+    else:
+        sc: SonicControl = SonicControl()
+        async_mainloop(sc)

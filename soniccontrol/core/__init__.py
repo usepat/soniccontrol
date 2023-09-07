@@ -1,1 +1,1 @@
-from soniccontrol.core.components.window import SonicControl
+from soniccontrol.core.components import SonicControl

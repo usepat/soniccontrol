@@ -1,70 +1,85 @@
-import logging
-from typing import Dict, Iterable
 import tkinter as tk
-import serial.tools.list_ports as list_ports
+from typing import Optional
+import logging
 import ttkbootstrap as ttk
-import PIL
-import soniccontrol.constants as const
-
+from ttkbootstrap.scrolled import ScrolledFrame
+import serial.tools.list_ports as list_ports
 from PIL.ImageTk import PhotoImage
-from soniccontrol.interfaces import (
+from async_tkinter_loop import async_handler
+import soniccontrol.constants as const
+from soniccontrol.core.interfaces import (
     RootChild,
-    WidthLayout,
     Disconnectable,
-    Flashable,
     Connectable,
-    Layout,
+    Flashable,
+    Root,
+    RootStringVar,
+    WidthLayout,
 )
-from soniccontrol.interfaces.rootchild import RootLabel
 
 logger = logging.getLogger(__name__)
 
 
 class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
     def __init__(
-        self, parent_frame: ttk.Frame, tab_title: str, image: PIL.Image, *args, **kwargs
-    ):
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-        self._width_layouts: Iterable[Layout] = (
-            WidthLayout(min_width=300, command=self.set_large_layout),
-            WidthLayout(min_width=100, command=self.set_small_layout),
+        self,
+        master: Root,
+        tab_title: str = "Connection",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs
+    ) -> None:
+        super().__init__(master, tab_title=tab_title, image=image, *args, **kwargs)
+        self.set_layouts(
+            [
+                WidthLayout(min_size=300, command=self.set_large_layout),
+                WidthLayout(min_size=100, command=self.set_small_layout),
+            ]
         )
 
-        ### tkinter variables
-        self.refresh_image: PhotoImage = const.Images.get_image(
-            const.Images.REFRESH_IMG_GREY, const.Images.BUTTON_ICON_SIZE
+        self.heading1_var: RootStringVar = RootStringVar(self, value="not")
+        self.heading2_var: RootStringVar = RootStringVar(self, value="connected")
+        self.subtitle_var: RootStringVar = RootStringVar(
+            self, value="Please connect to a SonicAmp device"
         )
 
-        ### TOPFRAME
-        self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
-        ### HEADING
-        self.heading_frame: ttk.Frame = ttk.Frame(self.topframe)
-        self.subtitle: ttk.Label = ttk.Label(self.heading_frame, padding=(0, 10, 0, 0))
-        self.heading1: ttk.Label = ttk.Label(
+        self.main_frame: ScrolledFrame = ScrolledFrame(
+            self, autohide=True, padding=(10, 10, 10, 10)
+        )
+        self.heading_frame: ttk.Frame = ttk.Frame(self.main_frame)
+        self.subtitle_label: ttk.Label = ttk.Label(
+            self.heading_frame, padding=(0, 10, 0, 0), textvariable=self.subtitle_var
+        )
+        self.heading1_label: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(10, 0, 2, 10),
             font=("QTypeOT-CondLight", 30),
+            textvariable=self.heading1_var,
             justify=ttk.CENTER,
             anchor=ttk.CENTER,
             borderwidth=-2,
         )
-        self.heading2: RootLabel = RootLabel(
+        self.heading2_label: ttk.Label = ttk.Label(
             self.heading_frame,
             padding=(2, 0, 0, 10),
             font=("QTypeOT-CondBook", 30),
-            justify=tk.CENTER,
+            textvariable=self.heading2_var,
+            justify=ttk.CENTER,
             anchor=ttk.CENTER,
             borderwidth=-2,
         )
-        self.firmware_frame: ttk.Labelframe = ttk.Labelframe(
-            self.heading_frame,
+        self.firmware_frame: ttk.Frame = ttk.Frame(self.heading_frame)
+        self.firmware_label_frame: ttk.Labelframe = ttk.Labelframe(
+            self.firmware_frame,
             text="Firmware",
         )
         self.firmware_label: ttk.Label = ttk.Label(
-            self.firmware_frame, justify=tk.CENTER, style="dark.TLabel"
+            self.firmware_label_frame,
+            justify=ttk.CENTER,
+            bootstyle=ttk.DARK,
         )
-        ### PORTSMENUE
-        self.control_frame: ttk.Frame = ttk.Frame(self.topframe)
+
+        self.control_frame: ttk.Frame = ttk.Frame(self.main_frame)
         self.connect_button: ttk.Button = ttk.Button(
             self.control_frame,
             width=10,
@@ -83,36 +98,34 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
         self.refresh_button: ttk.Button = ttk.Button(
             self.port_frame,
             bootstyle="secondary-outline",
-            image=self.refresh_image,
+            image=self.root.restart_image,
             command=lambda: self.ports_menue.configure(
                 values=[port.device for port in list_ports.comports()]
             ),
         )
-        ### OTHER
-        self.flash_progressbar: ttk.Progressbar = ttk.Progressbar(
-            self.topframe,
-            mode="indeterminate",
-            orient=tk.HORIZONTAL,
-        )
 
-        self.botframe: ttk.Frame = ttk.Frame(self)
         self.bind_events()
         self.publish()
-        logger.debug("ConnectionFrame initialized")
-
-    def bind_events(self) -> None:
-        super().bind_events()
 
     def show_firmware(self, event=None) -> None:
         print("showing firmware....")
+        self.firmware_label_frame.pack(padx=5, pady=5)
+        for child in self.heading_frame.children.values():
+            child.bind("<Button-1>", self.hide_firmware)
+
+    def hide_firmware(self, event=None) -> None:
+        print("hiding firmware....")
+        self.firmware_label_frame.pack_forget()
+        for child in self.heading_frame.children.values():
+            child.bind("<Button-1>", self.show_firmware)
 
     def mark_heading_frame(self, event=None) -> None:
         self.heading_frame.configure(bootstyle=ttk.SECONDARY)
-        self.subtitle.configure(bootstyle="inverse-secondary")
-        self.heading1.configure(bootstyle="inverse-secondary")
-        self.heading2.configure(bootstyle="inverse-secondary")
-        self.firmware_frame.configure(bootstyle=ttk.SECONDARY)
-        self.firmware_label.configure(bootstyle="inverse-secondary")
+        self.subtitle_label.configure(bootstyle="inverse-secondary")
+        self.heading1_label.configure(bootstyle="inverse-secondary")
+        self.heading2_label.configure(bootstyle="inverse-secondary")
+        self.firmware_label_frame.configure(bootstyle=ttk.SECONDARY)
+        # self.firmware_label.configure(bootstyle="inverse-secondary")
 
     def unmark_heading_frame(self, event=None) -> None:
         self.heading_frame.configure(bootstyle=ttk.DEFAULT)
@@ -120,28 +133,30 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
             child.configure(bootstyle=ttk.DEFAULT)
 
     def set_small_layout(self, *args, **kwargs) -> None:
-        logger.debug("setting small layout")
         self.set_small_width_heading()
         self.set_small_width_control_frame()
 
     def set_large_layout(self, *args, **kwargs) -> None:
-        logger.debug("setting large layout")
         self.set_large_width_heading()
         self.set_large_width_control_frame()
 
     def set_small_width_heading(self) -> None:
         for child in self.heading_frame.children.values():
             child.grid_forget()
-        self.subtitle.pack(fill=ttk.X, anchor=ttk.CENTER)
-        self.heading1.pack(fill=ttk.X, anchor=ttk.CENTER)
-        self.heading2.pack(fill=ttk.X, anchor=ttk.CENTER)
+        self.subtitle_label.pack(fill=ttk.X, anchor=ttk.CENTER)
+        self.heading1_label.pack(fill=ttk.X, anchor=ttk.CENTER)
+        self.heading2_label.pack(fill=ttk.X, anchor=ttk.CENTER)
+        self.firmware_frame.pack(anchor=ttk.CENTER, padx=5, pady=5)
 
     def set_large_width_heading(self) -> None:
         for child in self.heading_frame.children.values():
             child.pack_forget()
-        self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
-        self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)
-        self.heading2.grid(row=1, column=1, columnspan=1, sticky=tk.W)
+        self.subtitle_label.grid(row=0, column=0, columnspan=2, sticky=tk.S)
+        self.heading1_label.grid(row=1, column=0, columnspan=1, sticky=tk.E)
+        self.heading2_label.grid(row=1, column=1, columnspan=1, sticky=tk.W)
+        self.firmware_frame.grid(
+            row=2, column=0, columnspan=2, sticky=tk.N, padx=5, pady=5
+        )
 
     def set_small_width_control_frame(self) -> None:
         for child in self.control_frame.children.values():
@@ -158,9 +173,9 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
     def change_heading(
         self, title_part1: str, title_part2: str, subtitle: str, **kwargs
     ) -> None:
-        self.subtitle["text"] = subtitle
-        self.heading1["text"] = title_part1
-        self.heading2["text"] = title_part2
+        self.subtitle_var.set(subtitle)
+        self.heading1_var.set(title_part1)
+        self.heading2_var.set(title_part2)
 
     def change_button_to(
         self, connected: bool = False, disconnected: bool = False, **kwargs
@@ -182,6 +197,7 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
             child.bind("<Button-1>", self.show_firmware)
         self.heading_frame.bind("<Enter>", self.mark_heading_frame)
         self.heading_frame.bind("<Leave>", self.unmark_heading_frame)
+        self.firmware_label.configure(text=self.root.sonicamp.info.firmware_info)
 
     def disable_firmware_info(self) -> None:
         self.heading_frame.unbind("<Button-1>")
@@ -189,11 +205,13 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
             child.unbind("<Button-1>")
         self.heading_frame.unbind("<Enter>")
         self.heading_frame.unbind("<Leave>")
+        self.firmware_label.configure(text="")
 
-    def on_connection_attempt(self) -> None:
-        logger.debug("This is starting an connection attempt")
+    @async_handler
+    async def on_connection_attempt(self) -> None:
+        logger.debug("Connection attempt connectionframe...")
         self.change_heading(title_part1="Connecting", title_part2="", subtitle="")
-        self.heading2.animate_dots()
+        self.heading2_var.animate_dots()
         for child in self.port_frame.winfo_children():
             child.configure(state=ttk.DISABLED)
         self.connect_button.configure(
@@ -202,10 +220,10 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
             command=lambda: self.event_generate(const.Events.DISCONNECTED),
         )
         self.update()
-        self.event_generate(const.Events.CONNECTION_ATTEMPT)
+        self.root.on_connection_attempt()
 
     def on_connect(self, connection_data: Connectable.ConnectionData) -> None:
-        self.heading2.stop_animation_of_dots()
+        self.heading2_var.stop_animation_of_dots()
         self.change_heading(
             title_part1=connection_data.heading1,
             title_part2=connection_data.heading2,
@@ -215,13 +233,12 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
         self.ports_menue.config(state=tk.DISABLED)
         self.refresh_button.config(state=tk.DISABLED)
         self.enable_firmware_info()
-        logger.debug("Connectionframe shows itself connected")
 
     def on_refresh(self) -> None:
         pass
 
     def on_disconnect(self, event) -> None:
-        self.heading2.is_dot_animation_running = False
+        self.heading2_var.is_dot_animation_running = False
         self.change_heading(
             title_part1="not",
             title_part2="connected",
@@ -233,7 +250,6 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
         self.refresh_button["state"] = ttk.NORMAL
         self.event_generate(const.Events.PORT_REFRESH)
         self.disable_firmware_info()
-        logger.debug("Connectionframe shows itself disconnected")
 
     def on_validation(self) -> None:
         self.change_heading(
@@ -254,8 +270,9 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
         )
 
     def publish(self) -> None:
-        self.topframe.pack(expand=True, fill=ttk.BOTH)
+        self.main_frame.pack(expand=True, fill=ttk.BOTH)
         self.heading_frame.pack(ipadx=10, ipady=10)
         self.control_frame.pack(padx=10, pady=10)
         self.refresh_button.grid(row=0, column=0, pady=5)
         self.ports_menue.grid(row=0, column=1, padx=5, pady=5, sticky=ttk.NSEW)
+        self.firmware_label.pack(expand=True, fill=ttk.BOTH, padx=10, pady=10)

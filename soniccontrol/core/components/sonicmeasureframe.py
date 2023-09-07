@@ -1,9 +1,15 @@
+from typing import Any, Optional, Tuple
+import asyncio
+import functools
 import logging
-from typing import Iterable, Any, Tuple, Optional, Any, Literal
+import pathlib
+import csv
+import datetime
 import ttkbootstrap as ttk
-import threading
+from ttkbootstrap.scrolled import ScrolledFrame
+from async_tkinter_loop import async_handler
+from PIL.ImageTk import PhotoImage
 import pandas as pd
-from ttkbootstrap.scrolled import ScrolledText, ScrolledFrame
 import matplotlib
 
 matplotlib.use("TkAgg")
@@ -12,55 +18,30 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.animation import FuncAnimation
 import matplotlib.dates as mdates
-import functools
-import datetime
-
-from PIL.ImageTk import PhotoImage
-import soniccontrol.constants as const
-from soniccontrol.interfaces import RootChild, Layout, Connectable, Updatable, Root
-from soniccontrol.interfaces.rootchild import RootChildFrame
-from soniccontrol.interfaces.horizontal_scrolled import HorizontalScrolledFrame
-from soniccontrol.sonicamp import Command
-from sonicpackage import SonicThread
-import time
-import csv
+from soniccontrol.core.interfaces import RootChild, Connectable, Root
+from soniccontrol.core.components.horzontal_scrolled import HorizontalScrolledFrame
 
 logger = logging.getLogger(__name__)
 
 
-class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
+class SonicMeasureFrame(RootChild, Connectable):
     def __init__(
-        self, parent_frame: Root, tab_title: str, image: PhotoImage, *args, **kwargs
-    ):
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-        #     self._width_layouts: Iterable[Layout] = ()
-        #     self._height_layouts: Iterable[Layout] = ()
-        self.configure(width=200)
+        self,
+        master: Root,
+        tab_title: str = "Sonic Measure",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(master, tab_title, image=image, *args, **kwargs)
 
-        self.sonicmeasure: Optional[SonicMeasure] = None
-        self._paused: threading.Event = threading.Event()
+        self.running: asyncio.Event = asyncio.Event()
+
         self.last_read_line = 0
-
         self.urms_visible: ttk.BooleanVar = ttk.BooleanVar(value=True)
         self.irms_visible: ttk.BooleanVar = ttk.BooleanVar(value=True)
         self.phase_visible: ttk.BooleanVar = ttk.BooleanVar(value=True)
         self.frequency_visible: ttk.BooleanVar = ttk.BooleanVar(value=True)
-
-        self.start_image: PhotoImage = const.Images.get_image(
-            const.Images.PLAY_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.stop_image: PhotoImage = const.Images.get_image(
-            const.Images.PAUSE_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.restart_image: PhotoImage = const.Images.get_image(
-            const.Images.REFRESH_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.back_image: PhotoImage = const.Images.get_image(
-            const.Images.BACK_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.forward_image: PhotoImage = const.Images.get_image(
-            const.Images.FORWARDS_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
 
         self.main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self.button_frame: ttk.Frame = ttk.Frame(self)
@@ -68,7 +49,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
             self.button_frame,
             text="Start",
             style=ttk.SUCCESS,
-            image=self.start_image,
+            image=self.root.start_image,
             compound=ttk.RIGHT,
             command=self.start_sonicmeasure,
         )
@@ -114,131 +95,51 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.figure_canvas: FigureCanvasTkAgg = FigureCanvasTkAgg(
             self.figure, self.plot_frame
         )
-        NavigationToolbar2Tk(self.figure_canvas, self.plot_frame)
-
-        self.configuration_frame: ttk.Frame = ttk.Frame(self)
-        self.navigation_bar: ttk.Frame = ttk.Frame(self.configuration_frame)
-        self.back_button: ttk.Button = ttk.Button(
-            self.navigation_bar,
-            text="Back",
-            style=ttk.DARK,
-            image=self.back_image,
-            compound=ttk.LEFT,
-            command=self.show_mainframe,
-        )
-        self.submit_button: ttk.Button = ttk.Button(
-            self.navigation_bar,
-            text="Start Sonicmeasure",
-            style=ttk.SUCCESS,
-            image=self.forward_image,
-            compound=ttk.RIGHT,
-            command=self.start_sonicmeasure,
-        )
-
-        self.logfile_specifier_frame: ttk.Labelframe = ttk.Labelframe(
-            self.configuration_frame, text="Specify the filepath for the data storage"
-        )
-        self.logfile_entry: ttk.Entry = ttk.Entry(self.logfile_specifier_frame)
-        self.browse_files_button: ttk.Button = ttk.Button(
-            self.logfile_specifier_frame,
-            text="Browse files...",
-            style=ttk.SECONDARY,
-            command=self.open_log_file,
-        )
-        self.comment_frame: ttk.Labelframe = ttk.Labelframe(
-            self.configuration_frame, text="Make a comment on your data"
-        )
-        self.comment_entry: ttk.ScrolledText = ttk.ScrolledText(self.comment_frame)
+        self.figure_canvas.draw()
+        self.toolbar = NavigationToolbar2Tk(self.figure_canvas, self.plot_frame)
+        self.toolbar.update()
+        self.drawing_task = None
         self.bind_events()
 
-    def on_connect(self, event=None) -> None:
+    def on_connect(self, event: Any = None) -> None:
         return self.publish()
 
-    def on_update(self, event: Any = None) -> None:
-        pass
-
-    def on_frequency_change(self, event: Any = None) -> None:
-        pass
-
-    def on_gain_change(self, event: Any = None) -> None:
-        pass
-
-    def on_temperature_change(self, event: Any = None) -> None:
-        pass
-
-    def on_urms_change(self, event: Any = None) -> None:
-        pass
-
-    def on_irms_change(self, event: Any = None) -> None:
-        pass
-
-    def on_phase_change(self, event: Any = None) -> None:
-        pass
-
-    def on_mode_change(self, event: Any = None) -> None:
-        pass
-
-    def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:
-        pass
-
-    def open_log_file(self, event=None) -> None:
-        pass
-
-    def on_wipe_mode_change(self, event: Any = None) -> None:
-        pass
-
-    def resume_sonicmeasure(self) -> None:
-        # self._paused.clear()
-        self.ani.resume()
-        self.start_stop_button.configure(
-            text="Pause",
-            image=self.stop_image,
-            bootstyle=ttk.DANGER,
-            command=self.pause_sonicmeasure,
-        )
-
-    def pause_sonicmeasure(self) -> None:
-        # self._paused.set()
-        self.ani.pause()
-        self.start_stop_button.configure(
-            text="Resume",
-            image=self.start_image,
-            bootstyle=ttk.SUCCESS,
-            command=self.resume_sonicmeasure,
-        )
-
     def open_spectrum_measure(self) -> None:
-        self.spectrum_button.configure(state=ttk.DISABLED)
-        self.sonicmeasure = SonicMeasure(self.root, self)
+        self.window = SonicMeasure(self.root, self)
 
-    def restart_sonicmeasure(self) -> None:
-        self.main_frame.pack_forget()
-        self.configuration_frame.pack(padx=15)
-
-    def start_sonicmeasure(self) -> None:
+    @async_handler
+    async def start_sonicmeasure(self) -> None:
+        self.running.set()
         self.start_stop_button.configure(
-            bootstyle=ttk.DANGER,
             text="Stop",
-            image=self.stop_image,
+            bootstyle=ttk.DANGER,
+            image=self.root.pause_image,
+            compound=ttk.RIGHT,
             command=self.stop_sonicmeasure,
         )
-        self.sonicmeasure_engine()
-        self.show_mainframe()
+        self.live_plot_engine()
+
+    @async_handler
+    async def live_plot_engine(self) -> None:
+        self.initialize_graph()
+        while self.running.is_set():
+            await self.root.sonicamp.status_changed.wait()
+            self.update_graph()
+            await asyncio.sleep(0.2)
 
     def stop_sonicmeasure(self) -> None:
+        self.running.clear()
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
             text="Start",
-            image=self.start_image,
+            image=self.root.start_image,
             command=self.start_sonicmeasure,
         )
         self.figure.clear(keep_observers=False)
-        self.ani = None
 
-    def sonicmeasure_engine(self) -> None:
+    def initialize_graph(self) -> None:
         self.figure.clear()
         self.figure_canvas.get_tk_widget().destroy()
-        # del self.figure_canvas
         self.figure_canvas = FigureCanvasTkAgg(
             self.figure, master=self.plot_frame
         )  # Adjust master if needed
@@ -320,17 +221,6 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
                 self.line_phase,
             ],
         )
-
-        def init():
-            self.line_frequency.set_data([], [])
-            self.line_urms.set_data([], [])
-            self.line_irms.set_data([], [])
-            self.line_phase.set_data([], [])
-            return self.line_frequency, self.line_urms, self.line_irms, self.line_phase
-
-        self.ani = FuncAnimation(
-            self.figure, self.update_graph, init_func=init, interval=100
-        )  # 100ms interval
         self.figure_canvas.draw()
 
     def sync_axes(self, event) -> None:
@@ -338,8 +228,7 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.ax3_irms.set_yticks(self.ax1_frequency.get_yticks())
         self.ax4_phase.set_yticks(self.ax4_phase.get_yticks())
 
-    @functools.cache
-    def update_graph(self, frame) -> Tuple[Any, ...]:
+    def update_graph(self) -> None:
         data = pd.read_csv(
             self.root.status_log_filepath, skiprows=range(1, self.last_read_line)
         )
@@ -359,6 +248,8 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.line_irms.set_data(self.time_data[-50:], self.irms_data[-50:])
         self.line_phase.set_data(self.time_data[-50:], self.phase_data[-50:])
 
+        self.figure_canvas.draw()
+
         self.ax1_frequency.relim()
         self.ax1_frequency.autoscale_view()
         self.ax2_urms.relim()
@@ -368,7 +259,8 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.ax4_phase.relim()
         self.ax4_phase.autoscale_view()
 
-        return self.line_frequency, self.line_urms, self.line_irms, self.line_phase
+        self.figure_canvas.flush_events()
+        self.root.update()
 
     def toggle_frequency(self) -> None:
         self.toggle_data(
@@ -388,10 +280,6 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         is_visible = tk_var.get()
         line.set_visible(is_visible)
 
-    def show_mainframe(self) -> None:
-        self.configuration_frame.pack_forget()
-        self.main_frame.pack(fill=ttk.BOTH, expand=True, padx=3, pady=3)
-
     def publish(self) -> None:
         self.button_frame.pack(fill=ttk.X, padx=3, pady=3)
         self.start_stop_button.pack(side=ttk.LEFT, padx=3, pady=3)
@@ -409,17 +297,6 @@ class SonicMeasureFrame(RootChildFrame, Connectable, Updatable):
         self.plot_frame.pack(padx=3, pady=3)
         self.figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
 
-        self.navigation_bar.pack(pady=5, fill=ttk.X)
-        self.back_button.pack(pady=5, side=ttk.LEFT)
-        self.submit_button.pack(pady=5, side=ttk.RIGHT)
-
-        self.logfile_specifier_frame.pack(pady=10, fill=ttk.X)
-        self.logfile_entry.pack(side=ttk.LEFT, fill=ttk.X, padx=5, pady=5, expand=True)
-        self.browse_files_button.pack(side=ttk.RIGHT, fill=ttk.X, padx=5, pady=5)
-
-        self.comment_frame.pack(pady=5)
-        self.comment_entry.pack(padx=5, pady=5)
-
 
 class SonicMeasure(ttk.Toplevel):
     def __init__(self, root: Root, parent: SonicMeasureFrame, *args, **kwargs) -> None:
@@ -427,23 +304,7 @@ class SonicMeasure(ttk.Toplevel):
         self.root = root
         self.parent = parent
         self._last_read_line = 0
-
-        self.ramp_thread: Optional[SonicThread] = None
-
-        self.time_units: Tuple[str] = ("ms", "s")
-
-        self.start_image: PhotoImage = const.Images.get_image(
-            const.Images.PLAY_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.stop_image: PhotoImage = const.Images.get_image(
-            const.Images.PAUSE_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.back_image: PhotoImage = const.Images.get_image(
-            const.Images.BACK_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.forward_image: PhotoImage = const.Images.get_image(
-            const.Images.FORWARDS_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
+        self.time_units = ("ms", "s")
 
         # Ramp variables
         self.ramp_mode: ttk.StringVar = ttk.StringVar(value="ramp_freq")
@@ -457,25 +318,15 @@ class SonicMeasure(ttk.Toplevel):
         self.times_to_repeat_var: ttk.IntVar = ttk.IntVar(value=0)
 
         self.body_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
-
         self.main_frame: ttk.Frame = ttk.Frame(self.body_frame)
         self.button_frame: ttk.Frame = ttk.Frame(self.main_frame)
         self.start_stop_button: ttk.Button = ttk.Button(
             self.button_frame,
             style=ttk.SUCCESS,
             text="Start",
-            image=self.start_image,
+            image=self.root.start_image,
             compound=ttk.RIGHT,
             command=self.start_sonicmeasure,
-        )
-        self.pause_resume_button: ttk.Button = ttk.Button(
-            self.button_frame,
-            style=ttk.DANGER,
-            text="Pause",
-            state=ttk.DISABLED,
-            image=self.stop_image,
-            compound=ttk.RIGHT,
-            command=self.pause_sonicmeasure,
         )
         self.plot_frame: ttk.Frame = ttk.Frame(self.main_frame)
         self.figure: Figure = Figure(dpi=100)
@@ -491,7 +342,7 @@ class SonicMeasure(ttk.Toplevel):
             text="Back",
             style=ttk.DARK,
             state=ttk.DISABLED,
-            image=self.back_image,
+            image=self.root.back_image,
             compound=ttk.LEFT,
             command=self.show_mainframe,
         )
@@ -499,7 +350,7 @@ class SonicMeasure(ttk.Toplevel):
             self.navigation_bar,
             text="Start Sonicmeasure",
             style=ttk.SUCCESS,
-            image=self.forward_image,
+            image=self.root.forward_image,
             compound=ttk.RIGHT,
             command=self.start_sonicmeasure_process,
         )
@@ -611,7 +462,7 @@ class SonicMeasure(ttk.Toplevel):
         self.gain_entry: ttk.Spinbox = ttk.Spinbox(
             self.gain_frame,
             width=8,
-            textvariable=self.root._gain,
+            textvariable=self.root.set_gain_var,
             from_=0,
             to=150,
         )
@@ -622,7 +473,7 @@ class SonicMeasure(ttk.Toplevel):
         self.freq_entry: ttk.Spinbox = ttk.Spinbox(
             self.freq_frame,
             width=8,
-            textvariable=self.root._freq,
+            textvariable=self.root.set_frequency_var,
             from_=0,
             to=10_000_000,
         )
@@ -657,30 +508,9 @@ class SonicMeasure(ttk.Toplevel):
         logger.debug(f"The new logfile path is: {self.logfile}")
 
     def on_closing(self) -> None:
-        if self.ramp_thread is not None:
-            self.ramp_thread.running.clear()
+        self.root.sonicmeasure_running.clear()
         self.parent.spectrum_button.configure(state=ttk.NORMAL)
         self.destroy()
-
-    def resume_sonicmeasure(self) -> None:
-        self.pause_resume_button.configure(
-            text="Pause",
-            image=self.stop_image,
-            bootstyle=ttk.DANGER,
-            command=self.pause_sonicmeasure,
-        )
-        self.ramp_thread.pause()
-        self.ani.resume()
-
-    def pause_sonicmeasure(self) -> None:
-        self.pause_resume_button.configure(
-            text="Resume",
-            image=self.start_image,
-            bootstyle=ttk.SUCCESS,
-            command=self.resume_sonicmeasure,
-        )
-        self.ramp_thread.pause()
-        self.ani.pause()
 
     def start_sonicmeasure(self) -> None:
         self.main_frame.pack_forget()
@@ -688,30 +518,24 @@ class SonicMeasure(ttk.Toplevel):
         self.root.sonicmeasure_log_var.set(
             f"logs//sonicmeasure_{str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')}.csv"
         )
+        self.root.sonicmeasure_logfile = pathlib.Path(
+            self.root.sonicmeasure_log_var.get()
+        )
 
-    def start_sonicmeasure_process(self) -> None:
+    @async_handler
+    async def start_sonicmeasure_process(self) -> None:
         self.back_button.configure(state=ttk.NORMAL)
         self.start_stop_button.configure(
             text="Stop",
             bootstyle=ttk.DANGER,
-            image=self.stop_image,
+            image=self.root.pause_image,
             compound=ttk.RIGHT,
             command=self.stop_sonicmeasure,
         )
-        self.pause_resume_button.configure(
-            text="Pause",
-            bootstyle=ttk.DANGER,
-            image=self.stop_image,
-            compound=ttk.RIGHT,
-            state=ttk.NORMAL,
-            command=self.pause_sonicmeasure,
-        )
+        self.root.sonicmeasure_running.set()
         self.show_mainframe()
-        self.sonicmeasure_engine()
-
-    def sonicmeasure_engine(self) -> None:
-        self.sonicmeasure_setup()
         self.graph_engine()
+        await self.sonicmeasure_setup()
 
     def graph_engine(self) -> None:
         self.figure.clear()
@@ -757,21 +581,11 @@ class SonicMeasure(ttk.Toplevel):
         self.urms_data = []
         self.irms_data = []
 
-        def init():
-            self.line_urms.set_data([], [])
-            self.line_irms.set_data([], [])
-            self.line_phase.set_data([], [])
-            return self.line_urms, self.line_irms, self.line_phase
-
-        self.ani = FuncAnimation(
-            self.figure, self.update_graph, init_func=init, interval=100
-        )
         self.figure_canvas.draw()
 
-    @functools.cache
-    def update_graph(self, frame):
+    def update_graph(self):
         data = pd.read_csv(
-            self.root.sonicmeasure_log, skiprows=range(1, self._last_read_line)
+            self.root.sonicmeasure_logfile, skiprows=range(1, self._last_read_line)
         )
         self._last_read_line += len(data)
 
@@ -784,6 +598,8 @@ class SonicMeasure(ttk.Toplevel):
         self.line_irms.set_data(self.frequency_data, self.irms_data)
         self.line_phase.set_data(self.frequency_data, self.phase_data)
 
+        self.figure_canvas.draw()
+
         self.ax_urms.relim()
         self.ax_urms.autoscale_view()
         self.ax_irms.relim()
@@ -791,52 +607,53 @@ class SonicMeasure(ttk.Toplevel):
         self.ax_phase.relim()
         self.ax_phase.autoscale_view()
 
-        return self.line_urms, self.line_irms, self.line_phase
+        self.figure_canvas.flush_events()
+        self.root.update()
 
-    def sonicmeasure_setup(self) -> None:
-        with self.root.sonicmeasure_log.open("a", newline="") as file:
-            # string = (
-            #     f"# SonicMeasure Data Collection on {datetime.datetime.now()}",
-            #     f"# Ramping Script of type {self.ramp_mode.get()}",
-            #     f"# from start value {self.start_var.get()}",
-            #     f"# from stop value {self.stop_var.get()}",
-            #     f"# from step value {self.step_var.get()}",
-            #     f"# Holding during SIGNAL ON for {self.hold_on_time_var.get()}{self.hold_on_time_unit_var.get()}",
-            #     f"# Holding during SIGNAL OFF for {self.hold_off_time_var.get()}{self.hold_off_time_unit_var.get()}\n",
-            # )
-            # file.write("\n".join(string))
+    async def sonicmeasure_setup(self) -> None:
+        with self.root.sonicmeasure_logfile.open("a", newline="") as file:
             writer = csv.DictWriter(
                 file, fieldnames=self.root.fieldnames, extrasaction="ignore"
             )
             writer.writeheader()
 
         try:
-            self.root.sonicamp.add_job(Command(f"!f={self.root._freq.get()}"), 0)
-            self.root.sonicamp.add_job(Command(f"!g={self.root._gain.get()}"), 0)
+            await self.root.sonicamp.set_frequency(self.root.set_frequency_var.get())
+            await self.root.sonicamp.set_gain(self.root.set_gain_var.get())
         except Exception as e:
             logger.warning(e)
 
-        self.root.sonicmeasure_running.set()
-        self.ramp_thread = SonicMeasureRamp(
-            self,
-            self.start_var.get(),
-            self.stop_var.get(),
-            self.step_var.get(),
-            self.hold_on_time_var.get(),
-            self.hold_on_time_unit_var.get(),
-            self.hold_off_time_var.get(),
-            self.hold_off_time_unit_var.get(),
-            type_="frequency" if self.ramp_mode.get() == "ramp_freq" else "gain",
-            event=self.root.sonicmeasure_running,
+        self.ramp_task = asyncio.create_task(
+            self.root.sonicamp.ramp_freq(
+                self.start_var.get(),
+                self.stop_var.get(),
+                self.step_var.get(),
+                self.hold_on_time_var.get(),
+                self.hold_on_time_unit_var.get(),
+                self.hold_off_time_var.get(),
+                self.hold_off_time_unit_var.get(),
+                event=self.root.sonicmeasure_running,
+            )
         )
-        self.ramp_thread.daemon = True
-        self.ramp_thread.start()
-        self.ramp_thread.resume()
+        self.worker = asyncio.create_task(self.ramp_worker())
+        await asyncio.gather(self.ramp_task, self.worker)
+
+    async def ramp_worker(self) -> None:
+        await self.root.sonicamp.ramper.running.wait()
+        while (
+            self.root.sonicmeasure_running.is_set()
+            and self.root.sonicamp.ramper.running.is_set()
+        ):
+            await self.root.sonicamp.status_changed.wait()
+            self.root.serialize_data(
+                self.root.sonicamp.status, self.root.sonicmeasure_logfile
+            )
+            self.update_graph()
+            await asyncio.sleep(0.1)
+        self.stop_sonicmeasure()
 
     def stop_sonicmeasure(self) -> None:
         self.root.sonicmeasure_running.clear()
-        if self.ramp_thread is not None:
-            self.ramp_thread.shutdown()
 
         self._last_read_line = 1
         self.frequency_data.clear()
@@ -844,20 +661,11 @@ class SonicMeasure(ttk.Toplevel):
         self.irms_data.clear()
         self.phase_data.clear()
 
-        self.ani.pause()
-        self.ani.event_source.stop()
-        del self.ani
-
-        self.root.sonicamp.add_job(Command("-", type_="status"), 0)
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
             text="Start",
-            image=self.start_image,
+            image=self.root.start_image,
             command=self.start_sonicmeasure,
-        )
-        self.pause_resume_button.configure(
-            state=ttk.DISABLED,
-            command=self.resume_sonicmeasure,
         )
 
     def show_mainframe(self) -> None:
@@ -926,123 +734,3 @@ class SonicMeasure(ttk.Toplevel):
 
         # self.comment_frame.pack(pady=5)
         self.comment_entry.pack(padx=5, pady=5)
-
-
-class SonicMeasureRamp(SonicThread):
-    def __init__(
-        self,
-        parent: SonicMeasure,
-        start: int,
-        stop: int,
-        step: int,
-        hold_on_time: float = 1,
-        hold_on_time_unit: Literal["ms", "s"] = "ms",
-        hold_off_time: float = 0,
-        hold_off_time_unit: Literal["ms", "s"] = "ms",
-        type_: Literal["gain", "frequency"] = "frequency",
-        event: threading.Event = threading.Event(),
-    ) -> None:
-        super().__init__()
-        self.measure_frame = parent
-        self._sonicamp = self.measure_frame.root.sonicamp
-
-        self.running: threading.Event = event
-        self.to_send: str = "!f=" if type_ == "frequency" else "!g="
-
-        self.start_value: int = start
-        self.stop_value: int = stop
-        self.step_value: int = abs(step) if start < stop else -abs(step)
-        self.values: Iterable[int] = range(start, stop + step, step)
-
-        self.current_value: int = 0
-
-        self.hold_on_time: float = hold_on_time
-        self.hold_on_time_unit: Literal["ms", "s"] = hold_on_time_unit
-        self.hold_off_time: float = hold_off_time
-        self.hold_off_time_unit: Literal["ms", "s"] = hold_off_time_unit
-
-    def setup(self) -> None:
-        self._sonicamp.add_job(Command("!ON", type_="sonicmeasure"), 0)
-
-    def can_run(self) -> bool:
-        return self.running.is_set() and not self.shutdown_request.is_set()
-
-    def worker(self) -> None:
-        for value in self.values:
-            if not self.can_run():
-                return
-
-            command = Command(f"{self.to_send}{value}", type_="")
-            self._sonicamp.add_job(command, 0)
-            command.processed.wait()
-
-            if not self.can_run():
-                return
-
-            if self.hold_off_time:
-                command = Command(f"!ON", type_="")
-                self._sonicamp.add_job(command, 0)
-                command.processed.wait()
-
-            if not self.can_run():
-                return
-
-            command = Command("?sens", type_="sonicmeasure")
-            self._sonicamp.add_job(command, 0)
-            command.processed.wait()
-
-            if not self.can_run():
-                return
-
-            self.hold(command, self.hold_on_time, self.hold_on_time_unit)
-
-            if not self.can_run():
-                return
-
-            if self.hold_off_time:
-                command = Command(f"!OFF", type_="")
-                self._sonicamp.add_job(Command(f"!OFF", type_=""), 0)
-                command.processed.wait()
-
-                if not self.can_run():
-                    return
-
-                command = Command("?sens", type_="sonicmeasure")
-                self._sonicamp.add_job(command, 0)
-                command.processed.wait()
-
-                if not self.can_run():
-                    return
-
-                self.hold(command, self.hold_off_time, self.hold_off_time_unit)
-
-            if not self.can_run():
-                return
-
-    def hold(
-        self,
-        command: Optional[Command] = None,
-        duration: float = 10.0,
-        unit: str = "ms",
-        *args,
-        **kwargs,
-    ) -> None:
-        duration /= 1000.0 if unit == "ms" else 1.0
-        end_time = (command.timestamp if command else time.time()) + duration
-
-        while time.time() < end_time and self.can_run():
-            time.sleep(0.001)
-            remaining_time: float = end_time - time.time()
-            remaining_time = remaining_time if remaining_time < 10_000 else 0
-
-            if time.time() > end_time or not self.can_run():
-                return
-
-            # self.measure_frame.root.update_sonicamp(0, "sonicmeasure")
-            command = Command("?sens", type_="sonicmeasure")
-            self._sonicamp.add_job(command, 0)
-            command.processed.wait()
-            command.processed.clear()
-
-            if time.time() > end_time or not self.can_run():
-                return

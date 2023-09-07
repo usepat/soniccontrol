@@ -1,5 +1,5 @@
 import PIL
-from typing import Tuple
+from typing import Tuple, Literal
 from PIL.ImageTk import PhotoImage
 from soniccontrol.utils import resize_img
 from pathlib import Path
@@ -9,6 +9,7 @@ RESOURCES_DIR: Path = Path("resources")
 PICTURES_DIR: Path = RESOURCES_DIR / "pictures"
 FONTS_DIR: Path = RESOURCES_DIR / "fonts"
 DOCUMENTS_DIR: Path = RESOURCES_DIR / "documents"
+CONFIG_JSON: Path = Path("config.json")
 
 
 class Images:
@@ -72,14 +73,13 @@ class Images:
 
 
 class Events:
-    RESIZING: str = "<Configure>"
-    CONNECTION_ATTEMPT: str = "<<ConnectionAttempt>>"
-    DISCONNECTED: str = "<<Disconnected>>"
-    PORT_REFRESH: str = "<<PortRefresh>>"
-    SET_VALUES: str = "<<SetValues>>"
-    SET_FREQ: str = "<<SetFrequency>>"
-    SET_GAIN: str = "<<SetGain>>"
-    SET_TRD_CONFIG: str = "<<TransducerConfigurationChanged>>"
-    START_SCRIPT: str = "<<ScriptStarted>>"
-    STOP_SCRIPT: str = "<<ScriptStopped>>"
-    FIRMWARE_FLASH: str = "<<FirmwareFlash>>"
+    RESIZING: Literal["<Configure>"] = "<Configure>"
+    CONNECTION_ATTEMPT: Literal["<<ConnectionAttempt>>"] = "<<ConnectionAttempt>>"
+    DISCONNECTED: Literal["<<Disconnected>>"] = "<<Disconnected>>"
+    PORT_REFRESH: Literal["<<PortRefresh>>"] = "<<PortRefresh>>"
+    SET_TRD_CONFIG: Literal[
+        "<<TransducerConfigurationChanged>>"
+    ] = "<<TransducerConfigurationChanged>>"
+    SCRIPT_START: Literal["<<ScriptStarted>>"] = "<<ScriptStarted>>"
+    SCRIPT_STOP: Literal["<<ScriptStopped>>"] = "<<ScriptStopped>>"
+    FIRMWARE_FLASH: Literal["<<FirmwareFlash>>"] = "<<FirmwareFlash>>"

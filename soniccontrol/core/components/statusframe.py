@@ -1,44 +1,31 @@
-import logging
-import PIL
-from PIL.ImageTk import PhotoImage
-from typing import Iterable, Any, Optional
+from typing import Optional, Any
 import ttkbootstrap as ttk
-from soniccontrol.interfaces import (
+from PIL.ImageTk import PhotoImage
+
+from soniccontrol.core.interfaces import (
     RootChild,
-    Layout,
     Connectable,
     Disconnectable,
     Updatable,
+    Root,
 )
-from soniccontrol.interfaces.rootchild import (
-    RootChildFrame,
-    RootLabel,
-)
-import soniccontrol.constants as const
-from soniccontrol.interfaces.root import Root
-from soniccontrol.interfaces.horizontal_scrolled import HorizontalScrolledFrame
-
-logger = logging.getLogger(__name__)
+from soniccontrol.core.components.horzontal_scrolled import HorizontalScrolledFrame
 
 
-class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
+class StatusBar(RootChild, Connectable, Disconnectable, Updatable):
     def __init__(
-        self, parent_frame: Root, tab_title: str, image: PhotoImage, *args, **kwargs
-    ):
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-        # self._width_layouts: Iterable[Layout] = ()
-        # self._height_layouts: Iterable[Layout] = ()
-        # Small status
+        self,
+        master: Root,
+        tab_title: str = "Status Bar",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(master, tab_title, image=image, *args, **kwargs)
         self.configure(bootstyle=ttk.SECONDARY)
-        self.connection_image: PhotoImage = const.Images.get_image(
-            const.Images.CONNECTION_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
-        self.signal_image: PhotoImage = const.Images.get_image(
-            const.Images.LIGHTNING_IMG_WHITE, const.Images.BUTTON_ICON_SIZE
-        )
 
         self.soniccontrol_state_frame: ttk.Frame = ttk.Frame(self)
-        self.soniccontrol_state_label: RootLabel = RootLabel(
+        self.soniccontrol_state_label: ttk.Label = ttk.Label(
             self.soniccontrol_state_frame,
             bootstyle="inverse-secondary",
             textvariable=self.root.soniccontrol_state,
@@ -52,14 +39,14 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
         self.freq_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.freq_value_label: ttk.Label = ttk.Label(
             self.freq_frame,
-            textvariable=self.root.frequency_text,
+            textvariable=self.root.status_frequency_text_var,
             bootstyle="inverse-secondary",
         )
 
         self.gain_frame: ttk.Frame = ttk.Frame(self.scrolled_info)
         self.gain_value_label: ttk.Label = ttk.Label(
             self.gain_frame,
-            textvariable=self.root.gain_text,
+            textvariable=self.root.status_gain_text,
             bootstyle="inverse-secondary",
         )
 
@@ -107,62 +94,42 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
         self.connection_label: ttk.Label = ttk.Label(
             self.signal_frame,
             bootstyle="inverse-secondary",
-            # textvariable=self.root.connection_status,
-            image=self.connection_image,
+            image=self.root.connection_image_white,
             compound=ttk.LEFT,
         )
         self.signal_label: ttk.Label = ttk.Label(
             self.signal_frame,
             bootstyle="inverse-secondary",
-            # text='No signal output',
-            image=self.signal_image,
+            image=self.root.signal_image_white,
             compound=ttk.LEFT,
         )
         self.bind_events()
         self.publish()
 
-    def on_update(self) -> None:
+    def on_update(self, event: Any = None) -> None:
         pass
 
-    def on_error(self) -> None:
-        pass
+    def on_script_start(self) -> None:
+        self.soniccontrol_state_frame.configure(bootstyle=ttk.SUCCESS)
+        self.soniccontrol_state_label.configure(bootstyle="inverse-success")
 
-    def on_signal_change(self, event: Any = None) -> None:
-        pass
-
-    def on_temperature_change(self, event: Any = None) -> None:
-        pass
-
-    def on_frequency_change(self, event: Any = None) -> None:
-        pass
-
-    def on_gain_change(self, event: Any = None) -> None:
-        pass
-
-    def on_urms_change(self, event: Any = None) -> None:
-        pass
-
-    def on_irms_change(self, event: Any = None) -> None:
-        pass
-
-    def on_phase_change(self, event: Any = None) -> None:
-        pass
-
-    def on_mode_change(self, event: Any = None) -> None:
-        pass
-
-    def on_wipe_mode_change(self, event: Any = None) -> None:
-        logger.debug("Statuus on wipe mode change")
-        if self.root.wipe_mode.get():
-            self.soniccontrol_state_frame.configure(bootstyle=ttk.PRIMARY)
-            self.soniccontrol_state_label.configure(bootstyle="inverse-primary")
-            return
-        logger.debug("wipe mode false")
+    def on_script_stop(self) -> None:
         self.soniccontrol_state_frame.configure(bootstyle=ttk.SECONDARY)
         self.soniccontrol_state_label.configure(bootstyle="inverse-secondary")
 
+    def on_wipe_mode_change(self, event: Any = None) -> None:
+        if self.root.sonicamp.status.wipe_mode:
+            self.root.soniccontrol_state.animate_dots("Auto Mode")
+            self.soniccontrol_state_frame.configure(bootstyle=ttk.PRIMARY)
+            self.soniccontrol_state_label.configure(bootstyle="inverse-primary")
+        else:
+            self.root.soniccontrol_state.stop_animation_of_dots()
+            self.root.soniccontrol_state.set("Manual")
+            self.soniccontrol_state_frame.configure(bootstyle=ttk.SECONDARY)
+            self.soniccontrol_state_label.configure(bootstyle="inverse-secondary")
+
     def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:
-        if self.root.signal.get():
+        if self.root.sonicamp.status.signal:
             self.signal_label.configure(bootstyle="inverse-success")
         else:
             self.signal_label.configure(bootstyle="inverse-danger")
@@ -209,20 +176,16 @@ class StatusBarFrame(RootChildFrame, Connectable, Disconnectable, Updatable):
         self.publish_signal_connection_frame()
 
 
-class StatusFrame(RootChildFrame, Connectable, Updatable):
+class StatusFrame(RootChild, Connectable, Updatable):
     def __init__(
-        self, parent_frame: Root, tab_title: str, image: PIL.Image, *args, **kwargs
+        self,
+        master: Root,
+        tab_title: str = "Status",
+        image: Optional[PhotoImage] = None,
+        *args,
+        **kwargs,
     ) -> None:
-        super().__init__(parent_frame, tab_title, image, *args, **kwargs)
-        # self._width_layouts: Iterable[Layout] = ()
-        # self._height_layouts: Iterable[Layout] = ()
-        self.signal_off_image: PhotoImage = const.Images.get_image(
-            const.Images.LED_RED_IMG,
-            (25, 25),
-        )
-        self.signal_on_image: PhotoImage = const.Images.get_image(
-            const.Images.LED_GREEN_IMG, (25, 25)
-        )
+        super().__init__(master, tab_title, image=image, *args, **kwargs)
         self._initialize_tkinter_components()
         self.bind_events()
 
@@ -236,7 +199,7 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
             self.meter_frame,
             bootstyle=ttk.DARK,
             amounttotal=6_000,
-            amountused=self.root.frequency.get(),
+            amountused=self.root.status_frequency_khz_var.get(),
             textright="kHz",
             subtext="Frequency",
             metersize=150,
@@ -246,7 +209,7 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
             self.meter_frame,
             bootstyle=ttk.SUCCESS,
             amounttotal=150,
-            amountused=self.root.gain.get(),
+            amountused=self.root.status_gain.get(),
             textright="%",
             subtext="Gain",
             metersize=150,
@@ -296,7 +259,7 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
             anchor=ttk.CENTER,
             compound=ttk.LEFT,
             width=15,
-            image=self.signal_off_image,
+            image=self.root.signal_off_image,
             bootstyle="inverse-light",
             text="not connected",
         )
@@ -309,8 +272,7 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
             anchor=ttk.CENTER,
             compound=ttk.LEFT,
             width=10,
-            image=self.signal_off_image,
-            # bootstyle="inverse-secondary",
+            image=self.root.signal_off_image,
             bootstyle="inverse-light",
             text="signal off",
         )
@@ -327,51 +289,32 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
             text=None,
         )
 
-    def on_error(self) -> None:
-        pass
-
-    def on_signal_change(self, event: Any = None) -> None:
-        pass
-
     def on_frequency_change(self, event: Any = None) -> None:
-        self.freq_meter.configure(amountused=self.root.frequency.get())
+        self.freq_meter.configure(
+            amountused=self.root.status_frequency_khz_var.get() / 1000
+        )
 
     def on_gain_change(self, event: Any = None) -> None:
-        self.gain_meter.configure(amountused=self.root.gain.get())
+        self.gain_meter.configure(amountused=self.root.status_gain.get())
 
     def on_temperature_change(self, event: Any = None) -> None:
-        logger.debug("Executing temp update....")
         self.temp_meter.configure(amountused=self.root.temperature.get())
 
-    def on_urms_change(self, event: Any = None) -> None:
-        pass
-
-    def on_irms_change(self, event: Any = None) -> None:
-        pass
-
-    def on_phase_change(self, event: Any = None) -> None:
-        pass
-
-    def on_mode_change(self, event: Any = None) -> None:
-        pass
-
-    def on_wipe_mode_change(self, event: Any = None) -> None:
-        pass
-
     def on_signal_change(self, event: Any = None, *args, **kwargs) -> None:
-        if self.root.signal.get():
+        if self.root.sonicamp.status.signal:
             self.signal_status_label.configure(
                 text="signal ON",
-                image=self.signal_on_image,
+                image=self.root.signal_on_image,
             )
         else:
             self.signal_status_label.configure(
                 text="signal OFF",
-                image=self.signal_off_image,
+                image=self.root.signal_off_image,
             )
 
     def on_connect(self, event: Any = None) -> None:
-        self.connection_status_label["image"] = self.signal_on_image
+        self.connection_status_label["image"] = self.root.signal_on_image
+        self.connection_status_label["text"] = "connected"
         return self.publish()
 
     def on_update(self, event: Any = None) -> None:
@@ -398,133 +341,6 @@ class StatusFrame(RootChildFrame, Connectable, Updatable):
             side=ttk.LEFT, padx=5, fill=ttk.X, expand=True, anchor=ttk.W
         )
 
-        # self.urms_frame.grid(row=0, column=0, sticky=ttk.NSEW)
-        # self.irms_frame.grid(row=0, column=1, sticky=ttk.NSEW)
-        # self.phase_frame.grid(row=0, column=2, sticky=ttk.NSEW)
-
         self.overview_frame.pack(fill=ttk.X, ipadx=3, pady=3)
         self.connection_status_label.pack(fill=ttk.X, side=ttk.LEFT, expand=True)
         self.signal_status_label.pack(fill=ttk.X, side=ttk.LEFT, expand=True)
-
-
-"""
-class SCStatusFrame(RootChildFrame, Connectable):
-    def __init__(
-        self,
-        parent: ttk.Frame,
-        image,
-        *args,
-        **kwargs,
-    ) -> None:
-        super().__init__(parent, root, tab_position, image, *args, **kwargs)
-        self.update_register_dict: UpdateRegisterDict = {
-            "frequency": {"value": 0, "updater": self.update_meter_freq},
-            "gain": {"value": 0, "updater": self.update_meter_gain},
-            "temperature": {"value": 0.0, "updater": self.update_meter_temp},
-            "urms": {"value": 0.0, "updater": self.update_urms},
-            "irms": {"value": 0.0, "updater": self.update_irms},
-            "phase": {"value": 0.0, "updater": self.update_phase},
-            "signal": {"value": False, "updater": self.update_signal},
-            "connection": {"value": False, "updater": self.update_connection},
-        }
-        self._update_register_default: UpdateRegisterDict = copy.deepcopy(
-            self.update_register_dict
-        )
-
-    
-
-    
-
-    def attach_data(self, status: Status) -> None:
-        self.check_error(status.error)
-        status_dict: Dict[StatusData] = status.__dict__
-        updaters: Iterable[Tuple[StatusUpdater, StatusData]] = (
-            (self.update_register_dict[key]["updater"], status_dict[key])
-            for key in self.update_register_dict.keys()
-            if self.update_register_dict[key]["value"] != status_dict.get(key)
-        )
-        for updater, data in updaters:
-            updater(data)
-
-    def abolish_data(self) -> None:
-        for key in self._update_register_default.keys():
-            self._update_register_default[key]["updater"](
-                self._update_register_default[key]["value"]
-            )
-
-    def update_signal(self, state: bool) -> None:
-        if state:
-            self._toggle_virtual_led(
-                self.signal_status_label, state, const.STRINGS.SIGNAL_ON_TXT
-            )
-        else:
-            self._toggle_virtual_led(
-                self.signal_status_label, state, const.STRINGS.SIGNAL_OFF_TXT
-            )
-        self.update_register_dict["signal"]["value"] = state
-
-    def update_signal(self, state: bool) -> None:
-        if state:
-            self._toggle_virtual_led(
-                self.connection_status_label, state, const.STRINGS.CONNECTED_TXT
-            )
-        else:
-            self._toggle_virtual_led(
-                self.connection_status_label, state, const.STRINGS.NOT_CONNECTED_TXT
-            )
-        self.update_register_dict["connection"]["value"] = state
-
-    def update_meter_freq(self, freq: int) -> None:
-        self._toggle_meter_frame(self.freq_meter, freq)
-        self.update_register_dict["frequency"]["value"] = freq
-
-    def update_meter_gain(self, gain: int) -> None:
-        self._toggle_meter_frame(self.gain_meter, gain)
-        self.update_register_dict["gain"]["value"] = gain
-
-    def update_meter_temp(self, temp: int) -> None:
-        if temp < 0:
-            self._toggle_meter_frame(
-                self.temp_meter, temp * (-1), const.numbers.MAX_NEGATIVE_TEMP, ttkb.INFO
-            )
-        else:
-            self._toggle_meter_frame(
-                self.temp_meter, temp, const.numbers.MAX_POSITIVE_TEMP, ttkb.WARNING
-            )
-        self._temp_using = temp
-
-    def update_urms(self, urms: Union[float, int]) -> None:
-        self.urms_label["text"] = f"urms: {urms}"
-        self.update_register_dict["urms"]["value"] = urms
-
-    def update_irms(self, irms: Union[float, int]) -> None:
-        self.irms_label["text"] = f"irms: {irms}"
-        self.update_register_dict["irms"]["value"] = irms
-
-    def update_phase(self, phase: int) -> None:
-        self.urms_label["text"] = f"phase: {phase}"
-        self.update_register_dict["phase"]["value"] = phase
-
-    def _toggle_virtual_led(self, label: ttk.Label, state: bool, text: str) -> None:
-        image = (
-            self.root.images.LED_GREEN_IMG if state else self.root.images.LED_RED_IMG
-        )
-        label["image"] = image
-        label["text"] = text
-
-    def _toggle_meter_frame(
-        self,
-        meter: ttkb.Meter,
-        amountused: int,
-        amounttotal: Optional[int] = None,
-        style: Optional[str] = None,
-    ) -> None:
-        if (amounttotal is not None) or (amounttotal != meter["amounttotal"]):
-            meter["amounttotal"] = amounttotal
-        meter["amountused"] = (
-            amountused if amountused != meter["amountused"] else meter["amountused"]
-        )
-        meter["bootstyle"] = (
-            style if style != meter["bootstyle"] else meter["bootstyle"]
-        )
-"""
