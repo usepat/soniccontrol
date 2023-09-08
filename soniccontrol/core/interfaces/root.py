@@ -314,7 +314,6 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
 
     @async_handler
     async def on_connection_attempt(self, event: Any = None, *args, **kwargs) -> None:
-        logger.debug("Starting connection attempt...")
         self.serial = SerialCommunicator(self.port.get())
         await self.serial.setup()
         self.sonicamp = await SonicAmp.build_amp(serial=self.serial)
@@ -345,8 +344,6 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
                 self.phase.set(self.sonicamp.status.phase)
                 self.on_update()
                 self.serialize_data(self.sonicamp.status, self.status_log_filepath)
-                if self.sonicmeasure_running.is_set():
-                    self.serialize_data(self.sonicamp.status, self.sonicmeasure_logfile)
                 await asyncio.sleep(0.1)
 
         self.should_update.set()
@@ -380,8 +377,8 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
                 )
                 and hasattr(child, method)
             )
-            logger.debug(f"Methods to call status update: {methods_for_changed_values}")
             for method in methods_for_changed_values:
+                logger.debug(f"Calling method {method}")
                 method()
 
         self.old_status = copy.deepcopy(self.sonicamp.status)

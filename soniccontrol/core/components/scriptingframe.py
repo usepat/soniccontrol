@@ -4,6 +4,7 @@ import sys
 import logging
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
+from ttkbootstrap.dialogs import Messagebox
 from async_tkinter_loop import async_handler
 from PIL.ImageTk import PhotoImage
 
@@ -22,7 +23,7 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
         **kwargs,
     ) -> None:
         super().__init__(master, tab_title, image=image, *args, **kwargs)
-
+        self.sequence_task: Optional[asyncio.Task] = None
         self.current_task_var: ttk.StringVar = ttk.StringVar(value="Idle")
         self.navigation_button_frame: ttk.Frame = ttk.Frame(self)
         self.top_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
@@ -103,16 +104,28 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
         )
         self.menue_button.configure(state=ttk.DISABLED)
         self.sequence_status.start()
-        sequence_task = asyncio.create_task(
-            self.root.sonicamp.sequence(self.scripttext.get(1.0, ttk.END))
+
+        self.sequence_task = asyncio.create_task(
+            self.root.sonicamp.sequence(self.scripttext.get(1.0, ttk.END)),
         )
+
+        await asyncio.sleep(0.5)
+        if self.sequence_task.done() and self.sequence_task.exception() is not None:
+            logger.warning(f"{self.sequence_task.exception()}")
+            Messagebox.show_warning(f"{self.sequence_task.exception()}")
+            return self.stop_script()
+
         self.root.on_script_start()
         self.script_engine()
 
     @async_handler
     async def script_engine(self) -> None:
         await self.root.sonicamp.sequencer.running.wait()
-        while self.root.sonicamp.sequencer.running.is_set():
+        while (
+            self.sequence_task is not None
+            and not self.sequence_task.done()
+            and self.root.sonicamp.sequencer.running.is_set()
+        ):
             self.highlight_line(self.root.sonicamp.sequencer.current_line)
             try:
                 if self.root.sonicamp.ramper.running.is_set():
@@ -125,6 +138,11 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
                 logger.debug(sys.exc_info())
                 self.current_task_var.set("")
             await asyncio.sleep(0.05)
+
+        if self.sequence_task.exception() is not None:
+            logger.warning(f"{self.sequence_task.exception()}")
+            Messagebox.show_warning(f"{self.sequence_task.exception()}")
+
         await asyncio.Condition().wait_for(
             lambda: not self.root.sonicamp.sequencer.running.is_set()
         )
@@ -205,7 +223,7 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
 class ScriptGuide(ttk.Toplevel):
     def __init__(self, parent, scripttext, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
-        self.parent: ttk.Frame = parent
+        self.parent: ScriptingFrame = parent
         self.scripttext: ttk.ScrolledText = scripttext
 
         self.card_data: Tuple[Dict[str, str], ...] = (

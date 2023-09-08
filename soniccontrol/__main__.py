@@ -9,3 +9,13 @@ if __name__ == "__main__":
     else:
         sc: SonicControl = SonicControl()
         async_mainloop(sc)
+
+"""
+startloop
+frequency 50000000
+gain 150
+off
+hold 3s
+ramp_freq 1000000 2000000 10000 100ms
+endloop
+"""

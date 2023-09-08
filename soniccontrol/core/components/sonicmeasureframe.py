@@ -51,7 +51,7 @@ class SonicMeasureFrame(RootChild, Connectable):
             style=ttk.SUCCESS,
             image=self.root.start_image,
             compound=ttk.RIGHT,
-            command=self.start_sonicmeasure,
+            command=self.start_liveplot,
         )
         self.spectrum_button: ttk.Button = ttk.Button(
             self.button_frame,
@@ -106,16 +106,17 @@ class SonicMeasureFrame(RootChild, Connectable):
 
     def open_spectrum_measure(self) -> None:
         self.window = SonicMeasure(self.root, self)
+        self.spectrum_button.configure(state=ttk.DISABLED)
 
     @async_handler
-    async def start_sonicmeasure(self) -> None:
+    async def start_liveplot(self) -> None:
         self.running.set()
         self.start_stop_button.configure(
             text="Stop",
             bootstyle=ttk.DANGER,
             image=self.root.pause_image,
             compound=ttk.RIGHT,
-            command=self.stop_sonicmeasure,
+            command=self.stop_liveplot,
         )
         self.live_plot_engine()
 
@@ -127,13 +128,13 @@ class SonicMeasureFrame(RootChild, Connectable):
             self.update_graph()
             await asyncio.sleep(0.2)
 
-    def stop_sonicmeasure(self) -> None:
+    def stop_liveplot(self) -> None:
         self.running.clear()
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
             text="Start",
             image=self.root.start_image,
-            command=self.start_sonicmeasure,
+            command=self.start_liveplot,
         )
         self.figure.clear(keep_observers=False)
 
@@ -618,6 +619,7 @@ class SonicMeasure(ttk.Toplevel):
             writer.writeheader()
 
         try:
+            await self.root.sonicamp.set_relay_mode_mhz()
             await self.root.sonicamp.set_frequency(self.root.set_frequency_var.get())
             await self.root.sonicamp.set_gain(self.root.set_gain_var.get())
         except Exception as e:

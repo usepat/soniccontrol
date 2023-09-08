@@ -43,9 +43,11 @@ class Command:
     response_time: float = attrs.field(default=0.3)
     expects_long_answer: bool = attrs.field(default=False, repr=False)
     answer_received: asyncio.Event = attrs.field(factory=asyncio.Event)
-    regex_match_groups: Tuple[str] = attrs.field(factory=tuple)
+    regex_match_groups: Tuple[str] = attrs.field(factory=tuple, repr=True)
 
-    _validation_pattern: Optional[CommandValidationDict] = attrs.field(default=None)
+    _validation_pattern: Optional[CommandValidationDict] = attrs.field(
+        default=None, repr=False
+    )
     _answer_string: str = attrs.field(default="")
     _answer_lines: List[str] = attrs.field(factory=list)
     _answer_received_timestamp: float = attrs.field(factory=time.time)
@@ -113,6 +115,30 @@ class Commands:
         }
 
     @attrs.define
+    class SetSwitchingFrequency(Command):
+        message: str = attrs.field(default="!swf=")
+        _validation_pattern: CommandValidationDict = {
+            "pattern": r"freq[uency]*\s*=?\s*([\d]+)",
+            "return_type": int,
+        }
+
+    @attrs.define
+    class GetOverview(Command):
+        message: str = attrs.field(default="?")
+        response_time: float = 0.5
+        expects_long_answer: bool = True
+
+    @attrs.define
+    class GetInfo(Command):
+        message: str = attrs.field(default="?")
+        response_time: float = 0.5
+        expects_long_answer: bool = True
+        _validation_pattern: CommandValidationDict = {
+            "pattern": r".*ver.*([\d]+[.][\d]+).*",
+            "return_type": str,
+        }
+
+    @attrs.define
     class GetStatus(Command):
         message: str = attrs.field(default="-")
         response_time = 0.15
@@ -127,6 +153,22 @@ class Commands:
         response_time = 0.4
         _validation_pattern: CommandValidationDict = {
             "pattern": r"([\d]+)(?:[\s])+([\d]+)",
+            "return_type": str,
+        }
+
+    @attrs.define
+    class SetAnalogMode(Command):
+        message: str = attrs.field(default="!ANALOG")
+        _validation_pattern: CommandValidationDict = {
+            "pattern": r".*mode.*analog.*",
+            "return_type": str,
+        }
+
+    @attrs.define
+    class SetSerialMode(Command):
+        message: str = attrs.field(default="!SERIAL")
+        _validation_pattern: CommandValidationDict = {
+            "pattern": r".*mode.*serial.*",
             "return_type": str,
         }
 
@@ -283,6 +325,7 @@ class CommandValidator:
                 command_type().validation_pattern["pattern"], re.IGNORECASE
             )
             for command_type in self.sonicamp.commands
+            if command_type().validation_pattern is not None
         }
 
     def accepts(self, command: Command) -> bool:
@@ -301,6 +344,7 @@ class CommandValidator:
         try:
             command.value = command.validation_pattern["return_type"](match.group(1))
         except Exception as e:
+            command.value = match.group(0)
             logger.warning(sys.exc_info())
         finally:
             command.regex_match_groups = match.groups()
@@ -781,21 +825,23 @@ class Ramp:
     def current_value(self) -> int:
         return self._current_value
 
-    async def update(self) -> None:
+    async def update(self, update_strategy: Callable[[Any], Any] = None) -> None:
         await self.running.wait()
         if self.external_event is not None:
             return
         while self.external_event.is_set() and self.running.is_set():
-            if self.sonicamp.status.signal:
-                status = await self.sonicamp.get_sens()
+            if update_strategy is None:
+                await self.sonicamp.get_status()
             else:
-                status = await self.sonicamp.get_status()
-            logger.debug(status)
+                await update_strategy()
 
-    async def execute(self) -> None:
-        update_task = asyncio.create_task(self.update())
+    async def execute(
+        self, update_coroutine: Optional[Callable[[Any], Any]] = None
+    ) -> None:
+        update_task = asyncio.create_task(self.update(update_coroutine))
         ramping_task = asyncio.create_task(self.ramp())
         await asyncio.gather(ramping_task, update_task)
+        await self.sonicamp.set_signal_off()
 
     async def ramp(self) -> None:
         await self.sonicamp.set_frequency(self.start_value)
@@ -990,16 +1036,15 @@ class Sequence:
     def current_command(self) -> str:
         return self._current_command
 
-    async def update(self) -> None:
+    async def update(self, update_strategy: Callable[[Any], Any] = None) -> None:
         await self.running.wait()
         while self.running.is_set():
-            if self._sonicamp.status.signal:
-                status = await self._sonicamp.get_sens()
-            else:
+            if update_strategy is None:
                 status = await self._sonicamp.get_status()
-            logger.debug(status)
+            else:
+                await update_strategy()
 
-    async def execute(self) -> None:
+    async def execute(self, update_strategy: Callable[[Any], Any] = None) -> None:
         update_task = asyncio.create_task(self.update())
         ramping_task = asyncio.create_task(self.loop())
         await asyncio.gather(ramping_task, update_task)
@@ -1073,6 +1118,7 @@ class Sequence:
             case "off":
                 await self._sonicamp.set_signal_off()
             case _:
+                self.running.clear()
                 raise ValueError(f"{command} is not valid.")
 
 
@@ -1092,7 +1138,16 @@ class SonicAmpFactory:
         info: Info = Info.from_firmware(
             firmware_info=firmware.answer_string, device_type=device_type.answer_string
         )
-        return SonicAmp(serial, info=info)
+
+        if info.device_type == "soniccatch" and info.version == 0.4:
+            return SonicCatch(serial, info=info)
+        elif info.device_type == "sonicdescale" and info.version == 41:
+            return SonicDescale(serial, info=info)
+        else:
+            raise NotImplementedError(
+                "This device seems not to be implemented for sonicpackage!"
+            )
+            return SonicAmp(serial, info=info)
 
 
 class SonicAmp:
@@ -1104,39 +1159,26 @@ class SonicAmp:
         self.status_changed: asyncio.Event = asyncio.Event()
         self.info: Info = info
 
-        self.commands: Iterable[type] = (
-            Commands.SetFrequency,
-            Commands.SetGain,
-            Commands.SetKhzMode,
-            Commands.SetMhzMode,
+        self.commands: List[type] = [
             Commands.SetSignalOn,
             Commands.SetSignalOff,
-            Commands.SetSignalAuto,
-            Commands.GetSens,
-            Commands.GetStatus,
-            Commands.GetATF1,
-            Commands.GetATF2,
-            Commands.GetATF3,
-            Commands.SetATF1,
-            Commands.SetATF2,
-            Commands.SetATF3,
-            Commands.SetATK1,
-            Commands.SetATK2,
-            Commands.SetATK3,
-            Commands.SetATT1,
-            Commands.GetATT1,
-        )
-        self.command_validator: CommandValidator = CommandValidator(self)
+            Commands.GetInfo,
+            Commands.GetOverview,
+        ]
 
-        self.ramper: Optional[Ramp] = Ramp(self, 1000000, 2000000, 10)
+        self.command_validator: CommandValidator = CommandValidator(self)
+        self.ramper: Optional[Ramp] = Ramp(self, 0, 0, 10)
         self.holder: Optional[Hold] = Hold(1)
         self.sequencer: Optional[Sequence] = Sequence(self, "")
-
         self.check_command(self.serial.init_command)
 
     @staticmethod
     async def build_amp(serial: SerialCommunicator) -> SonicAmp:
         return await SonicAmpFactory.build_amp(serial)
+
+    def add_commands(self, commands: Iterable[type]) -> None:
+        self.commands.extend(commands)
+        self.command_validator = CommandValidator(self)
 
     async def send_command(self, message: str = "") -> str:
         command = await self.execute_command(
@@ -1150,7 +1192,6 @@ class SonicAmp:
         *args,
         **kwargs,
     ) -> Command:
-        logger.debug(f"Executing command {command}")
         await self.serial.command_queue.put(command)
         await command.answer_received.wait()
         self.check_command(command)
@@ -1167,6 +1208,139 @@ class SonicAmp:
         self.status_changed.set()
         self.status_changed.clear()
         logger.debug(f"Status updated: {self.status}")
+
+    def scan_command(self, command) -> None:
+        if isinstance(command, Commands.GetOverview):
+            pass
+        elif isinstance(command, Commands.GetInfo):
+            pass
+        elif isinstance(command, Commands.SetSignalOn):
+            self.update_status(command, signal=True)
+        elif isinstance(command, Commands.SetSignalOff):
+            self.update_status(command, signal=False, urms=0.0, irms=0.0, phase=0.0)
+
+    def get_status(self) -> Status:
+        ...
+
+    def check_command(self, command: Command) -> None:
+        for answer in command.answer_lines:
+            potential_command: Optional[Command] = self.command_validator.find_command(
+                answer
+            )
+            if potential_command:
+                potential_command._answer_received_timestamp = (
+                    command._answer_received_timestamp
+                )
+                self.scan_command(potential_command)
+
+    async def set_signal_off(self) -> str:
+        command = await self.execute_command(Commands.SetSignalOff())
+        return command.answer_string
+
+    async def set_signal_on(self) -> str:
+        command = await self.execute_command(Commands.SetSignalOn())
+        return command.answer_string
+
+    async def get_info(self) -> str:
+        command = await self.execute_command(Commands.GetInfo())
+        return command.answer_string
+
+    async def get_overview(self) -> str:
+        command = await self.execute_command(Commands.GetOverview())
+        return command.answer_string
+
+    async def update_strategy(self) -> Status:
+        ...
+
+    async def sequence(self, script: str) -> None:
+        self.sequencer = Sequence(self, script)
+        await self.sequencer.execute(self.update_strategy)
+
+    async def hold(
+        self,
+        duration: float = 100,
+        unit: Literal["ms", "s"] = "ms",
+        event: asyncio.Event = asyncio.Event(),
+    ) -> None:
+        self.holder = Hold(duration=duration, unit=unit, external_event=event)
+        await self.holder.execute()
+
+    async def ramp_freq(
+        self,
+        start: int,
+        stop: int,
+        step: int = 100,
+        hold_on_time: float = 50,
+        hold_on_time_unit: Literal["ms", "s"] = "ms",
+        hold_off_time: float = 0,
+        hold_off_time_unit: Literal["ms", "s"] = "ms",
+        event: asyncio.Event = asyncio.Event(),
+    ) -> None:
+        self.ramper = Ramp(
+            self,
+            start,
+            stop,
+            step,
+            hold_on_time,
+            hold_on_time_unit,
+            hold_off_time,
+            hold_off_time_unit,
+            external_event=event,
+        )
+        await self.ramper.execute(self.update_strategy)
+
+    async def ramp_gain(
+        self,
+        start: int,
+        stop: int,
+        step: int,
+        hold_on_time: float,
+        hold_on_time_unit: Literal["ms", "s"],
+        hold_off_time: float,
+        hold_off_time_unit: Literal["ms", "s"],
+        event: asyncio.Event = asyncio.Event(),
+    ) -> None:
+        self.ramper = Ramp(
+            self,
+            start,
+            stop,
+            step,
+            hold_on_time,
+            hold_on_time_unit,
+            hold_off_time,
+            hold_off_time_unit,
+            external_event=event,
+        )
+        asyncio.create_task(self.ramper.execute(self.update_strategy))
+
+
+class SonicCatch(SonicAmp):
+    def __init__(
+        self, serial: SerialCommunicator, status: Status = Status(), info: Info = Info()
+    ) -> None:
+        super().__init__(serial, status, info)
+        self.add_commands(
+            (
+                Commands.SetFrequency,
+                Commands.SetGain,
+                Commands.SetKhzMode,
+                Commands.SetMhzMode,
+                Commands.SetSignalAuto,
+                Commands.GetSens,
+                Commands.GetStatus,
+                Commands.GetATF1,
+                Commands.GetATF2,
+                Commands.GetATF3,
+                Commands.SetATF1,
+                Commands.SetATF2,
+                Commands.SetATF3,
+                Commands.SetATK1,
+                Commands.SetATK2,
+                Commands.SetATK3,
+                Commands.SetATT1,
+                Commands.GetATT1,
+            )
+        )
 
     def scan_command(self, command) -> None:
         if isinstance(command, Commands.SetFrequency):
@@ -1188,10 +1362,6 @@ class SonicAmp:
             logger.debug(f"Status updated: {self.status}")
             self.status_changed.set()
             self.status_changed.clear()
-        elif isinstance(command, Commands.SetSignalOn):
-            self.update_status(command, signal=True)
-        elif isinstance(command, Commands.SetSignalOff):
-            self.update_status(command, signal=False, urms=0.0, irms=0.0, phase=0.0)
         elif isinstance(command, Commands.SetSignalAuto):
             self.update_status(command, protocol=110)
         elif isinstance(command, Commands.SetMhzMode):
@@ -1204,19 +1374,16 @@ class SonicAmp:
             self.update_status(command, atf2=command.value)
         elif isinstance(command, Commands.SetATF3):
             self.update_status(command, atf3=command.value)
+        else:
+            return super().scan_command(command)
 
-    def check_command(self, command: Command) -> None:
-        for answer in command.answer_lines:
-            potential_command: Optional[Command] = self.command_validator.find_command(
-                answer
-            )
-            if potential_command:
-                potential_command._answer_received_timestamp = (
-                    command._answer_received_timestamp
-                )
-                logger.debug(f"Original Command: {command}")
-                logger.debug(f"Potential Command: {command}")
-                self.scan_command(potential_command)
+    async def update_strategy(self) -> Status:
+        if self.status.signal and self.status.relay_mode == "mhz":
+            status = await self.get_sens()
+        elif (time.time() - self.last_overview_timestamp) > 10:
+            status = await self.get_overview()
+        else:
+            status = await self.get_status()
 
     async def set_frequency(self, frequency: int) -> str:
         command = await self.execute_command(Commands.SetFrequency(value=frequency))
@@ -1290,14 +1457,6 @@ class SonicAmp:
         command = await self.execute_command(Commands.GetSens())
         return self.status
 
-    async def set_signal_off(self) -> str:
-        command = await self.execute_command(Commands.SetSignalOff())
-        return command.answer_string
-
-    async def set_signal_on(self) -> str:
-        command = await self.execute_command(Commands.SetSignalOn())
-        return command.answer_string
-
     async def set_signal_auto(self) -> str:
         command = await self.execute_command(Commands.SetSignalAuto())
         return command.answer_string
@@ -1310,63 +1469,53 @@ class SonicAmp:
         command = await self.execute_command(Commands.SetMhzMode())
         return command.answer_string
 
-    async def sequence(self, script: str) -> None:
-        self.sequencer = Sequence(self, script)
-        await self.sequencer.execute()
 
-    async def hold(
-        self,
-        duration: float = 100,
-        unit: Literal["ms", "s"] = "ms",
-        event: asyncio.Event = asyncio.Event(),
+class SonicDescale(SonicAmp):
+    def __init__(
+        self, serial: SerialCommunicator, status: Status = Status(), info: Info = Info()
     ) -> None:
-        self.holder = Hold(duration=duration, unit=unit, external_event=event)
-        await self.holder.execute()
-
-    async def ramp_freq(
-        self,
-        start: int,
-        stop: int,
-        step: int = 100,
-        hold_on_time: float = 50,
-        hold_on_time_unit: Literal["ms", "s"] = "ms",
-        hold_off_time: float = 0,
-        hold_off_time_unit: Literal["ms", "s"] = "ms",
-        event: asyncio.Event = asyncio.Event(),
-    ) -> None:
-        self.ramper = Ramp(
-            self,
-            start,
-            stop,
-            step,
-            hold_on_time,
-            hold_on_time_unit,
-            hold_off_time,
-            hold_off_time_unit,
-            external_event=event,
+        super().__init__(serial, status, info)
+        self.add_commands(
+            (
+                Commands.SetSwitchingFrequency,
+                Commands.SetGain,
+                Commands.SetAnalogMode,
+                Commands.SetSerialMode,
+            )
         )
-        await self.ramper.execute()
 
-    async def ramp_gain(
-        self,
-        start: int,
-        stop: int,
-        step: int,
-        hold_on_time: float,
-        hold_on_time_unit: Literal["ms", "s"],
-        hold_off_time: float,
-        hold_off_time_unit: Literal["ms", "s"],
-        event: asyncio.Event = asyncio.Event(),
-    ) -> None:
-        self.ramper = Ramp(
-            self,
-            start,
-            stop,
-            step,
-            hold_on_time,
-            hold_on_time_unit,
-            hold_off_time,
-            hold_off_time_unit,
-            external_event=event,
+    async def scan_command(self, command) -> None:
+        if isinstance(command, Commands.SetSwitchingFrequency):
+            pass
+        elif isinstance(command, Commands.SetAnalogMode):
+            pass
+        elif isinstance(command, Commands.SetSerialMode):
+            pass
+        elif isinstance(command, Commands.SetGain):
+            pass
+        else:
+            return super().scan_command(command)
+
+    async def update_strategy(self) -> Status:
+        return await self.get_overview()
+
+    async def get_status(self) -> Status:
+        return self.get_overview()
+
+    async def set_switching_frequency(self, frequency: int) -> str:
+        command = await self.execute_command(
+            Commands.SetSwitchingFrequency(value=frequency)
         )
-        asyncio.create_task(self.ramper.execute())
+        return command.answer_string
+
+    async def set_gain(self, gain: int) -> str:
+        command = await self.execute_command(Commands.SetGain(value=gain))
+        return command.answer_string
+
+    async def set_analog_mode(self, frequency: int) -> str:
+        command = await self.execute_command(Commands.SetAnalogMode())
+        return command.answer_string
+
+    async def set_serial_mode(self, frequency: int) -> str:
+        command = await self.execute_command(Commands.SetSerialMode())
+        return command.answer_string
