@@ -2,6 +2,7 @@ from typing import Optional, Any, Tuple, Dict, Callable
 import asyncio
 import sys
 import logging
+import copy
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 from ttkbootstrap.dialogs import Messagebox
@@ -228,10 +229,28 @@ class ScriptGuide(ttk.Toplevel):
 
         self.card_data: Tuple[Dict[str, str], ...] = (
             {
-                "keyword": "frequency",
-                "arguments": "frequency: uint",
-                "description": "Set the frequency of the device",
-                "example": "frequency 1000000",
+                "keyword": "startloop",
+                "arguments": "times: optional uint",
+                "description": "Starts a loop and loops until an endloop was found. If no argument was passed, then the loop turns to a 'While True loop'",
+                "example": "startloop 5",
+            },
+            {
+                "keyword": "endloop",
+                "arguments": "None",
+                "description": "Ends the last started loop",
+                "example": "endloop",
+            },
+            {
+                "keyword": "on",
+                "arguments": "None",
+                "description": "Sets the signal to ON",
+                "example": "on",
+            },
+            {
+                "keyword": "off",
+                "arguments": "None",
+                "description": "Set the signal to OFF",
+                "example": "off",
             },
             {
                 "keyword": "gain",
@@ -251,28 +270,31 @@ class ScriptGuide(ttk.Toplevel):
                 "description": "Ramp up the frequency from\none point to another",
                 "example": "ramp_freq 1000000 2000000 1000 100ms 100ms",
             },
-            {
-                "keyword": "ramp_gain",
-                "arguments": "start: uint,\nstop: uint,\nstep: int,\non_signal_hold: uint,\nunit: 'ms' or 's',\noff_signal_hold: uint,\nunit: 'ms' or 's'",
-                "description": "Ramp up the gain from\none point to another",
-                "example": "ramp_gain 10 100 10 100ms 100ms",
-            },
-            {
-                "keyword": "chirp_freq_series",
-                "arguments": "start: uint,\ndifference: uint,\nstep: int,\non_signal_hold: uint,\nunit: 'ms' or 's',\noff_signal_hold: uint,\nunit: 'ms' or 's'\ntimes: uint",
-                "description": "Ramp up the frequency from\nthe start to the upper and lower difference.",
-                "example": "chirp_freq_series 1000000 2000000 1000 100ms 100ms",
-            },
+            # {
+            #     "keyword": "ramp_gain",
+            #     "arguments": "start: uint,\nstop: uint,\nstep: int,\non_signal_hold: uint,\nunit: 'ms' or 's',\noff_signal_hold: uint,\nunit: 'ms' or 's'",
+            #     "description": "Ramp up the gain from\none point to another",
+            #     "example": "ramp_gain 10 100 10 100ms 100ms",
+            # },
+            # {
+            #     "keyword": "chirp_freq_series",
+            #     "arguments": "start: uint,\ndifference: uint,\nstep: int,\non_signal_hold: uint,\nunit: 'ms' or 's',\noff_signal_hold: uint,\nunit: 'ms' or 's'\ntimes: uint",
+            #     "description": "Ramp up the frequency from\nthe start to the upper and lower difference.",
+            #     "example": "chirp_freq_series 1000000 2000000 1000 100ms 100ms",
+            # },
         )
 
         self.scrolled_frame: ScrolledFrame = ScrolledFrame(self)
         self.scrolled_frame.pack(expand=True, fill=ttk.BOTH)
 
         for data in self.card_data:
+            insert_command: Callable[[Any], Any] = lambda event, text=data["example"]: (
+                self.insert_text(text)
+            )
             card: ScriptingGuideCard = ScriptingGuideCard(
-                self.scrolled_frame,
-                data,
-                lambda event: self.insert_text(data["example"]),
+                parent=self.scrolled_frame,
+                data=data,
+                callback=insert_command,
             )
             card.pack(expand=True, fill=ttk.BOTH, padx=20, pady=15)
             card.publish()
@@ -281,6 +303,7 @@ class ScriptGuide(ttk.Toplevel):
 
     def on_closing(self) -> None:
         self.parent.script_guide_btn.configure(state=ttk.NORMAL)
+        self.destroy()
 
     def insert_text(self, text: str) -> None:
         self.scripttext.insert(self.scripttext.index(ttk.INSERT), f"{text}\n")
@@ -296,8 +319,8 @@ class ScriptingGuideCard(ttk.Labelframe):
         **kwargs,
     ) -> None:
         super().__init__(parent, *args, **kwargs)
-        self.data: Dict[str, str] = data
-        self.callback: Callable[[Any], Any] = callback
+        self.data: Dict[str, str] = copy.deepcopy(data)
+        self.callback: Callable[[Any], Any] = copy.deepcopy(callback)
 
         self.keyword_frame: ttk.Frame = ttk.Frame(self)
         self.keyword_label: ttk.Label = ttk.Label(

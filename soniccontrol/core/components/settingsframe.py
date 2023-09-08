@@ -11,6 +11,7 @@ from async_tkinter_loop import async_handler
 from PIL.ImageTk import PhotoImage
 from soniccontrol.core.interfaces import RootChild, Connectable, Root
 import soniccontrol.constants as const
+from soniccontrol.sonicpackage.sonicamp import SonicCatch
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +190,8 @@ class SettingsFrame(RootChild, Connectable):
         self.file_entry.pack(fill=ttk.X, padx=5, pady=5)
         self.upload_button.pack(fill=ttk.X, padx=5, pady=5)
 
-        self.atf_configuration_frame_container.pack(fill=ttk.X)
+        if isinstance(self.root.sonicamp, SonicCatch):
+            self.atf_configuration_frame_container.pack(fill=ttk.X)
         self.atf_configuration_frame.pack(padx=5, pady=10)
         self.config_entry_frame.pack()
         self.config_entry.pack(side=ttk.LEFT, padx=5, pady=5, fill=ttk.X)

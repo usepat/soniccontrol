@@ -1141,6 +1141,8 @@ class SonicAmpFactory:
 
         if info.device_type == "soniccatch" and info.version == 0.4:
             return SonicCatch(serial, info=info)
+        if info.device_type == "soniccatch" and info.version == 0.3:
+            return SonicCatchOld(serial, info=info)
         elif info.device_type == "sonicdescale" and info.version == 41:
             return SonicDescale(serial, info=info)
         else:
@@ -1444,6 +1446,89 @@ class SonicCatch(SonicAmp):
         if self.command_validator.accepts(command):
             self.update_status(command, att1=float(command.answer_string))
         return self.status.att1
+
+    async def set_gain(self, gain: int) -> str:
+        command = await self.execute_command(Commands.SetGain(value=gain))
+        return command.answer_string
+
+    async def get_status(self) -> Status:
+        command = await self.execute_command(Commands.GetStatus())
+        return self.status
+
+    async def get_sens(self) -> Status:
+        command = await self.execute_command(Commands.GetSens())
+        return self.status
+
+    async def set_signal_auto(self) -> str:
+        command = await self.execute_command(Commands.SetSignalAuto())
+        return command.answer_string
+
+    async def set_relay_mode_khz(self) -> str:
+        command = await self.execute_command(Commands.SetKhzMode())
+        return command.answer_string
+
+    async def set_relay_mode_mhz(self) -> str:
+        command = await self.execute_command(Commands.SetMhzMode())
+        return command.answer_string
+
+
+class SonicCatchOld(SonicAmp):
+    def __init__(
+        self, serial: SerialCommunicator, status: Status = Status(), info: Info = Info()
+    ) -> None:
+        super().__init__(serial, status, info)
+        self.add_commands(
+            (
+                Commands.SetFrequency,
+                Commands.SetGain,
+                Commands.SetKhzMode,
+                Commands.SetMhzMode,
+                Commands.SetSignalAuto,
+                Commands.GetSens,
+                Commands.GetStatus,
+            )
+        )
+
+    def scan_command(self, command) -> None:
+        if isinstance(command, Commands.SetFrequency):
+            self.update_status(command, frequency=command.value)
+        elif isinstance(command, Commands.SetGain):
+            self.update_status(command, gain=command.value)
+        elif isinstance(command, Commands.GetStatus):
+            self.status = Status.from_status_command(command, old_status=self.status)
+            self.update_status(command, signal=True if self.status.frequency else False)
+            logger.debug(f"Status updated: {self.status}")
+            self.status_changed.set()
+            self.status_changed.clear()
+        elif isinstance(command, Commands.GetSens):
+            self.status = Status.from_sens_command(
+                command,
+                old_status=self.status,
+                calculation_strategy=FactorisedCalcStrategy(),
+            )
+            logger.debug(f"Status updated: {self.status}")
+            self.status_changed.set()
+            self.status_changed.clear()
+        elif isinstance(command, Commands.SetSignalAuto):
+            self.update_status(command, protocol=110)
+        elif isinstance(command, Commands.SetMhzMode):
+            self.update_status(command, relay_mode="mhz")
+        elif isinstance(command, Commands.SetKhzMode):
+            self.update_status(command, relay_mode="khz")
+        else:
+            return super().scan_command(command)
+
+    async def update_strategy(self) -> Status:
+        if self.status.signal and self.status.relay_mode == "mhz":
+            status = await self.get_sens()
+        elif (time.time() - self.last_overview_timestamp) > 10:
+            status = await self.get_overview()
+        else:
+            status = await self.get_status()
+
+    async def set_frequency(self, frequency: int) -> str:
+        command = await self.execute_command(Commands.SetFrequency(value=frequency))
+        return command.answer_string
 
     async def set_gain(self, gain: int) -> str:
         command = await self.execute_command(Commands.SetGain(value=gain))

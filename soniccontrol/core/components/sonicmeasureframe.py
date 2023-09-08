@@ -360,7 +360,7 @@ class SonicMeasure(ttk.Toplevel):
             self.configuration_frame, autohide=True, height=80
         )
         # ramp mode frame setter
-        self.ramp_modes: Tuple[str] = ("ramp_freq", "ramp_gain")
+        self.ramp_modes: Tuple[str] = ("ramp_freq",) #"ramp_gain", "chirp_ramp_freq", "chirp_ramp_gain")
         self.ramp_mode_frame: ttk.LabelFrame = ttk.Labelframe(
             self.ramp_program_frame, text="Ramp Mode"
         )
