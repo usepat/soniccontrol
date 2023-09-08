@@ -1,7 +1,4 @@
 from typing import Any, Optional, Tuple
-import faulthandler
-
-faulthandler.enable()
 import asyncio
 import functools
 import logging
@@ -332,12 +329,9 @@ class SonicMeasure(ttk.Toplevel):
             compound=ttk.RIGHT,
             command=self.start_sonicmeasure,
         )
+
         self.plot_frame: ttk.Frame = ttk.Frame(self.main_frame)
-        self.figure: Figure = Figure(dpi=100)
-        self.figure_canvas: FigureCanvasTkAgg = FigureCanvasTkAgg(
-            self.figure, self.plot_frame
-        )
-        NavigationToolbar2Tk(self.figure_canvas, self.plot_frame)
+        self.figure_canvas: MeasureCanvas = MeasureCanvas(self.plot_frame)
 
         self.configuration_frame: ttk.Frame = ttk.Frame(self.body_frame)
         self.navigation_bar: ttk.Frame = ttk.Frame(self.configuration_frame)
@@ -540,81 +534,17 @@ class SonicMeasure(ttk.Toplevel):
         )
         self.root.sonicmeasure_running.set()
         self.show_mainframe()
-        self.graph_engine()
+
+        self.plot_frame.destroy()
+        self.plot_frame = ttk.Frame(self.main_frame)
+        del self.figure_canvas
+        self.figure_canvas = MeasureCanvas(
+            self.plot_frame, self.start_var.get(), self.stop_var.get()
+        )
+        self.plot_frame.pack(padx=3, pady=3)
+        await asyncio.sleep(0.2)
+
         await self.sonicmeasure_setup()
-
-    def graph_engine(self) -> None:
-        self.figure.clear()
-        self.figure_canvas.get_tk_widget().destroy()
-        self.figure_canvas = FigureCanvasTkAgg(
-            self.figure, master=self.plot_frame
-        )  # Adjust master if needed
-        self.figure_canvas.draw()
-        self.figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
-
-        self.ax_urms = self.figure.add_subplot(111)
-        self.figure.subplots_adjust(right=0.8)
-
-        self.ax_irms = self.ax_urms.twinx()
-        self.ax_phase = self.ax_urms.twinx()
-        self.ax_phase.spines["right"].set_position(("axes", 1.15))
-
-        (self.line_urms,) = self.ax_urms.plot(
-            [], [], "bo-", label="U$_{RMS}$ / mV", markersize=4, lw=2
-        )
-        (self.line_irms,) = self.ax_irms.plot(
-            [], [], "ro-", label="I$_{RMS}$ / mA", markersize=4, lw=2
-        )
-        (self.line_phase,) = self.ax_phase.plot(
-            [], [], "go-", label="Phase / °", markersize=4, lw=2
-        )
-
-        self.ax_urms.set_xlim(self.start_var.get(), self.stop_var.get())
-        self.ax_urms.set_xlabel("Frequency / Hz")
-        self.ax_urms.set_ylabel("U$_{RMS}$ / mV")
-        self.ax_irms.set_ylabel("I$_{RMS}$ / mA")
-        self.ax_phase.set_ylabel("Phase / °")
-
-        self.ax_urms.yaxis.label.set_color(self.line_urms.get_color())
-        self.ax_irms.yaxis.label.set_color(self.line_irms.get_color())
-        self.ax_phase.yaxis.label.set_color(self.line_phase.get_color())
-
-        self.ax_urms.legend(handles=[self.line_urms, self.line_irms, self.line_phase])
-
-        self.time_data = []
-        self.frequency_data = []
-        self.phase_data = []
-        self.urms_data = []
-        self.irms_data = []
-
-        self.figure_canvas.draw()
-
-    def update_graph(self):
-        data = pd.read_csv(
-            self.root.sonicmeasure_logfile, skiprows=range(1, self._last_read_line)
-        )
-        self._last_read_line += len(data)
-
-        self.frequency_data += data["frequency"].tolist()
-        self.urms_data += data["urms"].tolist()
-        self.irms_data += data["irms"].tolist()
-        self.phase_data += data["phase"].tolist()
-
-        self.line_urms.set_data(self.frequency_data, self.urms_data)
-        self.line_irms.set_data(self.frequency_data, self.irms_data)
-        self.line_phase.set_data(self.frequency_data, self.phase_data)
-
-        self.figure_canvas.draw()
-
-        self.ax_urms.relim()
-        self.ax_urms.autoscale_view()
-        self.ax_irms.relim()
-        self.ax_irms.autoscale_view()
-        self.ax_phase.relim()
-        self.ax_phase.autoscale_view()
-
-        self.figure_canvas.flush_events()
-        self.root.update()
 
     async def sonicmeasure_setup(self) -> None:
         with self.root.sonicmeasure_logfile.open("a", newline="") as file:
@@ -655,18 +585,12 @@ class SonicMeasure(ttk.Toplevel):
             self.root.serialize_data(
                 self.root.sonicamp.status, self.root.sonicmeasure_logfile
             )
-            self.update_graph()
+            self.figure_canvas.update(self.root.sonicmeasure_logfile)
             await asyncio.sleep(0.1)
         self.stop_sonicmeasure()
 
     def stop_sonicmeasure(self) -> None:
         self.root.sonicmeasure_running.clear()
-
-        self._last_read_line = 1
-        self.frequency_data.clear()
-        self.urms_data.clear()
-        self.irms_data.clear()
-        self.phase_data.clear()
 
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
@@ -741,3 +665,79 @@ class SonicMeasure(ttk.Toplevel):
 
         # self.comment_frame.pack(pady=5)
         self.comment_entry.pack(padx=5, pady=5)
+
+
+class MeasureCanvas(FigureCanvasTkAgg):
+    def __init__(self, master=..., start: int = 0, stop: int = 6_000_000) -> None:
+        self.master: ttk.Frame = master
+        self.figure: Figure = Figure(dpi=100)
+        self.toolbar = NavigationToolbar2Tk(self, master)
+        super().__init__(self.figure, master)
+
+        self._last_read_line: int = 1
+        self._lock: asyncio.Lock = asyncio.Lock()
+        self.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
+
+        self.ax_urms = self.figure.add_subplot(111)
+        self.figure.subplots_adjust(right=0.8)
+
+        self.ax_irms = self.ax_urms.twinx()
+        self.ax_phase = self.ax_urms.twinx()
+        self.ax_phase.spines["right"].set_position(("axes", 1.15))
+
+        (self.line_urms,) = self.ax_urms.plot(
+            [], [], "bo-", label="U$_{RMS}$ / mV", markersize=4, lw=2
+        )
+        (self.line_irms,) = self.ax_irms.plot(
+            [], [], "ro-", label="I$_{RMS}$ / mA", markersize=4, lw=2
+        )
+        (self.line_phase,) = self.ax_phase.plot(
+            [], [], "go-", label="Phase / °", markersize=4, lw=2
+        )
+
+        self.ax_urms.set_xlim(start, stop)
+        self.ax_urms.set_xlabel("Frequency / Hz")
+        self.ax_urms.set_ylabel("U$_{RMS}$ / mV")
+        self.ax_irms.set_ylabel("I$_{RMS}$ / mA")
+        self.ax_phase.set_ylabel("Phase / °")
+
+        self.ax_urms.yaxis.label.set_color(self.line_urms.get_color())
+        self.ax_irms.yaxis.label.set_color(self.line_irms.get_color())
+        self.ax_phase.yaxis.label.set_color(self.line_phase.get_color())
+
+        self.ax_urms.legend(handles=[self.line_urms, self.line_irms, self.line_phase])
+
+        self.time_data = []
+        self.frequency_data = []
+        self.phase_data = []
+        self.urms_data = []
+        self.irms_data = []
+
+        self.draw()
+
+    @async_handler
+    async def update(self, path: pathlib.Path) -> None:
+        async with self._lock:
+            data = pd.read_csv(path, skiprows=range(1, self._last_read_line))
+            self._last_read_line += len(data)
+
+            self.frequency_data += data["frequency"].tolist()
+            self.urms_data += data["urms"].tolist()
+            self.irms_data += data["irms"].tolist()
+            self.phase_data += data["phase"].tolist()
+
+            self.line_urms.set_data(self.frequency_data, self.urms_data)
+            self.line_irms.set_data(self.frequency_data, self.irms_data)
+            self.line_phase.set_data(self.frequency_data, self.phase_data)
+
+            self.draw()
+
+            self.ax_urms.relim()
+            self.ax_urms.autoscale_view()
+            self.ax_irms.relim()
+            self.ax_irms.autoscale_view()
+            self.ax_phase.relim()
+            self.ax_phase.autoscale_view()
+
+            self.flush_events()
+            self.master.update()

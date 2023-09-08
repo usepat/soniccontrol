@@ -1,7 +1,9 @@
 import sys
 from async_tkinter_loop import async_handler, async_mainloop
 from soniccontrol import SonicControl
+import faulthandler
 
+faulthandler.enable()
 
 if __name__ == "__main__":
     if not "3.10" in sys.version:
