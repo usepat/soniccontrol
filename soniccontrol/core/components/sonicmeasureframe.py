@@ -591,7 +591,6 @@ class SonicMeasure(ttk.Toplevel):
 
     def stop_sonicmeasure(self) -> None:
         self.root.sonicmeasure_running.clear()
-
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
             text="Start",

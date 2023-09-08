@@ -3,6 +3,9 @@ import asyncio
 import sys
 import logging
 import copy
+import csv
+import pathlib
+import datetime
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 from ttkbootstrap.dialogs import Messagebox
@@ -24,6 +27,7 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
         **kwargs,
     ) -> None:
         super().__init__(master, tab_title, image=image, *args, **kwargs)
+        self.logfile: Optional[pathlib.Path] = None
         self.sequence_task: Optional[asyncio.Task] = None
         self.current_task_var: ttk.StringVar = ttk.StringVar(value="Idle")
         self.navigation_button_frame: ttk.Frame = ttk.Frame(self)
@@ -110,12 +114,21 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             self.root.sonicamp.sequence(self.scripttext.get(1.0, ttk.END)),
         )
 
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)
         if self.sequence_task.done() and self.sequence_task.exception() is not None:
             logger.warning(f"{self.sequence_task.exception()}")
             Messagebox.show_warning(f"{self.sequence_task.exception()}")
             return self.stop_script()
 
+        if self.logfile is None:
+            self.logfile = pathlib.Path(
+                f"logs//scripting_log_{str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')}.csv"
+            )
+        with self.logfile.open("w") as file:
+            writer = csv.DictWriter(
+                file, fieldnames=self.root.fieldnames, extrasaction="ignore"
+            )
+            writer.writeheader()
         self.root.on_script_start()
         self.script_engine()
 
@@ -127,6 +140,7 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             and not self.sequence_task.done()
             and self.root.sonicamp.sequencer.running.is_set()
         ):
+            self.root.serialize_data(self.root.sonicamp.status, self.logfile)
             self.highlight_line(self.root.sonicamp.sequencer.current_line)
             try:
                 if self.root.sonicamp.ramper.running.is_set():
@@ -193,8 +207,10 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             f.write(self.scripttext.get(1.0, ttk.END))
 
     def open_logfile(self) -> None:
-        self.logfile = ttk.filedialog.asksaveasfilename(
-            defaultextension=".txt", filetypes=self._filetypes
+        self.logfile = pathlib.Path(
+            ttk.filedialog.asksaveasfilename(
+                defaultextension=".txt", filetypes=self._filetypes
+            )
         )
 
     def open_help(self) -> None:
@@ -251,6 +267,12 @@ class ScriptGuide(ttk.Toplevel):
                 "arguments": "None",
                 "description": "Set the signal to OFF",
                 "example": "off",
+            },
+            {
+                "keyword": "auto",
+                "arguments": "None",
+                "description": "Turns the auto mode on.\nIt is important to hold after that command to stay in auto mode.\nIn the following example the auto mode is turned on for 5 seconds",
+                "example": "auto\nhold 5s",
             },
             {
                 "keyword": "gain",

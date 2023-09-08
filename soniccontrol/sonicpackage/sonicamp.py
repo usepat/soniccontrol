@@ -838,6 +838,7 @@ class Ramp:
     async def execute(
         self, update_coroutine: Optional[Callable[[Any], Any]] = None
     ) -> None:
+        await self.sonicamp.get_overview()
         update_task = asyncio.create_task(self.update(update_coroutine))
         ramping_task = asyncio.create_task(self.ramp())
         await asyncio.gather(ramping_task, update_task)
@@ -1045,7 +1046,8 @@ class Sequence:
                 await update_strategy()
 
     async def execute(self, update_strategy: Callable[[Any], Any] = None) -> None:
-        update_task = asyncio.create_task(self.update())
+        await self._sonicamp.get_overview()
+        update_task = asyncio.create_task(self.update(update_strategy))
         ramping_task = asyncio.create_task(self.loop())
         await asyncio.gather(ramping_task, update_task)
 
@@ -1160,7 +1162,7 @@ class SonicAmp:
         self.status: Status = status
         self.status_changed: asyncio.Event = asyncio.Event()
         self.info: Info = info
-
+        self.last_overview_timestamp: float = 0.0
         self.commands: List[type] = [
             Commands.SetSignalOn,
             Commands.SetSignalOff,
@@ -1386,6 +1388,7 @@ class SonicCatch(SonicAmp):
             status = await self.get_overview()
         else:
             status = await self.get_status()
+        return status
 
     async def set_frequency(self, frequency: int) -> str:
         command = await self.execute_command(Commands.SetFrequency(value=frequency))
@@ -1525,6 +1528,7 @@ class SonicCatchOld(SonicAmp):
             status = await self.get_overview()
         else:
             status = await self.get_status()
+        return status
 
     async def set_frequency(self, frequency: int) -> str:
         command = await self.execute_command(Commands.SetFrequency(value=frequency))

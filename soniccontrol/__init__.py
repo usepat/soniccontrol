@@ -26,6 +26,11 @@ try:
     if lines > MAX_LINES:
         os.remove("logs//sonicpackage.log")
 
+    with open("logs//statuslog.csv") as file:
+        lines: int = len(file.readlines())
+    if lines > 10_000_000:
+        os.remove("logs//statuslog.csv")
+
 except FileNotFoundError as fe:
     print("File not found, proceeding...")
 
