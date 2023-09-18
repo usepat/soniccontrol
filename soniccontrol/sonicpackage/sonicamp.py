@@ -19,6 +19,7 @@ import serial_asyncio as aserial
 import serial
 import sys
 import attrs
+import result
 
 import platform
 import datetime
@@ -730,7 +731,7 @@ class Info:
     @classmethod
     def from_firmware(cls, firmware_info: str, *args, **kwargs) -> Info:
         match = re.search(r".*ver.*([\d]+[.][\d]+).*", firmware_info, re.IGNORECASE)
-        logger.debug(f"Match: {match.groups()}")
+        logger.debug(f"Match: {match.groups() if match is not None else None}")
         version: float = float(match.group(1)) if match is not None else 0.2
         return cls(firmware_info=firmware_info, version=version, *args, **kwargs)
 
@@ -1127,9 +1128,19 @@ class Sequence:
 class SonicAmpFactory:
     @staticmethod
     async def build_amp(serial: SerialCommunicator) -> SonicAmp:
+        await serial.connection_open.wait()
         device_type: Command = Command(message="?type", response_time=0.5)
         await serial.command_queue.put(device_type)
         await device_type.answer_received.wait()
+        
+        if device_type.answer_string is None or not len(device_type.answer_string):
+            set_serial_command: Command = Commands.SetSerialMode()
+            await serial.command_queue.put(set_serial_command)
+            await set_serial_command.answer_received.wait()
+            
+            device_type: Command = Command(message="?type", response_time=0.5)
+            await serial.command_queue.put(device_type)
+            await device_type.answer_received.wait()
 
         firmware: Command = Command(
             message="?info", response_time=0.5, expects_long_answer=True
@@ -1143,15 +1154,18 @@ class SonicAmpFactory:
 
         if info.device_type == "soniccatch" and info.version == 0.4:
             return SonicCatch(serial, info=info)
-        if info.device_type == "soniccatch" and info.version == 0.3:
+        elif info.device_type == "soniccatch" and info.version == 0.3:
             return SonicCatchOld(serial, info=info)
+        # elif info.device_type == "sonicwipe" and info.version == 0.3:
+        #     return SonicWipe(serial, info=info)
+        # elif info.device_type == "sonicwipe" and info.version == 0.2:
+        #     return SonicWipeOld(serial, info=info)
         elif info.device_type == "sonicdescale" and info.version == 41:
             return SonicDescale(serial, info=info)
         else:
             raise NotImplementedError(
                 "This device seems not to be implemented for sonicpackage!"
             )
-            return SonicAmp(serial, info=info)
 
 
 class SonicAmp:
