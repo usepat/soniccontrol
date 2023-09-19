@@ -30,6 +30,19 @@ logger = logging.getLogger(__name__)
 
 ENCODING: str = "windows-1252" if platform.system() == "Windows" else "utf-8"
 
+ANCIENT_AMP_VERSION: float = 0.2
+OLD_AMP_VERSION: float = 0.3
+FULLSCALE_AMP_VERSION: float = 0.4
+FULL_STATUS_AMP_VERSION: float = 0.5
+AMP_40_KHZ_VERSION: float = 40.0
+SONIC_DESCALE_VERSION: float = 41.0
+
+SONICWIPE: Literal["sonicwipe"] = "sonicwipe"
+SONICCATCH: Literal["soniccatch"] = "soniccatch"
+SONICDESCALE: Literal["sonicdescale"] = "sonicdescale"
+TYPES: Tuple[Literal["sonicwipe", "sonicdescale", "soniccatch"]] = (
+    SONICWIPE, SONICDESCALE, SONICCATCH
+)
 
 class CommandValidationDict(TypedDict):
     pattern: str
@@ -130,8 +143,17 @@ class Commands:
         expects_long_answer: bool = True
 
     @attrs.define
+    class GetType(Command):
+        message: str = attrs.field(default="?type")
+        response_time: float = 0.5
+        _validation_pattern: CommandValidationDict = {
+            "pattern": r"sonic(catch|wipe|descale)",
+            "return_type": str,
+        }
+
+    @attrs.define
     class GetInfo(Command):
-        message: str = attrs.field(default="?")
+        message: str = attrs.field(default="?info")
         response_time: float = 0.5
         expects_long_answer: bool = True
         _validation_pattern: CommandValidationDict = {
@@ -423,6 +445,10 @@ class SerialCommunicator:
                     logger.debug(sys.exc_info())
                     break
         self.disconnect()
+
+    async def send_and_wait_for_answer(self, command: Command) -> None:
+        await self.command_queue.put(command)
+        await command.answer_received.wait()
 
     async def read_message(self, response_time: float = 0.3) -> str:
         message: str = ""
@@ -1132,12 +1158,12 @@ class SonicAmpFactory:
         device_type: Command = Command(message="?type", response_time=0.5)
         await serial.command_queue.put(device_type)
         await device_type.answer_received.wait()
-        
+
         if device_type.answer_string is None or not len(device_type.answer_string):
             set_serial_command: Command = Commands.SetSerialMode()
             await serial.command_queue.put(set_serial_command)
             await set_serial_command.answer_received.wait()
-            
+
             device_type: Command = Command(message="?type", response_time=0.5)
             await serial.command_queue.put(device_type)
             await device_type.answer_received.wait()
@@ -1166,6 +1192,106 @@ class SonicAmpFactory:
             raise NotImplementedError(
                 "This device seems not to be implemented for sonicpackage!"
             )
+
+
+class AmpBuilder:
+    def __init__(self) -> None:
+        self._product: Optional[SonicAmp] = None
+
+    @property
+    def product(self) -> None:
+        return self._product
+
+    def build_wipe_module(self) -> AmpBuilder:
+        return self
+
+    def build_catch_module(self) -> AmpBuilder:
+        return self
+
+    def build_40khz_module(self) -> AmpBuilder:
+        return self
+
+    def build_descale_module(self) -> AmpBuilder:
+        return self
+
+    def build_fast_status_module(self) -> AmpBuilder:
+        return self
+
+    def build_basic_amp(self) -> AmpBuilder:
+        return self
+
+    def build_relay_module(self) -> AmpBuilder:
+        return self
+
+    def build_sonicmeasure_module(self) -> AmpBuilder:
+        return self
+
+
+class BuildDirector:
+    def __init__(self, serial: SerialCommunicator, builder: AmpBuilder) -> None:
+        self._serial: SerialCommunicator = serial
+        self._builder: AmpBuilder = builder
+
+    @property
+    def serial(self) -> SerialCommunicator:
+        return self._serial
+
+    async def build_amp(self) -> None:
+        if not await self.serial.device_ready_for_communication():
+            raise serial.PortNotOpenError(
+                "The Device seems not to be able to communicate. Maybe the 'Serial Mode' is not set?"
+            )
+
+        potential_type: str = next((device_type for device_type in TYPES if device_type in self.serial.init_command.answer_string), None)
+        type_command: Command = Commands.GetType()
+        if potential_type is None:
+            await self.serial.send_and_wait_for_answer(type_command)
+        else:
+            type_command.receive_answer(potential_type)
+            
+        match type_command.answer_string:
+            case "soniccatch":
+                self._builder.build_catch_module()
+                sens_command: Command = Commands.GetSens()
+                await self.serial.send_and_wait_for_answer(Commands.SetSignalOn())
+                await self.serial.send_and_wait_for_answer(sens_command)
+                if commandvalidator.accepts(sens_command):
+                    self._builder.build_sonicmeasure_module()
+                await self.serial.send_and_wait_for_answer(Commands.SetSignalOff())
+                
+                khz_command: Command = Commands.SetKhzMode()
+                await self.serial.send_and_wait_for_answer(khz_command)
+                if commandvalidator.accepts(khz_command):
+                    self._builder.build_khz_module()
+                
+                if sens_command.was_accepted and khz_command.was_accepted:
+                    self._builder.build_relay_module()
+
+            case "sonicwipe":
+                self._builder.build_wipe_module()
+            case "sonicdescale":
+                self._builder.build_descale_module()
+            case _:
+                self._builder.build_basic_amp()
+
+        info_command: Command = Commands.GetInfo()
+        await self.serial.send_and_wait_for_answer(info_command)
+        info: Info = Info.from_firmware(
+            firmware_info=info_command.answer_string,
+            device_type=type_command.answer_string,
+        )
+        if ANCIENT_AMP_VERSION < info.version < FULL_STATUS_AMP_VERSION:
+            self._builder.build_small_status_module()
+        if ANCIENT_AMP_VERSION < info.version < AMP_40_KHZ_VERSION:
+            self._builder.build_modules()
+        if info.version > OLD_AMP_VERSION:
+            self._builder.build_fullscale_values_support()
+        if FULLSCALE_AMP_VERSION < info.version < AMP_40_KHZ_VERSION:
+            self._builder.build_full_status_module()
+        if info.version == AMP_40_KHZ_VERSION:
+            self._builder.build_40khz_module()
+        if info.version == SONIC_DESCALE_VERSION:
+            self._builder.build_descale_module()
 
 
 class SonicAmp:
