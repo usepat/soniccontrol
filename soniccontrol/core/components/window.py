@@ -74,7 +74,7 @@ class SonicControl(Root):
             self.connection_frame,
             self.info_frame,
         )
-        self.frames_for_unkown_device_state: Tuple[
+        self.frames_for_unknown_device_state: Tuple[
             Tabable, ...
         ] = self.frames_for_disconnected_state + (self.serialmonitor_frame,)
         self.frames_for_soniccatch: Tuple[Tabable, ...] = (

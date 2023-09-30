@@ -41,8 +41,11 @@ SONICWIPE: Literal["sonicwipe"] = "sonicwipe"
 SONICCATCH: Literal["soniccatch"] = "soniccatch"
 SONICDESCALE: Literal["sonicdescale"] = "sonicdescale"
 TYPES: Tuple[Literal["sonicwipe", "sonicdescale", "soniccatch"]] = (
-    SONICWIPE, SONICDESCALE, SONICCATCH
+    SONICWIPE,
+    SONICDESCALE,
+    SONICCATCH,
 )
+
 
 class CommandValidationDict(TypedDict):
     pattern: str
@@ -1242,13 +1245,20 @@ class BuildDirector:
                 "The Device seems not to be able to communicate. Maybe the 'Serial Mode' is not set?"
             )
 
-        potential_type: str = next((device_type for device_type in TYPES if device_type in self.serial.init_command.answer_string), None)
+        potential_type: str = next(
+            (
+                device_type
+                for device_type in TYPES
+                if device_type in self.serial.init_command.answer_string
+            ),
+            None,
+        )
         type_command: Command = Commands.GetType()
         if potential_type is None:
             await self.serial.send_and_wait_for_answer(type_command)
         else:
             type_command.receive_answer(potential_type)
-            
+
         match type_command.answer_string:
             case "soniccatch":
                 self._builder.build_catch_module()
@@ -1258,12 +1268,12 @@ class BuildDirector:
                 if commandvalidator.accepts(sens_command):
                     self._builder.build_sonicmeasure_module()
                 await self.serial.send_and_wait_for_answer(Commands.SetSignalOff())
-                
+
                 khz_command: Command = Commands.SetKhzMode()
                 await self.serial.send_and_wait_for_answer(khz_command)
                 if commandvalidator.accepts(khz_command):
                     self._builder.build_khz_module()
-                
+
                 if sens_command.was_accepted and khz_command.was_accepted:
                     self._builder.build_relay_module()
 
