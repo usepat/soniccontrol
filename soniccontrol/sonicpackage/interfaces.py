@@ -1,6 +1,7 @@
 import abc
 from typing import *
 import asyncio
+import attrs
 
 
 class Sendable(abc.ABC):
@@ -44,12 +45,37 @@ class Communicator(abc.ABC):
         ...
 
 
-class UpdateStrategy(abc.ABC):
+@attrs.define
+class Updater(abc.ABC):
+    _device: Any = attrs.field(repr=False)
+    _running: asyncio.Event = attrs.field(factory=asyncio.Event, init=False)
+    _task: asyncio.Task = attrs.field(init=False, default=None)
+
     def __init__(self) -> None:
         super().__init__()
+        self.__attrs_init__()
+
+    @property
+    def running(self) -> asyncio.Event:
+        return self._running
+
+    @property
+    def task(self) -> Optional[asyncio.Task]:
+        return self._task
+
+    def execute(self, *args, **kwargs) -> None:
+        self._task = asyncio.create_task(self._loop())
+        self._running.set()
+
+    def stop_execution(self, *args, **kwargs) -> None:
+        self._running.clear()
+
+    async def _loop(self) -> None:
+        while self._running.is_set():
+            await self.worker()
 
     @abc.abstractmethod
-    def execute(self, *args, **kwargs) -> None:
+    async def worker(self) -> None:
         ...
 
 
@@ -66,19 +92,24 @@ class Scriptable(abc.ABC):
     def __init__(self) -> None:
         super().__init__()
 
+    # @property
+    # @abc.abstractmethod
+    # def script_dictionary(self) -> Dict[str, Callable[[Any], Any]]:
+    #     ...
+
     @property
     @abc.abstractmethod
-    def script_dictionary(self) -> Dict[str, Callable[[Any], Any]]:
+    def updater(self) -> Updater:
         ...
 
-    def update(self) -> None:
-        ...
-
+    @abc.abstractmethod
     def set_signal_on() -> None:
         ...
 
+    @abc.abstractmethod
     def set_signal_off() -> None:
         ...
 
-    def hold(self) -> None:
-        ...
+    # @abc.abstractmethod
+    # def hold(self) -> None:
+    #     ...

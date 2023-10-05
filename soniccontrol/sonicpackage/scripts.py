@@ -113,16 +113,6 @@ class Ramp(Script):
         if external_event is None:
             self._external_event = self._running
 
-    async def update(self, update_strategy: Callable[[Any], Any] = None) -> None:
-        await self.running.wait()
-        if self.external_event is not None:
-            return
-        while self.external_event.is_set() and self.running.is_set():
-            if update_strategy is None:
-                await self.device.get_status()
-            else:
-                await update_strategy()
-
     async def execute(
         self,
         ramp_values: RampTuple,

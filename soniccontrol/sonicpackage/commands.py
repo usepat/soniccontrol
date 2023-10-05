@@ -27,7 +27,7 @@ class Commands:
         estimated_response_time=0.5,
         expects_long_answer=True,
         validators=(
-            CommandValidator(pattern=r".*(khz|mhz).*", mode=str),
+            CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
             CommandValidator(pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int),
             CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
             CommandValidator(

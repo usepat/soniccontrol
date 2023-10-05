@@ -2,6 +2,7 @@ from typing import *
 import asyncio
 from icecream import ic
 import attrs
+from soniccontrol.sonicpackage.interfaces import Scriptable, Updater
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.sonicpackage.commands import Command, Commands, CommandValidator
 from soniccontrol.sonicpackage.amp_data import Status, Info
@@ -10,16 +11,37 @@ from soniccontrol.sonicpackage.amp_data import Status, Info
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
 
+@attrs.define
+class MeasureUpdater(Updater):
+    async def worker(self) -> None:
+        await self._device.get_sens()
+
+
+@attrs.define
+class StatusUpdater(Updater):
+    async def worker(self) -> None:
+        await self._device.get_status()
+
+
+@attrs.define
+class OverviewUpdater(Updater):
+    async def worker(self) -> None:
+        await self._device.get_overview()
+
+
 @attrs.define(kw_only=True)
-class SonicAmp:
+class SonicAmp(Scriptable):
     _serial: SerialCommunicator = attrs.field()
     _commands: Dict[str, Command] = attrs.field(factory=dict, converter=dict)
     _status: Status = attrs.field()
     _info: Info = attrs.field()
-    _update_strategy: UpdateStrategy = attrs.field()
+    _updater: Updater = attrs.field(init=False, default=None)
     # _ramper: Ramper = attrs.field(init=False, factory=Ramper)
     # _holder: Holder = attrs.field(init=False, factory=Holder)
     # _sequencer: Sequencer = attrs.field(init=False, factory=Sequencer)
+
+    def __attrs_post_init__(self) -> None:
+        self.updater = OverviewUpdater(self)
 
     @property
     def serial(self) -> None:
@@ -28,6 +50,21 @@ class SonicAmp:
     @serial.setter
     def serial(self, serial: SerialCommunicator) -> None:
         self._serial = serial
+
+    @property
+    def updater(self) -> Updater:
+        return self._updater
+
+    @updater.setter
+    def updater(self, updater: Updater) -> None:
+        if self._updater is not None and (
+            type(self._updater) == type(updater) or self._updater is updater
+        ):
+            return
+        if self._updater is not None:
+            self._updater.stop_execution()
+        self._updater = updater
+        self._updater.execute()
 
     @property
     def commands(self) -> Dict[str, Command]:
@@ -58,6 +95,14 @@ class SonicAmp:
         else:
             raise ValueError("Illegal Argument for message", {message})
 
+    def has_command(self, command: Union[str, Command]) -> bool:
+        return (
+            self.commands.get(
+                command.message if isinstance(command, Command) else command
+            )
+            != None
+        )
+
     async def send_message(self, message: str = "", argument: Any = "") -> str:
         return (
             await Command(
@@ -75,17 +120,33 @@ class SonicAmp:
             ic("Command not found in commands of sonicamp", message, self)
             ic("Executing message as a new Command...")
             return await self.send_message(message=message, argument=argument)
+
         command: Command = self._commands[message]
         await command.execute(argument=argument, connection=self._serial)
+
         self._status.update(**command.status_result, **status_kwargs_if_valid_command)
+        self._check_updater_strategy()
         ic(command.byte_message, command.answer, command.status_result, self._status)
+
         return command.answer.string
+
+    def _check_updater_strategy(self) -> None:
+        if (
+            self.status.signal
+            and self.status.relay_mode == "MHz"
+            and self.has_command("?sens")
+        ):
+            self.updater = MeasureUpdater(self)
+        elif self.has_command("-"):
+            self.updater = StatusUpdater(self)
+        else:
+            self.updater = OverviewUpdater(self)
 
     async def set_signal_off(self) -> str:
         return await self.execute_command("!OFF", urms=0.0, irms=0.0, phase=0.0)
 
     async def set_signal_on(self) -> str:
-        return await self.execute_command("!ON")
+        answer = await self.execute_command("!ON")
 
     async def set_signal_auto(self) -> str:
         return await self.execute_command("!AUTO")
@@ -204,22 +265,23 @@ async def main():
             phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
         ),
     )
+    sonicamp.add_command(Commands.get_status)
+    sonicamp.add_command(Commands.get_overview)
 
     # await sonicamp.set_serial_mode()
     # await sonicamp.set_relay_mode_khz()
     # await sonicamp.get_overview()
     # await sonicamp.get_info()
 
+    await sonicamp.set_signal_on()
     await sonicamp.get_atf1()
     await sonicamp.get_atf2()
     await sonicamp.get_atf3()
     await sonicamp.get_att1()
 
     # await sonicamp.set_relay_mode_mhz()
-    await sonicamp.set_signal_on()
     # await sonicamp.set_frequency(1000000)
     # await sonicamp.get_status()
-    await sonicamp.get_sens()
     # await sonicamp.get_status()
     await sonicamp.set_signal_off()
     # await sonicamp.get_status()
