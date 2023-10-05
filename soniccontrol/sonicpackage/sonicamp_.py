@@ -6,6 +6,7 @@ from soniccontrol.sonicpackage.interfaces import Scriptable, Updater
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.sonicpackage.commands import Command, Commands, CommandValidator
 from soniccontrol.sonicpackage.amp_data import Status, Info
+from soniccontrol.sonicpackage.scripts import Holder, Ramper, Sequencer
 
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
@@ -33,15 +34,19 @@ class OverviewUpdater(Updater):
 class SonicAmp(Scriptable):
     _serial: SerialCommunicator = attrs.field()
     _commands: Dict[str, Command] = attrs.field(factory=dict, converter=dict)
+
     _status: Status = attrs.field()
     _info: Info = attrs.field()
+
     _updater: Updater = attrs.field(init=False, default=None)
-    # _ramper: Ramper = attrs.field(init=False, factory=Ramper)
-    # _holder: Holder = attrs.field(init=False, factory=Holder)
-    # _sequencer: Sequencer = attrs.field(init=False, factory=Sequencer)
+    _holder: Holder = attrs.field(init=False, factory=Holder)
+    _frequency_ramper: Ramper = attrs.field(init=False)
+    _sequencer: Sequencer = attrs.field(init=False)
 
     def __attrs_post_init__(self) -> None:
         self.updater = OverviewUpdater(self)
+        self._frequency_ramper = Ramper(self, self.set_frequency)
+        self._sequencer = Sequencer(self)
 
     @property
     def serial(self) -> None:
@@ -77,6 +82,14 @@ class SonicAmp(Scriptable):
     @property
     def info(self) -> Info:
         return self._info
+
+    @property
+    def frequency_ramper(self) -> Ramper:
+        return self._frequency_ramper
+
+    @property
+    def holder(self) -> Holder:
+        return self._holder
 
     def add_command(
         self,
@@ -220,8 +233,29 @@ class SonicAmp(Scriptable):
     async def get_atf3(self) -> str:
         return await self.execute_command("?atf3")
 
-    # async def start_sequence(self, script: str) -> None:
-    #     await self._sequencer.execute(script)
+    async def ramp_freq(
+        self,
+        start: int,
+        stop: int,
+        step: int,
+        hold_on_time: float = 100,
+        hold_on_unit: Literal["ms", "s"] = "ms",
+        hold_off_time: float = 0,
+        hold_off_unit: Literal["ms", "s"] = "ms",
+        event: Optional[asyncio.Event] = None,
+    ) -> None:
+        return await self._frequency_ramper.execute(
+            (start, stop, step),
+            (hold_on_time, hold_on_unit),
+            (hold_off_time, hold_off_unit),
+            external_event=event,
+        )
+
+    async def hold(self, duration: float, unit: Literal["ms", "s"] = "ms") -> None:
+        return await self._holder.execute(duration, unit)
+
+    async def sequence(self, script: str) -> None:
+        await self._sequencer.execute(script)
 
     # async def hold(
     #     self,
@@ -274,16 +308,26 @@ async def main():
     # await sonicamp.get_info()
 
     await sonicamp.set_signal_on()
+    await sonicamp.hold(5, "s")
     await sonicamp.get_atf1()
     await sonicamp.get_atf2()
     await sonicamp.get_atf3()
     await sonicamp.get_att1()
-
+    # await sonicamp.ramp_freq(1000000, 2000000, 10000)
     # await sonicamp.set_relay_mode_mhz()
     # await sonicamp.set_frequency(1000000)
     # await sonicamp.get_status()
     # await sonicamp.get_status()
     await sonicamp.set_signal_off()
+    await sonicamp.sequence(
+        """on
+frequency 1000000
+gain 150
+startloop 5
+ramp_freq 1500000 1600000 10000 100ms
+endloop
+off"""
+    )
     # await sonicamp.get_status()
 
 
