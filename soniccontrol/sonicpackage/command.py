@@ -179,9 +179,11 @@ class Command(Sendable):
     @property
     def validators(self) -> List[CommandValidator]:
         return self._validators
-    
+
     @validators.setter
-    def validators(self, validators: Union[CommandValidator, Iterable[CommandValidator]]) -> None:
+    def validators(
+        self, validators: Union[CommandValidator, Iterable[CommandValidator]]
+    ) -> None:
         if isinstance(validators, CommandValidator):
             self._validators = [CommandValidator]
         elif isinstance(self, (list, tuple, set, Generator)):
@@ -237,20 +239,19 @@ class Command(Sendable):
         self.answer.unknown_answers.clear()
         self._status_result.clear()
         self.answer.unknown_answers = set(self.answer.lines)
+        entire_string_accepted: bool = False
+
         for validator in self.validators:
             if validator.accepts(self.answer.string):
+                entire_string_accepted = True
                 self._status_result.update(validator.result)
                 continue
-            accepted = next(
-                (
-                    answer
-                    for answer in self.answer.lines
-                    if validator.accepts(data=answer)
-                ),
-                None,
-            )
-            if accepted:
-                self.answer.unknown_answers.discard(accepted)
-                self._status_result.update(validator.result)
+            for answer in self.answer.lines:
+                if validator.accepts(data=answer):
+                    self.answer.unknown_answers.discard(answer)
+                    self._status_result.update(validator.result)
 
-        return len(self.answer.lines) == len(self.answer.unknown_answers)
+        if entire_string_accepted:
+            self.answer.unknown_answers.clear()
+
+        return len(self.answer.lines) != len(self.answer.unknown_answers)

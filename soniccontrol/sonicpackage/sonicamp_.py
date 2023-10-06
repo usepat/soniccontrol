@@ -251,19 +251,16 @@ class SonicAmp(Scriptable):
             external_event=event,
         )
 
-    async def hold(self, duration: float, unit: Literal["ms", "s"] = "ms") -> None:
-        return await self._holder.execute(duration, unit)
+    async def hold(
+        self,
+        duration: float,
+        unit: Literal["ms", "s"] = "ms",
+        event: Optional[asyncio.Event] = None,
+    ) -> None:
+        return await self._holder.execute(duration, unit, event)
 
     async def sequence(self, script: str) -> None:
         await self._sequencer.execute(script)
-
-    # async def hold(
-    #     self,
-    #     duration: float = 100,
-    #     unit: Literal["ms", "s"] = "ms",
-    #     event: asyncio.Event = asyncio.Event(),
-    # ) -> None:
-    #     await self._holder.execute(duration=duration, unit=unit, external_event=event)
 
 
 import serial.tools.list_ports as list_ports
@@ -322,7 +319,9 @@ async def main():
     await sonicamp.sequence(
         """on
 frequency 1000000
+hold 5s
 gain 150
+hold 10s
 startloop 5
 ramp_freq 1500000 1600000 10000 100ms
 endloop

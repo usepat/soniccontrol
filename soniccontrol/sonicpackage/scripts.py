@@ -33,7 +33,7 @@ class Holder(Script):
             self.holding if self._external_event is None else self._external_event
         )
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"Holding state: {self.remaining_time} seconds remaining"
 
     @property
@@ -103,13 +103,8 @@ class Ramper(Script):
         if self._external_event is None:
             self._external_event = self._running
 
-    def __repr__(self) -> str:
-        if not self.running.is_set():
-            return "Ramp at 0 Hz"
-        value: str = (
-            f"Ramp at {self.current_value if self.current_value is not None else 0} Hz"
-        )
-        return value
+    def __str__(self) -> str:
+        return f"Ramp at {self.current_value} Hz"
 
     @property
     def running(self) -> asyncio.Event:
@@ -310,6 +305,7 @@ class Sequencer(Script):
     _script_text: str = attrs.field(
         default="", validator=attrs.validators.instance_of(str)
     )
+    _external_event: asyncio.Event = attrs.field(default=None, repr=False)
 
     _parser: SonicParser = attrs.field(init=False, factory=SonicParser, repr=False)
     _commands: List[Any] = attrs.field(init=False, factory=list)
@@ -319,9 +315,9 @@ class Sequencer(Script):
     _running: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
 
     def __attrs_post_init__(self) -> None:
-        self.reset(self._script_text)
+        self.reset(self._script_text, self._external_event)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return self.current_command
 
     @property
@@ -336,7 +332,7 @@ class Sequencer(Script):
     def current_command(self) -> str:
         return self._current_command
 
-    def reset(self, script: str) -> None:
+    def reset(self, script: str, external_event: Optional[asyncio.Event] = None) -> None:
         if script is None:
             return
         self._script_text = script
@@ -349,15 +345,16 @@ class Sequencer(Script):
             for command, argument, loop in parsed_test
         )
         self._original_commands = copy.deepcopy(self._commands)
+        self._external_event = external_event if external_event is not None else self._running
 
-    async def execute(self, script: Optional[str] = None) -> None:
-        self.reset(script=script)
+    async def execute(self, script: Optional[str] = None, external_event: Optional[asyncio.Event] = None) -> None:
+        self.reset(script=script, external_event=external_event)
         await self._sonicamp.get_overview()
         await self._loop()
 
     async def _loop(self) -> None:
         self.running.set()
-        while self.running.is_set() and self._current_line < len(self._commands):
+        while self._external_event.is_set() and self.running.is_set() and self._current_line < len(self._commands):
             try:
                 if self._commands[self._current_line]["command"] == "startloop":
                     self.startloop_response()
@@ -409,7 +406,7 @@ class Sequencer(Script):
             case "gain":
                 await self._sonicamp.set_gain(command["argument"])
             case "ramp_freq":
-                self._current_command = self._sonicamp.frequency_ramper
+                self._current_command = str(self._sonicamp.frequency_ramper)
                 await self._sonicamp.ramp_freq(*command["argument"], event=self.running)
             # case "ramp_gain":
             #     self._current_command = self._sonicamp.ramper
@@ -417,7 +414,7 @@ class Sequencer(Script):
             case "!AUTO" | "AUTO" | "auto":
                 await self._sonicamp.set_signal_auto()
             case "hold":
-                self._current_command = self._sonicamp.holder
+                self._current_command = str(self._sonicamp.holder)
                 await self._sonicamp.hold(*command["argument"], event=self.running)
             case "on":
                 await self._sonicamp.set_signal_on()
