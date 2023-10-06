@@ -36,7 +36,7 @@ class SerialCommunicator(Communicator):
         self._init_command = Command(
             estimated_response_time=0.5,
             validators=(
-                CommandValidator(pattern=r".*(khz|mhz).*", mode=str),
+                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
                 CommandValidator(
                     pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
                 ),

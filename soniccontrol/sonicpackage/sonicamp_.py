@@ -5,7 +5,7 @@ import attrs
 from soniccontrol.sonicpackage.interfaces import Scriptable, Updater
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.sonicpackage.commands import Command, Commands, CommandValidator
-from soniccontrol.sonicpackage.amp_data import Status, Info
+from soniccontrol.sonicpackage.amp_data import Status, Info, Modules
 from soniccontrol.sonicpackage.scripts import Holder, Ramper, Sequencer
 
 
@@ -108,6 +108,10 @@ class SonicAmp(Scriptable):
         else:
             raise ValueError("Illegal Argument for message", {message})
 
+    def add_commands(self, commands: Iterable[Command]) -> None:
+        for command in commands:
+            self.add_command(command)
+
     def has_command(self, command: Union[str, Command]) -> bool:
         return (
             self.commands.get(
@@ -127,8 +131,12 @@ class SonicAmp(Scriptable):
         ).answer.string
 
     async def execute_command(
-        self, message: str, argument: Any = "", **status_kwargs_if_valid_command
+        self,
+        message: Union[str, Command],
+        argument: Any = "",
+        **status_kwargs_if_valid_command,
     ) -> str:
+        message = message if isinstance(message, str) else message.message
         if not message in self._commands.keys():
             ic("Command not found in commands of sonicamp", message, self)
             ic("Executing message as a new Command...")

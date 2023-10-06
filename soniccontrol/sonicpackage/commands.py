@@ -40,7 +40,9 @@ class Commands:
     get_type: Command = Command(
         message="?type",
         estimated_response_time=0.5,
-        validators=CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
+        validators=CommandValidator(
+            pattern=r"sonic(catch|wipe|descale)", device_type=str
+        ),
     )
 
     get_info: Command = Command(

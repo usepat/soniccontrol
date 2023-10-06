@@ -137,7 +137,7 @@ class Status:
     def changed(self) -> asyncio.Event:
         return self._changed
 
-    def update(self, **kwargs) -> None:
+    def update(self, **kwargs) -> Status:
         kwargs["timestamp"] = (
             datetime.datetime.now()
             if not kwargs.get("timestamp")
@@ -147,6 +147,7 @@ class Status:
             if hasattr(self, key):
                 setattr(self, key, value)
         self._changed.set()
+        return self
 
 
 @attrs.define
@@ -180,9 +181,13 @@ class Modules:
 
 @attrs.define
 class Info:
-    device_type: Literal["soniccatch", "sonicwipe", "sonicdescale"] = attrs.field(
-        default="soniccatch"
-    )
+    device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="catch")
     firmware_info: str = attrs.field(default="")
     version: float = attrs.field(default=0.2)
     modules: Modules = attrs.field(factory=Modules)
+
+    def update(self, **kwargs) -> Info:
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        return self
