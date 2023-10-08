@@ -49,7 +49,7 @@ class SonicAmp(Scriptable):
         self._sequencer = Sequencer(self)
 
     @property
-    def serial(self) -> None:
+    def serial(self) -> SerialCommunicator:
         return self._serial
 
     @serial.setter
@@ -88,8 +88,15 @@ class SonicAmp(Scriptable):
         return self._frequency_ramper
 
     @property
+    def sequencer(self) -> Sequencer:
+        return self._sequencer
+
+    @property
     def holder(self) -> Holder:
         return self._holder
+    
+    def disconnect(self) -> None:
+        self.serial.disconnect()
 
     def add_command(
         self,

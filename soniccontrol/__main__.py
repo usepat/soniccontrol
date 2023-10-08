@@ -12,7 +12,6 @@ if __name__ == "__main__":
     else:
         sc: SonicControl = SonicControl()
         async_mainloop(sc)
-
 """
 startloop
 frequency 50000000

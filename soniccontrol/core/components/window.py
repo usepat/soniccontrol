@@ -103,13 +103,27 @@ class SonicControl(Root):
         self.event_generate(const.Events.DISCONNECTED)
 
     def after_connect(self) -> None:
+        match self.sonicamp.info.device_type:
+            case "catch":
+                heading1 = "sonic"
+                tabs = self.frames_for_soniccatch
+            case "descale":
+                heading1 = "sonic"
+                tabs = self.frames_for_soniccatch
+            case "wipe":
+                heading1 = "sonic"
+                tabs = self.frames_for_soniccatch
+            case _:
+                heading1 = "device"
+                tabs = self.frames_for_unknown_device_state
+
         for connectable in self.connectables:
             connectable.on_connect(
                 Connectable.ConnectionData(
-                    heading1="sonic",
-                    heading2="catch",
+                    heading1=heading1,
+                    heading2=self.sonicamp.info.device_type,
                     subtitle="You are connected to",
-                    firmware_info="SONICCATCH FIRMWARE",
+                    firmware_info=self.sonicamp.info.firmware_info,
                     tabs=self.frames_for_soniccatch,
                 )
             )

@@ -87,7 +87,7 @@ class SerialMonitorFrame(RootChild, Connectable):
         self.insert_text(f">>> {command}")
 
         if not self.is_internal_command(command=command):
-            self.insert_text(await self.root.sonicamp.send_command(command))
+            self.insert_text(await self.root.sonicamp.execute_command(command))
 
         self.command_field.delete(0, ttk.END)
 

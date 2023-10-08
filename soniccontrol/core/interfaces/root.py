@@ -22,7 +22,15 @@ from soniccontrol.core.interfaces.gui_interfaces import (
     RootStringVar,
 )
 from soniccontrol.core.interfaces.layouts import Layout
-from soniccontrol.sonicpackage.sonicamp import SonicAmp, Status, SerialCommunicator
+
+# from soniccontrol.sonicpackage.sonicamp import SonicAmp, Status, SerialCommunicator
+from soniccontrol.sonicpackage.builder import (
+    AmpBuilder,
+    SonicAmp,
+    SerialCommunicator,
+    Status,
+    Command,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -314,9 +322,10 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
 
     @async_handler
     async def on_connection_attempt(self, event: Any = None, *args, **kwargs) -> None:
-        self.serial = SerialCommunicator(self.port.get())
-        await self.serial.setup()
-        self.sonicamp = await SonicAmp.build_amp(serial=self.serial)
+        builder = AmpBuilder()
+        self.sonicamp = await builder.build_amp(self.port.get())
+        self.serial = self.sonicamp.serial
+        await self.sonicamp.serial.connection_opened.wait()
         self.after_connect()
         self.status_engine()
 
@@ -331,37 +340,27 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
                 path=self.status_log_filepath,
                 first_time=self.status_log_filepath_existed,
             )
-            asyncio.create_task(self.update_engine())
-
-        async def worker() -> None:
-            while self.sonicamp.serial.connection_open.is_set():
-                await self.sonicamp.status_changed.wait()
-                self.status_frequency_khz_var.set(self.sonicamp.status.frequency)
-                self.status_gain.set(self.sonicamp.status.gain)
-                self.temperature.set(self.sonicamp.status.temperature)
-                self.urms.set(self.sonicamp.status.urms)
-                self.irms.set(self.sonicamp.status.irms)
-                self.phase.set(self.sonicamp.status.phase)
-                self.on_update()
-                self.serialize_data(self.sonicamp.status, self.status_log_filepath)
-                await asyncio.sleep(0.1)
 
         self.should_update.set()
         await status_engine_setup()
         logger.debug("Waiting for change in status")
-        status_task = asyncio.create_task(worker())
+        status_task = asyncio.create_task(self.worker())
         await self.sonicamp.serial.connection_closed.wait()
         self.should_update.clear()
         self.event_generate(const.Events.DISCONNECTED)
 
-    async def update_engine(self) -> None:
-        while self.sonicamp.serial.connection_open.is_set():
-            await self.should_update.wait()
-            await self.sonicamp.get_status()
-            await asyncio.sleep(0.2)
-            if self.sonicamp.status.signal:
-                await self.sonicamp.get_sens()
-            await asyncio.sleep(0.2)
+    async def worker(self) -> None:
+        while self.sonicamp.serial.connection_opened.is_set():
+            await self.sonicamp.status.changed.wait()
+            self.status_frequency_khz_var.set(self.sonicamp.status.frequency)
+            self.status_gain.set(self.sonicamp.status.gain)
+            self.temperature.set(self.sonicamp.status.temperature)
+            self.urms.set(self.sonicamp.status.urms)
+            self.irms.set(self.sonicamp.status.irms)
+            self.phase.set(self.sonicamp.status.phase)
+            self.on_update()
+            self.serialize_data(self.sonicamp.status, self.status_log_filepath)
+            await asyncio.sleep(0.1)
 
     def on_update(self) -> None:
         if self.old_status is None:

@@ -62,7 +62,7 @@ class SerialCommunicator(Communicator):
 
     @property
     def connection_closed(self) -> asyncio.Event:
-        return self._connection_opened
+        return self._connection_closed
 
     @property
     def init_command(self) -> Optional[Command]:
@@ -160,7 +160,7 @@ class SerialCommunicator(Communicator):
         return message
 
     def disconnect(self) -> None:
-        self._writer.close()
+        self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None

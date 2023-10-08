@@ -193,6 +193,7 @@ class SonicParser:
         # "chirp_ramp_gain",
         "!AUTO",
         "AUTO",
+        "auto",
     ]
 
     def parse_text(self, text: str) -> dict[str, Union[tuple[Any, ...], str]]:
@@ -226,6 +227,10 @@ class SonicParser:
         for line in lines:
             if "#" in line:
                 comments += f"{line}\n"
+                continue
+            if line.startswith(("!", "?")):
+                commands.append(line)
+                arguments.append(tuple())
                 continue
 
             command, argument = self._parse_line(line)
@@ -332,7 +337,9 @@ class Sequencer(Script):
     def current_command(self) -> str:
         return self._current_command
 
-    def reset(self, script: str, external_event: Optional[asyncio.Event] = None) -> None:
+    def reset(
+        self, script: str, external_event: Optional[asyncio.Event] = None
+    ) -> None:
         if script is None:
             return
         self._script_text = script
@@ -345,16 +352,26 @@ class Sequencer(Script):
             for command, argument, loop in parsed_test
         )
         self._original_commands = copy.deepcopy(self._commands)
-        self._external_event = external_event if external_event is not None else self._running
+        self._external_event = (
+            external_event if external_event is not None else self._running
+        )
 
-    async def execute(self, script: Optional[str] = None, external_event: Optional[asyncio.Event] = None) -> None:
+    async def execute(
+        self,
+        script: Optional[str] = None,
+        external_event: Optional[asyncio.Event] = None,
+    ) -> None:
         self.reset(script=script, external_event=external_event)
         await self._sonicamp.get_overview()
         await self._loop()
 
     async def _loop(self) -> None:
         self.running.set()
-        while self._external_event.is_set() and self.running.is_set() and self._current_line < len(self._commands):
+        while (
+            self._external_event.is_set()
+            and self.running.is_set()
+            and self._current_line < len(self._commands)
+        ):
             try:
                 if self._commands[self._current_line]["command"] == "startloop":
                     self.startloop_response()
@@ -401,6 +418,8 @@ class Sequencer(Script):
         ic(f"Executing command: '{command}'")
 
         match command["command"]:
+            case _ if command["command"].startswith(("?", "!")):
+                await self._sonicamp.execute_command(command["command"])
             case "frequency":
                 await self._sonicamp.set_frequency(command["argument"])
             case "gain":

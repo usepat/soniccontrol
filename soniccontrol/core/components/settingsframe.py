@@ -232,26 +232,26 @@ class SettingsFrame(RootChild, Connectable):
     @async_handler
     async def submit_atf_configuration(self) -> None:
         self.save_atf_config()
-        await self.root.sonicamp.set_atf(1, self.root.atf1.get())
-        await self.root.sonicamp.set_atk(1, self.root.atk1.get())
-        await self.root.sonicamp.set_atf(2, self.root.atf2.get())
-        await self.root.sonicamp.set_atk(2, self.root.atk2.get())
-        await self.root.sonicamp.set_atf(3, self.root.atf3.get())
-        await self.root.sonicamp.set_atk(3, self.root.atk3.get())
-        await self.root.sonicamp.set_att1(3, self.root.atk1.get())
+        await self.root.sonicamp.set_atf1(self.root.atf1.get())
+        await self.root.sonicamp.set_atk1(self.root.atk1.get())
+        await self.root.sonicamp.set_atf2(self.root.atf2.get())
+        await self.root.sonicamp.set_atk2(self.root.atk2.get())
+        await self.root.sonicamp.set_atf3(self.root.atf3.get())
+        await self.root.sonicamp.set_atk3(self.root.atk3.get())
+        await self.root.sonicamp.set_att1(self.root.att1.get())
         logger.debug(self.root.sonicamp.status)
 
     @async_handler
     async def request_current_config(self) -> None:
-        await self.root.sonicamp.get_atf(1)
+        await self.root.sonicamp.get_atf1()
         self.root.atf1.set(self.root.sonicamp.status.atf1)
         self.root.atk1.set(self.root.sonicamp.status.atk1)
 
-        await self.root.sonicamp.get_atf(2)
+        await self.root.sonicamp.get_atf2()
         self.root.atf2.set(self.root.sonicamp.status.atf2)
         self.root.atk2.set(self.root.sonicamp.status.atk2)
 
-        await self.root.sonicamp.get_atf(3)
+        await self.root.sonicamp.get_atf3()
         self.root.atf3.set(self.root.sonicamp.status.atf3)
         self.root.atk3.set(self.root.sonicamp.status.atk3)
 

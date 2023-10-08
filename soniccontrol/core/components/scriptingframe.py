@@ -143,8 +143,8 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             self.root.serialize_data(self.root.sonicamp.status, self.logfile)
             self.highlight_line(self.root.sonicamp.sequencer.current_line)
             try:
-                if self.root.sonicamp.ramper.running.is_set():
-                    self.current_task_var.set(f"{self.root.sonicamp.ramper}")
+                if self.root.sonicamp.frequency_ramper.running.is_set():
+                    self.current_task_var.set(f"{self.root.sonicamp.frequency_ramper}")
                 elif self.root.sonicamp.holder.holding.is_set():
                     self.current_task_var.set(f"{self.root.sonicamp.holder}")
                 else:

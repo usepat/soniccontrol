@@ -97,6 +97,10 @@ class Scriptable(abc.ABC):
     # def script_dictionary(self) -> Dict[str, Callable[[Any], Any]]:
     #     ...
 
+    @abc.abstractmethod
+    def execute_command(*args, **kwargs) -> None:
+        ...
+
     @property
     @abc.abstractmethod
     def updater(self) -> Updater:
