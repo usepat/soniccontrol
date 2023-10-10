@@ -24,11 +24,16 @@ class AmpBuilder:
         result_dict: Dict[str, Any] = ser.init_command.status_result
 
         await Commands.get_type.execute()
-        result_dict.update(Commands.get_type.status_result)
+        if Commands.get_type.answer.valid:
+            result_dict.update(Commands.get_type.status_result)
+
         await Commands.get_info.execute()
-        result_dict.update(Commands.get_info.status_result)
+        if Commands.get_info.answer.valid:
+            result_dict.update(Commands.get_info.status_result)
+
         await Commands.get_overview.execute()
-        result_dict.update(Commands.get_overview.status_result)
+        if Commands.get_overview.answer.valid:
+            result_dict.update(Commands.get_overview.status_result)
 
         status: Status = Status().update(**result_dict)
         info: Info = Info(firmware_info=Commands.get_info.answer.string).update(
@@ -81,6 +86,7 @@ class AmpBuilder:
             sonicamp.add_commands((Commands.get_status, Commands.get_type))
 
         if sonicamp.info.device_type == "catch":
+            sonicamp.should_update.set()
             sonicamp.add_commands(basic_catch_commands)
             if sonicamp.info.version == 0.3:
                 sonicamp.add_command(Commands.get_sens)
@@ -98,6 +104,7 @@ class AmpBuilder:
             sonicamp.add_commands(basic_descale_commands)
 
         elif sonicamp.info.device_type == "wipe":
+            sonicamp.should_update.set()
             sonicamp.add_commands(basic_wipe_commands)
 
         return sonicamp

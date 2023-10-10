@@ -181,7 +181,7 @@ class Modules:
 
 @attrs.define
 class Info:
-    device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="catch")
+    device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="")
     firmware_info: str = attrs.field(default="")
     version: float = attrs.field(default=0.2)
     modules: Modules = attrs.field(factory=Modules)

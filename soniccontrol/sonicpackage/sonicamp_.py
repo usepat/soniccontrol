@@ -14,6 +14,8 @@ CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
 @attrs.define
 class MeasureUpdater(Updater):
+    # status_interval: float = attrs.field(default=1)
+    # sens_interval: float = attrs.field(default=0.5)
     async def worker(self) -> None:
         await self._device.get_sens()
 
@@ -38,6 +40,7 @@ class SonicAmp(Scriptable):
     _status: Status = attrs.field()
     _info: Info = attrs.field()
 
+    _should_update: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _updater: Updater = attrs.field(init=False, default=None)
     _holder: Holder = attrs.field(init=False, factory=Holder)
     _frequency_ramper: Ramper = attrs.field(init=False)
@@ -55,6 +58,10 @@ class SonicAmp(Scriptable):
     @serial.setter
     def serial(self, serial: SerialCommunicator) -> None:
         self._serial = serial
+
+    @property
+    def should_update(self) -> asyncio.Event:
+        return self._should_update
 
     @property
     def updater(self) -> Updater:
@@ -94,7 +101,7 @@ class SonicAmp(Scriptable):
     @property
     def holder(self) -> Holder:
         return self._holder
-    
+
     def disconnect(self) -> None:
         self.serial.disconnect()
 
@@ -159,6 +166,8 @@ class SonicAmp(Scriptable):
         return command.answer.string
 
     def _check_updater_strategy(self) -> None:
+        if not self.should_update.is_set():
+            return
         if (
             self.status.signal
             and self.status.relay_mode == "MHz"

@@ -102,6 +102,7 @@ class Answer:
     _string: Optional[str] = attrs.field(default=None, init=False, repr=False)
     _lines: Optional[List[str]] = attrs.field(factory=list, init=False)
     unknown_answers: Set[str] = attrs.field(factory=set)
+    _valid: bool = attrs.field(default=False)
     _received: asyncio.Event = attrs.field(
         factory=asyncio.Event, init=False, repr=False
     )
@@ -118,6 +119,14 @@ class Answer:
     @property
     def lines(self) -> List[str]:
         return self._lines
+    
+    @property
+    def valid(self) -> bool:
+        return self._valid
+    
+    @valid.setter
+    def valid(self, valid: bool) -> None:
+        self._valid = valid
 
     @property
     def received(self) -> asyncio.Event:
@@ -134,6 +143,7 @@ class Answer:
     def reset(self) -> None:
         self._received.clear()
         self._lines.clear()
+        self._valid = False
         self._string = ""
         self._creation_timestamp = time.time()
         self._measured_response = None
@@ -228,7 +238,7 @@ class Command(Sendable):
             self.set_argument(argument)
 
         await Command._serial_communication.send_and_wait_for_answer(self)
-        self.validate()
+        self.answer.valid = self.validate()
         self.status_result.update({"timestamp": self.answer.received_timestamp})
         return self
 
