@@ -190,7 +190,10 @@ class SettingsFrame(RootChild, Connectable):
         self.file_entry.pack(fill=ttk.X, padx=5, pady=5)
         self.upload_button.pack(fill=ttk.X, padx=5, pady=5)
 
-        if isinstance(self.root.sonicamp, SonicCatch):
+        if (
+            self.root.sonicamp.info.device_type == "catch"
+            and self.root.sonicamp.info.version <= 0.4
+        ):
             self.atf_configuration_frame_container.pack(fill=ttk.X)
         self.atf_configuration_frame.pack(padx=5, pady=10)
         self.config_entry_frame.pack()
@@ -240,6 +243,7 @@ class SettingsFrame(RootChild, Connectable):
         await self.root.sonicamp.set_atk3(self.root.atk3.get())
         await self.root.sonicamp.set_att1(self.root.att1.get())
         logger.debug(self.root.sonicamp.status)
+        self.load_config_json()
 
     @async_handler
     async def request_current_config(self) -> None:

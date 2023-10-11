@@ -32,6 +32,17 @@ class OverviewUpdater(Updater):
         await self._device.get_overview()
 
 
+@attrs.define
+class Catch03Updater(Updater):
+    async def worker(self) -> None:
+        if (
+            self._device.status.signal
+            and self._device.status.relay_mode == "Mhz"
+        ):
+            self._device.updater = MeasureUpdater(self._device)
+        await self._device
+
+
 @attrs.define(kw_only=True)
 class SonicAmp(Scriptable):
     _serial: SerialCommunicator = attrs.field()
@@ -167,7 +178,9 @@ class SonicAmp(Scriptable):
 
     def _check_updater_strategy(self) -> None:
         if not self.should_update.is_set():
+            self.updater.stop_execution() if self.updater.running.is_set() else None
             return
+
         if (
             self.status.signal
             and self.status.relay_mode == "MHz"

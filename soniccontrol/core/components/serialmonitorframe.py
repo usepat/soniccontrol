@@ -60,7 +60,7 @@ class SerialMonitorFrame(RootChild, Connectable):
     async def read_engine(self) -> None:
         if not self.autoread.get():
             return
-        self.insert_text(await self.root.sonicamp.send_command(""))
+        self.insert_text(await self.root.sonicamp.execute_command(""))
         self.after(1000, self.read_engine)
 
     def publish(self) -> None:

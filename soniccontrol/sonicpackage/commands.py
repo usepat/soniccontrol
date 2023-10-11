@@ -66,50 +66,84 @@ class Commands:
             protocol=int,
             wipe_mode=attrs.converters.to_bool,
             temperature=float,
+            signal={
+                "keywords": ("frequency",),
+                "worker": lambda frequency: frequency != 0,
+            },
         ),
     )
 
     get_sens: Command = Command(
         message="?sens",
         estimated_response_time=0.35,
-        validators=CommandValidator(
-            pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
-            frequency=int,
-            urms=float,
-            irms=float,
-            phase=float,
+        validators=(
+            CommandValidator(
+                pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
+                frequency=int,
+                urms=float,
+                irms=float,
+                phase=float,
+            ),
+            CommandValidator(
+                pattern=r".*(error).*",
+                signal=lambda error: False,
+                frequency=lambda error: 0,
+                urms=lambda error: 0,
+                irms=lambda error: 0,
+                phase=lambda error: 0,
+            ),
         ),
     )
 
     get_sens_factorised: Command = Command(
         message="?sens",
         estimated_response_time=0.35,
-        validators=CommandValidator(
-            pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
-            frequency=int,
-            urms=attrs.converters.pipe(float, lambda urms: urms / 1000),
-            irms=attrs.converters.pipe(float, lambda irms: irms / 1000),
-            phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
+        validators=(
+            CommandValidator(
+                pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
+                frequency=int,
+                urms=attrs.converters.pipe(float, lambda urms: urms / 1000),
+                irms=attrs.converters.pipe(float, lambda irms: irms / 1000),
+                phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
+            ),
+            CommandValidator(
+                pattern=r".*(error).*",
+                signal=lambda error: False,
+                frequency=lambda error: 0,
+                urms=lambda error: 0,
+                irms=lambda error: 0,
+                phase=lambda error: 0,
+            ),
         ),
     )
 
     get_sens_fullscale_values: Command = Command(
         message="?sens",
         estimated_response_time=0.35,
-        validators=CommandValidator(
-            pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
-            frequency=int,
-            urms=attrs.converters.pipe(
-                float,
-                lambda urms: urms if urms > 282_300 else 282_300,
-                lambda urms: (urms * 0.000_400_571 - 1_130.669_402) * 1000 + 0.5,
+        validators=(
+            CommandValidator(
+                pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
+                frequency=int,
+                urms=attrs.converters.pipe(
+                    float,
+                    lambda urms: urms if urms > 282_300 else 282_300,
+                    lambda urms: (urms * 0.000_400_571 - 1_130.669_402) * 1000 + 0.5,
+                ),
+                irms=attrs.converters.pipe(
+                    float,
+                    lambda irms: irms if irms > 3_038_000 else 303_800,
+                    lambda irms: (irms * 0.000_015_601 - 47.380671) * 1000 + 0.5,
+                ),
+                phase=attrs.converters.pipe(float, lambda phase: phase * 0.125 * 100),
             ),
-            irms=attrs.converters.pipe(
-                float,
-                lambda irms: irms if irms > 3_038_000 else 303_800,
-                lambda irms: (irms * 0.000_015_601 - 47.380671) * 1000 + 0.5,
+            CommandValidator(
+                pattern=r".*(error).*",
+                signal=lambda error: False,
+                frequency=lambda error: 0,
+                urms=lambda error: 0,
+                irms=lambda error: 0,
+                phase=lambda error: 0,
             ),
-            phase=attrs.converters.pipe(float, lambda phase: phase * 0.125 * 100),
         ),
     )
 

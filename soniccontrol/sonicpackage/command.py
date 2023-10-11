@@ -23,9 +23,9 @@ class Converter:
             ic("ERROR: Converter did not convert yet.")
             return False
 
-    def convert(self, data: Any) -> Any:
+    def convert(self, *args, **kwargs) -> Any:
         try:
-            self._result = self.worker(data)
+            self._result = self.worker(*args, **kwargs)
         except Exception:
             ic("ERROR", sys.exc_info())
             return False
@@ -36,16 +36,26 @@ class Converter:
 @attrs.define
 class CommandValidator:
     pattern: str = attrs.field()
-    _converters: Dict[str, Converter] = attrs.field(converter=dict)
-    _result: Dict[str, Any] = attrs.field(init=False, factory=dict)
+    _converters: Dict[str, Converter] = attrs.field(converter=dict, repr=False)
+    _after_converters: Dict[
+        str, Dict[Literal["worker", "keywords"], Union[Converter, str]]
+    ] = attrs.field(repr=False)
+    _result: Dict[str, Any] = attrs.field(init=False, factory=dict, repr=False)
     _compiled_pattern: re.Pattern = attrs.field(init=False, repr=False)
 
     def __init__(self, pattern: str, **kwargs) -> None:
+        workers: dict = dict()
+        after_workers: dict = dict()
+        for keyword, worker in kwargs.items():
+            if isinstance(worker, dict):
+                worker["worker"] = Converter(worker["worker"])
+                after_workers[keyword] = worker
+                continue
+            workers[keyword] = Converter(worker)
         self.__attrs_init__(
             pattern=pattern,
-            converters={
-                keyword: Converter(worker) for keyword, worker in kwargs.items()
-            },
+            converters=workers,
+            after_converters=after_workers,
         )
 
     def __attrs_post_init__(self) -> None:
@@ -94,6 +104,19 @@ class CommandValidator:
             keyword: self._converters[keyword].convert(result.groupdict().get(keyword))
             for keyword in result.groupdict().keys()
         }
+        self.result.update(
+            {
+                keyword: self._after_converters[keyword]["worker"].convert(
+                    **{
+                        k: self._result.get(k)
+                        for k in worker["keywords"]
+                        if k in result.groupdict()
+                    }
+                )
+                for keyword, worker in self._after_converters.items()
+            }
+        )
+
         return True
 
 
@@ -119,11 +142,11 @@ class Answer:
     @property
     def lines(self) -> List[str]:
         return self._lines
-    
+
     @property
     def valid(self) -> bool:
         return self._valid
-    
+
     @valid.setter
     def valid(self, valid: bool) -> None:
         self._valid = valid
