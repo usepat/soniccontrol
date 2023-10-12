@@ -21,3 +21,17 @@ hold 3s
 ramp_freq 1000000 2000000 10000 100ms
 endloop
 """
+
+"""
+hold 3s
+!ON
+hold 3s
+!OFF
+hold 3s
+!f=2345345
+hold 3s
+!g=100
+hold 3s
+!ON
+hold 3s
+"""

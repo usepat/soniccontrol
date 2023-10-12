@@ -127,8 +127,11 @@ class Ramper(Script):
         self._values = range(_start_value, _stop_value, _step_value)
         self._hold_on.reset(*hold_on)
         self._hold_off.reset(*hold_off)
-        if external_event is None:
-            self._external_event = self._running
+        self._external_event = (
+            external_event 
+            if isinstance(external_event, asyncio.Event)
+            else self._running
+        )     
 
     async def execute(
         self,
@@ -295,12 +298,15 @@ class SonicParser:
                 "Syntax of loops is invalid. Maybe you forgot to close a loop?"
             )
 
-        elif any(self.values_correctly_converted(arg) for arg in arguments):
+        if any(self.values_correctly_converted(arg) for arg in arguments):
             raise ValueError(
                 "Argument(s) could not have been correctly converted to  integers,\nplease call for support or try again"
             )
 
-        elif any(command not in self.SUPPORTED_TOKENS for command in commands):
+        if any(
+            command not in self.SUPPORTED_TOKENS and not command.startswith(("!", "?"))
+            for command in commands
+        ):
             raise ValueError("One or more commands are illegal or written wrong")
 
 
@@ -310,7 +316,6 @@ class Sequencer(Script):
     _script_text: str = attrs.field(
         default="", validator=attrs.validators.instance_of(str)
     )
-    _external_event: asyncio.Event = attrs.field(default=None, repr=False)
 
     _parser: SonicParser = attrs.field(init=False, factory=SonicParser, repr=False)
     _commands: List[Any] = attrs.field(init=False, factory=list)
@@ -319,8 +324,9 @@ class Sequencer(Script):
     _current_line: int = attrs.field(init=False, default=0)
     _running: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
 
-    def __attrs_post_init__(self) -> None:
-        self.reset(self._script_text, self._external_event)
+    def __init__(self, sonicamp: Scriptable, script_text: str = "", external_event: Optional[asyncio.Event] = None) -> None:
+        self.__attrs_init__(sonicamp)
+        self.reset(script=script_text, external_event=external_event)
 
     def __str__(self) -> str:
         return self.current_command
@@ -342,18 +348,23 @@ class Sequencer(Script):
     ) -> None:
         if script is None:
             return
+        self._current_line = 0
         self._script_text = script
+        
         parsed_test = self._parser.parse_text(self._script_text)
         parsed_test = zip(
             parsed_test["commands"], parsed_test["arguments"], parsed_test["loops"]
         )
+        
         self._commands = list(
             {"command": command, "argument": argument, "loop": loop}
             for command, argument, loop in parsed_test
         )
         self._original_commands = copy.deepcopy(self._commands)
-        self._external_event = (
-            external_event if external_event is not None else self._running
+        self._running = (
+            external_event
+            if isinstance(external_event, asyncio.Event)
+            else self._running
         )
 
     async def execute(
@@ -364,14 +375,11 @@ class Sequencer(Script):
         self.reset(script=script, external_event=external_event)
         await self._sonicamp.get_overview()
         await self._loop()
+        await self._sonicamp.set_signal_off()
 
     async def _loop(self) -> None:
         self.running.set()
-        while (
-            self._external_event.is_set()
-            and self.running.is_set()
-            and self._current_line < len(self._commands)
-        ):
+        while self.running.is_set() and self._current_line < len(self._commands):
             try:
                 if self._commands[self._current_line]["command"] == "startloop":
                     self.startloop_response()

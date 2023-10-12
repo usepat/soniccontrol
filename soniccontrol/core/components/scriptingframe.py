@@ -1,6 +1,7 @@
 from typing import Optional, Any, Tuple, Dict, Callable
 import asyncio
 import sys
+import traceback
 import logging
 import copy
 import csv
@@ -114,9 +115,12 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             self.root.sonicamp.sequence(self.scripttext.get(1.0, ttk.END)),
         )
 
-        await asyncio.sleep(0.1)
         if self.sequence_task.done() and self.sequence_task.exception() is not None:
-            logger.warning(f"{self.sequence_task.exception()}")
+            exc = self.sequence_task.exception()
+            formatted_traceback = "".join(
+                traceback.format_exception(type(exc), exc, exc.__traceback__)
+            )
+            logger.warning(f"{formatted_traceback}")
             Messagebox.show_warning(f"{self.sequence_task.exception()}")
             return self.stop_script()
 
@@ -154,8 +158,12 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
                 self.current_task_var.set("")
             await asyncio.sleep(0.05)
 
-        if self.sequence_task.exception() is not None:
-            logger.warning(f"{self.sequence_task.exception()}")
+        if self.sequence_task.done() and self.sequence_task.exception() is not None:
+            exc = self.sequence_task.exception()
+            formatted_traceback = "".join(
+                traceback.format_exception(type(exc), exc, exc.__traceback__)
+            )
+            logger.warning(f"{formatted_traceback}")
             Messagebox.show_warning(f"{self.sequence_task.exception()}")
 
         await asyncio.Condition().wait_for(
