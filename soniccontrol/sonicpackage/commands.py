@@ -65,7 +65,9 @@ class Commands:
             gain=int,
             protocol=int,
             wipe_mode=attrs.converters.to_bool,
-            temperature=float,
+            temperature=attrs.converters.pipe(
+                float, lambda t: t if -70 < t < 200 else None
+            ),
             signal={
                 "keywords": ("frequency",),
                 "worker": lambda frequency: frequency != 0,

@@ -83,9 +83,17 @@ class Script(abc.ABC):
     def __init__(self) -> None:
         super().__init__()
 
+    @property
+    @abc.abstractmethod
+    def running(self) -> asyncio.Event:
+        ...
+
     @abc.abstractmethod
     def execute(self, *args, **kwargs) -> None:
         ...
+
+    def stop_execution(self) -> None:
+        self.running.clear()
 
 
 class Scriptable(abc.ABC):

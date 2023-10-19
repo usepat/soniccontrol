@@ -261,6 +261,7 @@ class Command(Sendable):
             self.set_argument(argument)
 
         await Command._serial_communication.send_and_wait_for_answer(self)
+
         self.answer.valid = self.validate()
         self.status_result.update({"timestamp": self.answer.received_timestamp})
         return self

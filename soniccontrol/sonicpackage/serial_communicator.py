@@ -105,14 +105,14 @@ class SerialCommunicator(Communicator):
         if self._writer is None or self._reader is None:
             ic("No connection available")
             return
-        while not self._writer.is_closing():
+        while self._writer is not None and not self._writer.is_closing():
             command: Command = await self._command_queue.get()
             async with self._lock:
                 try:
                     await send_and_get(command)
                 except serial.SerialException:
                     self.disconnect()
-                    break
+                    return
                 except Exception as e:
                     ic(sys.exc_info())
                     break

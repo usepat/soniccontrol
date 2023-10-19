@@ -181,7 +181,7 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
             ),
         )
 
-        self.temperature: ttk.DoubleVar = ttk.DoubleVar(value=23.5)
+        self.temperature: ttk.DoubleVar = ttk.DoubleVar(value=0.0)
         self.temperature_text: ttk.StringVar = ttk.StringVar()
         self.temperature.trace_add(
             "write",
@@ -259,6 +259,8 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
             "relay_mode": "on_relay_mode_change",
         }
 
+        self.files_to_write: List[pathlib.Path] = [self.status_log_filepath]
+
     @property
     def layouts(self) -> Iterable[Layout]:
         return self._layouts
@@ -324,7 +326,6 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
     async def on_connection_attempt(self, event: Any = None, *args, **kwargs) -> None:
         builder = AmpBuilder()
         self.sonicamp = await builder.build_amp(self.port.get())
-        self.serial = self.sonicamp.serial
         await self.sonicamp.serial.connection_opened.wait()
         self.after_connect()
         self.status_engine()
@@ -340,54 +341,52 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
                 path=self.status_log_filepath,
                 first_time=self.status_log_filepath_existed,
             )
+            self.on_update()
+            for path in self.files_to_write:
+                asyncio.create_task(self.serialize_data(self.sonicamp.status, path))
 
         self.should_update.set()
         await status_engine_setup()
-        logger.debug("Waiting for change in status")
+
         status_task = asyncio.create_task(self.worker())
+
         await self.sonicamp.serial.connection_closed.wait()
+        status_task.cancel()
         self.should_update.clear()
         self.event_generate(const.Events.DISCONNECTED)
 
     async def worker(self) -> None:
-        while self.sonicamp.serial.connection_opened.is_set():
+        while self.sonicamp is not None and self.sonicamp.serial.connection_opened.is_set():
             await self.sonicamp.status.changed.wait()
-            self.status_frequency_khz_var.set(self.sonicamp.status.frequency)
-            self.status_gain.set(self.sonicamp.status.gain)
-            self.temperature.set(self.sonicamp.status.temperature)
-            self.urms.set(self.sonicamp.status.urms)
-            self.irms.set(self.sonicamp.status.irms)
-            self.phase.set(self.sonicamp.status.phase)
             self.on_update()
-            self.serialize_data(self.sonicamp.status, self.status_log_filepath)
+            for path in self.files_to_write:
+                asyncio.create_task(self.serialize_data(self.sonicamp.status, path))
             await asyncio.sleep(0.1)
 
     def on_update(self) -> None:
-        if self.old_status is None:
-            self.old_status = copy.deepcopy(self.sonicamp.status)
-            return
-        for child in self.updatables:
-            methods_for_changed_values = (
-                getattr(child, method)
-                for attribute, method in self.on_status_update_lookup_table.items()
-                if (
-                    getattr(self.old_status, attribute)
-                    != getattr(self.sonicamp.status, attribute)
-                )
-                and hasattr(child, method)
-            )
-            for method in methods_for_changed_values:
-                logger.debug(f"Calling method {method}")
-                method()
+        self.status_frequency_khz_var.set(self.sonicamp.status.frequency)
+        self.status_gain.set(self.sonicamp.status.gain)
+        if self.sonicamp.status.temperature is not None:
+            self.temperature.set(self.sonicamp.status.temperature)
+        self.urms.set(self.sonicamp.status.urms)
+        self.irms.set(self.sonicamp.status.irms)
+        self.phase.set(self.sonicamp.status.phase)
 
-        self.old_status = copy.deepcopy(self.sonicamp.status)
+        for method in (
+            getattr(child, method)
+            for child in self.updatables
+            for attribute, method in self.on_status_update_lookup_table.items()
+            if attribute in self.sonicamp.status.changed_data and hasattr(child, method)
+        ):
+            logger.debug(f"Calling method {method}")
+            method()
 
     def stop_status_engine(self) -> None:
         if self.sonicamp is not None:
             self.sonicamp.disconnect()
             self.sonicamp = None
 
-    def serialize_data(
+    async def serialize_data(
         self, status: Status, path: pathlib.Path, first_time: bool = False
     ) -> None:
         is_empty: bool = not path.exists() or path.stat().st_size == 0

@@ -49,18 +49,7 @@ class Status:
         converter=default_if_none(False, attrs.converters.to_bool),
         validator=attrs.validators.instance_of(bool),
     )
-    temperature: float = attrs.field(
-        default=0.0,
-        converter=[
-            lambda x: (
-                default_if_none(0.0, float)(
-                    x.strip("'") if isinstance(x, str) and "'" in x else x
-                )
-            ),
-            lambda x: x if -100 < x < 350 else 0.0,
-        ],
-        validator=attrs.validators.instance_of(float),
-    )
+    temperature: Optional[float] = attrs.field(default=None)
     signal: bool = attrs.field(
         default=False,
         converter=default_if_none(False, bool),
@@ -132,21 +121,43 @@ class Status:
         ),
     )
     _changed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
+    _changed_data: Dict[str, Any] = attrs.field(init=False, factory=dict)
+    _version: int = attrs.field(init=False, default=0)
 
     @property
     def changed(self) -> asyncio.Event:
         return self._changed
 
-    def update(self, **kwargs) -> Status:
+    @property
+    def changed_data(self) -> Dict[str, Any]:
+        return self._changed_data
+
+    @property
+    def version(self) -> int:
+        return self._version
+
+    async def update(self, **kwargs) -> Status:
+        self._changed.clear()
+        self._changed_data.clear()
         kwargs["timestamp"] = (
             datetime.datetime.now()
             if not kwargs.get("timestamp")
             else datetime.datetime.fromtimestamp(kwargs.get("timestamp"))
         )
+        changed: bool = False
         for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-        self._changed.set()
+            if hasattr(self, key) and getattr(self, key) != value:
+                try:
+                    setattr(self, key, value)
+                    self._changed_data[key] = value
+                    changed = key != "timestamp" or changed
+                except AttributeError:
+                    continue
+        if changed:
+            self._changed.set()
+            await asyncio.sleep(0.1)
+            # self._version += 1 if self._version <= 1_000_000 else -1_000_000
+            self._changed.clear()
         return self
 
 

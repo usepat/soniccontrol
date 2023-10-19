@@ -35,7 +35,7 @@ class AmpBuilder:
         if Commands.get_overview.answer.valid:
             result_dict.update(Commands.get_overview.status_result)
 
-        status: Status = Status().update(**result_dict)
+        status: Status = await Status().update(**result_dict)
         info: Info = Info(firmware_info=Commands.get_info.answer.string).update(
             **result_dict
         )

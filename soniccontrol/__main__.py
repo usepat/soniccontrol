@@ -14,7 +14,7 @@ if __name__ == "__main__":
         async_mainloop(sc)
 """
 startloop
-frequency 50000000
+frequency 5000000
 gain 150
 off
 hold 3s

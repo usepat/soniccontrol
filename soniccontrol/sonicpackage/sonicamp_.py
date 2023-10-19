@@ -35,10 +35,7 @@ class OverviewUpdater(Updater):
 @attrs.define
 class Catch03Updater(Updater):
     async def worker(self) -> None:
-        if (
-            self._device.status.signal
-            and self._device.status.relay_mode == "Mhz"
-        ):
+        if self._device.status.signal and self._device.status.relay_mode == "Mhz":
             self._device.updater = MeasureUpdater(self._device)
         await self._device
 
@@ -86,8 +83,11 @@ class SonicAmp(Scriptable):
             return
         if self._updater is not None:
             self._updater.stop_execution()
+
         self._updater = updater
-        self._updater.execute()
+
+        if self._updater is not None:
+            self._updater.execute()
 
     @property
     def commands(self) -> Dict[str, Command]:
@@ -114,7 +114,17 @@ class SonicAmp(Scriptable):
         return self._holder
 
     def disconnect(self) -> None:
+        if self.sequencer.running.is_set():
+            self.sequencer.stop_execution()
+        if self.frequency_ramper.running.is_set():
+            self.frequency_ramper.stop_execution()
+        if self.holder.running.is_set():
+            self.holder.stop_execution()
+
+        self.should_update.clear()
+        Command.set_serial_communication(None)
         self.serial.disconnect()
+        del self
 
     def add_command(
         self,
@@ -161,16 +171,21 @@ class SonicAmp(Scriptable):
         argument: Any = "",
         **status_kwargs_if_valid_command,
     ) -> str:
-        message = message if isinstance(message, str) else message.message
-        if not message in self._commands.keys():
-            ic("Command not found in commands of sonicamp", message, self)
-            ic("Executing message as a new Command...")
-            return await self.send_message(message=message, argument=argument)
+        try:
+            message = message if isinstance(message, str) else message.message
+            if not message in self._commands.keys():
+                ic("Command not found in commands of sonicamp", message, self)
+                ic("Executing message as a new Command...")
+                return await self.send_message(message=message, argument=argument)
+            command: Command = self._commands[message]
+            await command.execute(argument=argument, connection=self._serial)
 
-        command: Command = self._commands[message]
-        await command.execute(argument=argument, connection=self._serial)
+        except Exception:
+            self.disconnect()
 
-        self._status.update(**command.status_result, **status_kwargs_if_valid_command)
+        await self._status.update(
+            **command.status_result, **status_kwargs_if_valid_command
+        )
         self._check_updater_strategy()
         ic(command.byte_message, command.answer, command.status_result, self._status)
 

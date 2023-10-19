@@ -125,6 +125,7 @@ class SonicControl(Root):
         self.event_generate(const.Events.DISCONNECTED)
 
     def after_connect(self) -> None:
+        # What should happen with the gui, after connection happens
         match self.sonicamp.info.device_type:
             case "catch":
                 heading1 = "sonic"

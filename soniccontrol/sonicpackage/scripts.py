@@ -24,13 +24,13 @@ class Holder(Script):
         validator=attrs.validators.in_(("ms", "s")),
     )
     _external_event: asyncio.Event = attrs.field(repr=False, default=None)
-    _holding: asyncio.Event = attrs.field(init=False, repr=False, factory=asyncio.Event)
+    _running: asyncio.Event = attrs.field(init=False, repr=False, factory=asyncio.Event)
     _remaining_time: float = attrs.field(init=False, default=0.0)
 
     def __attrs_post_init__(self) -> None:
         self._duration = self._duration if self.unit == "s" else self._duration / 1000
         self._external_event = (
-            self.holding if self._external_event is None else self._external_event
+            self._running if self._external_event is None else self._external_event
         )
 
     def __str__(self) -> str:
@@ -49,8 +49,8 @@ class Holder(Script):
         return self._unit
 
     @property
-    def holding(self) -> asyncio.Event:
-        return self._holding
+    def running(self) -> asyncio.Event:
+        return self._running
 
     def reset(
         self,
@@ -64,7 +64,7 @@ class Holder(Script):
         self._duration = duration if unit == "s" else duration / 1000
         self._remaining_time = 0.0
         self._external_event = (
-            external_event if external_event is not None else self._holding
+            external_event if external_event is not None else self._running
         )
 
     async def execute(
@@ -74,17 +74,17 @@ class Holder(Script):
         external_event: Optional[asyncio.Event] = None,
     ) -> None:
         self.reset(duration=duration, unit=unit, external_event=external_event)
-        self._holding.set()
+        self._running.set()
         end_time: float = time.time() + self._duration
         while (
             time.time() < end_time
-            and self._holding.is_set()
+            and self._running.is_set()
             and self._external_event.is_set()
         ):
             self._remaining_time = round(end_time - time.time(), 2)
             await asyncio.sleep(0.01)
         self._remaining_time = 0.0
-        self._holding.clear()
+        self._running.clear()
 
 
 @attrs.define
@@ -128,10 +128,10 @@ class Ramper(Script):
         self._hold_on.reset(*hold_on)
         self._hold_off.reset(*hold_off)
         self._external_event = (
-            external_event 
+            external_event
             if isinstance(external_event, asyncio.Event)
             else self._running
-        )     
+        )
 
     async def execute(
         self,
@@ -322,9 +322,15 @@ class Sequencer(Script):
     _original_commands: List[Any] = attrs.field(init=False, factory=list)
     _current_command: str = attrs.field(init=False, default="")
     _current_line: int = attrs.field(init=False, default=0)
+    _command_changed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _running: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
 
-    def __init__(self, sonicamp: Scriptable, script_text: str = "", external_event: Optional[asyncio.Event] = None) -> None:
+    def __init__(
+        self,
+        sonicamp: Scriptable,
+        script_text: str = "",
+        external_event: Optional[asyncio.Event] = None,
+    ) -> None:
         self.__attrs_init__(sonicamp)
         self.reset(script=script_text, external_event=external_event)
 
@@ -334,6 +340,10 @@ class Sequencer(Script):
     @property
     def running(self) -> asyncio.Event:
         return self._running
+
+    @property
+    def command_changed(self) -> asyncio.Event:
+        return self._command_changed
 
     @property
     def current_line(self) -> int:
@@ -350,12 +360,12 @@ class Sequencer(Script):
             return
         self._current_line = 0
         self._script_text = script
-        
+
         parsed_test = self._parser.parse_text(self._script_text)
         parsed_test = zip(
             parsed_test["commands"], parsed_test["arguments"], parsed_test["loops"]
         )
-        
+
         self._commands = list(
             {"command": command, "argument": argument, "loop": loop}
             for command, argument, loop in parsed_test
@@ -381,6 +391,8 @@ class Sequencer(Script):
         self.running.set()
         while self.running.is_set() and self._current_line < len(self._commands):
             try:
+                self._command_changed.set()
+                self._command_changed.clear()
                 if self._commands[self._current_line]["command"] == "startloop":
                     self.startloop_response()
                 elif self._commands[self._current_line]["command"] == "endloop":
