@@ -156,7 +156,6 @@ class Status:
         if changed:
             self._changed.set()
             await asyncio.sleep(0.1)
-            # self._version += 1 if self._version <= 1_000_000 else -1_000_000
             self._changed.clear()
         return self
 

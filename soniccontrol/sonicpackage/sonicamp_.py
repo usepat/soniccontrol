@@ -14,8 +14,6 @@ CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
 @attrs.define
 class MeasureUpdater(Updater):
-    # status_interval: float = attrs.field(default=1)
-    # sens_interval: float = attrs.field(default=0.5)
     async def worker(self) -> None:
         await self._device.get_sens()
 
@@ -211,7 +209,7 @@ class SonicAmp(Scriptable):
         return await self.execute_command("!OFF", urms=0.0, irms=0.0, phase=0.0)
 
     async def set_signal_on(self) -> str:
-        answer = await self.execute_command("!ON")
+        return await self.execute_command("!ON")
 
     async def set_signal_auto(self) -> str:
         return await self.execute_command("!AUTO")

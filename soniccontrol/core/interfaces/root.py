@@ -336,12 +336,12 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
     @async_handler
     async def status_engine(self) -> None:
         async def status_engine_setup() -> None:
-            self.serialize_data(
+            await self.serialize_data(
                 status=self.sonicamp.status,
                 path=self.status_log_filepath,
                 first_time=self.status_log_filepath_existed,
             )
-            self.on_update()
+            self.on_update(init=True)
             for path in self.files_to_write:
                 asyncio.create_task(self.serialize_data(self.sonicamp.status, path))
 
@@ -356,27 +356,37 @@ class Root(tk.Tk, AsyncTk, interfaces.Resizable):
         self.event_generate(const.Events.DISCONNECTED)
 
     async def worker(self) -> None:
-        while self.sonicamp is not None and self.sonicamp.serial.connection_opened.is_set():
-            await self.sonicamp.status.changed.wait()
+        while (
+            self.sonicamp is not None
+            and self.sonicamp.serial.connection_opened.is_set()
+        ):
+            # await asyncio.wait_for(asyncio.shield(self.sonicamp.status.changed.wait()), 3)
             self.on_update()
             for path in self.files_to_write:
                 asyncio.create_task(self.serialize_data(self.sonicamp.status, path))
             await asyncio.sleep(0.1)
+            await self.sonicamp.status.changed.wait()
 
-    def on_update(self) -> None:
+    def on_update(self, init: bool = False) -> None:
         self.status_frequency_khz_var.set(self.sonicamp.status.frequency)
         self.status_gain.set(self.sonicamp.status.gain)
-        if self.sonicamp.status.temperature is not None:
-            self.temperature.set(self.sonicamp.status.temperature)
         self.urms.set(self.sonicamp.status.urms)
         self.irms.set(self.sonicamp.status.irms)
         self.phase.set(self.sonicamp.status.phase)
 
+        if self.sonicamp.status.temperature is not None:
+            self.temperature.set(self.sonicamp.status.temperature)
+        if self.sonicamp.status.relay_mode == "MHz":
+            self.mode.set("Catch")
+        elif self.sonicamp.status.relay_mode == "KHz":
+            self.mode.set("Wipe")
+
+        data: Dict[str, Any] = attrs.asdict(self.sonicamp.status) if init else self.sonicamp.status.changed_data
         for method in (
             getattr(child, method)
             for child in self.updatables
             for attribute, method in self.on_status_update_lookup_table.items()
-            if attribute in self.sonicamp.status.changed_data and hasattr(child, method)
+            if attribute in data and hasattr(child, method)
         ):
             logger.debug(f"Calling method {method}")
             method()
