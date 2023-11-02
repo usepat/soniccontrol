@@ -11,7 +11,6 @@ from async_tkinter_loop import async_handler
 from PIL.ImageTk import PhotoImage
 from soniccontrol.core.interfaces import RootChild, Connectable, Root
 import soniccontrol.constants as const
-from soniccontrol.sonicpackage.sonicamp import SonicCatch
 
 logger = logging.getLogger(__name__)
 

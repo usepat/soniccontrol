@@ -4,7 +4,6 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from async_tkinter_loop import async_handler
 from PIL.ImageTk import PhotoImage
 from soniccontrol.core.interfaces import RootChild, Connectable, Root
-from soniccontrol.sonicpackage.sonicamp import Command
 
 
 class SerialMonitorFrame(RootChild, Connectable):
