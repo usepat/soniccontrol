@@ -12,13 +12,26 @@ if __name__ == "__main__":
     else:
         sc: SonicControl = SonicControl()
         async_mainloop(sc)
-
 """
 startloop
-frequency 50000000
+frequency 5000000
 gain 150
 off
 hold 3s
 ramp_freq 1000000 2000000 10000 100ms
 endloop
+"""
+
+"""
+hold 3s
+!ON
+hold 3s
+!OFF
+hold 3s
+!f=2345345
+hold 3s
+!g=100
+hold 3s
+!ON
+hold 3s
 """

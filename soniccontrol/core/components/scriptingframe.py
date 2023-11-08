@@ -1,6 +1,7 @@
 from typing import Optional, Any, Tuple, Dict, Callable
 import asyncio
 import sys
+import traceback
 import logging
 import copy
 import csv
@@ -10,6 +11,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 from ttkbootstrap.dialogs import Messagebox
 from async_tkinter_loop import async_handler
+from icecream import ic
 from PIL.ImageTk import PhotoImage
 
 from soniccontrol.core.interfaces import RootChild, Connectable, Scriptable, Root
@@ -39,7 +41,7 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             style=ttk.SUCCESS,
             image=self.root.start_image,
             compound=ttk.LEFT,
-            command=self.start_script,
+            command=async_handler(self.start_script),
         )
         self.script_guide_btn = ttk.Button(
             self.navigation_button_frame,
@@ -105,7 +107,7 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             text="Stop",
             bootstyle=ttk.DANGER,
             image=self.root.pause_image,
-            command=self.stop_script,
+            command=self.stop_sequencer,
         )
         self.menue_button.configure(state=ttk.DISABLED)
         self.sequence_status.start()
@@ -114,9 +116,12 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             self.root.sonicamp.sequence(self.scripttext.get(1.0, ttk.END)),
         )
 
-        await asyncio.sleep(0.1)
         if self.sequence_task.done() and self.sequence_task.exception() is not None:
-            logger.warning(f"{self.sequence_task.exception()}")
+            exc = self.sequence_task.exception()
+            formatted_traceback = "".join(
+                traceback.format_exception(type(exc), exc, exc.__traceback__)
+            )
+            logger.warning(f"{formatted_traceback}")
             Messagebox.show_warning(f"{self.sequence_task.exception()}")
             return self.stop_script()
 
@@ -130,22 +135,23 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
             )
             writer.writeheader()
         self.root.on_script_start()
+        await self.root.sonicamp.sequencer.running.wait()
+        self.root.files_to_write.append(self.logfile)
         self.script_engine()
 
     @async_handler
     async def script_engine(self) -> None:
-        await self.root.sonicamp.sequencer.running.wait()
         while (
-            self.sequence_task is not None
+            self.root.sonicamp is not None
+            and self.sequence_task is not None
             and not self.sequence_task.done()
             and self.root.sonicamp.sequencer.running.is_set()
         ):
-            self.root.serialize_data(self.root.sonicamp.status, self.logfile)
             self.highlight_line(self.root.sonicamp.sequencer.current_line)
             try:
-                if self.root.sonicamp.ramper.running.is_set():
-                    self.current_task_var.set(f"{self.root.sonicamp.ramper}")
-                elif self.root.sonicamp.holder.holding.is_set():
+                if self.root.sonicamp.frequency_ramper.running.is_set():
+                    self.current_task_var.set(f"{self.root.sonicamp.frequency_ramper}")
+                elif self.root.sonicamp.holder.running.is_set():
                     self.current_task_var.set(f"{self.root.sonicamp.holder}")
                 else:
                     self.current_task_var.set(f"{self.root.sonicamp.sequencer}")
@@ -154,18 +160,31 @@ class ScriptingFrame(RootChild, Connectable, Scriptable):
                 self.current_task_var.set("")
             await asyncio.sleep(0.05)
 
-        if self.sequence_task.exception() is not None:
-            logger.warning(f"{self.sequence_task.exception()}")
+        if self.sequence_task.done() and self.sequence_task.exception() is not None:
+            exc = self.sequence_task.exception()
+            formatted_traceback = "".join(
+                traceback.format_exception(type(exc), exc, exc.__traceback__)
+            )
+            logger.warning(f"{formatted_traceback}")
             Messagebox.show_warning(f"{self.sequence_task.exception()}")
 
-        await asyncio.Condition().wait_for(
-            lambda: not self.root.sonicamp.sequencer.running.is_set()
-        )
+        await asyncio.Condition().wait_for(lambda: (
+            self.root.sonicamp is None
+            or not self.root.sonicamp.sequencer.running.is_set()
+        ))
         self.stop_script()
 
     @async_handler
+    async def stop_sequencer(self) -> None:
+        if self.root.sonicamp is not None:
+            self.root.sonicamp.sequencer.stop_execution()
+
+    @async_handler
     async def stop_script(self) -> None:
-        self.root.sonicamp.sequencer.running.clear()
+        ic(self.root.files_to_write)
+        self.root.files_to_write.remove(self.logfile)
+        if self.root.sonicamp is not None:
+            self.root.sonicamp.sequencer.running.clear()
         self.start_script_btn.configure(
             text="Run",
             style="success.TButton",
@@ -273,6 +292,12 @@ class ScriptGuide(ttk.Toplevel):
                 "arguments": "None",
                 "description": "Turns the auto mode on.\nIt is important to hold after that command to stay in auto mode.\nIn the following example the auto mode is turned on for 5 seconds",
                 "example": "auto\nhold 5s",
+            },
+            {
+                "keyword": "frequency",
+                "arguments": "frequency: uint",
+                "description": "Set the frequency of the device",
+                "example": "frequency 1000000",
             },
             {
                 "keyword": "gain",

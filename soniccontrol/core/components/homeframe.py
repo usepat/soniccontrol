@@ -1,14 +1,14 @@
-from typing import Optional, Any
+from typing import *
 import tkinter as tk
 
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 from async_tkinter_loop import async_handler
 from PIL.ImageTk import PhotoImage
-from soniccontrol.core.interfaces import RootChild, Connectable, WidthLayout, Root
+from soniccontrol.core.interfaces import RootChild, Connectable, WidthLayout, Root, Updatable
 
 
-class HomeFrame(RootChild, Connectable):
+class HomeFrame(RootChild, Connectable, Updatable):
     def __init__(
         self,
         master: Root,
@@ -256,6 +256,22 @@ class HomeFrame(RootChild, Connectable):
     @async_handler
     async def set_signal_off(self) -> None:
         self.on_feedback(await self.root.sonicamp.set_signal_off())
+        
+    @async_handler
+    async def on_wipe_mode_change(self) -> None:
+        state: Literal["disabled", "normal"] = (
+            ttk.DISABLED 
+            if self.root.sonicamp.status.wipe_mode 
+            else ttk.NORMAL
+        )
+        for child in self.gain_frame.winfo_children():
+            child.configure(state=state)
+        for child in self.mode_frame.winfo_children():
+            child.configure(state=state)
+        self.set_val_btn.configure(state=state)
+        self.freq_spinbox.configure(state=state)
+        self.us_auto_button.configure(state=state)
+        self.us_on_button.configure(state=state)
 
     @async_handler
     async def set_signal_auto(self) -> None:

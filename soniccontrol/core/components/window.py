@@ -1,5 +1,5 @@
 import ttkbootstrap as ttk
-from typing import Tuple, Any
+from typing import *
 from soniccontrol.core.interfaces import (
     Root,
     RootChild,
@@ -70,22 +70,44 @@ class SonicControl(Root):
         )
 
         # INITIALIZING Notebook States
-        self.frames_for_disconnected_state: Tuple[Tabable, ...] = (
-            self.connection_frame,
-            self.info_frame,
-        )
-        self.frames_for_unkown_device_state: Tuple[
-            Tabable, ...
-        ] = self.frames_for_disconnected_state + (self.serialmonitor_frame,)
-        self.frames_for_soniccatch: Tuple[Tabable, ...] = (
-            self.home_frame,
-            self.scripting_frame,
-            self.sonicmeasure_frame,
-            self.serialmonitor_frame,
-            self.connection_frame,
-            self.settings_frame,
-            self.info_frame,
-        )
+        self.current_device_frames: Tuple[Tabable] = ()
+        self.notebook_frames: Dict[
+            Literal["disconnected", "unknown device", "catch", "descale", "wipe"],
+            Tuple[Tabable],
+        ] = {
+            "disconnected": (
+                self.connection_frame,
+                self.info_frame,
+            ),
+            "unknown device": (
+                self.serialmonitor_frame,
+                self.connection_frame,
+                self.info_frame,
+            ),
+            "catch": (
+                self.home_frame,
+                self.scripting_frame,
+                self.sonicmeasure_frame,
+                self.serialmonitor_frame,
+                self.connection_frame,
+                self.settings_frame,
+                self.info_frame,
+            ),
+            "wipe": (
+                self.home_frame,
+                self.scripting_frame,
+                self.serialmonitor_frame,
+                self.connection_frame,
+                self.info_frame,
+            ),
+            "descale": (
+                self.home_frame,
+                self.scripting_frame,
+                self.serialmonitor_frame,
+                self.connection_frame,
+                self.info_frame,
+            ),
+        }
         self.frames_for_primary_notebook: Tuple[Tabable, ...] = (
             self.home_frame,
             self.scripting_frame,
@@ -103,14 +125,29 @@ class SonicControl(Root):
         self.event_generate(const.Events.DISCONNECTED)
 
     def after_connect(self) -> None:
+        # What should happen with the gui, after connection happens
+        match self.sonicamp.info.device_type:
+            case "catch":
+                heading1 = "sonic"
+                self.current_device_frames = self.notebook_frames["catch"]
+            case "descale":
+                heading1 = "sonic"
+                self.current_device_frames = self.notebook_frames["descale"]
+            case "wipe":
+                heading1 = "sonic"
+                self.current_device_frames = self.notebook_frames["wipe"]
+            case _:
+                heading1 = "unknown device"
+                self.current_device_frames = self.notebook_frames["unknown device"]
+
         for connectable in self.connectables:
             connectable.on_connect(
                 Connectable.ConnectionData(
-                    heading1="sonic",
-                    heading2="catch",
+                    heading1=heading1,
+                    heading2=self.sonicamp.info.device_type,
                     subtitle="You are connected to",
-                    firmware_info="SONICCATCH FIRMWARE",
-                    tabs=self.frames_for_soniccatch,
+                    firmware_info=self.sonicamp.info.firmware_info,
+                    tabs=self.current_device_frames,
                 )
             )
 
@@ -132,7 +169,7 @@ class SonicControl(Root):
             return
         self.main_frame.remove(self.secondary_notebook_frame)
         self.secondary_notebook.forget_tabs()
-        self.notebook.forget_and_add_tabs(self.frames_for_soniccatch)
+        self.notebook.forget_and_add_tabs(self.current_device_frames)
 
     def add_secondary_notebook(self, event: Any = None, *args, **kwargs) -> None:
         if (
@@ -148,7 +185,7 @@ class SonicControl(Root):
         self.stop_status_engine()
         self.status_frame.pack_forget()
         self.remove_secondary_notebook()
-        self.notebook.forget_and_add_tabs(self.frames_for_disconnected_state)
+        self.notebook.forget_and_add_tabs(self.notebook_frames["disconnected"])
         for child in self.disconnectables:
             child.on_disconnect(event)
         self.connected = False

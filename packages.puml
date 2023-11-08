@@ -1,0 +1,34 @@
+@startuml packages
+set namespaceSeparator none
+package "soniccontrol.sonicpackage" as soniccontrol.sonicpackage {
+}
+package "soniccontrol.sonicpackage.amp_data" as soniccontrol.sonicpackage.amp_data {
+}
+package "soniccontrol.sonicpackage.builder" as soniccontrol.sonicpackage.builder {
+}
+package "soniccontrol.sonicpackage.command" as soniccontrol.sonicpackage.command {
+}
+package "soniccontrol.sonicpackage.commands" as soniccontrol.sonicpackage.commands {
+}
+package "soniccontrol.sonicpackage.interfaces" as soniccontrol.sonicpackage.interfaces {
+}
+package "soniccontrol.sonicpackage.scripts" as soniccontrol.sonicpackage.scripts {
+}
+package "soniccontrol.sonicpackage.serial_communicator" as soniccontrol.sonicpackage.serial_communicator {
+}
+package "soniccontrol.sonicpackage.sonicamp_" as soniccontrol.sonicpackage.sonicamp_ {
+}
+soniccontrol.sonicpackage.amp_data --> soniccontrol.sonicpackage.command
+soniccontrol.sonicpackage.builder --> soniccontrol.sonicpackage.sonicamp_
+soniccontrol.sonicpackage.command --> soniccontrol.sonicpackage.interfaces
+soniccontrol.sonicpackage.commands --> soniccontrol.sonicpackage.command
+soniccontrol.sonicpackage.commands --> soniccontrol.sonicpackage.serial_communicator
+soniccontrol.sonicpackage.scripts --> soniccontrol.sonicpackage.interfaces
+soniccontrol.sonicpackage.serial_communicator --> soniccontrol.sonicpackage.command
+soniccontrol.sonicpackage.serial_communicator --> soniccontrol.sonicpackage.interfaces
+soniccontrol.sonicpackage.sonicamp_ --> soniccontrol.sonicpackage.amp_data
+soniccontrol.sonicpackage.sonicamp_ --> soniccontrol.sonicpackage.commands
+soniccontrol.sonicpackage.sonicamp_ --> soniccontrol.sonicpackage.interfaces
+soniccontrol.sonicpackage.sonicamp_ --> soniccontrol.sonicpackage.scripts
+soniccontrol.sonicpackage.sonicamp_ --> soniccontrol.sonicpackage.serial_communicator
+@enduml

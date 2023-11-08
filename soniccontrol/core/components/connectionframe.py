@@ -32,8 +32,8 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
         super().__init__(master, tab_title=tab_title, image=image, *args, **kwargs)
         self.set_layouts(
             [
-                WidthLayout(min_size=300, command=self.set_large_layout),
-                WidthLayout(min_size=100, command=self.set_small_layout),
+                WidthLayout(min_size=350, command=self.set_large_layout),
+                WidthLayout(min_size=310, command=self.set_small_layout),
             ]
         )
 
@@ -91,7 +91,7 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
             master=self.port_frame,
             textvariable=self.root.port,
             values=[port.device for port in list_ports.comports()],
-            width=7,
+            width=15,
             style="dark.TCombobox",
             state=tk.READABLE,
         )

@@ -4,7 +4,6 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from async_tkinter_loop import async_handler
 from PIL.ImageTk import PhotoImage
 from soniccontrol.core.interfaces import RootChild, Connectable, Root
-from soniccontrol.sonicpackage.sonicamp import Command
 
 
 class SerialMonitorFrame(RootChild, Connectable):
@@ -60,7 +59,7 @@ class SerialMonitorFrame(RootChild, Connectable):
     async def read_engine(self) -> None:
         if not self.autoread.get():
             return
-        self.insert_text(await self.root.sonicamp.send_command(""))
+        self.insert_text(await self.root.sonicamp.execute_command(""))
         self.after(1000, self.read_engine)
 
     def publish(self) -> None:
@@ -87,7 +86,7 @@ class SerialMonitorFrame(RootChild, Connectable):
         self.insert_text(f">>> {command}")
 
         if not self.is_internal_command(command=command):
-            self.insert_text(await self.root.sonicamp.send_command(command))
+            self.insert_text(await self.root.sonicamp.execute_command(command))
 
         self.command_field.delete(0, ttk.END)
 

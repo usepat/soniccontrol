@@ -47,7 +47,7 @@ class SonicMeasureFrame(RootChild, Connectable):
         self.button_frame: ttk.Frame = ttk.Frame(self)
         self.start_stop_button: ttk.Button = ttk.Button(
             self.button_frame,
-            text="Start",
+            text="Start LiveView",
             style=ttk.SUCCESS,
             image=self.root.start_image,
             compound=ttk.RIGHT,
@@ -55,7 +55,7 @@ class SonicMeasureFrame(RootChild, Connectable):
         )
         self.spectrum_button: ttk.Button = ttk.Button(
             self.button_frame,
-            text="Open SonicMeasure Graph",
+            text="Open SonicMeasure",
             style=ttk.DARK,
             command=self.open_spectrum_measure,
         )
@@ -124,7 +124,7 @@ class SonicMeasureFrame(RootChild, Connectable):
     async def live_plot_engine(self) -> None:
         self.initialize_graph()
         while self.running.is_set():
-            await self.root.sonicamp.status_changed.wait()
+            await self.root.sonicamp.status.changed.wait()
             self.update_graph()
             await asyncio.sleep(0.2)
 
@@ -554,9 +554,14 @@ class SonicMeasure(ttk.Toplevel):
             writer.writeheader()
 
         try:
+            await self.root.sonicamp.set_signal_off()
             await self.root.sonicamp.set_relay_mode_mhz()
-            await self.root.sonicamp.set_frequency(self.root.set_frequency_var.get())
-            await self.root.sonicamp.set_gain(self.root.set_gain_var.get())
+            if isinstance(self.root.set_frequency_var.get(), (int, float)):
+                await self.root.sonicamp.set_frequency(
+                    self.root.set_frequency_var.get()
+                )
+            if isinstance(self.root.set_gain_var.get(), (int, float)):
+                await self.root.sonicamp.set_gain(self.root.set_gain_var.get())
         except Exception as e:
             logger.warning(e)
 
@@ -573,24 +578,23 @@ class SonicMeasure(ttk.Toplevel):
             )
         )
         self.worker = asyncio.create_task(self.ramp_worker())
+        self.root.files_to_write.append(self.root.sonicmeasure_logfile)
         await asyncio.gather(self.ramp_task, self.worker)
 
     async def ramp_worker(self) -> None:
-        await self.root.sonicamp.ramper.running.wait()
+        await self.root.sonicamp.frequency_ramper.running.wait()
         while (
             self.root.sonicmeasure_running.is_set()
-            and self.root.sonicamp.ramper.running.is_set()
+            and self.root.sonicamp.frequency_ramper.running.is_set()
         ):
-            await self.root.sonicamp.status_changed.wait()
-            self.root.serialize_data(
-                self.root.sonicamp.status, self.root.sonicmeasure_logfile
-            )
+            await self.root.sonicamp.status.changed.wait()
             self.figure_canvas.update(self.root.sonicmeasure_logfile)
             await asyncio.sleep(0.1)
         self.stop_sonicmeasure()
 
     def stop_sonicmeasure(self) -> None:
         self.root.sonicmeasure_running.clear()
+        self.root.files_to_write.remove(self.root.sonicmeasure_logfile)
         self.start_stop_button.configure(
             bootstyle=ttk.SUCCESS,
             text="Start",
@@ -718,6 +722,11 @@ class MeasureCanvas(FigureCanvasTkAgg):
     async def update(self, path: pathlib.Path) -> None:
         async with self._lock:
             data = pd.read_csv(path, skiprows=range(1, self._last_read_line))
+            data = data[
+                (data["urms"] != 0) 
+                & (data["irms"] != 0) 
+                & (data["phase"] != 0)
+            ]
             self._last_read_line += len(data)
 
             self.frequency_data += data["frequency"].tolist()

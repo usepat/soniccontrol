@@ -13,9 +13,7 @@ class Disconnectable(abc.ABC):
 
 
 class Updatable(abc.ABC):
-    @abc.abstractmethod
-    def on_update(self, event: Any = None) -> None:
-        ...
+    ...
 
 
 class Tabable(abc.ABC):

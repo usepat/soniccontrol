@@ -1,8 +1,11 @@
 import PIL
 from typing import Tuple, Literal
+import platform
 from PIL.ImageTk import PhotoImage
 from soniccontrol.utils import resize_img
 from pathlib import Path
+
+ENCODING: str = "windows-1252" if platform.system() == "Windows" else "utf-8"
 
 LOGDIR: Path = Path("logs")
 RESOURCES_DIR: Path = Path("resources")
