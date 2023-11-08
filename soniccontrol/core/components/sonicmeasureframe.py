@@ -47,7 +47,7 @@ class SonicMeasureFrame(RootChild, Connectable):
         self.button_frame: ttk.Frame = ttk.Frame(self)
         self.start_stop_button: ttk.Button = ttk.Button(
             self.button_frame,
-            text="Start",
+            text="Start LiveView",
             style=ttk.SUCCESS,
             image=self.root.start_image,
             compound=ttk.RIGHT,
@@ -55,7 +55,7 @@ class SonicMeasureFrame(RootChild, Connectable):
         )
         self.spectrum_button: ttk.Button = ttk.Button(
             self.button_frame,
-            text="Open SonicMeasure Graph",
+            text="Open SonicMeasure",
             style=ttk.DARK,
             command=self.open_spectrum_measure,
         )
