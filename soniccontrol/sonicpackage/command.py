@@ -206,7 +206,7 @@ class Command(Sendable):
         self._byte_message = f"{self.message}{self.argument}\n".encode(const.ENCODING)
 
     @property
-    def byte_message(self) -> None:
+    def byte_message(self) -> bytes:
         return self._byte_message
 
     @property

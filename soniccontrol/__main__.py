@@ -1,13 +1,17 @@
 import sys
-from async_tkinter_loop import async_handler, async_mainloop
+from icecream import install
+from async_tkinter_loop import async_mainloop
 from soniccontrol import SonicControl
+
+
+install()
 
 # import faulthandler
 
 # faulthandler.enable()
 
 if __name__ == "__main__":
-    if not "3.10" in sys.version:
+    if "3.10" not in sys.version:
         print("Warning: Please use Python 3.10 to run SonicControl")
     else:
         sc: SonicControl = SonicControl()
@@ -35,3 +39,4 @@ hold 3s
 !ON
 hold 3s
 """
+

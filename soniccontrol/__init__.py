@@ -11,6 +11,16 @@ __status__ = "Development"
 import logging
 import sys
 import os
+import pathlib
+
+project_root = pathlib.Path(__file__).parent
+logs_path = project_root / "logs"
+
+if not logs_path.exists() or not logs_path.is_dir():
+    logs_path.mkdir(parents=True, exist_ok=True)
+    print("Logs directory created.")
+else:
+    print("Logs directory already exists.")
 
 try:
     MAX_LINES: int = 10000
@@ -28,10 +38,10 @@ try:
 
     with open("logs//statuslog.csv") as file:
         lines: int = len(file.readlines())
-    if lines > 10_000_000:
+    if lines > 1_000_000:
         os.remove("logs//statuslog.csv")
 
-except FileNotFoundError as fe:
+except FileNotFoundError:
     print("File not found, proceeding...")
 
 if not os.path.isdir("logs/"):
@@ -54,3 +64,4 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 from soniccontrol.core import SonicControl
+

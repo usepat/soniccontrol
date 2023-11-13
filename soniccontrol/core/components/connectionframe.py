@@ -276,3 +276,4 @@ class ConnectionFrame(RootChild, Disconnectable, Connectable, Flashable):
         self.refresh_button.grid(row=0, column=0, pady=5)
         self.ports_menue.grid(row=0, column=1, padx=5, pady=5, sticky=ttk.NSEW)
         self.firmware_label.pack(expand=True, fill=ttk.BOTH, padx=10, pady=10)
+
