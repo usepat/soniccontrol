@@ -1,7 +1,6 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 import logging
-import abc
 from typing import Any, Iterable, Optional, Set
 import soniccontrol.constants as const
 from soniccontrol.core.interfaces.layouts import Layout
@@ -17,7 +16,7 @@ class RootNotebook(ttk.Notebook, Resizable):
         super().__init__(parent_frame, *args, **kwargs)
         self._layouts: Optional[Iterable[Layout]] = None
         self._resizer: Resizer = Resizer(self)
-        self._currently_managed_tabs: Iterable[RootChild] = list()
+        self._currently_managed_tabs: list[RootChild] = list()
         self._last_focused_tab: Optional[RootChild] = None
         self._currently_with_images: bool = False
         self._currently_with_titles: bool = False
@@ -35,7 +34,7 @@ class RootNotebook(ttk.Notebook, Resizable):
         return self._layouts
 
     @property
-    def currently_managed_tabs(self) -> Iterable[RootChild]:
+    def currently_managed_tabs(self) -> list[RootChild]:
         return self._currently_managed_tabs
 
     def set_layouts(self, layouts: Iterable[Layout]) -> None:
@@ -102,7 +101,8 @@ class RootNotebook(ttk.Notebook, Resizable):
         logger.debug(f"{self.tabs()}")
         if frame not in self.currently_managed_tabs:
             return
-        self.forget(frame.container if isinstance(frame, ScrolledFrame) else frame)
+        # self.forget(frame.container if isinstance(frame, ScrolledFrame) else frame)
+        self.hide(frame)
         self._currently_managed_tabs.remove(frame)
 
     def configure_tabs(
@@ -119,6 +119,11 @@ class RootNotebook(ttk.Notebook, Resizable):
             if tab_titles is None
             else tab_titles,
         )
+
+        for tab in self.tabs():
+            print(self.tab(tab_id=tab))
+            self.tab(tab_id=tab)
+
         self.select(self._last_focused_tab)
 
     def forget_and_add_tabs(self, tabs: Iterable[RootChild]) -> None:

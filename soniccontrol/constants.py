@@ -7,12 +7,15 @@ from pathlib import Path
 
 ENCODING: str = "windows-1252" if platform.system() == "Windows" else "utf-8"
 
-LOGDIR: Path = Path("logs")
-RESOURCES_DIR: Path = Path("resources")
+SOURCE_DIR: Path = Path(__file__).parent
+ROOT_DIR: Path = SOURCE_DIR.parent
+LOG_DIR: Path = ROOT_DIR / "logs"
+RESOURCES_DIR: Path = ROOT_DIR / "resources"
 PICTURES_DIR: Path = RESOURCES_DIR / "pictures"
 FONTS_DIR: Path = RESOURCES_DIR / "fonts"
 DOCUMENTS_DIR: Path = RESOURCES_DIR / "documents"
-CONFIG_JSON: Path = Path("config.json")
+CONFIG_JSON: Path = ROOT_DIR / "config.json"
+SONICCONTROL_LOG: Path = LOG_DIR / "soniccontrol.log"
 
 
 class Images:
@@ -86,3 +89,4 @@ class Events:
     SCRIPT_START: Literal["<<ScriptStarted>>"] = "<<ScriptStarted>>"
     SCRIPT_STOP: Literal["<<ScriptStopped>>"] = "<<ScriptStopped>>"
     FIRMWARE_FLASH: Literal["<<FirmwareFlash>>"] = "<<FirmwareFlash>>"
+

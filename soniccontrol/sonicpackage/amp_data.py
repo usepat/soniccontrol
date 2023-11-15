@@ -4,10 +4,18 @@ import asyncio
 import attrs
 import datetime
 from icecream import ic
-from soniccontrol.sonicpackage.command import Command
 
 
 def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
+    """Returns a function that either is the converter or None
+
+    Args:
+        default (Any): _description_
+        type_ (type, optional): _description_. Defaults to int.
+
+    Returns:
+        Callable[[Any], Any]: _description_
+    """
     none_converter = attrs.converters.default_if_none(default)
 
     def converter(value) -> None:

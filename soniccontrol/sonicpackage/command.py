@@ -1,4 +1,15 @@
-from typing import *
+from typing import (
+    Any,
+    Set,
+    Iterable,
+    Generator,
+    Optional,
+    List,
+    Tuple,
+    Union,
+    Callable,
+    Literal,
+)
 import re
 import asyncio
 import time
@@ -36,11 +47,11 @@ class Converter:
 @attrs.define
 class CommandValidator:
     pattern: str = attrs.field()
-    _converters: Dict[str, Converter] = attrs.field(converter=dict, repr=False)
-    _after_converters: Dict[
-        str, Dict[Literal["worker", "keywords"], Union[Converter, str]]
+    _converters: dict[str, Converter] = attrs.field(converter=dict, repr=False)
+    _after_converters: dict[
+        str, dict[Literal["worker", "keywords"], Union[Converter, str]]
     ] = attrs.field(repr=False)
-    _result: Dict[str, Any] = attrs.field(init=False, factory=dict, repr=False)
+    _result: dict[str, Any] = attrs.field(init=False, factory=dict, repr=False)
     _compiled_pattern: re.Pattern = attrs.field(init=False, repr=False)
 
     def __init__(self, pattern: str, **kwargs) -> None:
@@ -52,7 +63,7 @@ class CommandValidator:
                 after_workers[keyword] = worker
                 continue
             workers[keyword] = Converter(worker)
-        self.__attrs_init__(
+        self.__attrs_init__(  # type: ignore
             pattern=pattern,
             converters=workers,
             after_converters=after_workers,
@@ -68,7 +79,7 @@ class CommandValidator:
         )
 
     @property
-    def result(self) -> Dict[str, Any]:
+    def result(self) -> dict[str, Any]:
         return self._result
 
     @staticmethod
@@ -76,6 +87,7 @@ class CommandValidator:
         if not keywords:
             return pattern
         keyword_iter = iter(keywords)
+        processed: str = ""
         try:
             segments = re.split(r"(\(.*?\))", pattern)
             ic(segments)
@@ -197,7 +209,7 @@ class Command(Sendable):
     _validators: List[CommandValidator] = attrs.field(factory=list)
     answer: Answer = attrs.field(init=False, factory=Answer)
     _byte_message: bytes = attrs.field(init=False)
-    _status_result: Dict[str, Any] = attrs.field(init=False, factory=dict)
+    _status_result: dict[str, Any] = attrs.field(init=False, factory=dict)
     _serial_communication: Optional[Communicator] = None
 
     def __attrs_post_init__(self) -> None:
@@ -206,7 +218,7 @@ class Command(Sendable):
         self._byte_message = f"{self.message}{self.argument}\n".encode(const.ENCODING)
 
     @property
-    def byte_message(self) -> bytes:
+    def byte_message(self) -> None:
         return self._byte_message
 
     @property
@@ -225,7 +237,7 @@ class Command(Sendable):
             raise ValueError("Illegal value for validators", validators)
 
     @property
-    def status_result(self) -> Dict[str, Any]:
+    def status_result(self) -> dict[str, Any]:
         return self._status_result
 
     @classmethod

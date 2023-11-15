@@ -3,185 +3,190 @@ from soniccontrol.sonicpackage.command import Command, CommandValidator
 
 
 class Commands:
-    set_frequency: Command = Command(
-        message="!f=",
-        validators=CommandValidator(
-            pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
+    frequency_pattern: str = r".*freq[uency]*\s*=?\s*([\d]+).*"
+    gain_pattern: str = r".*gain\s*=?\s*([\d]+).*"
+    khz_mhz_pattern: str = r".*(khz|mhz).*"
+    signal_on_off_pattern: str = r".*signal.*(on|off).*"
+    type_pattern: str = r"sonic(catch|wipe|descale)"
+    version_pattern: str = r".*ver.*([\d]+[.][\d]+).*"
+    status_pattern: str = (
+        r"([\d])(?:[-#])"  # Error
+        r"([\d]+)(?:[-#])"  # Frequency
+        r"([\d]+)(?:[-#])"  # Gain
+        r"([\d]+)(?:[-#])"  # Protocol
+        r"([\d])(?:[-#])"  # Wipe Mode / Auto Mode
+        r"(?:[']?)([-]?[\d]+[.][\d]+)?(?:[']?)"  # Temperature
+    )
+    sens_pattern: str = (
+        r"([\d]+)(?:[\s]+)"  # Frequency
+        r"([-]?[\d]+[.]?[\d]?)(?:[\s]+)"  # urms
+        r"([-]?[\d]+[.]?[\d]?)(?:[\s]+)"  # irms
+        r"([-]?[\d]+[.]?[\d]?)"  # phase
+    )
+    error_pattern: str = r".*(error).*"
+
+    frequency_validator: CommandValidator = CommandValidator(
+        pattern=frequency_pattern, frequency=int
+    )
+    gain_validator: CommandValidator = CommandValidator(pattern=gain_pattern, gain=int)  # type: ignore
+    switching_frequency_validator: CommandValidator = CommandValidator(
+        pattern=frequency_pattern, switching_frequency=int
+    )
+    relay_mode_validator: CommandValidator = CommandValidator(
+        pattern=khz_mhz_pattern, relay_mode=str
+    )
+    signal_on_validator: CommandValidator = CommandValidator(
+        pattern=signal_on_off_pattern,
+        signal=lambda b: bool(b.lower() == "on"),
+    )
+    type_validator: CommandValidator = CommandValidator(
+        pattern=type_pattern, device_type=str
+    )
+    version_validator: CommandValidator = CommandValidator(
+        pattern=version_pattern, version=float
+    )
+    status_validator: CommandValidator = CommandValidator(
+        pattern=status_pattern,
+        error=int,
+        frequency=int,
+        gain=int,
+        protocol=int,
+        wipe_mode=attrs.converters.to_bool,
+        temperature=attrs.converters.pipe(
+            float, lambda t: t if -70 < t < 200 else None
         ),
+        signal={
+            "keywords": ("frequency",),
+            "worker": lambda frequency: frequency != 0,
+        },
     )
 
-    set_gain: Command = Command(
-        message="!g=",
-        validators=CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+    sens_normal_validator: CommandValidator = CommandValidator(
+        pattern=sens_pattern,
+        frequency=int,
+        urms=float,
+        irms=float,
+        phase=float,
+    )
+    sens_error_validator: CommandValidator = CommandValidator(
+        pattern=error_pattern,
+        signal=lambda error: False,
+        frequency=lambda error: 0,
+        urms=lambda error: 0,
+        irms=lambda error: 0,
+        phase=lambda error: 0,
+    )
+    sens_factorised_validator: CommandValidator = CommandValidator(
+        pattern=sens_pattern,
+        frequency=int,
+        urms=attrs.converters.pipe(float, lambda urms: urms / 1000),
+        irms=attrs.converters.pipe(float, lambda irms: irms / 1000),
+        phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
+    )
+    sens_fullscale_validator: CommandValidator = CommandValidator(
+        pattern=sens_pattern,
+        frequency=int,
+        urms=attrs.converters.pipe(
+            float,
+            lambda urms: urms if urms > 282_300 else 282_300,
+            lambda urms: (urms * 0.000_400_571 - 1_130.669_402) * 1000 + 0.5,
+        ),
+        irms=attrs.converters.pipe(
+            float,
+            lambda irms: irms if irms > 3_038_000 else 303_800,
+            lambda irms: (irms * 0.000_015_601 - 47.380671) * 1000 + 0.5,
+        ),
+        phase=attrs.converters.pipe(float, lambda phase: phase * 0.125 * 100),
+    )
+    auto_mode_validator: CommandValidator = CommandValidator(
+        pattern=r".*(auto).*", protocol=str
+    )
+    communication_mode_validator: CommandValidator = CommandValidator(
+        pattern=r".*mode.*(serial|analog|manual).*", communication_mode=str
     )
 
-    set_switching_frequency: Command = Command(
-        message="!swf=",
-        validators=CommandValidator(
-            pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", switching_frequency=int
-        ),
-    )
+    set_frequency: Command = Command(message="!f=")
+
+    set_gain: Command = Command(message="!g=")
+
+    set_switching_frequency: Command = Command(message="!swf=")
 
     get_overview: Command = Command(
         message="?",
         estimated_response_time=0.5,
         expects_long_answer=True,
-        validators=(
-            CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
-            CommandValidator(pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int),
-            CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
-            CommandValidator(
-                pattern=r".*signal.*(on|off).*",
-                signal=lambda b: bool(b.lower() == "on"),
-            ),
+        validators=(  # type: ignore
+            frequency_validator,
+            gain_validator,
+            relay_mode_validator,
+            signal_on_validator,
+            communication_mode_validator,
+            auto_mode_validator,
+            type_validator,
         ),
     )
 
     get_type: Command = Command(
         message="?type",
         estimated_response_time=0.5,
-        validators=CommandValidator(
-            pattern=r"sonic(catch|wipe|descale)", device_type=str
-        ),
+        validators=type_validator,  # type: ignore
     )
 
     get_info: Command = Command(
         message="?info",
         estimated_response_time=0.5,
         expects_long_answer=True,
-        validators=(
-            CommandValidator(pattern=r".*ver.*([\d]+[.][\d]+).*", version=float),
-            CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
-        ),
+        validators=version_validator,  # type: ignore
     )
 
     get_status: Command = Command(
         message="-",
         estimated_response_time=0.35,
-        validators=CommandValidator(
-            pattern=r"([\d])(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d])(?:[-#])(?:[']?)([-]?[\d]+[.][\d]+)?(?:[']?)",
-            error=int,
-            frequency=int,
-            gain=int,
-            protocol=int,
-            wipe_mode=attrs.converters.to_bool,
-            temperature=attrs.converters.pipe(
-                float, lambda t: t if -70 < t < 200 else None
-            ),
-            signal={
-                "keywords": ("frequency",),
-                "worker": lambda frequency: frequency != 0,
-            },
-        ),
+        validators=status_validator,  # type: ignore
     )
 
     get_sens: Command = Command(
         message="?sens",
         estimated_response_time=0.35,
-        validators=(
-            CommandValidator(
-                pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
-                frequency=int,
-                urms=float,
-                irms=float,
-                phase=float,
-            ),
-            CommandValidator(
-                pattern=r".*(error).*",
-                signal=lambda error: False,
-                frequency=lambda error: 0,
-                urms=lambda error: 0,
-                irms=lambda error: 0,
-                phase=lambda error: 0,
-            ),
-        ),
+        validators=sens_normal_validator,  # type: ignore
     )
 
     get_sens_factorised: Command = Command(
         message="?sens",
         estimated_response_time=0.35,
-        validators=(
-            CommandValidator(
-                pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
-                frequency=int,
-                urms=attrs.converters.pipe(float, lambda urms: urms / 1000),
-                irms=attrs.converters.pipe(float, lambda irms: irms / 1000),
-                phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
-            ),
-            CommandValidator(
-                pattern=r".*(error).*",
-                signal=lambda error: False,
-                frequency=lambda error: 0,
-                urms=lambda error: 0,
-                irms=lambda error: 0,
-                phase=lambda error: 0,
-            ),
-        ),
+        validators=sens_factorised_validator,  # type: ignore
     )
 
     get_sens_fullscale_values: Command = Command(
         message="?sens",
         estimated_response_time=0.35,
-        validators=(
-            CommandValidator(
-                pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
-                frequency=int,
-                urms=attrs.converters.pipe(
-                    float,
-                    lambda urms: urms if urms > 282_300 else 282_300,
-                    lambda urms: (urms * 0.000_400_571 - 1_130.669_402) * 1000 + 0.5,
-                ),
-                irms=attrs.converters.pipe(
-                    float,
-                    lambda irms: irms if irms > 3_038_000 else 303_800,
-                    lambda irms: (irms * 0.000_015_601 - 47.380671) * 1000 + 0.5,
-                ),
-                phase=attrs.converters.pipe(float, lambda phase: phase * 0.125 * 100),
-            ),
-            CommandValidator(
-                pattern=r".*(error).*",
-                signal=lambda error: False,
-                frequency=lambda error: 0,
-                urms=lambda error: 0,
-                irms=lambda error: 0,
-                phase=lambda error: 0,
-            ),
-        ),
+        validators=sens_fullscale_validator,  # type: ignore
     )
 
     signal_on: Command = Command(
         message="!ON",
-        validators=CommandValidator(
-            pattern=r"signal.*(on)", signal=lambda b: b.lower() == "on"
-        ),
     )
 
     signal_off: Command = Command(
         message="!OFF",
         estimated_response_time=0.4,
-        validators=CommandValidator(
-            pattern=r"signal.*(off)", signal=lambda b: not b.lower() == "off"
-        ),
+        validators=signal_on_validator,  # type: ignore
     )
 
     signal_auto: Command = Command(
         message="!AUTO",
         estimated_response_time=0.5,
-        validators=CommandValidator(pattern=r".*(auto).*", protocol=str),
+        validators=auto_mode_validator,  # type: ignore
     )
 
     set_serial_mode: Command = Command(
         message="!SERIAL",
-        validators=CommandValidator(
-            pattern=r".*mode.*(serial).*", communication_mode=str
-        ),
+        validators=communication_mode_validator,  # type: ignore
     )
 
     set_analog_mode: Command = Command(
         message="!ANALOG",
-        validators=CommandValidator(
-            pattern=r".*mode.*(analog).*", communication_mode=str
-        ),
+        validators=communication_mode_validator,  # type: ignore
     )
 
     set_khz_mode: Command = Command(

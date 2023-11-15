@@ -1,14 +1,12 @@
 import sys
-from icecream import install
 from async_tkinter_loop import async_mainloop
 from soniccontrol import SonicControl
 
-
-install()
-
 # import faulthandler
 
+
 # faulthandler.enable()
+
 
 if __name__ == "__main__":
     if "3.10" not in sys.version:
@@ -16,6 +14,8 @@ if __name__ == "__main__":
     else:
         sc: SonicControl = SonicControl()
         async_mainloop(sc)
+
+# Scirpting Testing examples
 """
 startloop
 frequency 5000000

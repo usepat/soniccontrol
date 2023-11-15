@@ -9,44 +9,20 @@ __maintainer_email__ = "ilja.golovanov@usepat.com"
 __status__ = "Development"
 
 import logging
+from logging.handlers import RotatingFileHandler
 import sys
-import os
-import pathlib
+from icecream import install
+import soniccontrol.constants as const
 
-project_root = pathlib.Path(__file__).parent
-logs_path = project_root / "logs"
+install()
 
-if not logs_path.exists() or not logs_path.is_dir():
-    logs_path.mkdir(parents=True, exist_ok=True)
+if not const.LOG_DIR.exists() or not const.LOG_DIR.is_dir():
+    const.LOG_DIR.mkdir(parents=True, exist_ok=True)
     print("Logs directory created.")
 else:
     print("Logs directory already exists.")
 
-try:
-    MAX_LINES: int = 10000
-    lines: int = 0
-
-    with open("logs//soniccontrol.log") as file:
-        lines: int = len(file.readlines())
-    if lines > MAX_LINES:
-        os.remove("logs//soniccontrol.log")
-
-    with open("logs//sonicpackage.log") as file:
-        lines: int = len(file.readlines())
-    if lines > MAX_LINES:
-        os.remove("logs//sonicpackage.log")
-
-    with open("logs//statuslog.csv") as file:
-        lines: int = len(file.readlines())
-    if lines > 1_000_000:
-        os.remove("logs//statuslog.csv")
-
-except FileNotFoundError:
-    print("File not found, proceeding...")
-
-if not os.path.isdir("logs/"):
-    os.mkdir("logs/")
-
+MAX_SIZE = 0x1_000_000  # 16 megabyte
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -54,7 +30,9 @@ formatter = logging.Formatter(
     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
 )
 
-file_handler = logging.FileHandler("logs/soniccontrol.log")
+file_handler = RotatingFileHandler(
+    const.SONICCONTROL_LOG, maxBytes=MAX_SIZE, backupCount=10
+)
 file_handler.setFormatter(formatter)
 
 stream_handler = logging.StreamHandler(sys.stdout)
