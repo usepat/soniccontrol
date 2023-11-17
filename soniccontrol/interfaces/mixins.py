@@ -48,38 +48,79 @@ class Updatable(EventMixin):
         ...
 
 
-# Concrete Updatable Mixins
 class FrequencyUpdatable(Updatable):
+    """
+    Updatable Mixin Subtype, that focuses on the event that
+    the attribute FREQUENCY has changed.
+        Event: frequency change
+    """
+
     def on_frequency_change(self) -> None:
         ...
 
 
 class GainUpdatable(Updatable):
+    """
+    Updatable Mixin Subtype, that focuses on the event that
+    the attribute GAIN has changed.
+        Event: gain change
+    """
+
     def on_gain_change(self) -> None:
         ...
 
 
 class SignalUpdatable(Updatable):
+    """
+    Updatable Mixin Subtype, that focuses on the event that
+    the attribute SIGNAL has changed.
+        Event: signal change
+    """
+
     def on_signal_change(self) -> None:
         ...
 
 
 class WipeModeUpdatable(Updatable):
+    """
+    Updatable Mixin Subtype, that focuses on the event that
+    the attribute WIPE_MODE has changed.
+        Event: wipe_mode change
+    """
+
     def on_wipe_mode_change(self) -> None:
         ...
 
 
 class ProtocolUpdatable(Updatable):
+    """
+    Updatable Mixin Subtype, that focuses on the event that
+    the attribute PROTOCOL has changed.
+        Event: protocol change
+    """
+
     def on_protocol_change(self) -> None:
         ...
 
 
 class RelayModeUpdatable(Updatable):
+    """
+    Updatable Mixin Subtype, that focuses on the event that
+    the attribute RELAY_MODE has changed.
+        Event: relay_mode change
+    """
+
     def on_relay_mode_change(self) -> None:
         ...
 
 
 class CommunicationModeUpdatable(Updatable):
+    """
+    Updatable Mixin Subtype, that focuses on the event that
+    the attribute COMMUNICATION_MODE has changed.
+        Event: communication_mode change
+    """
+
     def on_communication_mode_change(self) -> None:
         ...
 
@@ -176,3 +217,4 @@ class Resizable(EventMixin):
     @abstractmethod
     def layouts(self) -> Iterable[Layout]:
         ...
+
