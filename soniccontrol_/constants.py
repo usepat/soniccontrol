@@ -89,4 +89,3 @@ class Events:
     SCRIPT_START: Literal["<<ScriptStarted>>"] = "<<ScriptStarted>>"
     SCRIPT_STOP: Literal["<<ScriptStopped>>"] = "<<ScriptStopped>>"
     FIRMWARE_FLASH: Literal["<<FirmwareFlash>>"] = "<<FirmwareFlash>>"
-

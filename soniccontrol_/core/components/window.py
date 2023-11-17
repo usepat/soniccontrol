@@ -192,4 +192,3 @@ class SonicControl(Root):
 
     def on_configuration(self, event=None) -> None:
         pass
-
