@@ -10,6 +10,7 @@ import ttkbootstrap as ttkb
 
 from tkinter import filedialog
 from tkinter import messagebox
+from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol.helpers import ToolTip, logger
 from sonicpackage import Command
@@ -33,8 +34,9 @@ class ConnectionTab(ttk.Frame):
         # self.transducer_active: tk.StringVar = tk.StringVar()
         self.transducer_active = tk.StringVar()
 
-        self.topframe: ttk.Frame = ttk.Frame(self, padding=(10, 10, 10, 10))
-        self.botframe: ttk.Frame = ttk.Frame(self)
+        self.mainframe: ttk.Frame = ScrolledFrame(self)
+        self.topframe: ttk.Frame = ttk.Frame(self.mainframe, padding=(10, 10, 10, 10))
+        self.botframe: ttk.Frame = ttk.Frame(self.mainframe)
 
         self._initialize_topframe()
         self._initialize_botframe()
@@ -374,8 +376,11 @@ class ConnectionTab(ttk.Frame):
         logger.info("Disconnecting device")
 
     def publish(self) -> None:
-        for child in self.children.values():
-            child.pack()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.mainframe.grid(row=0, column=0, sticky=tk.NSEW)
+        self.topframe.pack()
+        self.botframe.pack()
 
         self.subtitle.grid(row=0, column=0, columnspan=2, sticky=tk.S)
         self.heading1.grid(row=1, column=0, columnspan=1, sticky=tk.E)

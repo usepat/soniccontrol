@@ -373,7 +373,8 @@ class StatusFrameWipeOld(StatusFrame):
             side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10
         )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
+        # self.pack()
+        self.grid(row=1, column=0)
 
 
 class StatusFrameWipe(StatusFrame):
@@ -393,7 +394,8 @@ class StatusFrameWipe(StatusFrame):
             side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
         )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
+        self.grid(row=1, column=0)
+        # self.pack()
 
 
 class StatusFrameCatch(StatusFrame):
@@ -418,7 +420,8 @@ class StatusFrameCatch(StatusFrame):
             side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
         )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
+        self.grid(row=1, column=0)
+        # self.pack()
 
 
 class StatusFrame40KHZ(StatusFrame):
@@ -436,7 +439,8 @@ class StatusFrame40KHZ(StatusFrame):
             side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10
         )
         self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
-        self.pack()
+        self.grid(row=1, column=0)
+        # self.pack()
 
     def attach_data(self) -> None:
         pass

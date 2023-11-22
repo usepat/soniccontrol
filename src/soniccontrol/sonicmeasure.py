@@ -18,56 +18,56 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk, FigureCanvasTkAgg
 
 from sonicpackage import (
-    Command, 
-    serial, 
-    SonicInterface, 
-    SonicMeasureFileHandler, 
+    Command,
+    serial,
+    SonicInterface,
+    SonicMeasureFileHandler,
     FileHandler,
-    ValueNotSupported
+    ValueNotSupported,
 )
 from soniccontrol.helpers import logger
 
 if TYPE_CHECKING:
     from soniccontrol.core import Root
 
-if sys.platform == 'darwin':
+if sys.platform == "darwin":
     import matplotlib
-    matplotlib.use('TkAgg')
+
+    matplotlib.use("TkAgg")
 
 
 class SonicMeasureWindow(tk.Toplevel):
-    
     def __init__(self, root: Root, *args, **kwargs):
         super().__init__(master=root, *args, **kwargs)
         self.root: Root = root
         self.sonicmeasure: SonicMeasureFrame = SonicMeasureFrame(self, self.root)
-        
-        self.title('Sonic Measure')
+
+        self.title("Sonic Measure")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        
+
         self.sonicmeasure.pack()
 
         logger.debug("Initialized SonicMeasureWindow")
-        
+
     def __reinit__(self):
         start: int = self.sonicmeasure.start_freq_tk.get()
         stop: int = self.sonicmeasure.stop_freq_tk.get()
         step: int = self.sonicmeasure.step_freq_tk.get()
         gain: int = self.sonicmeasure.gain_tk.get()
         comment: str = self.sonicmeasure.meta_comment.get(1.0, tk.END)
-        
+
         self.sonicmeasure.destroy()
         self.sonicmeasure: SonicMeasureFrame = SonicMeasureFrame(self, self.root)
-        
+
         self.sonicmeasure.start_freq_tk.set(start)
         self.sonicmeasure.stop_freq_tk.set(stop)
         self.sonicmeasure.step_freq_tk.set(step)
         self.sonicmeasure.gain_tk.set(gain)
         self.sonicmeasure.meta_comment.insert(1.0, comment)
-        
+
         self.sonicmeasure.pack()
         self.sonicmeasure.button_starter()
-        
+
     def on_closing(self) -> None:
         self.root.notebook.hometab.sonic_measure_button.config(state=tk.NORMAL)
         self.sonicmeasure.stop()
@@ -76,41 +76,40 @@ class SonicMeasureWindow(tk.Toplevel):
 
 
 class SonicMeasureFrame(ttk.Frame):
-    
     @property
     def run(self) -> bool:
         return self._run
 
-    def __init__(self, window: SonicMeasureWindow,root: Root, *args, **kwargs):
+    def __init__(self, window: SonicMeasureWindow, root: Root, *args, **kwargs):
         super().__init__(master=window, *args, **kwargs)
-        
+
         self.window: SonicMeasureWindow = window
         self.root: Root = root
         self.filehandler: FileHandler
 
         self._run: bool = False
         self.logfile: str = None
-        
+
         self._filetypes: list = [
             ("Text", "*.txt"),
             ("Logging files", "*.log"),
             ("CSV files", "*.csv"),
             ("All files", "*"),
         ]
-        
+
         # Data array for plotting
         self.freq_list: list = []
         self.urms_list: list = []
         self.irms_list: list = []
         self.phase_list: list = []
-        
+
         # Tkinter variables
         self.start_freq_tk: tk.IntVar = tk.IntVar(value=1900000)
         self.stop_freq_tk: tk.IntVar = tk.IntVar(value=2100000)
         self.step_freq_tk: tk.IntVar = tk.IntVar(value=1000)
         self.gain_tk: tk.IntVar = tk.IntVar(value=100)
         self.comment_tk: tk.StringVar = tk.StringVar()
-        
+
         # Figure Frame
         self.fig_frame: ttk.Frame = ttk.Frame(self)
         self.fig_canvas: MeasureCanvas = MeasureCanvas(
@@ -118,17 +117,19 @@ class SonicMeasureFrame(ttk.Frame):
             self.start_freq_tk.get(),
             self.stop_freq_tk.get(),
         )
-        self.toolbar: NavigationToolbar2Tk = NavigationToolbar2Tk(self.fig_canvas, self.fig_frame)
-        
+        self.toolbar: NavigationToolbar2Tk = NavigationToolbar2Tk(
+            self.fig_canvas, self.fig_frame
+        )
+
         # Control Frame
         self.control_frame: ttk.Frame = ttk.Frame(self)
-        
+
         # Control Frame - Utility frame
         self.util_ctrl_frame: ttk.Frame = ttk.Frame(self.control_frame)
         self.start_btn: ttk.Button = ttk.Button(
             self.util_ctrl_frame,
-            text='Start',
-            style='success.TButton',
+            text="Start",
+            style="success.TButton",
             image=self.root.PLAY_IMG,
             compound=tk.RIGHT,
             command=self.button_starter,
@@ -140,13 +141,16 @@ class SonicMeasureFrame(ttk.Frame):
             width=15,
             command=self.open_logfile,
         )
-        
+
         # Control Frame - Frequency and Gain configuration Frame
         self.freq_frame: ttk.LabelFrame = ttk.LabelFrame(
-            self.control_frame, text='Set up Frequency', style='secondary.TLabelframe',
+            self.control_frame,
+            text="Set up Frequency",
+            style="secondary.TLabelframe",
         )
         self.start_freq_label: ttk.Label = ttk.Label(
-            self.freq_frame, text='Start frequency [Hz]',
+            self.freq_frame,
+            text="Start frequency [Hz]",
         )
         self.start_freq_entry: ttk.Entry = ttk.Entry(
             self.freq_frame,
@@ -165,45 +169,48 @@ class SonicMeasureFrame(ttk.Frame):
             self.freq_frame, text="Resolution [Hz]"
         )
         self.step_freq_entry: ttk.Entry = ttk.Entry(
-            self.freq_frame, 
-            textvariable=self.step_freq_tk, 
-            style="dark.TEntry"
+            self.freq_frame, textvariable=self.step_freq_tk, style="dark.TEntry"
         )
         self.gain_label: ttk.Label = ttk.Label(
-            self.freq_frame, text='Configure Gain [%]'
+            self.freq_frame, text="Configure Gain [%]"
         )
         self.gain_entry: ttk.Entry = ttk.Entry(
             self.freq_frame,
             textvariable=self.gain_tk,
             style="dark.TEntry",
         )
-        
+
         # Control Frame - Meta data Frame
         self.meta_data_frame: ttk.LabelFrame = ttk.LabelFrame(
-            self.control_frame, text='Comment', style='secondary.TLabelframe',
+            self.control_frame,
+            text="Comment",
+            style="secondary.TLabelframe",
         )
         self.meta_comment_label: ttk.Label = ttk.Label(
-            self.meta_data_frame, text= 'Comment',
+            self.meta_data_frame,
+            text="Comment",
         )
         self.meta_comment: tk.Text = tk.Text(
             self.meta_data_frame,
             autoseparators=False,
-            background='white',
+            background="white",
             setgrid=False,
             width=30,
             height=7,
         )
         self.material_comment_label: ttk.Label = ttk.Label(
-            self.meta_data_frame, text= 'Material',
+            self.meta_data_frame,
+            text="Material",
         )
         self.material_comment_entry: ttk.Entry = ttk.Entry(
-            self.meta_data_frame, textvariable=self.comment_tk, style='dark.TEntry'
+            self.meta_data_frame, textvariable=self.comment_tk, style="dark.TEntry"
         )
         self.distance_label: ttk.Label = ttk.Label(
-            self.meta_data_frame, text= 'Distance',
+            self.meta_data_frame,
+            text="Distance",
         )
         self.distance_entry: ttk.Entry = ttk.Entry(
-            self.meta_data_frame, textvariable=self.comment_tk, style='dark.TEntry'
+            self.meta_data_frame, textvariable=self.comment_tk, style="dark.TEntry"
         )
 
         self.publish()
@@ -228,45 +235,46 @@ class SonicMeasureFrame(ttk.Frame):
 
         self.root.thread.pause() if not self.root.thread.paused.is_set() else None
 
-        if not self.logfile: 
+        if not self.logfile:
             time_str: str = datetime.now().strftime("%Y%m%d-%H%M")
-            self.logfile: str = f"logs/{time_str}_{self.root.sonicamp.type_}_sonicmeasure.csv"
+            self.logfile: str = (
+                f"logs/{time_str}_{self.root.sonicamp.type_}_sonicmeasure.csv"
+            )
 
         self.filehandler: FileHandler = SonicMeasureFileHandler(
-            self.logfile,
-            self.root.sonicamp.status,
-            self.meta_comment.get(1.0, tk.END)
+            self.logfile, self.root.sonicamp.status, self.meta_comment.get(1.0, tk.END)
         ).create_datafile()
 
         self.fig_canvas.update_axes(start_freq, stop_freq)
 
         self.start_btn.config(
-            text='Stop',
-            style='danger.TButton',
+            text="Stop",
+            style="danger.TButton",
             image=self.root.PAUSE_IMG,
-            command=self.stop
+            command=self.stop,
         )
 
         for child in self.freq_frame.winfo_children():
             child.config(state=tk.DISABLED)
-        
-        logger.debug(f'trying to start ramp; Conditions run = {self.run}')
-        try: self.root.sonicamp.ramp_freq(
-            start = start_freq, 
-            stop = stop_freq, 
-            step = step_freq, 
-            delay = 1, 
-            worker = self.updater, 
-            sequence = self
-        )
-        
-        except ValueNotSupported as ve: 
+
+        logger.debug(f"trying to start ramp; Conditions run = {self.run}")
+        try:
+            self.root.sonicamp.ramp_freq(
+                start=start_freq,
+                stop=stop_freq,
+                step=step_freq,
+                delay=1,
+                worker=self.updater,
+                sequence=self,
+            )
+
+        except ValueNotSupported as ve:
             messagebox.showerror("Value Error", ve)
         except Exception as e:
             logger.warning(traceback.format_exc(e))
-        finally: 
+        finally:
             self.stop()
-        
+
     def stop(self) -> None:
         if self._run:
             self._run: bool = False
@@ -282,7 +290,7 @@ class SonicMeasureFrame(ttk.Frame):
 
         for child in self.freq_frame.children.values():
             child.config(state=tk.NORMAL)
- 
+
         self.root.thread.resume() if self.root.thread.paused.is_set() else None
 
     def status_handler(self) -> None:
@@ -353,11 +361,10 @@ class SonicMeasureFrame(ttk.Frame):
 
 
 class MeasureCanvas(FigureCanvasTkAgg):
-    
     def __init__(self, parent: ttk.Frame, start_freq: int, stop_freq: int) -> None:
         self.figure: Figure = Figure()
-        style.use("seaborn")
-
+        style.use("seaborn-v0_8-whitegrid")
+        logger.info(f"available styles {style.available}")
         self.ax_urms = self.figure.add_subplot(111)
         self.figure.subplots_adjust(right=0.8)
 
@@ -384,13 +391,13 @@ class MeasureCanvas(FigureCanvasTkAgg):
 
     def update_axes(self, start_freq: int, stop_freq: int) -> None:
         self.ax_urms.set_xlim(start_freq, stop_freq)
-        
+
     def remove_plot(self) -> None:
         pass
 
 
 ### Temporary Idea and Issue:
-# XXX: Make sonicmeasure a static window extension like the 
+# XXX: Make sonicmeasure a static window extension like the
 # Serial monitor. The Window should plot the current SonicMeasure Data
 # while opened, and pause while closed. Futhermore it should be
 # configured, if the user wants to see the data in a specific frequency
@@ -442,8 +449,8 @@ class MeasureCanvas(FigureCanvasTkAgg):
 #         pass
 
 #     def attach_data(self) -> None:
-#         if not self.sonicamp.status.signal: return 
-        
+#         if not self.sonicamp.status.signal: return
+
 #     def unpublish(self) -> None:
 #         pass
 

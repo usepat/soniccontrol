@@ -11,6 +11,7 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
+from ttkbootstrap.window import Window
 import serial
 import sonicpackage as sp
 
@@ -59,7 +60,7 @@ from soniccontrol.notebook import ScNotebook
 from soniccontrol.helpers import logger
 
 
-class Root(tk.Tk):
+class Root(Window):
     MIN_WIDTH: int = 555
     MIN_HEIGHT: int = 900
     MAX_WIDTH: int = 1110
@@ -84,7 +85,12 @@ class Root(tk.Tk):
         return self._thread
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__()
+        super().__init__(
+            resizable=(Root.MIN_WIDTH / 2, Root.MIN_HEIGHT / 2),
+            hdpi=True,
+            *args,
+            **kwargs,
+        )
 
         self._amp_controller: SonicInterface
         self._sonicamp: SonicAmp
@@ -100,8 +106,8 @@ class Root(tk.Tk):
 
         # setting up root window, configurations
         self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
-        self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
-        self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
+        # self.minsize(Root.MIN_WIDTH, Root.MIN_HEIGHT)
+        # self.maxsize(Root.MAX_WIDTH, Root.MIN_HEIGHT)
         self.wm_title(Root.TITLE)
         ttkb.Style(theme=Root.THEME)
 
@@ -147,6 +153,8 @@ class Root(tk.Tk):
         self.notebook: ScNotebook = ScNotebook(self.mainframe, self)
         self.status_frame: ttk.Frame = ttk.Frame(self.mainframe)
         self.sonicmeasure: SonicMeasureWindow = SonicMeasureWindow(self)
+
+        self.serial_monitor_opened = False
         self.serial_monitor: ttk.Frame = ttk.Frame(self.mainframe)
 
         logger.debug("Initialized Root")
@@ -319,7 +327,14 @@ class Root(tk.Tk):
         self.serial.disconnect()
         self.notebook.publish_disconnected()
         self.status_frame.destroy()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+
+        # self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        self.mainframe.grid(row=0, column=0, sticky=tk.NSEW)
+        self.mainframe.grid_rowconfigure(0, weight=1)
+        self.mainframe.grid_columnconfigure(0, weight=1)
 
         if self.winfo_width() == Root.MAX_WIDTH:
             self._adjust_dimensions()
@@ -370,20 +385,19 @@ class Root(tk.Tk):
         self.notebook.hometab.sonic_measure_button.config(state=tk.DISABLED)
 
     def publish_serial_monitor(self) -> None:
-        if not self._is_wided():
+        if self.serial_monitor_opened:
+            self.grid_columnconfigure(1, weight=0)
+            self.serial_monitor.grid_remove()
+            self.serial_monitor_opened = False
+            # self.grid_columnconfigure(0, weight=1)
             return
-        self.serial_monitor.pack(
-            anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
-        )
-
-    def _is_wided(self) -> bool:
-        if self.winfo_width() == Root.MIN_WIDTH:
-            self.geometry(f"{Root.MAX_WIDTH}x{Root.MIN_HEIGHT}")
-            return True
-
-        else:
-            self.geometry(f"{Root.MIN_WIDTH}x{Root.MIN_HEIGHT}")
-            return False
+        # self.serial_monitor.pack(
+        #     anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
+        # )
+        self.serial_monitor.grid(row=0, column=1, sticky=tk.NSEW, padx=5, pady=5)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.serial_monitor_opened = True
 
     def _pre_publish(self) -> None:
         self.serial_monitor.destroy()
@@ -391,7 +405,9 @@ class Root(tk.Tk):
 
     def _after_publish(self) -> None:
         self.status_frame.publish()
-        self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        # self.mainframe.pack(anchor=tk.W, side=tk.LEFT)
+        self.grid_columnconfigure(0, weight=1)
+        self.mainframe.grid(row=0, column=0, sticky=tk.NSEW)
 
 
 @dataclass
