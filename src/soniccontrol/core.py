@@ -388,14 +388,17 @@ class Root(Window):
         if self.serial_monitor_opened:
             self.grid_columnconfigure(1, weight=0)
             self.serial_monitor.grid_remove()
+            self.mainframe.grid()
             self.serial_monitor_opened = False
             # self.grid_columnconfigure(0, weight=1)
             return
         # self.serial_monitor.pack(
         #     anchor=tk.E, side=tk.RIGHT, padx=5, pady=5, expand=True, fill=tk.BOTH
         # )
-        self.serial_monitor.grid(row=0, column=1, sticky=tk.NSEW, padx=5, pady=5)
-        self.grid_columnconfigure(1, weight=1)
+        self.mainframe.grid_remove()
+        self.serial_monitor.grid(row=0, column=0, sticky=tk.NSEW, padx=5, pady=5)
+
+        # self.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.serial_monitor_opened = True
 

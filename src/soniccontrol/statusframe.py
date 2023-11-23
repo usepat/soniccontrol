@@ -3,6 +3,7 @@ from __future__ import annotations
 import tkinter as tk
 import tkinter.ttk as ttk
 import ttkbootstrap as ttkb
+import itertools
 
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -153,8 +154,30 @@ class StatusFrame(ttk.Frame):
             width=10,
             text=None,
         )
-
+        self.meter_frame_hidden = False
+        self.bind("<Double-Button-1>", self.hide_meters)
+        self.meter_frame.bind("<Double-Button-1>", self.hide_meters)
+        self.sonsens_frame.bind("<Double-Button-1>", self.hide_meters)
+        self.overview_frame.bind("<Double-Button-1>", self.hide_meters)
+        self.freq_meter.bind("<Double-Button-1>", self.hide_meters)
+        self.gain_meter.bind("<Double-Button-1>", self.hide_meters)
+        self.temp_meter.bind("<Double-Button-1>", self.hide_meters)
+        self.urms_label.bind("<Double-Button-1>", self.hide_meters)
+        self.irms_label.bind("<Double-Button-1>", self.hide_meters)
+        self.phase_label.bind("<Double-Button-1>", self.hide_meters)
+        self.sig_status_label.bind("<Double-Button-1>", self.hide_meters)
+        self.con_status_label.bind("<Double-Button-1>", self.hide_meters)
         logger.debug("Initialized statusframe")
+
+    def hide_meters(self, *args, **kwargs) -> None:
+        print("Lmao")
+        if self.meter_frame_hidden:
+            print("going in...")
+            self.meter_frame.grid()
+            self.meter_frame_hidden = False
+        else:
+            self.meter_frame.grid_remove()
+            self.meter_frame_hidden = True
 
     def signal_on(self) -> None:
         """
@@ -404,23 +427,36 @@ class StatusFrameCatch(StatusFrame):
         self.freq_meter["amounttotal"] = 6_000_000 / const.DIVIDE_TO_KHZ
 
     def publish(self) -> None:
-        self.freq_meter.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
-        self.gain_meter.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
-        self.temp_meter.grid(row=0, column=2, padx=10, sticky=tk.NSEW)
+        self.freq_meter.grid(row=0, column=0, padx=10, sticky=tk.EW)
+        self.gain_meter.grid(row=0, column=1, padx=10, sticky=tk.EW)
+        self.temp_meter.grid(row=0, column=2, padx=10, sticky=tk.EW)
 
-        self.urms_label.grid(row=0, column=0, sticky=tk.NSEW)
-        self.irms_label.grid(row=0, column=1, sticky=tk.NSEW)
-        self.phase_label.grid(row=0, column=2, sticky=tk.NSEW)
+        self.urms_label.grid(row=0, column=0, sticky=tk.EW)
+        self.irms_label.grid(row=0, column=1, sticky=tk.EW)
+        self.phase_label.grid(row=0, column=2, sticky=tk.EW)
 
-        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.EW)
+        self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.EW)
 
-        self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
-        self.sonsens_frame.pack(
-            side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
-        )
-        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
+        # self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
+        # self.sonsens_frame.pack(
+        #     side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
+        # )
+        # self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
         self.grid(row=1, column=0)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # self.grid_rowconfigure(0)
+        self.meter_frame.grid(row=0, column=0, sticky=tk.NSEW)
+        self.meter_frame.grid_rowconfigure(0, weight=1)
+        self.sonsens_frame.grid(row=1, column=0, sticky=tk.EW)
+        self.sonsens_frame.grid_rowconfigure(0, weight=1)
+        self.sonsens_frame.grid_rowconfigure(1, weight=1)
+        self.sonsens_frame.grid_rowconfigure(2, weight=1)
+        self.overview_frame.grid(row=2, column=0, sticky=tk.EW)
+        self.overview_frame.grid_rowconfigure(0, weight=1)
+
         # self.pack()
 
 
