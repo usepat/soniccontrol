@@ -5,7 +5,9 @@ import sys
 import csv
 import time
 import tkinter as tk
-import tkinter.ttk as ttk
+import ttkbootstrap as ttk
+from ttkbootstrap.window import Toplevel
+from ttkbootstrap.scrolled import ScrolledFrame
 import logging
 import traceback
 import threading
@@ -36,16 +38,16 @@ if sys.platform == "darwin":
     matplotlib.use("TkAgg")
 
 
-class SonicMeasureWindow(tk.Toplevel):
+class SonicMeasureWindow(Toplevel):
     def __init__(self, root: Root, *args, **kwargs):
-        super().__init__(master=root, *args, **kwargs)
+        super().__init__(master=root, resizable=(10, 10), *args, **kwargs)
         self.root: Root = root
         self.sonicmeasure: SonicMeasureFrame = SonicMeasureFrame(self, self.root)
 
         self.title("Sonic Measure")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        self.sonicmeasure.pack()
+        self.sonicmeasure.pack(fill=ttk.BOTH, expand=True)
 
         logger.debug("Initialized SonicMeasureWindow")
 
@@ -110,10 +112,12 @@ class SonicMeasureFrame(ttk.Frame):
         self.gain_tk: tk.IntVar = tk.IntVar(value=100)
         self.comment_tk: tk.StringVar = tk.StringVar()
 
+        self.mainframe: ScrolledFrame = ScrolledFrame(self)
+
         # Figure Frame
-        self.fig_frame: ttk.Frame = ttk.Frame(self)
+        self.fig_frame: ttk.Frame = ttk.Frame(self.mainframe)
         self.fig_canvas: MeasureCanvas = MeasureCanvas(
-            self,
+            self.mainframe,
             self.start_freq_tk.get(),
             self.stop_freq_tk.get(),
         )
@@ -122,7 +126,7 @@ class SonicMeasureFrame(ttk.Frame):
         )
 
         # Control Frame
-        self.control_frame: ttk.Frame = ttk.Frame(self)
+        self.control_frame: ttk.Frame = ttk.Frame(self.mainframe)
 
         # Control Frame - Utility frame
         self.util_ctrl_frame: ttk.Frame = ttk.Frame(self.control_frame)
@@ -332,6 +336,7 @@ class SonicMeasureFrame(ttk.Frame):
         self.status_handler()
 
     def publish(self) -> None:
+        self.mainframe.pack(fill=ttk.BOTH, expand=True)
         self.fig_frame.pack(fill=tk.BOTH, expand=True)
         self.fig_canvas._tkcanvas.pack(fill=tk.BOTH, expand=True)
         self.control_frame.pack()

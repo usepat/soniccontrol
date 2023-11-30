@@ -7,6 +7,9 @@
 node_modules/
 #dist/
 
+*venv*
+*out*
+
 *.hex
 
 # Compiled Java class files
