@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import tkinter as tk
-import tkinter.ttk as ttk
+import ttkbootstrap as ttk
 import ttkbootstrap as ttkb
 import itertools
 
@@ -155,19 +155,32 @@ class StatusFrame(ttk.Frame):
             text=None,
         )
         self.meter_frame_hidden = False
-        self.bind("<Double-Button-1>", self.hide_meters)
-        self.meter_frame.bind("<Double-Button-1>", self.hide_meters)
-        self.sonsens_frame.bind("<Double-Button-1>", self.hide_meters)
-        self.overview_frame.bind("<Double-Button-1>", self.hide_meters)
-        self.freq_meter.bind("<Double-Button-1>", self.hide_meters)
-        self.gain_meter.bind("<Double-Button-1>", self.hide_meters)
-        self.temp_meter.bind("<Double-Button-1>", self.hide_meters)
-        self.urms_label.bind("<Double-Button-1>", self.hide_meters)
-        self.irms_label.bind("<Double-Button-1>", self.hide_meters)
-        self.phase_label.bind("<Double-Button-1>", self.hide_meters)
-        self.sig_status_label.bind("<Double-Button-1>", self.hide_meters)
-        self.con_status_label.bind("<Double-Button-1>", self.hide_meters)
+        self.bind("<Button-1>", self.hide_meters)
+        self.meter_frame.bind("<Button-1>", self.hide_meters)
+        self.sonsens_frame.bind("<Button-1>", self.hide_meters)
+        self.overview_frame.bind("<Button-1>", self.hide_meters)
+        self.freq_meter.bind("<Button-1>", self.hide_meters)
+        self.gain_meter.bind("<Button-1>", self.hide_meters)
+        self.temp_meter.bind("<Button-1>", self.hide_meters)
+        self.urms_label.bind("<Button-1>", self.hide_meters)
+        self.irms_label.bind("<Button-1>", self.hide_meters)
+        self.phase_label.bind("<Button-1>", self.hide_meters)
+        self.sig_status_label.bind("<Button-1>", self.hide_meters)
+        self.con_status_label.bind("<Button-1>", self.hide_meters)
         logger.debug("Initialized statusframe")
+
+        self.overview_frame.bind("<Enter>", self.mark_overview_frame)
+        self.overview_frame.bind("<Leave>", self.unmark_overview_frame)
+
+    def mark_overview_frame(self, event) -> None:
+        self.overview_frame.configure(bootstyle="dark")
+        self.sig_status_label.configure(bootstyle="inverse-dark")
+        self.con_status_label.configure(bootstyle="inverse-dark")
+
+    def unmark_overview_frame(self, event) -> None:
+        self.overview_frame.configure(bootstyle="secondary")
+        self.sig_status_label.configure(bootstyle="inverse-secondary")
+        self.con_status_label.configure(bootstyle="inverse-secondary")
 
     def hide_meters(self, *args, **kwargs) -> None:
         print("Lmao")
