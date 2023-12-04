@@ -67,7 +67,7 @@ class SonicMeasureWindow(Toplevel):
         self.sonicmeasure.gain_tk.set(gain)
         self.sonicmeasure.meta_comment.insert(1.0, comment)
 
-        self.sonicmeasure.pack()
+        self.sonicmeasure.pack(fill=ttk.BOTH, expand=True)
         self.sonicmeasure.button_starter()
 
     def on_closing(self) -> None:
