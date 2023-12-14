@@ -205,6 +205,13 @@ class Root(Window):
                 "Data Error", f"{nie}\nDo you want to go into rescue mode?"
             )
 
+        except NotImplementedError as nie:
+            logger.debug(traceback.format_exc())
+            logger.warning(nie)
+            rescue_me: bool = messagebox.askyesno(
+                "Data Error", f"{nie}\nDo you want to go into rescue mode?"
+            )
+
         except TypeError as te:
             logger.debug(traceback.format_exc())
             logger.warning(te)

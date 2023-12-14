@@ -600,7 +600,7 @@ class HometabWipe40KHZ(Hometab):
     def set_gain(self) -> None:
         gain: int = int(super().set_gain())
         self.insert_feed(f"Gain setted to {gain}%")
-        self.root.status_frame.change_values(gain=gain)
+        self.root.status_frame.change_values(self.root.sonicamp.status)
 
     def set_signal_on(self) -> None:
         is_on: Union[str, bool] = self.serial.send_and_get(Command.SET_SIGNAL_ON)
