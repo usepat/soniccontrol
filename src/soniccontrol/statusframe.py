@@ -425,11 +425,14 @@ class StatusFrameWipe(StatusFrame):
         self.con_status_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.sig_status_label.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
-        self.meter_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
-        self.sonsens_frame.pack(
-            side=tk.TOP, expand=True, padx=5, pady=5, anchor=tk.CENTER
-        )
-        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
+        self.meter_frame.grid(row=0, column=0, sticky=tk.NSEW)
+        self.meter_frame.grid_rowconfigure(0, weight=1)
+        self.sonsens_frame.grid(row=1, column=0, sticky=tk.EW)
+        self.sonsens_frame.grid_rowconfigure(0, weight=1)
+        self.sonsens_frame.grid_rowconfigure(1, weight=1)
+        self.sonsens_frame.grid_rowconfigure(2, weight=1)
+        self.overview_frame.grid(row=2, column=0, sticky=tk.EW)
+        self.overview_frame.grid_rowconfigure(0, weight=1)
         self.grid(row=1, column=0)
         # self.pack()
 
@@ -487,7 +490,10 @@ class StatusFrame40KHZ(StatusFrame):
         self.meter_frame.pack(
             side=tk.TOP, expand=True, fill=tk.BOTH, ipadx=10, ipady=10
         )
-        self.overview_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=0, pady=0)
+        self.meter_frame.grid(row=0, column=0, sticky=ttk.NSEW)
+        self.meter_frame.grid_rowconfigure(0, weight=1)
+        self.overview_frame.grid(row=2, column=0, sticky=tk.EW)
+        self.overview_frame.grid_rowconfigure(0, weight=1)
         self.grid(row=1, column=0)
         # self.pack()
 
