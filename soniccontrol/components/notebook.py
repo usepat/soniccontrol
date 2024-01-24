@@ -15,40 +15,29 @@ class Notebook(ttk.Notebook):
 
     def add_tab(
         self, tab: TabView, with_image: bool, with_title: bool, **kwargs
-    ) -> str:
-
-        if with_image:
-            kwargs.update({
-                key: value for key, value in {
-                    const.misc.IMAGE: tab.image
+    ) -> None:
+        kwargs.update(
+            {
+                key: value
+                for key, value in {
+                    const.misc.IMAGE: tab.image,
                     const.misc.COMPOUND: ttk.TOP,
-                }.items() if key not in kwargs
-            })
-
-        if with_image:
-            if kwargs.get(const.misc.IMAGE) is None:
-                kwargs[const.misc.IMAGE] = tab.image
-            if kwargs.get(const.misc.COMPOUND) is None:
-                kwargs[const.misc.COMPOUND] = ttk.TOP
-        else:
-            if kwargs.get(const.misc.IMAGE) is not None:
-                kwargs.pop(const.misc.IMAGE)
-        if with_title:
-            if kwargs.get(const.misc.TEXT) is None:
-                kwargs[const.misc.TEXT] = tab.tab_title
-
-        kwargs["image"] = (
-            tab.image if kwargs.get("image") is None else kwargs.get("image")
+                }.items()
+                if key not in kwargs
+            }
+            if with_image
+            else {}
         )
-        kwargs["compound"] = (
-            ttk.TOP if kwargs.get("compound") is None else kwargs.get("compound")
+        kwargs.update(
+            {
+                key: value
+                for key, value in {const.misc.TEXT: tab.tab_title}.items()
+                if key not in kwargs
+            }
+            if with_title
+            else {}
         )
-        kwargs["text"] = (
-            tab.tab_title if kwargs.get("text") is None else kwargs.get("title")
-        )
-        return self.add(
-            tab.container if isinstance(frame, ScrolledFrame) else tab,
-        )
+        self.add(tab.container if isinstance(tab, ScrolledFrame) else tab, **kwargs)
 
     def add_tabs(
         self,
@@ -57,4 +46,5 @@ class Notebook(ttk.Notebook):
         with_title: bool = True,
         **kwargs
     ) -> None:
-        pass
+        for tab in tabs:
+            self.add_tab(tab, with_image=with_image, with_title=with_title, **kwargs)
