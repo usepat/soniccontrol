@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import ModuleType
+
 __version__ = "1.9.8"
 __author__ = "usePAT G.m.b.H"
 __email__ = "info@usepat.com"
@@ -8,37 +10,21 @@ __maintainer__ = "Ilja Golovanov"
 __maintainer_email__ = "ilja.golovanov@usepat.com"
 __status__ = "Development"
 
+import json
 import logging
-from logging.handlers import RotatingFileHandler
-import sys
-from icecream import install
-import soniccontrol.constants as const
+import logging.config
+import pathlib
 
-install()
+import soniccontrol.utils.constants as const
 
-if not const.LOG_DIR.exists() or not const.LOG_DIR.is_dir():
-    const.LOG_DIR.mkdir(parents=True, exist_ok=True)
-    print("Logs directory created.")
-else:
-    print("Logs directory already exists.")
 
-MAX_SIZE = 0x1_000_000  # 16 megabyte
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+def setup_logging() -> None:
+    config_file: pathlib.Path = const.files.LOGGING_CONFIG
+    with config_file.open() as file:
+        config = json.load(file)
+    logging.config.dictConfig(config)
 
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-)
 
-file_handler = RotatingFileHandler(
-    const.SONICCONTROL_LOG, maxBytes=MAX_SIZE, backupCount=10
-)
-file_handler.setFormatter(formatter)
-
-stream_handler = logging.StreamHandler(sys.stdout)
-stream_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
-
-from soniccontrol.core import SonicControl  # noqa
+setup_logging()
+soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
+const: ModuleType = const

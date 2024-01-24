@@ -1,16 +1,14 @@
-import sys
-from async_tkinter_loop import async_mainloop
-from soniccontrol import SonicControl
-
-# import faulthandler
-
-
-# faulthandler.enable()
+from soniccontrol import soniccontrol_logger
+from soniccontrol.amp import SonicAmp
+from soniccontrol.core.window import MainPresenter
+from soniccontrol.core.windowview import MainView
 
 
-if __name__ == "__main__":
-    if "3.10" not in sys.version:
-        print("Warning: Please use Python 3.10 to run SonicControl")
-    else:
-        sc: SonicControl = SonicControl()
-        async_mainloop(sc)
+def main() -> None:
+    sonicamp: SonicAmp = SonicAmp()
+    view: MainView = MainView()
+    presenter: MainPresenter = MainPresenter(view, sonicamp)
+    presenter.start()
+
+
+main()

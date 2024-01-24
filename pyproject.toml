@@ -1,9 +1,10 @@
+
 [build-system]
 requires = ["setuptools>=42.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-addopts = "--cov=sonicpackage"
+addopts = "--cov=soniccontrol"
 testpaths = ["tests"]
 
 [tool.mypy]
@@ -16,4 +17,7 @@ strict_equality = true
 warn_redundant_casts = true
 
 [black]
-line-length = 140
+line-length = 160
+
+[tool.pyright]
+include = ["soniccontrol"]
