@@ -1,50 +1,36 @@
 import ttkbootstrap as ttk
-from _typeshed import NoneType
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol import const
+from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.interfaces.view import TabView
 
 
 class Notebook(ttk.Notebook):
     def __init__(self, master: ttk.Window, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
-
         self._images_on: bool = False
         self._titles_on: bool = False
 
-    def add_tab(
-        self, tab: TabView, with_image: bool, with_title: bool, **kwargs
-    ) -> None:
-        kwargs.update(
-            {
-                key: value
-                for key, value in {
-                    const.misc.IMAGE: tab.image,
-                    const.misc.COMPOUND: ttk.TOP,
-                }.items()
-                if key not in kwargs
-            }
-            if with_image
-            else {}
-        )
-        kwargs.update(
-            {
-                key: value
-                for key, value in {const.misc.TEXT: tab.tab_title}.items()
-                if key not in kwargs
-            }
-            if with_title
-            else {}
-        )
-        self.add(tab.container if isinstance(tab, ScrolledFrame) else tab, **kwargs)
-
-    def add_tabs(
-        self,
-        tabs: list[TabView],
-        with_image: bool = True,
-        with_title: bool = True,
-        **kwargs
-    ) -> None:
+    def add_tabs(self, tabs: list[TabView], keep_tabs: bool = False, **kwargs) -> None:
+        if not keep_tabs:
+            for tab in self.tabs():
+                self.forget(tab)
         for tab in tabs:
-            self.add_tab(tab, with_image=with_image, with_title=with_title, **kwargs)
+            self.add(
+                tab,
+                text=tab.tab_title if self._titles_on else "",
+                image=tab.image if self._images_on else None,
+                compound=ttk.TOP if self._images_on else ttk.RIGHT,
+            )
+
+    def configure_tabs(
+        self, show_titles: bool = False, show_images: bool = False
+    ) -> None:
+        for tab in self.tabs():
+            self.tab(
+                tab,
+                text=tab.tab_title if show_titles else "",
+                image=tab.image if show_images else None,
+                compound=ttk.TOP if show_images else ttk.RIGHT,
+            )

@@ -1,6 +1,7 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 
+import soniccontrol.utils as utils
 import soniccontrol.utils.constants as const
 from soniccontrol.components.spinbox import Spinbox
 from soniccontrol.interfaces.layouts import Layout
@@ -10,6 +11,8 @@ class HomeView(ttk.Frame):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
         self._master: ttk.Window = master
+
+        self._image = utils.give_image(const.images.HOME_ICON_BLACK, (25, 25))
 
         self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self._top_frame: ttk.Frame = ttk.Frame(self._main_frame)
@@ -28,12 +31,12 @@ class HomeView(ttk.Frame):
         )
 
     @property
-    def image(self) -> ttk.PhotoImage:
-        ...
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return self._image
 
     @property
     def tab_title(self) -> str:
-        ...
+        return const.ui.HOME_LABEL
 
     @property
     def layouts(self) -> set[Layout]:

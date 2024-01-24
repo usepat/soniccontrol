@@ -1,4 +1,3 @@
-from soniccontrol import soniccontrol_logger
 from soniccontrol.amp import SonicAmp
 from soniccontrol.core.window import MainPresenter
 from soniccontrol.core.windowview import MainView

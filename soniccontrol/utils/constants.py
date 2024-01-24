@@ -1,8 +1,10 @@
+import pathlib
 import platform
 from pathlib import Path
 from typing import Final
 
 import attrs
+import ttkbootstrap as ttk
 
 
 @attrs.frozen
@@ -11,6 +13,9 @@ class _Misc:
     IMAGE: Final[str] = "image"
     TEXT: Final[str] = "text"
     COMPOUND: Final[str] = "compound"
+
+
+misc: _Misc = _Misc()
 
 
 @attrs.frozen
@@ -26,6 +31,43 @@ class _Files:
     DOCUMENTS_DIR: Final[Path] = RESOURCES_DIR / "docs"
     CONFIG_JSON: Final[Path] = ROOT_DIR / "config.json"
     SONICCONTROL_LOG: Final[Path] = LOG_DIR / "soniccontrol.log"
+
+
+files: _Files = _Files()
+
+
+@attrs.frozen
+class _Images:
+    HOME_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "home_icon_black.png"
+    BACK_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "back_icon_white.png"
+    BACK_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "back_icon_black.png"
+    CONNECTION_ICON_BLACK: Final[Path] = (
+        files.PICTURES_DIR / "connection_icon_black.png"
+    )
+    CONSOLE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "console_icon_black.png"
+    SCRIPT_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "script_icon_black.png"
+    SETTINGS_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "settings_icon_black.png"
+    STATUS_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "status_icon_black.png"
+    FORWARDS_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "forwards_icon_black.png"
+    FORWARDS_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "forwards_icon_white.png"
+    INFO_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "info_icon_black.png"
+    LED_ICON_GREEN: Final[Path] = files.PICTURES_DIR / "led_green_icon.png"
+    LED_ICON_RED: Final[Path] = files.PICTURES_DIR / "led_red_icon.png"
+    LIGHTNING_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "lightning_icon_white.png"
+    LINECHART_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "linechart_icon_black.png"
+    MENUE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "menue_icon_black.png"
+    MENUE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "menue_icon_white.png"
+    PAUSE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "pause_icon_black.png"
+    PAUSE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "pause_icon_white.png"
+    PLAY_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "play_icon_black.png"
+    PLAY_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "play_icon_white.png"
+    RESET_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "reset_icon_black.png"
+    RESET_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "reset_icon_white.png"
+    SAVE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "save_icon_black.png"
+    SAVE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "save_icon_white.png"
+
+
+images: _Images = _Images()
 
 
 @attrs.frozen
@@ -44,14 +86,28 @@ class _Events:
     AUTO_MODE_EVENT: Final = "<<AutoMode>>"
 
 
+events: _Events = _Events()
+
+
 @attrs.frozen
 class _UIStringsEN:
     HOME_CONTROL_LABEL: Final[str] = "Manual Control"
     FREQ_PLACEHOLDER: Final[str] = "Set Frequency..."
     GAIN_PLACEHOLDER: Final[str] = "Set Gain..."
+    SAVE_LABEL: Final[str] = "Save"
+    START_LAVEL: Final[str] = "Start"
+    PAUSE_LABEL: Final[str] = "Pause"
+    CONNECT_LABEL: Final[str] = "Connect"
+    DISCONNECT_LABEL: Final[str] = "Disconnect"
+    HOME_LABEL: Final[str] = "Home"
+    SCRIPTING_LABEL: Final[str] = "Scripting"
+    CONNECTION_LABEL: Final[str] = "Connection"
+    SETTINGS_LABEL: Final[str] = "Settings"
+    INFO_LABEL: Final[str] = "Info"
+    SONIC_LABEL: Final[str] = "sonic"
+    SPECIFY_PATH_LABEL: Final[str] = "Specify Path"
+    SET_FREQUENCY_LABEL: Final[str] = "Set Frequency"
+    SET_GAIN_LABEL: Final[str] = "Set Gain"
 
 
-misc: _Misc = _Misc()
-files: _Files = _Files()
-events: _Events = _Events()
 ui: _UIStringsEN = _UIStringsEN()

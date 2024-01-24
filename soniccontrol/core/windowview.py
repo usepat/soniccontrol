@@ -1,7 +1,10 @@
 from typing import TypedDict
 
 import ttkbootstrap as ttk
+from PIL import Image, ImageTk
 
+from soniccontrol import const
+from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.views.connectionview import ConnectionView
@@ -182,7 +185,6 @@ class MainView(ttk.Window):
         self._mainframe.pack(expand=True, fill=ttk.BOTH)
         self._status_bar.pack(fill=ttk.X)
         self._mainframe.add(self._left_notebook, weight=1)
-        self._left_notebook.add(self.views["home"], text="Home")
 
     def set_large_width_layout(self) -> None:
         ...
