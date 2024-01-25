@@ -95,7 +95,7 @@ class _UIStringsEN:
     FREQ_PLACEHOLDER: Final[str] = "Set Frequency..."
     GAIN_PLACEHOLDER: Final[str] = "Set Gain..."
     SAVE_LABEL: Final[str] = "Save"
-    START_LAVEL: Final[str] = "Start"
+    START_LABEL: Final[str] = "Start"
     PAUSE_LABEL: Final[str] = "Pause"
     CONNECT_LABEL: Final[str] = "Connect"
     DISCONNECT_LABEL: Final[str] = "Disconnect"
@@ -116,6 +116,7 @@ class _UIStringsEN:
     WIPE_MODE_LABEL: Final[str] = "Wipe Mode"
     WIPE_LABEL: Final[str] = "Wipe"
     SET_VALUES_LABEL: Final[str] = "Set Values"
+    OUTPUT_LABEL: Final[str] = "Output"
 
 
 ui: _UIStringsEN = _UIStringsEN()

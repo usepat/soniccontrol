@@ -15,6 +15,8 @@ class HomeView(ttk.Frame):
 
         self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self._top_frame: ttk.Frame = ttk.Frame(self._main_frame)
+
+        # Control Frame - Setting Frequency, Gain, Mode
         self._control_frame: ttk.Labelframe = ttk.Labelframe(
             self._top_frame, text=const.ui.HOME_CONTROL_LABEL
         )
@@ -23,7 +25,9 @@ class HomeView(ttk.Frame):
         )
         self._gain_control_frame: ttk.Frame = ttk.Frame(self._control_frame)
         self._gain_spinbox: Spinbox = Spinbox(
-            self._control_frame, placeholder=const.ui.GAIN_PLACEHOLDER, style=ttk.DARK
+            self._gain_control_frame,
+            placeholder=const.ui.GAIN_PLACEHOLDER,
+            style=ttk.DARK,
         )
         self._gain_scale: ttk.Scale = ttk.Scale(
             self._gain_control_frame, orient=ttk.HORIZONTAL, style=ttk.SUCCESS
@@ -44,7 +48,16 @@ class HomeView(ttk.Frame):
         self._set_values_button: ttk.Button = ttk.Button(
             self._control_frame, text=const.ui.SET_VALUES_LABEL, style=ttk.DARK
         )
-        self._us_control_frame: ttk.Frame = ttk.Frame(self._main_frame)
+
+        # Bot Frame with Feedback Output
+        self._bot_frame: ttk.Frame = ttk.Frame(self._main_frame)
+        self._output_frame: ttk.Frame = ttk.Labelframe(
+            self._bot_frame, text=const.ui.OUTPUT_LABEL
+        )
+        self._feedback_frame: ScrolledFrame = ScrolledFrame(self._output_frame)
+
+        # UltraSound Control Frame
+        self._us_control_frame: ttk.Frame = ttk.Frame(self)
         self._us_on_button: ttk.Button = ttk.Button(
             self._us_control_frame, text=const.ui.ON_LABEL, style=ttk.SUCCESS
         )
@@ -54,6 +67,8 @@ class HomeView(ttk.Frame):
         self._us_auto_button: ttk.Button = ttk.Button(
             self._us_control_frame, text=const.ui.AUTO_LABEL, style=ttk.PRIMARY
         )
+
+        self._init_publish()
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
@@ -66,6 +81,39 @@ class HomeView(ttk.Frame):
     @property
     def layouts(self) -> set[Layout]:
         ...
+
+    def _init_publish(self) -> None:
+        self._main_frame.pack(fill=ttk.BOTH, expand=True)
+        self._top_frame.pack(pady=10, padx=10)
+
+        self._control_frame.pack(fill=ttk.X)
+        self._freq_spinbox.pack(fill=ttk.X, padx=10, pady=10)
+
+        self._gain_control_frame.columnconfigure(0, weight=1)
+        self._gain_control_frame.columnconfigure(1, weight=1)
+        self._gain_control_frame.pack(fill=ttk.X)
+        self._gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=ttk.EW)
+        self._gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.EW)
+
+        self._mode_frame.columnconfigure(0, weight=1)
+        self._mode_frame.columnconfigure(1, weight=1)
+        self._mode_frame.pack(fill=ttk.X)
+        self._wipe_mode_button.grid(row=0, column=0, padx=10, pady=10, sticky=ttk.EW)
+        self._catch_mode_button.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.EW)
+
+        self._set_values_button.pack(fill=ttk.X, padx=10, pady=10)
+
+        self._us_control_frame.columnconfigure(0, weight=1)
+        self._us_control_frame.columnconfigure(1, weight=1)
+        self._us_control_frame.columnconfigure(2, weight=1)
+        self._us_control_frame.pack(pady=10, padx=10, fill=ttk.X, anchor=ttk.CENTER)
+        self._us_on_button.grid(row=0, column=0, padx=10, pady=10, sticky=ttk.EW)
+        self._us_auto_button.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.EW)
+        self._us_off_button.grid(row=0, column=2, padx=10, pady=10, sticky=ttk.EW)
+
+        self._bot_frame.pack()
+        self._feedback_frame.pack(padx=10, pady=10, fill=ttk.BOTH)
+        self._output_frame.pack(anchor=ttk.N, padx=10, pady=10, fill=ttk.BOTH)
 
     def publish(self) -> None:
         ...

@@ -77,6 +77,9 @@ class StatusVarsDict(TypedDict):
     relay_mode: ttk.StringVar
 
 
+# TODO: look how to abstract the class, so that the images are stored in one place and referenced in the children views
+
+
 class MainView(ttk.Window):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

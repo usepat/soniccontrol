@@ -1,4 +1,5 @@
 import ttkbootstrap as ttk
+from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol import utils
 from soniccontrol.interfaces.layouts import Layout
@@ -12,6 +13,19 @@ class ScriptingView(ttk.Frame):
         self._image: ttk.ImageTk.PhotoImage = utils.give_image(
             const.images.SCRIPT_ICON_BLACK, (25, 25)
         )
+
+        self._lol = utils.give_image(const.images.PLAY_ICON_WHITE, (25, 25))
+        self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
+        self._main_frame: ScrolledFrame = ScrolledFrame(self)
+        self._start_button: ttk.Button = ttk.Button(
+            self._navigation_button_frame,
+            text=const.ui.START_LABEL,
+            style=ttk.SUCCESS,
+            compound=ttk.LEFT,
+            image=self._lol,
+        )
+        self._navigation_button_frame.pack(fill=ttk.X)
+        self._start_button.pack()
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
