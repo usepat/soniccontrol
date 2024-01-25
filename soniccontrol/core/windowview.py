@@ -185,6 +185,11 @@ class MainView(ttk.Window):
         self._mainframe.pack(expand=True, fill=ttk.BOTH)
         self._status_bar.pack(fill=ttk.X)
         self._mainframe.add(self._left_notebook, weight=1)
+        self._left_notebook.add_tabs(
+            [self.views["home"], self.views["scripting"]],
+            show_titles=True,
+            show_images=True,
+        )
 
     def set_large_width_layout(self) -> None:
         ...

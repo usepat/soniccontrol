@@ -1,21 +1,25 @@
 import ttkbootstrap as ttk
 
+from soniccontrol import utils
 from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.utils import constants as const
 
 
 class ScriptingView(ttk.Frame):
-    def __init__(
-        self, master: ttk.tk.Widget | ttk.tk.Misc | None, *args, **kwargs
-    ) -> None:
+    def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
+        self._master: ttk.Window = master
+        self._image: ttk.ImageTk.PhotoImage = utils.give_image(
+            const.images.SCRIPT_ICON_BLACK, (25, 25)
+        )
 
     @property
-    def image(self) -> ttk.tk.PhotoImage:
-        ...
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return self._image
 
     @property
     def tab_title(self) -> str:
-        ...
+        return const.ui.SCRIPTING_LABEL
 
     @property
     def layouts(self) -> set[Layout]:

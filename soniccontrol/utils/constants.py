@@ -108,6 +108,14 @@ class _UIStringsEN:
     SPECIFY_PATH_LABEL: Final[str] = "Specify Path"
     SET_FREQUENCY_LABEL: Final[str] = "Set Frequency"
     SET_GAIN_LABEL: Final[str] = "Set Gain"
+    ON_LABEL: Final[str] = "ON"
+    OFF_LABEL: Final[str] = "OFF"
+    AUTO_LABEL: Final[str] = "AUTO"
+    CATCH_MODE_LABEL: Final[str] = "Catch Mode"
+    CATCH_LABEL: Final[str] = "Catch"
+    WIPE_MODE_LABEL: Final[str] = "Wipe Mode"
+    WIPE_LABEL: Final[str] = "Wipe"
+    SET_VALUES_LABEL: Final[str] = "Set Values"
 
 
 ui: _UIStringsEN = _UIStringsEN()

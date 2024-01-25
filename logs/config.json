@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "simple": {
+      "format": "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)s:%(funcName)s - %(message)s - exception: %(exc_info)s"
+    },
+    "detailed": {
+      "format": "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)s:%(funcName)s - %(message)s - exception: %(exc_info)s"
+    }
+  },
+  "handlers": {
+    "stderr": {
+      "class": "logging.StreamHandler",
+      "level": "DEBUG",
+      "formatter": "simple",
+      "stream": "ext://sys.stderr"
+    },
+    "file": {
+      "class": "logging.handlers.RotatingFileHandler",
+      "level": "DEBUG",
+      "formatter": "simple",
+      "filename": "logs/soniccontrol.log",
+      "maxBytes": 10000,
+      "backupCount": 3
+    }
+  },
+  "loggers": {
+    "root": { "level": "DEBUG", "handlers": ["stderr", "file"] }
+  }
+}

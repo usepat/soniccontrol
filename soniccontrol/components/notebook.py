@@ -1,8 +1,7 @@
-import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
+from typing import Any
 
-from soniccontrol import const
-from soniccontrol import soniccontrol_logger as logger
+import ttkbootstrap as ttk
+
 from soniccontrol.interfaces.view import TabView
 
 
@@ -12,25 +11,41 @@ class Notebook(ttk.Notebook):
         self._images_on: bool = False
         self._titles_on: bool = False
 
-    def add_tabs(self, tabs: list[TabView], keep_tabs: bool = False, **kwargs) -> None:
+    def add_tab(self, tab: TabView, **kwargs) -> None:
+        return self.add(
+            tab,
+            text=tab.tab_title if self._titles_on else "",
+            image=tab.image if self._images_on else {},
+            compound=ttk.TOP if self._images_on else ttk.RIGHT,
+            **kwargs
+        )
+
+    def add_tabs(
+        self,
+        tabs: list[TabView],
+        keep_tabs: bool = False,
+        show_titles: bool = True,
+        show_images: bool = False,
+        **kwargs
+    ) -> None:
         if not keep_tabs:
             for tab in self.tabs():
                 self.forget(tab)
+        self._images_on = show_images
+        self._titles_on = show_titles
         for tab in tabs:
-            self.add(
-                tab,
-                text=tab.tab_title if self._titles_on else "",
-                image=tab.image if self._images_on else None,
-                compound=ttk.TOP if self._images_on else ttk.RIGHT,
-            )
+            self.add_tab(tab, **kwargs)
 
     def configure_tabs(
         self, show_titles: bool = False, show_images: bool = False
     ) -> None:
-        for tab in self.tabs():
+        for tab_name in self.tabs():
+            tab: Any = self.nametowidget(tab_name)
             self.tab(
                 tab,
                 text=tab.tab_title if show_titles else "",
                 image=tab.image if show_images else None,
                 compound=ttk.TOP if show_images else ttk.RIGHT,
             )
+        self._images_on = show_images
+        self._titles_on = show_titles
