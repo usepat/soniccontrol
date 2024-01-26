@@ -117,6 +117,9 @@ class _UIStringsEN:
     WIPE_LABEL: Final[str] = "Wipe"
     SET_VALUES_LABEL: Final[str] = "Set Values"
     OUTPUT_LABEL: Final[str] = "Output"
+    GUIDE_LABEL: Final[str] = "Guide"
+    SCRIPT_EDITOR_LABEL: Final[str] = "Script Editor"
+    LOAD_LABEL: Final[str] = "Load File"
 
 
 ui: _UIStringsEN = _UIStringsEN()
