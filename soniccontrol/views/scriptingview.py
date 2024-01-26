@@ -82,8 +82,6 @@ class ScriptingView(ttk.Frame):
         self._current_task_label.grid(row=0, column=0, sticky=ttk.EW)
         self._progressbar.grid(row=0, column=1, sticky=ttk.EW)
 
-        self._progressbar.start()
-
     def set_small_width_layout(self) -> None:
         ...
 

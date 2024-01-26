@@ -104,7 +104,9 @@ class _UIStringsEN:
     CONNECTION_LABEL: Final[str] = "Connection"
     SETTINGS_LABEL: Final[str] = "Settings"
     INFO_LABEL: Final[str] = "Info"
+    SERIAL_MONITOR_LABEL: Final[str] = "Serial Monitor"
     SONIC_LABEL: Final[str] = "sonic"
+    SONIC_MEASURE_LABEL: Final[str] = "Sonic Measure"
     SPECIFY_PATH_LABEL: Final[str] = "Specify Path"
     SET_FREQUENCY_LABEL: Final[str] = "Set Frequency"
     SET_GAIN_LABEL: Final[str] = "Set Gain"
@@ -120,6 +122,7 @@ class _UIStringsEN:
     GUIDE_LABEL: Final[str] = "Guide"
     SCRIPT_EDITOR_LABEL: Final[str] = "Script Editor"
     LOAD_LABEL: Final[str] = "Load File"
+    AUTO_READ_LABEL: Final[str] = "Auto Read"
 
 
 ui: _UIStringsEN = _UIStringsEN()
