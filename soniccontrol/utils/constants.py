@@ -126,3 +126,53 @@ class _UIStringsEN:
 
 
 ui: _UIStringsEN = _UIStringsEN()
+
+
+class SingletonMeta(type):
+    _instances: dict[_IconLoader] = dict()
+    _lock = Lock()
+
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls not in cls._instances:
+                instance = super().__call__(*args, **kwargs)
+                cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class Singleton(metaclass=SingletonMeta):
+    master: ttk.Window | None = None
+    images: dict[str, ttk.ImageTk.PhotoImage] = {}
+
+    def __init__(self, master: ttk.Window | None) -> None:
+        if master is None and self._master is None:
+            logger.debug("There is no Window set as Master")
+            return
+        elif self._master is None and isinstance(master, ttk.Window):
+            self.initialize(master)
+
+    @classmethod
+    def initialize(cls, master: ttk.Window | None) -> None:
+        cls._master = master
+        return cls()
+
+    @classmethod
+    def generate_image_key(
+        cls, image_path: pathlib.Path, sizing: tuple[int, int]
+    ) -> str:
+        return f"{image_path}{sizing}"
+
+    @classmethod
+    def _load_image(
+        cls, image: pathlib.Path, sizing: tuple[int, int]
+    ) -> ttk.ImageTk.PhotoImage:
+        return ttk.ImageTk.PhotoImage(ttk.Image.open(image).resize(sizing))
+
+    @classmethod
+    def load_image(
+        cls, image_path: pathlib.Path, sizing: tuple[int, int]
+    ) -> ttk.ImageTk.PhotoImage:
+        key: str = cls.generate_image_key(image_path, sizing)
+        if cls.images.get(key) is None:
+            cls.images[key] = cls._load_image(image_path, sizing)
+        return cls.images[key]
