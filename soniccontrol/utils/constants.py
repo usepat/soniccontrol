@@ -120,9 +120,11 @@ class _UIStringsEN:
     WIPE_LABEL: Final[str] = "Wipe"
     SET_VALUES_LABEL: Final[str] = "Set Values"
     OUTPUT_LABEL: Final[str] = "Output"
+    INPUT_LABEL: Final[str] = "Input"
     GUIDE_LABEL: Final[str] = "Guide"
     SCRIPT_EDITOR_LABEL: Final[str] = "Script Editor"
     LOAD_LABEL: Final[str] = "Load File"
+    SEND_LABEL: Final[str] = "Send"
     AUTO_READ_LABEL: Final[str] = "Auto Read"
 
 

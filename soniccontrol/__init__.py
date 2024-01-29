@@ -14,8 +14,10 @@ import json
 import logging
 import logging.config
 import pathlib
+import sys
 
 import soniccontrol.utils.constants as const
+from ttkbootstrap.utility import enable_high_dpi_awareness
 
 
 def setup_logging() -> None:
@@ -25,6 +27,20 @@ def setup_logging() -> None:
     logging.config.dictConfig(config)
 
 
+def check_high_dpi_windows() -> None:
+    if sys.platform == "":
+        enable_high_dpi_awareness()
+
+
 setup_logging()
+check_high_dpi_windows()
 soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
 const: ModuleType = const
+
+soniccontrol_logger.info("SonicControl %s", __version__)
+soniccontrol_logger.info("Author: %s", __author__)
+soniccontrol_logger.info("Email: %s", __email__)
+soniccontrol_logger.info("License: %s", __license__)
+soniccontrol_logger.info("Status: %s", __status__)
+soniccontrol_logger.info("Python: %s", sys.version)
+soniccontrol_logger.info("Platform: %s", sys.platform)

@@ -2,6 +2,8 @@ from soniccontrol.amp import SonicAmp
 from soniccontrol.core.window import MainPresenter
 from soniccontrol.core.windowview import MainView
 
+import soniccontrol
+
 
 def main() -> None:
     sonicamp: SonicAmp = SonicAmp()
@@ -10,4 +12,5 @@ def main() -> None:
     presenter.start()
 
 
-main()
+if __name__ == "__main__":
+    main()

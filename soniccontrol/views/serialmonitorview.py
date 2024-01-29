@@ -1,9 +1,9 @@
+import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
+from soniccontrol.interfaces.layouts import Layout
 from ttkbootstrap.scrolled import ScrolledFrame
 
-import soniccontrol.utils.constants as const
 from soniccontrol import utils
-from soniccontrol.interfaces.layouts import Layout
 
 
 class SerialMonitorView(ttk.Frame):
@@ -18,11 +18,21 @@ class SerialMonitorView(ttk.Frame):
         self._scrolled_frame: ScrolledFrame = ScrolledFrame(
             self._output_frame, autohide=True
         )
-        self._input_frame: ttk.Frame = ttk.Frame(self._mainframe)
+        self._input_frame: ttk.Labelframe = ttk.Labelframe(
+            self._mainframe, text=const.ui.INPUT_LABEL, padding=(3, 1, 3, 4)
+        )
         self._read_button: ttk.Checkbutton = ttk.Checkbutton(
             self._input_frame, text=const.ui.AUTO_READ_LABEL, style="dark-square-toggle"
         )
-        self._command_field: ttk.Entry = ttk.Entry()
+        self._command_field: ttk.Entry = ttk.Entry(self._input_frame, style=ttk.DARK)
+        self._send_button: ttk.Button = ttk.Button(
+            self._input_frame,
+            text=const.ui.SEND_LABEL,
+            style=ttk.SUCCESS,
+            image=utils.ImageLoader.load_image(const.images.PLAY_ICON_WHITE, (13, 13)),
+            compound=ttk.RIGHT,
+        )
+        self._init_publish()
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
@@ -35,6 +45,19 @@ class SerialMonitorView(ttk.Frame):
     @property
     def layouts(self) -> set[Layout]:
         ...
+
+    def _init_publish(self) -> None:
+        self._mainframe.pack(expand=True, fill=ttk.BOTH)
+        self._output_frame.pack(expand=True, fill=ttk.BOTH, pady=5, padx=10)
+        self._scrolled_frame.pack(expand=True, fill=ttk.BOTH, pady=5, padx=5)
+
+        self._input_frame.columnconfigure(0, weight=1)
+        self._input_frame.columnconfigure(1, weight=10)
+        self._input_frame.columnconfigure(2, weight=3)
+        self._input_frame.pack(fill=ttk.X, pady=5, padx=10)
+        self._read_button.grid(row=0, column=0, sticky=ttk.EW, padx=5, pady=5)
+        self._command_field.grid(row=0, column=1, sticky=ttk.EW, padx=5, pady=5)
+        self._send_button.grid(row=0, column=2, sticky=ttk.EW, padx=5, pady=5)
 
     def set_small_width_layout(self) -> None:
         ...

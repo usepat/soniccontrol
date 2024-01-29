@@ -1,8 +1,10 @@
-from async_tkinter_loop import async_mainloop
+import sys
 
+from async_tkinter_loop import async_mainloop
 from soniccontrol.amp import SonicAmp
 from soniccontrol.core import core_logger as logger
 from soniccontrol.core.windowview import MainView
+from ttkbootstrap.utility import enable_high_dpi_awareness
 
 
 class MainPresenter:
@@ -38,5 +40,10 @@ class MainPresenter:
         ...
 
     def start(self) -> None:
+        if sys.platform != "win32":
+            enable_high_dpi_awareness(self, 1.8)
         self._view.mainloop()
         # async_mainloop(self._view)
+
+
+print(sys.platform)
