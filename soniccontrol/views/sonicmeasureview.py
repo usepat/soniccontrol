@@ -1,9 +1,8 @@
-import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
-
 import soniccontrol.utils as utils
 import soniccontrol.utils.constants as const
+import ttkbootstrap as ttk
 from soniccontrol.interfaces.layouts import Layout
+from ttkbootstrap.scrolled import ScrolledFrame
 
 
 # TODO: Look into how to tile sonicmeasure and liveplot
@@ -15,7 +14,7 @@ class SonicMeasureView(ttk.Frame):
             const.images.LINECHART_ICON_BLACK, (25, 25)
         )
 
-        self._mainframe: ScrolledFrame = ScrolledFrame(self, autohide=True)
+        self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:

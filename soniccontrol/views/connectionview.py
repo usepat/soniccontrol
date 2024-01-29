@@ -1,7 +1,8 @@
 from typing import Tuple
-import ttkbootstrap as ttk
 
+import ttkbootstrap as ttk
 from soniccontrol.interfaces.layouts import Layout
+from ttkbootstrap.scrolled import ScrolledFrame
 
 
 class ConnectionView(ttk.Frame):
@@ -9,6 +10,8 @@ class ConnectionView(ttk.Frame):
         self, master: ttk.tk.Widget | ttk.tk.Misc | None, *args, **kwargs
     ) -> None:
         super().__init__(master, *args, **kwargs)
+
+        self._main_frame: ScrolledFrame = ScrolledFrame(self)
 
     @property
     def image(self) -> ttk.tk.PhotoImage:
@@ -57,7 +60,7 @@ class ConnectionView(ttk.Frame):
     def on_connection_attempt(self) -> None:
         ...
 
-    def on_connect(self) -> None: #, event: ConnectionEvent) -> None:
+    def on_connect(self) -> None:  # , event: ConnectionEvent) -> None:
         ...
 
     def on_disconnect(self) -> None:

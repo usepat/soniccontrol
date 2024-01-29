@@ -11,15 +11,15 @@ class SerialMonitorView(ttk.Frame):
         super().__init__(master, *args, **kwargs)
         self._master: ttk.Window = master
 
-        self._mainframe: ttk.Frame = ttk.Frame(self)
+        self._main_frame: ttk.Frame = ttk.Frame(self)
         self._output_frame: ttk.Labelframe = ttk.Labelframe(
-            self._mainframe, text=const.ui.OUTPUT_LABEL
+            self._main_frame, text=const.ui.OUTPUT_LABEL
         )
         self._scrolled_frame: ScrolledFrame = ScrolledFrame(
             self._output_frame, autohide=True
         )
         self._input_frame: ttk.Labelframe = ttk.Labelframe(
-            self._mainframe, text=const.ui.INPUT_LABEL, padding=(3, 1, 3, 4)
+            self._main_frame, text=const.ui.INPUT_LABEL, padding=(3, 1, 3, 4)
         )
         self._read_button: ttk.Checkbutton = ttk.Checkbutton(
             self._input_frame, text=const.ui.AUTO_READ_LABEL, style="dark-square-toggle"
@@ -47,7 +47,7 @@ class SerialMonitorView(ttk.Frame):
         ...
 
     def _init_publish(self) -> None:
-        self._mainframe.pack(expand=True, fill=ttk.BOTH)
+        self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._output_frame.pack(expand=True, fill=ttk.BOTH, pady=5, padx=10)
         self._scrolled_frame.pack(expand=True, fill=ttk.BOTH, pady=5, padx=5)
 
