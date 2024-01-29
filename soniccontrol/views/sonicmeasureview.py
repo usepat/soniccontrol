@@ -19,7 +19,7 @@ class SonicMeasureView(ttk.Frame):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return self._image
+        return utils.ImageLoader.load_image(const.images.LINECHART_ICON_BLACK, (25, 25))
 
     @property
     def tab_title(self) -> str:

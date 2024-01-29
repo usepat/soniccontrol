@@ -11,7 +11,6 @@ class HomeView(ttk.Frame):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
         self._master: ttk.Window = master
-        self._image = utils.give_image(const.images.HOME_ICON_BLACK, (25, 25))
 
         self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self._top_frame: ttk.Frame = ttk.Frame(self._main_frame)
@@ -72,7 +71,7 @@ class HomeView(ttk.Frame):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return self._image
+        return utils.ImageLoader.load_image(const.images.HOME_ICON_BLACK, (25, 25))
 
     @property
     def tab_title(self) -> str:

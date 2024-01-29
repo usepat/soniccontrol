@@ -10,9 +10,6 @@ class SerialMonitorView(ttk.Frame):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
         self._master: ttk.Window = master
-        self._image: ttk.ImageTk.PhotoImage = utils.give_image(
-            const.images.CONSOLE_ICON_BLACK, (25, 25)
-        )
 
         self._mainframe: ttk.Frame = ttk.Frame(self)
         self._output_frame: ttk.Labelframe = ttk.Labelframe(
@@ -25,11 +22,11 @@ class SerialMonitorView(ttk.Frame):
         self._read_button: ttk.Checkbutton = ttk.Checkbutton(
             self._input_frame, text=const.ui.AUTO_READ_LABEL, style="dark-square-toggle"
         )
-        self._command_field: 
+        self._command_field: ttk.Entry = ttk.Entry()
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return self._image
+        return utils.ImageLoader.load_image(const.images.CONSOLE_ICON_BLACK, (25, 25))
 
     @property
     def tab_title(self) -> str:

@@ -7,6 +7,7 @@ from soniccontrol import const
 from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.utils import ImageLoader
 from soniccontrol.views.connectionview import ConnectionView
 from soniccontrol.views.homeview import HomeView
 from soniccontrol.views.infoview import InfoView
@@ -84,6 +85,7 @@ class MainView(ttk.Window):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+        self._image_loader: ImageLoader = ImageLoader(self)
         # Utililty tkinter variables
         self._misc_vars: MiscVarsDict = {
             "connection_port": ttk.StringVar(),
