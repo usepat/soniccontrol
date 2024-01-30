@@ -12,7 +12,7 @@ class ScriptingView(ttk.Frame):
         self._master: ttk.Window = master
 
         self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
-        self._main_frame: ScrolledFrame = ScrolledFrame(self)
+        self._main_frame: ttk.Frame = ttk.Frame(self)
         self._start_button: ttk.Button = ttk.Button(
             self._navigation_button_frame,
             text=const.ui.START_LABEL,

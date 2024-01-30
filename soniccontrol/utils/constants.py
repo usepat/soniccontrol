@@ -6,6 +6,9 @@ from typing import Final
 import attrs
 import ttkbootstrap as ttk
 
+# TODO: Better way to manage constants and test the directory reading
+# TODO: Maybe consider moving few constants into a json config file
+
 
 @attrs.frozen
 class _Misc:
@@ -62,6 +65,9 @@ class _Images:
     PAUSE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "pause_icon_white.png"
     PLAY_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "play_icon_black.png"
     PLAY_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "play_icon_white.png"
+    REFRESH_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "refresh_icon_white.png"
+    REFRESH_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "refresh_icon_black.png"
+    REFRESH_ICON_GREY: Final[Path] = files.PICTURES_DIR / "refresh_icon_grey.png"
     RESET_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "reset_icon_black.png"
     RESET_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "reset_icon_white.png"
     SAVE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "save_icon_black.png"
@@ -103,6 +109,10 @@ class _UIStringsEN:
     HOME_LABEL: Final[str] = "Home"
     SCRIPTING_LABEL: Final[str] = "Scripting"
     CONNECTION_LABEL: Final[str] = "Connection"
+    CONNECTED_LABEL: Final[str] = "connected"
+    NOT_LABEL: Final[str] = "not"
+    FIRMWARE_LABEL: Final[str] = "Firmware"
+    PLEASE_CONNECT_LABEL: Final[str] = "Please connect to a sonicamp system"
     SETTINGS_LABEL: Final[str] = "Settings"
     INFO_LABEL: Final[str] = "Info"
     SERIAL_MONITOR_LABEL: Final[str] = "Serial Monitor"
@@ -125,6 +135,8 @@ class _UIStringsEN:
     SCRIPT_EDITOR_LABEL: Final[str] = "Script Editor"
     LOAD_LABEL: Final[str] = "Load File"
     SEND_LABEL: Final[str] = "Send"
+    THEME: Final[str] = "sandstone"
+    IDLE_TITLE: Final[str] = "Sonic Control"
     AUTO_READ_LABEL: Final[str] = "Auto Read"
 
 
