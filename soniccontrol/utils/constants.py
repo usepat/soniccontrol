@@ -80,7 +80,7 @@ images: _Images = _Images()
 @attrs.frozen
 class _Fonts:
     QTYPE_OT_COND_EXTRALIGHT_PATH: Final[Path] = (
-        files.FONTS_DIR / "QTypeOT-CondExtraLight.otf"
+        files.FONTS_DIR / "QTypeOT-CondExtraLight.ttf"
     )
 
 
