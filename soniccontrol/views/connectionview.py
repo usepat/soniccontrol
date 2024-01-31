@@ -1,11 +1,11 @@
 from typing import Tuple
 
 import ttkbootstrap as ttk
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.utils import ImageLoader, constants
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol import soniccontrol_logger as logger
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import ImageLoader, constants
 
 
 class ConnectionView(ttk.Frame):
@@ -13,7 +13,6 @@ class ConnectionView(ttk.Frame):
         self, master: ttk.tk.Widget | ttk.tk.Misc | None, *args, **kwargs
     ) -> None:
         super().__init__(master, *args, **kwargs)
-
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._refresh_button: ttk.Button = ttk.Button(

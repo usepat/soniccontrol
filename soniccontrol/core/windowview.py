@@ -2,9 +2,6 @@ from typing import TypedDict
 
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
-
-from soniccontrol import const
-from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.utils import ImageLoader
@@ -16,6 +13,9 @@ from soniccontrol.views.serialmonitorview import SerialMonitorView
 from soniccontrol.views.settingsview import SettingsView
 from soniccontrol.views.sonicmeasureview import SonicMeasureView
 from soniccontrol.views.statusview import StatusBarView, StatusView
+
+from soniccontrol import const
+from soniccontrol import soniccontrol_logger as logger
 
 
 class SonicControlViewsDict(TypedDict):
@@ -79,6 +79,9 @@ class StatusVarsDict(TypedDict):
 
 
 # TODO: look how to abstract the class, so that the images are stored in one place and referenced in the children views
+import pyglet
+
+pyglet.font.add_file(str(const.fonts.QTYPE_OT_COND_EXTRALIGHT_PATH))
 
 
 class MainView(ttk.Window):
@@ -88,9 +91,14 @@ class MainView(ttk.Window):
         self.wm_title(const.ui.IDLE_TITLE)
         ttk.Style(const.ui.THEME)
         ImageLoader(self)
-        # font =
+
+        # font = ttk.font.Font(
+        #     name="QTypeCondExtraLight",
+        #     font=const.fonts.QTYPE_OT_COND_EXTRALIGHT_PATH,
+        #     size=10,
+        # )
         self.default_font = ttk.font.nametofont("TkDefaultFont")
-        self.default_font.configure(family="mononoki Nerd Font", size=10)
+        self.default_font.configure(family="QTypeOT", size=10)
 
         # Utililty tkinter variables
         self._misc_vars: MiscVarsDict = {

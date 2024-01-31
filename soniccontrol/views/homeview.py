@@ -1,10 +1,9 @@
-import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
-
 import soniccontrol.utils as utils
 import soniccontrol.utils.constants as const
+import ttkbootstrap as ttk
 from soniccontrol.components.spinbox import Spinbox
 from soniccontrol.interfaces.layouts import Layout
+from ttkbootstrap.scrolled import ScrolledFrame
 
 
 class HomeView(ttk.Frame):

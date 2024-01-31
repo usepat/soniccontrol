@@ -78,6 +78,16 @@ images: _Images = _Images()
 
 
 @attrs.frozen
+class _Fonts:
+    QTYPE_OT_COND_EXTRALIGHT_PATH: Final[Path] = (
+        files.FONTS_DIR / "QTypeOT-CondExtraLight.otf"
+    )
+
+
+fonts: _Fonts = _Fonts()
+
+
+@attrs.frozen
 class _Events:
     # Events
     RESIZING_EVENT: Final = "<Configure>"
