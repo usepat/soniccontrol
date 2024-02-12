@@ -208,6 +208,7 @@ class MainView(ttk.Window):
                 self.views["sonicmeasure"],
                 self.views["serialmonitor"],
                 self.views["connection"],
+                self.views["settings"],
             ],
             show_titles=True,
             show_images=True,

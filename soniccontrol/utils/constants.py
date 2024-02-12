@@ -80,7 +80,7 @@ images: _Images = _Images()
 @attrs.frozen
 class _Fonts:
     QTYPE_OT_COND_EXTRALIGHT_PATH: Final[Path] = (
-        files.FONTS_DIR / "QTypeOT-CondExtraLight.ttf"
+        files.FONTS_DIR / "QTypeOT-CondExtraLight.otf"
     )
 
 
@@ -148,6 +148,11 @@ class _UIStringsEN:
     THEME: Final[str] = "sandstone"
     IDLE_TITLE: Final[str] = "Sonic Control"
     AUTO_READ_LABEL: Final[str] = "Auto Read"
+    BACK_LABEL: Final[str] = "Back"
+    FLASH_SETTINGS_LABEL: Final[str] = "Flash Firmware Settings"
+    SONICAMP_SETTINGS_LABEL: Final[str] = "SonicAmp Settings"
+    SONICCONTROL_SETTINGS_LABEL: Final[str] = "SonicControl Settings"
+    SUBMIT_LABEL: Final[str] = "Submit"
 
 
 ui: _UIStringsEN = _UIStringsEN()
