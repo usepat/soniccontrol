@@ -36,6 +36,7 @@ def check_high_dpi_windows() -> None:
 
 def setup_fonts() -> None:
     # TODO: Found a go application that installs fonts crossplatdform. Try to utilize it.
+    # TODO: Make sure the paths are correct set, because of the name
     print("Installing fonts...")
     platform: str = sys.platform
     process: subprocess.CompletedProcess = subprocess.run(
