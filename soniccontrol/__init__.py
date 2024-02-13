@@ -35,8 +35,6 @@ def check_high_dpi_windows() -> None:
 
 
 def setup_fonts() -> None:
-    # TODO: Found a go application that installs fonts crossplatdform. Try to utilize it.
-    # TODO: Test this for macos and windows
     print("Installing fonts...")
     platform: str = sys.platform
     font_files = glob.glob("./resources/fonts/*.ttf")
