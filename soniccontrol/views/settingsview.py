@@ -1,5 +1,4 @@
 import ttkbootstrap as ttk
-
 from soniccontrol.interfaces.layouts import Layout
 
 
