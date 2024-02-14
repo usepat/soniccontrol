@@ -1,10 +1,8 @@
-import pathlib
 import platform
 from pathlib import Path
 from typing import Final
 
 import attrs
-import ttkbootstrap as ttk
 
 # TODO: Better way to manage constants and test the directory reading
 # TODO: Maybe consider moving few constants into a json config file
@@ -16,9 +14,21 @@ class _Misc:
     IMAGE: Final[str] = "image"
     TEXT: Final[str] = "text"
     COMPOUND: Final[str] = "compound"
+    BUTTON_ICON_SIZE: Final[tuple[int, int]] = (15, 15)
+    TAB_ICON_SIZE: Final[tuple[int, int]] = (25, 25)
 
 
 misc: _Misc = _Misc()
+
+
+@attrs.frozen
+class _Style:
+    INVERSE_SECONDARY: Final[str] = "inverse-secondary"
+    INVERSE_DANGER: Final[str] = "inverse-danger"
+    DARK_OUTLINE_TOOLBUTTON: Final[str] = "dark-outline-toolbutton"
+
+
+style: _Style = _Style()
 
 
 @attrs.frozen
@@ -46,6 +56,9 @@ class _Images:
     BACK_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "back_icon_black.png"
     CONNECTION_ICON_BLACK: Final[Path] = (
         files.PICTURES_DIR / "connection_icon_black.png"
+    )
+    CONNECTION_ICON_WHITE: Final[Path] = (
+        files.PICTURES_DIR / "connection_icon_white.png"
     )
     CONSOLE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "console_icon_black.png"
     SCRIPT_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "script_icon_black.png"
@@ -153,6 +166,9 @@ class _UIStringsEN:
     SONICAMP_SETTINGS_LABEL: Final[str] = "SonicAmp Settings"
     SONICCONTROL_SETTINGS_LABEL: Final[str] = "SonicControl Settings"
     SUBMIT_LABEL: Final[str] = "Submit"
+    CONTROL_LABEL: Final[str] = "control"
+    COMPANY_NAME: Final[str] = "usePAT G.m.b.H"
+    VERSION_LABEL: Final[str] = "Version"
 
 
 ui: _UIStringsEN = _UIStringsEN()

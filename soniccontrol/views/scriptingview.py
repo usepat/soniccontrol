@@ -1,9 +1,9 @@
 import ttkbootstrap as ttk
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.utils import constants as const
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 
 from soniccontrol import utils
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import constants as const
 
 
 class ScriptingView(ttk.Frame):
@@ -69,18 +69,24 @@ class ScriptingView(ttk.Frame):
         ...
 
     def _init_publish(self) -> None:
-        self._navigation_button_frame.pack(anchor=ttk.N, padx=15, pady=5, fill=ttk.X)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=0, minsize=20)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=0, minsize=20)
+        self._navigation_button_frame.grid(
+            row=0, column=0, sticky=ttk.EW, padx=15, pady=5
+        )
         self._start_button.pack(side=ttk.LEFT, padx=5, pady=5)
         self._scripting_guide_button.pack(side=ttk.LEFT, padx=5, pady=5)
         self._menue_button.pack(side=ttk.RIGHT, padx=5, pady=5)
 
-        self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._scripting_frame.pack(expand=True, fill=ttk.BOTH, padx=20, pady=10)
+        self._main_frame.grid(row=1, column=0, sticky=ttk.NSEW)
+        self._scripting_frame.pack(expand=True, fill=ttk.BOTH, padx=20, pady=5)
         self._scripting_text.pack(expand=True, fill=ttk.BOTH)
 
+        self._script_status_frame.grid(row=2, column=0, sticky=ttk.EW, padx=20, pady=5)
         self._script_status_frame.columnconfigure(0, weight=3)
         self._script_status_frame.columnconfigure(1, weight=1)
-        self._script_status_frame.pack(side=ttk.BOTTOM, fill=ttk.X, padx=20, pady=5)
         self._current_task_label.grid(row=0, column=0, columnspan=2, sticky=ttk.EW)
         self._progressbar.grid(row=0, column=1, sticky=ttk.EW)
 

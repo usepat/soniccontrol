@@ -15,8 +15,8 @@ class ATK_Frame(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
-        self._label.grid(row=0, column=0, padx=5, pady=5)
-        self._spinbox.grid(row=0, column=1, padx=5, pady=5)
+        self._label.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.E)
+        self._spinbox.grid(row=0, column=1, padx=5, pady=5, sticky=ttk.W)
 
 
 class SettingsView(ttk.Frame):
@@ -31,36 +31,40 @@ class SettingsView(ttk.Frame):
 
         self._master: ttk.Window = master
         self._main_frame: ttk.Frame = ttk.Frame(self)
+        self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
 
-        self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        self._back_button: ttk.Button = ttk.Button(
-            self._navigation_frame, text=const.ui.BACK_LABEL, style=ttk.DARK
-        )
-        self._title: ttk.Label = ttk.Label(self._navigation_frame, text="")
-        self._save_button: ttk.Button = ttk.Button(
-            self._navigation_frame, text=const.ui.SAVE_LABEL, style=ttk.SUCCESS
-        )
-
-        self._greeter_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        self._flash_settings_button: ttk.Button = ttk.Button(
-            self._greeter_frame, text=const.ui.FLASH_SETTINGS_LABEL, style=ttk.DARK
-        )
-        self._sonicamp_settings_button: ttk.Button = ttk.Button(
-            self._greeter_frame, text=const.ui.SONICAMP_SETTINGS_LABEL, style=ttk.DARK
-        )
-        self._soniccontrol_settings_button: ttk.Button = ttk.Button(
-            self._greeter_frame,
-            text=const.ui.SONICCONTROL_SETTINGS_LABEL,
-            style=ttk.DARK,
-        )
+        # self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
+        # self._back_button: ttk.Button = ttk.Button(
+        #     self._navigation_frame, text=const.ui.BACK_LABEL, style=ttk.DARK
+        # )
+        # self._title: ttk.Label = ttk.Label(self._navigation_frame, text="")
+        # self._save_button: ttk.Button = ttk.Button(
+        #     self._navigation_frame, text=const.ui.SAVE_LABEL, style=ttk.SUCCESS
+        # )
+        #
+        # self._greeter_frame: ttk.Frame = ttk.Frame(self._main_frame)
+        # self._flash_settings_button: ttk.Button = ttk.Button(
+        #     self._greeter_frame, text=const.ui.FLASH_SETTINGS_LABEL, style=ttk.DARK
+        # )
+        # self._sonicamp_settings_button: ttk.Button = ttk.Button(
+        #     self._greeter_frame, text=const.ui.SONICAMP_SETTINGS_LABEL, style=ttk.DARK
+        # )
+        # self._soniccontrol_settings_button: ttk.Button = ttk.Button(
+        #     self._greeter_frame,
+        #     text=const.ui.SONICCONTROL_SETTINGS_LABEL,
+        #     style=ttk.DARK,
+        # )
 
         self._flash_settings_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        self._file_entry: ttk.Entry = ttk.Entry(self._flash_settings_frame)
+        self._flash_frame: ttk.Labelframe = ttk.Labelframe(
+            self._flash_settings_frame, padding=(5, 0, 5, 5)
+        )
+        self._file_entry: ttk.Entry = ttk.Entry(self._flash_frame)
         self._browse_files_button: ttk.Button = ttk.Button(
-            self._flash_settings_frame, text=const.ui.SPECIFY_PATH_LABEL
+            self._flash_frame, text=const.ui.SPECIFY_PATH_LABEL, style=ttk.DARK
         )
         self._submit_button: ttk.Button = ttk.Button(
-            self._flash_settings_frame, text=const.ui.SUBMIT_LABEL
+            self._flash_frame, text=const.ui.SUBMIT_LABEL, style=ttk.DARK
         )
 
         self._sonicamp_settings_frame: ttk.Frame = ttk.Frame(self._main_frame)
@@ -107,10 +111,53 @@ class SettingsView(ttk.Frame):
 
     def _init_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._greeter_frame.pack(expand=True, fill=ttk.BOTH)
-        self._sonicamp_settings_button.pack(expand=True)
-        self._soniccontrol_settings_button.pack(expand=True)
-        self._flash_settings_button.pack(expand=True)
+        self._notebook.pack(expand=True, fill=ttk.BOTH)
+        self._notebook.add(
+            self._flash_settings_frame, text=const.ui.FLASH_SETTINGS_LABEL
+        )
+        self._notebook.add(
+            self._sonicamp_settings_frame, text=const.ui.SONICAMP_SETTINGS_LABEL
+        )
+
+        self._flash_frame.pack(expand=True)
+        self._flash_frame.columnconfigure(0, weight=1)
+        self._flash_frame.columnconfigure(1, weight=0)
+        self._flash_frame.rowconfigure(0, weight=0)
+        self._flash_frame.rowconfigure(1, weight=0)
+        self._file_entry.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._browse_files_button.grid(row=0, column=1, padx=5, pady=5)
+        self._submit_button.grid(
+            row=1, column=0, padx=5, pady=5, sticky=ttk.EW, columnspan=2
+        )
+
+        self._sonicamp_settings_frame.columnconfigure(0, weight=1)
+        self._sonicamp_settings_frame.columnconfigure(1, weight=0)
+        self._config_entry.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._load_config_button.grid(row=0, column=1, padx=5, pady=5)
+        self._atf1_frame.grid(
+            row=1, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        )
+        self._atk1_frame.grid(
+            row=2, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        )
+        self._atf2_frame.grid(
+            row=3, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        )
+        self._atk2_frame.grid(
+            row=4, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        )
+        self._atf3_frame.grid(
+            row=5, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        )
+        self._atk3_frame.grid(
+            row=6, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        )
+        self._att1_frame.grid(
+            row=7, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        )
+        for child in self._sonicamp_settings_frame.winfo_children():
+            if hasattr(child, "publish"):
+                child.publish()
 
     def publish(self) -> None:
         ...

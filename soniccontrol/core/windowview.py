@@ -2,9 +2,6 @@ from typing import TypedDict
 
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
-
-from soniccontrol import const
-from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.utils import ImageLoader
@@ -16,6 +13,9 @@ from soniccontrol.views.serialmonitorview import SerialMonitorView
 from soniccontrol.views.settingsview import SettingsView
 from soniccontrol.views.sonicmeasureview import SonicMeasureView
 from soniccontrol.views.statusview import StatusBarView, StatusView
+
+from soniccontrol import const
+from soniccontrol import soniccontrol_logger as logger
 
 
 class SonicControlViewsDict(TypedDict):
@@ -155,7 +155,7 @@ class MainView(ttk.Window):
         self._main_frame: ttk.Panedwindow = ttk.Panedwindow(self, orient=ttk.HORIZONTAL)
         self._left_notebook: Notebook = Notebook(self)
         self._right_notebook: Notebook = Notebook(self)
-        self._status_bar: StatusBarView = StatusBarView(self, style=ttk.DARK)
+        self._status_bar: StatusBarView = StatusBarView(self, style=ttk.SECONDARY)
 
         self._views: SonicControlViewsDict = {
             "home": HomeView(self),
@@ -198,8 +198,13 @@ class MainView(ttk.Window):
         ...
 
     def _init_publish(self) -> None:
-        self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._status_bar.pack(fill=ttk.X)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=0)
+        self.grid_rowconfigure(1, minsize=16)
+        self._main_frame.grid(row=0, column=0, sticky=ttk.NSEW)
+        self._status_bar.grid(row=1, column=0, sticky=ttk.EW)
+
         self._main_frame.add(self._left_notebook, weight=1)
         self._left_notebook.add_tabs(
             [
@@ -209,6 +214,7 @@ class MainView(ttk.Window):
                 self.views["serialmonitor"],
                 self.views["connection"],
                 self.views["settings"],
+                self.views["info"],
             ],
             show_titles=True,
             show_images=True,

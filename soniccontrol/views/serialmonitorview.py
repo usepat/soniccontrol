@@ -48,13 +48,16 @@ class SerialMonitorView(ttk.Frame):
 
     def _init_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._output_frame.pack(expand=True, fill=ttk.BOTH, pady=5, padx=10)
+        self._main_frame.columnconfigure(0, weight=1)
+        self._main_frame.rowconfigure(0, weight=1)
+        self._main_frame.rowconfigure(1, weight=0, minsize=40)
+        self._output_frame.grid(row=0, column=0, sticky=ttk.NSEW, pady=5, padx=10)
         self._scrolled_frame.pack(expand=True, fill=ttk.BOTH, pady=5, padx=5)
 
+        self._input_frame.grid(row=1, column=0, sticky=ttk.EW, pady=5, padx=10)
         self._input_frame.columnconfigure(0, weight=1)
         self._input_frame.columnconfigure(1, weight=10)
         self._input_frame.columnconfigure(2, weight=3)
-        self._input_frame.pack(fill=ttk.X, pady=5, padx=10)
         self._read_button.grid(row=0, column=0, sticky=ttk.EW, padx=5, pady=5)
         self._command_field.grid(row=0, column=1, sticky=ttk.EW, padx=5, pady=5)
         self._send_button.grid(row=0, column=2, sticky=ttk.EW, padx=5, pady=5)

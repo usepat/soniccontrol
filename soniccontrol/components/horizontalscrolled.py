@@ -2,7 +2,9 @@
 # flake8: noqa
 
 from __future__ import annotations
-from tkinter import Pack, Place, Grid
+
+from tkinter import Grid, Pack, Place
+
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
