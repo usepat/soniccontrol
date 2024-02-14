@@ -59,32 +59,20 @@ class SettingsView(ttk.Frame):
         self._parameters_frame: ScrolledFrame = ScrolledFrame(
             self._sonicamp_settings_frame, autohide=True
         )
-        self._atf1_frame: ATK_Frame = ATK_Frame(
-            self._parameters_frame, "ATF Frequency 1:"
-        )
-        self._atf2_frame: ATK_Frame = ATK_Frame(
-            self._parameters_frame, "ATF Frequency 2:"
-        )
-        self._atf3_frame: ATK_Frame = ATK_Frame(
-            self._parameters_frame, "ATF Frequency 3:"
-        )
-        self._atk1_frame: ATK_Frame = ATK_Frame(
-            self._parameters_frame, "ATK Coefficient 1:"
-        )
-        self._atk2_frame: ATK_Frame = ATK_Frame(
-            self._parameters_frame, "ATK Coefficient 2:"
-        )
-        self._atk3_frame: ATK_Frame = ATK_Frame(
-            self._parameters_frame, "ATK Coefficient 3:"
-        )
-        self._att1_frame: ATK_Frame = ATK_Frame(
-            self._parameters_frame, "ATT Temperature:"
-        )
+        self._atf1_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATF1)
+        self._atf2_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATF2)
+        self._atf3_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATF3)
+        self._atk1_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATK1)
+        self._atk2_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATK2)
+        self._atk3_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATK3)
+        self._att1_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATT1)
         self._init_publish()
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(const.images.SETTINGS_ICON_BLACK, (25, 25))
+        return utils.ImageLoader.load_image(
+            const.images.SETTINGS_ICON_BLACK, const.misc.TAB_ICON_SIZE
+        )
 
     @property
     def tab_title(self) -> str:

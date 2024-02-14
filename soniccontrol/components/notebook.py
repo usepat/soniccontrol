@@ -6,7 +6,7 @@ from soniccontrol.interfaces.view import TabView
 
 
 class Notebook(ttk.Notebook):
-    def __init__(self, master: ttk.Window, *args, **kwargs):
+    def __init__(self, master: ttk.Window | ttk.tk.Widget, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self._images_on: bool = False
         self._titles_on: bool = False
