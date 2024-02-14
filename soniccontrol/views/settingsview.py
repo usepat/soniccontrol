@@ -1,8 +1,9 @@
-import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
-from soniccontrol.interfaces.layouts import Layout
+from ttkbootstrap.scrolled import ScrolledFrame
 
+import soniccontrol.utils.constants as const
 from soniccontrol import utils
+from soniccontrol.interfaces.layouts import Layout
 
 
 class ATK_Frame(ttk.Frame):
@@ -33,28 +34,6 @@ class SettingsView(ttk.Frame):
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
 
-        # self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        # self._back_button: ttk.Button = ttk.Button(
-        #     self._navigation_frame, text=const.ui.BACK_LABEL, style=ttk.DARK
-        # )
-        # self._title: ttk.Label = ttk.Label(self._navigation_frame, text="")
-        # self._save_button: ttk.Button = ttk.Button(
-        #     self._navigation_frame, text=const.ui.SAVE_LABEL, style=ttk.SUCCESS
-        # )
-        #
-        # self._greeter_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        # self._flash_settings_button: ttk.Button = ttk.Button(
-        #     self._greeter_frame, text=const.ui.FLASH_SETTINGS_LABEL, style=ttk.DARK
-        # )
-        # self._sonicamp_settings_button: ttk.Button = ttk.Button(
-        #     self._greeter_frame, text=const.ui.SONICAMP_SETTINGS_LABEL, style=ttk.DARK
-        # )
-        # self._soniccontrol_settings_button: ttk.Button = ttk.Button(
-        #     self._greeter_frame,
-        #     text=const.ui.SONICCONTROL_SETTINGS_LABEL,
-        #     style=ttk.DARK,
-        # )
-
         self._flash_settings_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._flash_frame: ttk.Labelframe = ttk.Labelframe(
             self._flash_settings_frame, padding=(5, 0, 5, 5)
@@ -71,29 +50,35 @@ class SettingsView(ttk.Frame):
         self._config_entry: ttk.Combobox = ttk.Combobox(
             self._sonicamp_settings_frame, style=ttk.DARK
         )
-        self._load_config_button: ttk.Button = ttk.Button(
-            self._sonicamp_settings_frame, text=const.ui.LOAD_LABEL
+        self._save_config_button: ttk.Button = ttk.Button(
+            self._sonicamp_settings_frame, text=const.ui.SAVE_LABEL, style=ttk.DARK
+        )
+        self._send_config_button: ttk.Button = ttk.Button(
+            self._sonicamp_settings_frame, text=const.ui.SEND_LABEL, style=ttk.SUCCESS
+        )
+        self._parameters_frame: ScrolledFrame = ScrolledFrame(
+            self._sonicamp_settings_frame, autohide=True
         )
         self._atf1_frame: ATK_Frame = ATK_Frame(
-            self._sonicamp_settings_frame, "ATF Frequency 1:"
+            self._parameters_frame, "ATF Frequency 1:"
         )
         self._atf2_frame: ATK_Frame = ATK_Frame(
-            self._sonicamp_settings_frame, "ATF Frequency 2:"
+            self._parameters_frame, "ATF Frequency 2:"
         )
         self._atf3_frame: ATK_Frame = ATK_Frame(
-            self._sonicamp_settings_frame, "ATF Frequency 3:"
+            self._parameters_frame, "ATF Frequency 3:"
         )
         self._atk1_frame: ATK_Frame = ATK_Frame(
-            self._sonicamp_settings_frame, "ATK Coefficient 1:"
+            self._parameters_frame, "ATK Coefficient 1:"
         )
         self._atk2_frame: ATK_Frame = ATK_Frame(
-            self._sonicamp_settings_frame, "ATK Coefficient 2:"
+            self._parameters_frame, "ATK Coefficient 2:"
         )
         self._atk3_frame: ATK_Frame = ATK_Frame(
-            self._sonicamp_settings_frame, "ATK Coefficient 3:"
+            self._parameters_frame, "ATK Coefficient 3:"
         )
         self._att1_frame: ATK_Frame = ATK_Frame(
-            self._sonicamp_settings_frame, "ATT Temperature:"
+            self._parameters_frame, "ATT Temperature:"
         )
         self._init_publish()
 
@@ -132,30 +117,23 @@ class SettingsView(ttk.Frame):
 
         self._sonicamp_settings_frame.columnconfigure(0, weight=1)
         self._sonicamp_settings_frame.columnconfigure(1, weight=0)
+        self._sonicamp_settings_frame.columnconfigure(2, weight=0)
+        self._sonicamp_settings_frame.rowconfigure(1, weight=1)
         self._config_entry.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.EW)
-        self._load_config_button.grid(row=0, column=1, padx=5, pady=5)
-        self._atf1_frame.grid(
-            row=1, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
+        self._save_config_button.grid(row=0, column=1, padx=5, pady=5)
+        self._send_config_button.grid(row=0, column=2, padx=5, pady=5)
+        self._parameters_frame.grid(
+            row=1, column=0, padx=5, pady=5, columnspan=3, sticky=ttk.NSEW
         )
-        self._atk1_frame.grid(
-            row=2, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
-        )
-        self._atf2_frame.grid(
-            row=3, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
-        )
-        self._atk2_frame.grid(
-            row=4, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
-        )
-        self._atf3_frame.grid(
-            row=5, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
-        )
-        self._atk3_frame.grid(
-            row=6, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
-        )
-        self._att1_frame.grid(
-            row=7, column=0, padx=5, pady=5, columnspan=2, sticky=ttk.EW
-        )
-        for child in self._sonicamp_settings_frame.winfo_children():
+        self._parameters_frame.columnconfigure(0, weight=1)
+        self._atf1_frame.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._atk1_frame.grid(row=1, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._atf2_frame.grid(row=2, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._atk2_frame.grid(row=3, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._atf3_frame.grid(row=4, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._atk3_frame.grid(row=5, column=0, padx=5, pady=5, sticky=ttk.EW)
+        self._att1_frame.grid(row=6, column=0, padx=5, pady=5, sticky=ttk.EW)
+        for child in self._parameters_frame.winfo_children():
             if hasattr(child, "publish"):
                 child.publish()
 
