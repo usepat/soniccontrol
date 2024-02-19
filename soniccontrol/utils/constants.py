@@ -1,6 +1,6 @@
 import platform
 from pathlib import Path
-from typing import Final
+from typing import Final, Literal
 
 import attrs
 
@@ -11,11 +11,12 @@ import attrs
 @attrs.frozen
 class _Misc:
     ENCODING: Final[str] = "windows-1252" if platform.system() == "Windows" else "utf-8"
-    IMAGE: Final[str] = "image"
-    TEXT: Final[str] = "text"
-    COMPOUND: Final[str] = "compound"
+    IMAGE: Literal["image"] = "image"
+    TEXT: Literal["text"] = "text"
+    COMPOUND: Literal["compound"] = "compound"
     BUTTON_ICON_SIZE: Final[tuple[int, int]] = (15, 15)
     TAB_ICON_SIZE: Final[tuple[int, int]] = (25, 25)
+    DELETE_WINDOW: Final[Literal["WM_DELETE_WINDOW"]] = "WM_DELETE_WINDOW"
 
 
 misc: _Misc = _Misc()
@@ -23,10 +24,12 @@ misc: _Misc = _Misc()
 
 @attrs.frozen
 class _Style:
-    INVERSE_SECONDARY: Final[str] = "inverse-secondary"
-    INVERSE_LIGHT: Final[str] = "inverse-light"
-    INVERSE_DANGER: Final[str] = "inverse-danger"
-    DARK_OUTLINE_TOOLBUTTON: Final[str] = "dark-outline-toolbutton"
+    INVERSE_SECONDARY: Literal["inverse-secondary"] = "inverse-secondary"
+    INVERSE_LIGHT: Literal["inverse-light"] = "inverse-light"
+    INVERSE_DANGER: Literal["inverse-danger"] = "inverse-danger"
+    DARK_OUTLINE_TOOLBUTTON: Literal[
+        "dark-outline-toolbutton"
+    ] = "dark-outline-toolbutton"
 
 
 style: _Style = _Style()
@@ -104,17 +107,21 @@ fonts: _Fonts = _Fonts()
 @attrs.frozen
 class _Events:
     # Events
-    RESIZING_EVENT: Final = "<Configure>"
-    CONNECTION_ATTEMPT_EVENT: Final = "<<ConnectionAttempt>>"
-    DISCONNECTED_EVENT: Final = "<<Disconnected>>"
-    SCRIPT_START_EVENT: Final = "<<ScriptStarted>>"
-    SCRIPT_STOP_EVENT: Final = "<<ScriptStopped>>"
-    FIRMWARE_FLASH_EVENT: Final = "<<FirmwareFlash>>"
-    SONICMEASURE_START_EVENT: Final = "<<SonicMeasureStarted>>"
-    SONICMEASURE_STOP_EVENT: Final = "<<SonicMeasureStopped>>"
-    STATUS_UPDATE_EVENT: Final = "<<StatusUpdate>>"
-    MANUAL_MODE_EVENT: Final = "<<ManualMode>>"
-    AUTO_MODE_EVENT: Final = "<<AutoMode>>"
+    RESIZING_EVENT: Literal["<Configure>"] = "<Configure>"
+    CONNECTION_ATTEMPT_EVENT: Literal["<<ConnectionAttempt>>"] = "<<ConnectionAttempt>>"
+    DISCONNECTED_EVENT: Literal["<<Disconnected>>"] = "<<Disconnected>>"
+    SCRIPT_START_EVENT: Literal["<<ScriptStarted>>"] = "<<ScriptStarted>>"
+    SCRIPT_STOP_EVENT: Literal["<<ScriptStopped>>"] = "<<ScriptStopped>>"
+    FIRMWARE_FLASH_EVENT: Literal["<<FirmwareFlash>>"] = "<<FirmwareFlash>>"
+    SONICMEASURE_START_EVENT: Literal[
+        "<<SonicMeasureStarted>>"
+    ] = "<<SonicMeasureStarted>>"
+    SONICMEASURE_STOP_EVENT: Literal[
+        "<<SonicMeasureStopped>>"
+    ] = "<<SonicMeasureStopped>>"
+    STATUS_UPDATE_EVENT: Literal["<<StatusUpdate>>"] = "<<StatusUpdate>>"
+    MANUAL_MODE_EVENT: Literal["<<ManualMode>>"] = "<<ManualMode>>"
+    AUTO_MODE_EVENT: Literal["<<AutoMode>>"] = "<<AutoMode>>"
 
 
 events: _Events = _Events()

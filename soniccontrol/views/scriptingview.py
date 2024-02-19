@@ -1,7 +1,11 @@
+from typing import TypedDict
+
 import ttkbootstrap as ttk
+from soniccontrol.components.card import Card
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.utils import constants as const
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
+from ttkbootstrap.style import Callable
 
 from soniccontrol import utils
 
@@ -10,33 +14,7 @@ class ScriptingView(ttk.Frame):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
         self._master: ttk.Window = master
-
-        self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
         self._main_frame: ttk.Frame = ttk.Frame(self)
-        self._start_button: ttk.Button = ttk.Button(
-            self._navigation_button_frame,
-            text=const.ui.START_LABEL,
-            style=ttk.SUCCESS,
-            image=utils.ImageLoader.load_image(const.images.PLAY_ICON_WHITE, (13, 13)),
-            compound=ttk.LEFT,
-        )
-        self._scripting_guide_button: ttk.Button = ttk.Button(
-            self._navigation_button_frame,
-            text=const.ui.GUIDE_LABEL,
-            style=ttk.INFO,
-            image=utils.ImageLoader.load_image(const.images.INFO_ICON_WHITE, (13, 13)),
-            compound=ttk.LEFT,
-        )
-        self._menue: ttk.Menu = ttk.Menu(self._navigation_button_frame)
-        self._menue_button: ttk.Menubutton = ttk.Menubutton(
-            self._navigation_button_frame,
-            menu=self._menue,
-            style=ttk.DARK,
-            image=utils.ImageLoader.load_image(const.images.MENUE_ICON_WHITE, (13, 13)),
-        )
-        self._menue.add_command(label=const.ui.SAVE_LABEL)
-        self._menue.add_command(label=const.ui.LOAD_LABEL)
-        self._menue.add_command(label=const.ui.SPECIFY_PATH_LABEL)
         self._scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self._main_frame, text=const.ui.SCRIPT_EDITOR_LABEL, padding=(6, 1, 6, 7)
         )
@@ -54,6 +32,33 @@ class ScriptingView(ttk.Frame):
             orient=ttk.HORIZONTAL,
             style=ttk.DARK,
         )
+        self._scripting_guide: ScriptingGuide = ScriptingGuide(self._scripting_text)
+        self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
+        self._start_button: ttk.Button = ttk.Button(
+            self._navigation_button_frame,
+            text=const.ui.START_LABEL,
+            style=ttk.SUCCESS,
+            image=utils.ImageLoader.load_image(const.images.PLAY_ICON_WHITE, (13, 13)),
+            compound=ttk.LEFT,
+        )
+        self._scripting_guide_button: ttk.Button = ttk.Button(
+            self._navigation_button_frame,
+            text=const.ui.GUIDE_LABEL,
+            style=ttk.INFO,
+            image=utils.ImageLoader.load_image(const.images.INFO_ICON_WHITE, (13, 13)),
+            compound=ttk.LEFT,
+            command=self._scripting_guide.publish,
+        )
+        self._menue: ttk.Menu = ttk.Menu(self._navigation_button_frame)
+        self._menue_button: ttk.Menubutton = ttk.Menubutton(
+            self._navigation_button_frame,
+            menu=self._menue,
+            style=ttk.DARK,
+            image=utils.ImageLoader.load_image(const.images.MENUE_ICON_WHITE, (13, 13)),
+        )
+        self._menue.add_command(label=const.ui.SAVE_LABEL)
+        self._menue.add_command(label=const.ui.LOAD_LABEL)
+        self._menue.add_command(label=const.ui.SPECIFY_PATH_LABEL)
         self._init_publish()
 
     @property
@@ -115,9 +120,91 @@ class ScriptingView(ttk.Frame):
         ...
 
 
+class ScriptingGuideCardDataDict(TypedDict):
+    keyword: str
+    arguments: str
+    description: str
+    example: str
+
+
 class ScriptingGuide(ttk.Toplevel):
-    def __init__(self, script_text: ttk.ScrolledText, *args, **kwargs):
+    def __init__(self, script_text: ScrolledText, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._script_text: ScrolledText = script_text
+        self._scrolled_frame: ScrolledFrame = ScrolledFrame(self)
+        self._cards_data: tuple[dict[str, str], ...] = (
+            {
+                "keyword": "startloop",
+                "arguments": "times: optional uint",
+                "description": "Starts a loop and loops until an endloop was found. \nIf no argument was passed, \nthen the loop turns to a 'While True loop'",
+                "example": "startloop 5",
+            },
+            {
+                "keyword": "endloop",
+                "arguments": "None",
+                "description": "Ends the last started loop",
+                "example": "endloop",
+            },
+            {
+                "keyword": "on",
+                "arguments": "None",
+                "description": "Sets the signal to ON",
+                "example": "on",
+            },
+            {
+                "keyword": "off",
+                "arguments": "None",
+                "description": "Set the signal to OFF",
+                "example": "off",
+            },
+            {
+                "keyword": "auto",
+                "arguments": "None",
+                "description": "Turns the auto mode on.\nIt is important to hold after that \ncommand to stay in auto mode.\nIn the following example the \nauto mode is turned on for 5 seconds",
+                "example": "auto\nhold 5s",
+            },
+            {
+                "keyword": "frequency",
+                "arguments": "frequency: uint",
+                "description": "Set the frequency of the device",
+                "example": "frequency 1000000",
+            },
+            {
+                "keyword": "gain",
+                "arguments": "gain: uint",
+                "description": "Set the Gain of the device",
+                "example": "gain 100",
+            },
+            {
+                "keyword": "hold",
+                "arguments": "hold: int,\nunit: 'ms' or 's'",
+                "description": "Hold the state of the device\nfor a certain amount of time",
+                "example": "hold 10s",
+            },
+            {
+                "keyword": "ramp_freq",
+                "arguments": "start: uint,\nstop: uint,\nstep: int,\non_signal_hold: uint,\nunit: 'ms' or 's',\noff_signal_hold: uint,\nunit: 'ms' or 's'",
+                "description": "Ramp up the frequency from\none point to another",
+                "example": "ramp_freq 1000000 2000000 1000 100ms 100ms",
+            },
+        )
+
+        KEYWORD = "keyword"
+        EXAMPLE = "example"
+        for data in self._cards_data:
+            card: Card = Card(
+                self._scrolled_frame,
+                heading=data[KEYWORD],
+                data=dict(list(data.items())[1:]),
+                command=lambda _, text=data[EXAMPLE]: self.insert_text(text),
+            )
+            card.pack(side=ttk.TOP, fill=ttk.X, padx=15, pady=15)
+        self._scrolled_frame.pack(side=ttk.TOP, fill=ttk.BOTH, expand=True)
+        self.protocol(const.misc.DELETE_WINDOW, self.withdraw)
+        self.withdraw()
+
+    def publish(self) -> None:
+        self.wm_deiconify()
 
     def insert_text(self, text: str) -> None:
-        ...
+        self._script_text.insert(self._script_text.index(ttk.INSERT), f"{text}\n")
