@@ -1,9 +1,10 @@
 import ttkbootstrap as ttk
-
-from soniccontrol import utils
 from soniccontrol.components.horizontalscrolled import HorizontalScrolledFrame
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.utils import constants as const
+
+from soniccontrol import soniccontrol_logger as logger
+from soniccontrol import utils
 
 
 class StatusBarView(ttk.Frame):
@@ -113,9 +114,11 @@ class StatusView(ttk.Frame):
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._meter_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._sonicmeasure_values_frame: ttk.Label = ttk.Label(
-            self._main_frame, background="lightgrey"
+            self._main_frame, style=const.style.INVERSE_LIGHT
         )
-        self._signal_frame: ttk.Label = ttk.Label(self._main_frame, background="grey")
+        self._signal_frame: ttk.Label = ttk.Label(
+            self._main_frame, background="#c3c0ba"
+        )
 
         self._freq_meter: ttk.Meter = ttk.Meter(
             self._meter_frame,
@@ -143,7 +146,7 @@ class StatusView(ttk.Frame):
             self._sonicmeasure_values_frame,
             anchor=ttk.CENTER,
             style=ttk.PRIMARY,
-            background="lightgrey",
+            background="#f8f5f0",
             text="URMS: 1000.10",
             font=("QTypeOT", 10),
         )
@@ -151,7 +154,7 @@ class StatusView(ttk.Frame):
             self._sonicmeasure_values_frame,
             anchor=ttk.CENTER,
             style=ttk.DANGER,
-            background="lightgrey",
+            background="#f8f5f0",
             text="IRMS: 1000.100",
             font=("QTypeOT", 10),
         )
@@ -159,31 +162,56 @@ class StatusView(ttk.Frame):
             self._sonicmeasure_values_frame,
             anchor=ttk.CENTER,
             style=ttk.INFO,
-            background="lightgrey",
+            foreground="green",
+            background="#f8f5f0",
             text="PHASE: 1000.1000",
             font=("QTypeOT", 10),
         )
 
+        # self._connection_label_shadow: ttk.Label = ttk.Label(
+        #     self._signal_frame,
+        #     anchor=ttk.CENTER,
+        #     justify=ttk.CENTER,
+        #     compound=ttk.LEFT,
+        #     font=("QTypeOT", 15),
+        #     foreground="black",
+        #     background="#c3c0ba",
+        #     # image=utils.ImageLoader.load_image(const.images.LED_ICON_RED, (20, 20)),
+        #     style=const.style.INVERSE_SECONDARY,
+        #     text=const.ui.NOT_CONNECTED,
+        # )
         self._connection_label: ttk.Label = ttk.Label(
             self._signal_frame,
             anchor=ttk.CENTER,
             justify=ttk.CENTER,
             compound=ttk.LEFT,
             font=("QTypeOT", 15),
-            foreground="white",
-            background="grey",
+            foreground="#f8f5f0",
+            background="#c3c0ba",
             image=utils.ImageLoader.load_image(const.images.LED_ICON_RED, (20, 20)),
             style=const.style.INVERSE_SECONDARY,
             text=const.ui.NOT_CONNECTED,
         )
+        # self._signal_label_shadow: ttk.Label = ttk.Label(
+        #     self._signal_frame,
+        #     anchor=ttk.CENTER,
+        #     justify=ttk.CENTER,
+        #     compound=ttk.LEFT,
+        #     font=("QTypeOT", 15),
+        #     foreground="#f8f5f0",
+        #     background="#c3c0ba",
+        #     image=utils.ImageLoader.load_image(const.images.LED_ICON_RED, (20, 20)),
+        #     style=const.style.INVERSE_SECONDARY,
+        #     text=const.ui.SIGNAL_OFF,
+        # )
         self._signal_label: ttk.Label = ttk.Label(
             self._signal_frame,
             anchor=ttk.CENTER,
             justify=ttk.CENTER,
             compound=ttk.LEFT,
             font=("QTypeOT", 15),
-            foreground="white",
-            background="grey",
+            foreground="#f8f5f0",
+            background="#c3c0ba",
             image=utils.ImageLoader.load_image(const.images.LED_ICON_RED, (20, 20)),
             style=const.style.INVERSE_SECONDARY,
             text=const.ui.SIGNAL_OFF,
@@ -197,6 +225,7 @@ class StatusView(ttk.Frame):
     def _init_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=1)
+        self._main_frame.rowconfigure(2, weight=1)
         self._meter_frame.grid(row=0, column=0)
         self._sonicmeasure_values_frame.grid(row=1, column=0, sticky=ttk.EW)
         self._signal_frame.grid(row=2, column=0, sticky=ttk.EW)
@@ -214,8 +243,29 @@ class StatusView(ttk.Frame):
         self._irms_label.grid(row=0, column=1, padx=10, pady=5)
         self._phase_label.grid(row=0, column=2, padx=10, pady=5)
 
+        # padding_rel = 0.02  # Example padding
+        #
+        # # The relx and rely should be small enough to not push the label outside of the frame's bounds
+        # shadow_offset_rel = 0.01  # Shadow offset
+        # label_relwidth = 1 - (2 * padding_rel)  # Adjusted width for padding
+        # label_relheight = 0.48 - (2 * padding_rel)  # Adjusted height for padding
+        #
+        # # Place the main label and shadow label within the signal frame
+        # self._connection_label.place(
+        #     relx=padding_rel,
+        #     rely=padding_rel,
+        #     relwidth=label_relwidth,
+        #     relheight=label_relheight,
+        # )
+        # self._connection_label_shadow.place(
+        #     relx=padding_rel + shadow_offset_rel,
+        #     rely=padding_rel + shadow_offset_rel,
+        #     relwidth=label_relwidth,
+        #     relheight=label_relheight,
+        # )
+
         self._signal_frame.rowconfigure(0, weight=1)
         self._signal_frame.columnconfigure(0, weight=1)
         self._signal_frame.columnconfigure(1, weight=1)
-        self._connection_label.grid(row=0, column=0, padx=15, pady=5)
-        self._signal_label.grid(row=0, column=1, padx=15, pady=5)
+        self._connection_label.grid(row=1, column=0, padx=15, pady=5, sticky=ttk.E)
+        self._signal_label.grid(row=1, column=1, padx=15, pady=5, sticky=ttk.W)

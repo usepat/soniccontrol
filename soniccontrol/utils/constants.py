@@ -24,6 +24,7 @@ misc: _Misc = _Misc()
 @attrs.frozen
 class _Style:
     INVERSE_SECONDARY: Final[str] = "inverse-secondary"
+    INVERSE_LIGHT: Final[str] = "inverse-light"
     INVERSE_DANGER: Final[str] = "inverse-danger"
     DARK_OUTLINE_TOOLBUTTON: Final[str] = "dark-outline-toolbutton"
 

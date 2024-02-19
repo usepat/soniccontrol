@@ -14,7 +14,8 @@ class SonicMeasureView(ttk.Frame):
             const.images.LINECHART_ICON_BLACK, (25, 25)
         )
 
-        self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
+        self._main_frame: ttk.Frame = ttk.Frame(self)
+        self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
