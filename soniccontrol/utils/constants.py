@@ -16,6 +16,14 @@ class _Misc:
     COMPOUND: Literal["compound"] = "compound"
     BUTTON_ICON_SIZE: Final[tuple[int, int]] = (15, 15)
     TAB_ICON_SIZE: Final[tuple[int, int]] = (25, 25)
+    SMALL_PADDING: Final[int] = 3
+    SMALL_PART_PADDING: Final[int] = 2
+    MEDIUM_PADDING: Final[int] = 5
+    LARGE_PART_PADDING: Final[int] = 7
+    LARGE_PADDING: Final[int] = 10
+    SIDE_PADDING: Final[int] = 15
+    DONT_EXPAND: Final[int] = 0
+    EXPAND: Final[int] = 1
     DELETE_WINDOW: Final[Literal["WM_DELETE_WINDOW"]] = "WM_DELETE_WINDOW"
 
 
@@ -30,6 +38,7 @@ class _Style:
     DARK_OUTLINE_TOOLBUTTON: Literal[
         "dark-outline-toolbutton"
     ] = "dark-outline-toolbutton"
+    DARK_SQUARE_TOGGLE: Literal["dark-square-toggle"] = "dark-square-toggle"
 
 
 style: _Style = _Style()
@@ -200,6 +209,13 @@ class _UIStringsEN:
     NOT_CONNECTED: Final[str] = f"{NOT_LABEL} {CONNECTED_LABEL}"
     RESTART: Final[str] = "Restart"
     END: Final[str] = "End"
+    LIVE_PLOT: Final[str] = "Live Plot"
+    START_VALUE: Final[str] = "Start value:"
+    STOP_VALUE: Final[str] = "Stop value:"
+    STEP_VALUE: Final[str] = "Step value:"
+    ON_DURATION: Final[str] = "On duration:"
+    OFF_DURATION: Final[str] = "Off duration:"
+    USE_SCRIPTING_INSTEAD: Final[str] = "Use scripting instead"
 
 
 ui: _UIStringsEN = _UIStringsEN()
