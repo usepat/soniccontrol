@@ -1,10 +1,10 @@
 import ttkbootstrap as ttk
-from soniccontrol.components.horizontalscrolled import HorizontalScrolledFrame
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import constants as const
 
 from soniccontrol import soniccontrol_logger as logger
 from soniccontrol import utils
+from soniccontrol.components.horizontalscrolled import HorizontalScrolledFrame
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.utils import constants as const
 
 
 class StatusBarView(ttk.Frame):

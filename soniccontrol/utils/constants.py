@@ -85,10 +85,10 @@ class _Images:
     REFRESH_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "refresh_icon_white.png"
     REFRESH_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "refresh_icon_black.png"
     REFRESH_ICON_GREY: Final[Path] = files.PICTURES_DIR / "refresh_icon_grey.png"
-    RESET_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "reset_icon_black.png"
-    RESET_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "reset_icon_white.png"
     SAVE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "save_icon_black.png"
     SAVE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "save_icon_white.png"
+    END_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "end_icon_white.png"
+    END_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "end_icon_black.png"
 
 
 images: _Images = _Images()
@@ -198,6 +198,8 @@ class _UIStringsEN:
     SIGNAL_OFF: Final[str] = f"{SIGNAL_LABEL} {OFF_LABEL}"
     SIGNAL_ON: Final[str] = f"{SIGNAL_LABEL} {ON_LABEL}"
     NOT_CONNECTED: Final[str] = f"{NOT_LABEL} {CONNECTED_LABEL}"
+    RESTART: Final[str] = "Restart"
+    END: Final[str] = "End"
 
 
 ui: _UIStringsEN = _UIStringsEN()
