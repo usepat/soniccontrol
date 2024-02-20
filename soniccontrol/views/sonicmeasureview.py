@@ -53,37 +53,6 @@ class SonicMeasureView(ttk.Frame):
         ...
 
 
-class LabelEntry(ttk.Frame):
-    def __init__(self, master: ttk.tk.Widget, label: str, *args, **kwargs) -> None:
-        super().__init__(master, *args, **kwargs)
-        self._label: ttk.Label = ttk.Label(self, text=label)
-        self._spinbox: ttk.Spinbox = ttk.Spinbox(self)
-
-    def publish(self) -> None:
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.rowconfigure(0, weight=1)
-        self._label.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.E)
-        self._spinbox.grid(row=0, column=1, padx=5, pady=5, sticky=ttk.W)
-
-
-class LabelEntryTime(ttk.Frame):
-    def __init__(self, master: ttk.tk.Widget, label: str, *args, **kwargs) -> None:
-        super().__init__(master, *args, **kwargs)
-        self._label: ttk.Label = ttk.Label(self, text=label)
-        self._spinbox: ttk.Spinbox = ttk.Spinbox(self)
-        self._combobox: ttk.Combobox = ttk.Combobox(self)
-
-    def publish(self) -> None:
-        self.columnconfigure(0, weight=0)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=0)
-        self.rowconfigure(0, weight=1)
-        self._label.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.E)
-        self._spinbox.grid(row=0, column=1, padx=5, pady=5, sticky=ttk.EW)
-        self._combobox.grid(row=0, column=2, padx=5, pady=5, sticky=ttk.W)
-
-
 class SonicMeasureFrame(ttk.Frame):
     def __init__(self, master: ttk.tk.Widget, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
@@ -129,25 +98,38 @@ class SonicMeasureFrame(ttk.Frame):
         )
 
         self._greeter_frame: ttk.Frame = ttk.Frame(self._main_frame)
+
+        self._start_value_label: ttk.Label = ttk.Label(
+            self._greeter_frame, text="Start value:"
+        )
+        self._start_value_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+
+        self._stop_value_label: ttk.Label = ttk.Label(
+            self._greeter_frame, text="Stop value:"
+        )
+        self._stop_value_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+
+        self._step_value_label: ttk.Label = ttk.Label(
+            self._greeter_frame, text="Step value:"
+        )
+        self._step_value_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+
+        self._on_duration_label: ttk.Label = ttk.Label(
+            self._greeter_frame, text="ON duration:"
+        )
+        self._on_duration_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+        self._on_duration_unit_entry: ttk.Combobox = ttk.Combobox(self._greeter_frame)
+
+        self._off_duration_label: ttk.Label = ttk.Label(
+            self._greeter_frame, text="OFF duration:"
+        )
+        self._off_duration_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+        self._off_duration_unit_entry: ttk.Combobox = ttk.Combobox(self._greeter_frame)
+
         self._toggle_scripting: ttk.Checkbutton = ttk.Checkbutton(
             self._greeter_frame,
             text="use Scripting instead",
             style="dark-square-toggle",
-        )
-        self._start_value_frame: LabelEntry = LabelEntry(
-            self._greeter_frame, label="Start value:"
-        )
-        self._stop_value_frame: LabelEntry = LabelEntry(
-            self._greeter_frame, label="Stop value:"
-        )
-        self._step_value_frame: LabelEntry = LabelEntry(
-            self._greeter_frame, label="Step value:"
-        )
-        self._pause_during_on_frame: LabelEntry = LabelEntryTime(
-            self._greeter_frame, label="ON duration:"
-        )
-        self._pause_during_off_frame: LabelEntry = LabelEntryTime(
-            self._greeter_frame, label="OFF duration:"
         )
 
         self._init_publish()
@@ -166,17 +148,31 @@ class SonicMeasureFrame(ttk.Frame):
         self._start_stop_button.grid(row=0, column=1, padx=5, pady=5, sticky=ttk.E)
 
         self._greeter_frame.grid(row=1, column=0, padx=7, pady=5, sticky=ttk.NSEW)
-        self._greeter_frame.columnconfigure(0, weight=1)
-        self._toggle_scripting.grid(row=0, column=0, padx=5, pady=5)
-        self._start_value_frame.grid(row=1, column=0, padx=5, pady=5)
-        self._stop_value_frame.grid(row=2, column=0, padx=5, pady=5)
-        self._step_value_frame.grid(row=3, column=0, padx=5, pady=5)
-        self._pause_during_on_frame.grid(row=4, column=0, padx=5, pady=5)
-        self._pause_during_off_frame.grid(row=5, column=0, padx=5, pady=5)
+        self._greeter_frame.columnconfigure(0, weight=0)
+        self._greeter_frame.columnconfigure(1, weight=1, minsize=10)
+        self._greeter_frame.columnconfigure(2, weight=0, minsize=10)
 
-        for child in self._greeter_frame.winfo_children():
-            if hasattr(child, "publish"):
-                child.publish()
+        self._start_value_label.grid(row=0, column=0, padx=5, pady=5, sticky=ttk.E)
+        self._start_value_entry.grid(
+            row=0, column=1, columnspan=2, padx=5, pady=5, sticky=ttk.EW
+        )
+        self._stop_value_label.grid(row=1, column=0, padx=5, pady=5, sticky=ttk.E)
+        self._stop_value_entry.grid(
+            row=1, column=1, columnspan=2, padx=5, pady=5, sticky=ttk.EW
+        )
+        self._step_value_label.grid(row=2, column=0, padx=5, pady=5, sticky=ttk.E)
+        self._step_value_entry.grid(
+            row=2, column=1, columnspan=2, padx=5, pady=5, sticky=ttk.EW
+        )
+        self._on_duration_label.grid(row=3, column=0, padx=5, pady=5, sticky=ttk.E)
+        self._on_duration_entry.grid(row=3, column=1, padx=5, pady=5, sticky=ttk.EW)
+        self._on_duration_unit_entry.grid(row=3, column=2, padx=5, pady=5, sticky=ttk.W)
+        self._off_duration_label.grid(row=4, column=0, padx=5, pady=5, sticky=ttk.E)
+        self._off_duration_entry.grid(row=4, column=1, padx=5, pady=5, sticky=ttk.EW)
+        self._off_duration_unit_entry.grid(
+            row=4, column=2, padx=5, pady=5, sticky=ttk.W
+        )
+        self._toggle_scripting.grid(row=5, column=0, columnspan=3, padx=5, pady=10)
 
 
 class LivePlotView(ttk.Frame):

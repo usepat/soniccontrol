@@ -1,5 +1,5 @@
 import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
+from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 
 import soniccontrol.utils.constants as const
 from soniccontrol import utils
@@ -66,6 +66,12 @@ class SettingsView(ttk.Frame):
         self._atk2_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATK2)
         self._atk3_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATK3)
         self._att1_frame: ATK_Frame = ATK_Frame(self._parameters_frame, const.ui.ATT1)
+        self._commandset_labelframe: ttk.Labelframe = ttk.Labelframe(
+            self._parameters_frame, text="Command Set"
+        )
+        self._commandset_frame: ScrolledText = ScrolledText(
+            self._commandset_labelframe, autohide=True
+        )
         self._init_publish()
 
     @property
@@ -124,6 +130,8 @@ class SettingsView(ttk.Frame):
         for child in self._parameters_frame.winfo_children():
             if hasattr(child, "publish"):
                 child.publish()
+        self._commandset_labelframe.grid(row=7, column=0, padx=15, pady=5)
+        self._commandset_frame.pack(expand=True, fill=ttk.BOTH, padx=5, pady=5)
 
     def publish(self) -> None:
         ...
