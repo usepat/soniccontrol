@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-import subprocess
 import os
-import typing
+import subprocess
 import threading
 import tkinter as tk
 import tkinter.ttk as ttk
-import ttkbootstrap as ttkb
+import typing
+from tkinter import filedialog, messagebox
 
-from tkinter import filedialog
-from tkinter import messagebox
+import sonicpackage as sp
+import ttkbootstrap as ttkb
+from sonicpackage import Command
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol.helpers import ToolTip, logger
-from sonicpackage import Command
-import sonicpackage as sp
 
 if typing.TYPE_CHECKING:
     from soniccontrol.core import Root
@@ -179,6 +178,14 @@ class ConnectionTab(ttk.Frame):
         )
         self.root.serial.send_and_get(Command.SET_ATT1 + current_transducer.get("att1"))
         self.root.serial.send_and_get(Command.SET_ATT2 + current_transducer.get("att2"))
+
+        self.root.serial.send_and_get(f"!atk1={current_transducer.get('atk1')}")
+        self.root.serial.send_and_get(f"!atk2={current_transducer.get('atk2')}")
+        self.root.serial.send_and_get(f"!atk3={current_transducer.get('atk3')}")
+
+        if current_transducer.get("commands") is not None:
+            for command in current_transducer.get("commands"):
+                self.root.serial.send_and_get(command)
 
     def config_file_str(self) -> str:
         transducer_data: dict = self.root.config_file.transducer.get()

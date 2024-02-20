@@ -1,63 +1,38 @@
 from __future__ import annotations
 
-import time
-import os
-import platform
-import datetime
-import traceback
 import csv
+import datetime
 import json
 import logging
+import os
+import platform
+import time
 import tkinter as tk
 import tkinter.ttk as ttk
-import ttkbootstrap as ttkb
-from ttkbootstrap.window import Window
+import traceback
+from dataclasses import dataclass, field
+from tkinter import TclError, font, messagebox
+
 import serial
 import sonicpackage as sp
-
-from dataclasses import dataclass, field
+import ttkbootstrap as ttkb
 from PIL.ImageTk import PhotoImage
-from tkinter import font
-from tkinter import messagebox
-from tkinter import TclError
-
-from sonicpackage import (
-    SonicInterface,
-    SonicThread,
-    Status,
-    Command,
-    SerialConnection,
-    SonicAmp,
-    SonicCatchOld,
-    SonicCatchAncient,
-    SonicWipe40KHZ,
-    SonicWipeOld,
-    SonicWipeAncient,
-    SonicCatch,
-    SonicWipe,
-    DeviceNotImplementedError,
-)
+from sonicpackage import (Command, DeviceNotImplementedError, SerialConnection,
+                          SonicAmp, SonicCatch, SonicCatchAncient,
+                          SonicCatchOld, SonicInterface, SonicThread,
+                          SonicWipe, SonicWipe40KHZ, SonicWipeAncient,
+                          SonicWipeOld, Status)
+from ttkbootstrap.window import Window
 
 import soniccontrol.constants as const
-
-from soniccontrol.statusframe import (
-    StatusFrameCatch,
-    StatusFrame40KHZ,
-    StatusFrameWipe,
-    StatusFrameWipeOld,
-    StatusFrame,
-)
-
-from soniccontrol.serialmonitor import (
-    SerialMonitor,
-    SerialMonitor40KHZ,
-    SerialMonitorCatch,
-    SerialMonitorWipe,
-)
-
-from soniccontrol.sonicmeasure import SonicMeasureWindow
-from soniccontrol.notebook import ScNotebook
 from soniccontrol.helpers import logger
+from soniccontrol.notebook import ScNotebook
+from soniccontrol.serialmonitor import (SerialMonitor, SerialMonitor40KHZ,
+                                        SerialMonitorCatch, SerialMonitorWipe)
+from soniccontrol.sonicmeasure import SonicMeasureWindow
+from soniccontrol.statusframe import (StatusFrame, StatusFrame40KHZ,
+                                      StatusFrameCatch, StatusFrameWipe,
+                                      StatusFrameWipeOld)
 
 
 class Root(Window):
