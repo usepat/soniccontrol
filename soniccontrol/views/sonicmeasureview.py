@@ -96,41 +96,44 @@ class SonicMeasureFrame(ttk.Frame):
             # ),
         )
 
-        self._greeter_frame: ttk.Frame = ttk.Frame(self._main_frame)
+        self._greeter_frame: ScrolledFrame = ScrolledFrame(
+            self._main_frame, autohide=True
+        )
+        self._parameters_frame: ttk.Frame = ttk.Frame(self._greeter_frame)
 
         self._start_value_label: ttk.Label = ttk.Label(
-            self._greeter_frame, text=const.ui.START_VALUE
+            self._parameters_frame, text=const.ui.START_VALUE
         )
-        self._start_value_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+        self._start_value_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
 
         self._stop_value_label: ttk.Label = ttk.Label(
-            self._greeter_frame, text=const.ui.STOP_VALUE
+            self._parameters_frame, text=const.ui.STOP_VALUE
         )
-        self._stop_value_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+        self._stop_value_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
 
         self._step_value_label: ttk.Label = ttk.Label(
-            self._greeter_frame, text=const.ui.STEP_VALUE
+            self._parameters_frame, text=const.ui.STEP_VALUE
         )
-        self._step_value_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+        self._step_value_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
 
         self._on_duration_label: ttk.Label = ttk.Label(
-            self._greeter_frame, text=const.ui.ON_DURATION
+            self._parameters_frame, text=const.ui.ON_DURATION
         )
-        self._on_duration_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+        self._on_duration_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
         self._on_duration_unit_entry: ttk.Combobox = ttk.Combobox(
-            self._greeter_frame, width=const.misc.MEDIUM_PADDING
+            self._parameters_frame, width=const.misc.MEDIUM_PADDING
         )
 
         self._off_duration_label: ttk.Label = ttk.Label(
-            self._greeter_frame, text=const.ui.OFF_DURATION
+            self._parameters_frame, text=const.ui.OFF_DURATION
         )
-        self._off_duration_entry: ttk.Spinbox = ttk.Spinbox(self._greeter_frame)
+        self._off_duration_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
         self._off_duration_unit_entry: ttk.Combobox = ttk.Combobox(
-            self._greeter_frame, width=const.misc.MEDIUM_PADDING
+            self._parameters_frame, width=const.misc.MEDIUM_PADDING
         )
 
         self._toggle_scripting: ttk.Checkbutton = ttk.Checkbutton(
-            self._greeter_frame,
+            self._parameters_frame,
             text=const.ui.USE_SCRIPTING_INSTEAD,
             style=const.style.DARK_SQUARE_TOGGLE,
         )
@@ -170,16 +173,19 @@ class SonicMeasureFrame(ttk.Frame):
             sticky=ttk.E,
         )
 
-        self._greeter_frame.grid(
-            row=1,
+        self._greeter_frame.grid(row=1, column=0, sticky=ttk.NSEW)
+        self._greeter_frame.columnconfigure(0, weight=const.misc.EXPAND)
+        self._greeter_frame.rowconfigure(0, weight=const.misc.EXPAND)
+        self._parameters_frame.grid(
+            row=0,
             column=0,
-            padx=const.misc.LARGE_PART_PADDING,
+            padx=const.misc.SIDE_PADDING,
             pady=const.misc.MEDIUM_PADDING,
             sticky=ttk.NSEW,
         )
-        self._greeter_frame.columnconfigure(0, weight=const.misc.DONT_EXPAND)
-        self._greeter_frame.columnconfigure(1, weight=const.misc.EXPAND, minsize=10)
-        self._greeter_frame.columnconfigure(
+        self._parameters_frame.columnconfigure(0, weight=const.misc.DONT_EXPAND)
+        self._parameters_frame.columnconfigure(1, weight=const.misc.EXPAND, minsize=10)
+        self._parameters_frame.columnconfigure(
             2, weight=const.misc.DONT_EXPAND, minsize=10
         )
 

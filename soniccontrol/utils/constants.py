@@ -229,6 +229,7 @@ class _UIStringsEN:
     OFF_DURATION: Final[str] = "Off duration:"
     USE_SCRIPTING_INSTEAD: Final[str] = "Use scripting instead"
     COMMAND_SET: Final[str] = "Command set"
+    NEW_LABEL: Final[str] = "New"
 
 
 ui: _UIStringsEN = _UIStringsEN()

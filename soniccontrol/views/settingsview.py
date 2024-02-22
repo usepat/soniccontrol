@@ -60,6 +60,14 @@ class SettingsView(ttk.Frame):
         )
 
         self._sonicamp_settings_frame: ttk.Frame = ttk.Frame(self._main_frame)
+        self._new_config_button: ttk.Button = ttk.Button(
+            self._sonicamp_settings_frame,
+            text=const.ui.NEW_LABEL,
+            style=ttk.DARK,
+            # image=utils.ImageLoader.load_image(
+            #     const.images.PLUS_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            # ),
+        )
         self._config_entry: ttk.Combobox = ttk.Combobox(
             self._sonicamp_settings_frame, style=ttk.DARK
         )
@@ -138,26 +146,33 @@ class SettingsView(ttk.Frame):
             columnspan=2,
         )
 
-        self._sonicamp_settings_frame.columnconfigure(0, weight=const.misc.EXPAND)
-        self._sonicamp_settings_frame.columnconfigure(1, weight=const.misc.DONT_EXPAND)
+        self._sonicamp_settings_frame.columnconfigure(0, weight=const.misc.DONT_EXPAND)
+        self._sonicamp_settings_frame.columnconfigure(1, weight=const.misc.EXPAND)
         self._sonicamp_settings_frame.columnconfigure(2, weight=const.misc.DONT_EXPAND)
+        self._sonicamp_settings_frame.columnconfigure(3, weight=const.misc.DONT_EXPAND)
         self._sonicamp_settings_frame.rowconfigure(1, weight=const.misc.EXPAND)
-        self._config_entry.grid(
+        self._new_config_button.grid(
             row=0,
             column=0,
+            padx=const.misc.MEDIUM_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
+        )
+        self._config_entry.grid(
+            row=0,
+            column=1,
             padx=const.misc.MEDIUM_PADDING,
             pady=const.misc.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
         self._save_config_button.grid(
             row=0,
-            column=1,
+            column=2,
             padx=const.misc.MEDIUM_PADDING,
             pady=const.misc.MEDIUM_PADDING,
         )
         self._send_config_button.grid(
             row=0,
-            column=2,
+            column=3,
             padx=const.misc.MEDIUM_PADDING,
             pady=const.misc.MEDIUM_PADDING,
         )
@@ -166,7 +181,7 @@ class SettingsView(ttk.Frame):
             column=0,
             padx=const.misc.MEDIUM_PADDING,
             pady=const.misc.MEDIUM_PADDING,
-            columnspan=3,
+            columnspan=4,
             sticky=ttk.NSEW,
         )
         self._parameters_frame.columnconfigure(0, weight=const.misc.EXPAND)
