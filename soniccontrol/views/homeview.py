@@ -1,9 +1,10 @@
+import ttkbootstrap as ttk
+from ttkbootstrap.scrolled import ScrolledFrame
+
 import soniccontrol.utils as utils
 import soniccontrol.utils.constants as const
-import ttkbootstrap as ttk
 from soniccontrol.components.spinbox import Spinbox
 from soniccontrol.interfaces.layouts import Layout
-from ttkbootstrap.scrolled import ScrolledFrame
 
 
 class HomeView(ttk.Frame):
@@ -81,40 +82,89 @@ class HomeView(ttk.Frame):
         ...
 
     def _init_publish(self) -> None:
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=0, minsize=30)
+        self.columnconfigure(0, weight=const.misc.EXPAND)
+        self.rowconfigure(0, weight=const.misc.EXPAND)
+        self.rowconfigure(1, weight=const.misc.DONT_EXPAND, minsize=30)
         self._main_frame.grid(row=0, column=0, sticky=ttk.NSEW)
-        self._top_frame.pack(pady=10, padx=10)
+        self._top_frame.pack(
+            pady=const.misc.LARGE_PADDING, padx=const.misc.LARGE_PADDING
+        )
 
         self._control_frame.pack(fill=ttk.X)
-        self._freq_spinbox.pack(fill=ttk.X, padx=10, pady=10)
+        self._freq_spinbox.pack(
+            fill=ttk.X, padx=const.misc.LARGE_PADDING, pady=const.misc.LARGE_PADDING
+        )
 
-        self._gain_control_frame.columnconfigure(0, weight=1)
-        self._gain_control_frame.columnconfigure(1, weight=1)
+        self._gain_control_frame.columnconfigure(0, weight=const.misc.EXPAND)
+        self._gain_control_frame.columnconfigure(1, weight=const.misc.EXPAND)
         self._gain_control_frame.pack(fill=ttk.X)
-        self._gain_spinbox.grid(row=0, column=0, padx=10, pady=10, sticky=ttk.EW)
-        self._gain_scale.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.EW)
+        self._gain_spinbox.grid(
+            row=0,
+            column=0,
+            padx=const.misc.LARGE_PADDING,
+            pady=const.misc.LARGE_PADDING,
+            sticky=ttk.EW,
+        )
+        self._gain_scale.grid(
+            row=0,
+            column=1,
+            padx=const.misc.LARGE_PADDING,
+            pady=const.misc.LARGE_PADDING,
+            sticky=ttk.EW,
+        )
 
-        self._mode_frame.columnconfigure(0, weight=1)
-        self._mode_frame.columnconfigure(1, weight=1)
+        self._mode_frame.columnconfigure(0, weight=const.misc.EXPAND)
+        self._mode_frame.columnconfigure(1, weight=const.misc.EXPAND)
         self._mode_frame.pack(fill=ttk.X)
-        self._wipe_mode_button.grid(row=0, column=0, padx=10, pady=10, sticky=ttk.EW)
-        self._catch_mode_button.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.EW)
+        self._wipe_mode_button.grid(
+            row=0,
+            column=0,
+            padx=const.misc.LARGE_PADDING,
+            pady=const.misc.LARGE_PADDING,
+            sticky=ttk.EW,
+        )
+        self._catch_mode_button.grid(
+            row=0,
+            column=1,
+            padx=const.misc.LARGE_PADDING,
+            pady=const.misc.LARGE_PADDING,
+            sticky=ttk.EW,
+        )
 
-        self._set_values_button.pack(fill=ttk.X, padx=10, pady=10)
+        self._set_values_button.pack(
+            fill=ttk.X, padx=const.misc.LARGE_PADDING, pady=const.misc.LARGE_PADDING
+        )
 
-        self._us_control_frame.columnconfigure(0, weight=1)
-        self._us_control_frame.columnconfigure(1, weight=1)
-        self._us_control_frame.columnconfigure(2, weight=1)
-        self._us_control_frame.grid(row=1, column=0, padx=10, pady=5, sticky=ttk.EW)
-        self._us_on_button.grid(row=0, column=0, padx=10, sticky=ttk.EW)
-        self._us_auto_button.grid(row=0, column=1, padx=10, sticky=ttk.EW)
-        self._us_off_button.grid(row=0, column=2, padx=10, sticky=ttk.EW)
+        self._us_control_frame.columnconfigure(0, weight=const.misc.EXPAND)
+        self._us_control_frame.columnconfigure(1, weight=const.misc.EXPAND)
+        self._us_control_frame.columnconfigure(2, weight=const.misc.EXPAND)
+        self._us_control_frame.grid(
+            row=1,
+            column=0,
+            padx=const.misc.LARGE_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
+            sticky=ttk.EW,
+        )
+        self._us_on_button.grid(
+            row=0, column=0, padx=const.misc.LARGE_PADDING, sticky=ttk.EW
+        )
+        self._us_auto_button.grid(
+            row=0, column=1, padx=const.misc.LARGE_PADDING, sticky=ttk.EW
+        )
+        self._us_off_button.grid(
+            row=0, column=2, padx=const.misc.LARGE_PADDING, sticky=ttk.EW
+        )
 
         self._bot_frame.pack()
-        self._feedback_frame.pack(padx=10, pady=10, fill=ttk.BOTH)
-        self._output_frame.pack(anchor=ttk.N, padx=10, pady=10, fill=ttk.BOTH)
+        self._feedback_frame.pack(
+            padx=const.misc.LARGE_PADDING, pady=const.misc.LARGE_PADDING, fill=ttk.BOTH
+        )
+        self._output_frame.pack(
+            anchor=ttk.N,
+            padx=const.misc.LARGE_PADDING,
+            pady=const.misc.LARGE_PADDING,
+            fill=ttk.BOTH,
+        )
 
     def publish(self) -> None:
         ...

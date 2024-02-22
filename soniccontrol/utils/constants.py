@@ -15,6 +15,7 @@ class _Misc:
     TEXT: Literal["text"] = "text"
     COMPOUND: Literal["compound"] = "compound"
     BUTTON_ICON_SIZE: Final[tuple[int, int]] = (15, 15)
+    LARGE_BUTTON_ICON_SIZE: Final[tuple[int, int]] = (20, 20)
     TAB_ICON_SIZE: Final[tuple[int, int]] = (25, 25)
     SMALL_PADDING: Final[int] = 3
     SMALL_PART_PADDING: Final[int] = 2
@@ -25,6 +26,10 @@ class _Misc:
     DONT_EXPAND: Final[int] = 0
     EXPAND: Final[int] = 1
     DELETE_WINDOW: Final[Literal["WM_DELETE_WINDOW"]] = "WM_DELETE_WINDOW"
+    GREEN: Literal["green"] = "green"
+    STATUS_MEDIUM_GREY: Literal["#c3c0ba"] = "#c3c0ba"
+    STATUS_LIGHT_GREY: Literal["#f8f5f0"] = "#f8f5f0"
+    METERSIZE: Final[int] = 130
 
 
 misc: _Misc = _Misc()
@@ -32,6 +37,7 @@ misc: _Misc = _Misc()
 
 @attrs.frozen
 class _Style:
+    SECONDARY_OUTLINE: Literal["secondary-outline"] = "secondary-outline"
     INVERSE_SECONDARY: Literal["inverse-secondary"] = "inverse-secondary"
     INVERSE_LIGHT: Literal["inverse-light"] = "inverse-light"
     INVERSE_DANGER: Literal["inverse-danger"] = "inverse-danger"
@@ -105,9 +111,11 @@ images: _Images = _Images()
 
 @attrs.frozen
 class _Fonts:
-    QTYPE_OT_COND_EXTRALIGHT_PATH: Final[Path] = (
-        files.FONTS_DIR / "QTypeOT-CondExtraLight.otf"
-    )
+    QTYPE_OT: Literal["QTypeOT"] = "QTypeOT"
+    QTYPE_OT_CONDLIGHT: Literal["QTypeOT-CondLight"] = "QTypeOT-CondLight"
+    HEADING_SIZE: Final[int] = 24
+    TEXT_SIZE: Final[int] = 10
+    SMALL_HEADING_SIZE: Final[int] = 15
 
 
 fonts: _Fonts = _Fonts()
@@ -210,12 +218,17 @@ class _UIStringsEN:
     RESTART: Final[str] = "Restart"
     END: Final[str] = "End"
     LIVE_PLOT: Final[str] = "Live Plot"
+    URMS: Final[str] = "Urms"
+    IRMS: Final[str] = "Irms"
+    PHASE: Final[str] = "Phase"
+    START_LIVE_PLOT: Final[str] = f"{START_LABEL} {LIVE_PLOT}"
     START_VALUE: Final[str] = "Start value:"
     STOP_VALUE: Final[str] = "Stop value:"
     STEP_VALUE: Final[str] = "Step value:"
     ON_DURATION: Final[str] = "On duration:"
     OFF_DURATION: Final[str] = "Off duration:"
     USE_SCRIPTING_INSTEAD: Final[str] = "Use scripting instead"
+    COMMAND_SET: Final[str] = "Command set"
 
 
 ui: _UIStringsEN = _UIStringsEN()

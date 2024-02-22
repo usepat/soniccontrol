@@ -1,11 +1,11 @@
 from typing import Tuple
 
 import ttkbootstrap as ttk
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import ImageLoader, constants
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol import soniccontrol_logger as logger
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.utils import ImageLoader, constants
 
 
 class ConnectionView(ttk.Frame):
@@ -41,14 +41,14 @@ class ConnectionView(ttk.Frame):
         self._heading_part_one: ttk.Label = ttk.Label(
             self._heading_frame,
             text=constants.ui.NOT_LABEL,
-            font=("QTypeOT", 24),
+            font=(constants.fonts.QTYPE_OT_CONDLIGHT, constants.fonts.HEADING_SIZE),
             justify=ttk.CENTER,
             anchor=ttk.CENTER,
         )
         self._heading_part_two: ttk.Label = ttk.Label(
             self._heading_frame,
             text=constants.ui.CONNECTED_LABEL,
-            font=("QTypeOT", 24),
+            font=(constants.fonts.QTYPE_OT, constants.fonts.HEADING_SIZE),
             justify=ttk.CENTER,
             anchor=ttk.CENTER,
         )
@@ -79,26 +79,42 @@ class ConnectionView(ttk.Frame):
     def _init_publish(self) -> None:
         self._main_frame.pack(fill=ttk.BOTH, expand=True)
 
-        self._navigation_frame.pack(fill=ttk.X, pady=10, padx=7)
-        self._ports_menue.pack(side=ttk.LEFT, expand=True, fill=ttk.X, padx=3)
-        self._refresh_button.pack(side=ttk.LEFT, padx=3)
-        self._connect_button.pack(side=ttk.LEFT, padx=3)
+        self._navigation_frame.pack(
+            fill=ttk.X,
+            pady=constants.misc.LARGE_PADDING,
+            padx=constants.misc.LARGE_PART_PADDING,
+        )
+        self._ports_menue.pack(
+            side=ttk.LEFT, expand=True, fill=ttk.X, padx=constants.misc.SMALL_PADDING
+        )
+        self._refresh_button.pack(side=ttk.LEFT, padx=constants.misc.SMALL_PADDING)
+        self._connect_button.pack(side=ttk.LEFT, padx=constants.misc.SMALL_PADDING)
 
         self._body_frame.pack(fill=ttk.BOTH, expand=True)
-        self._heading_frame.columnconfigure(0, weight=1)
-        self._heading_frame.columnconfigure(1, weight=1)
-        self._heading_frame.columnconfigure(2, weight=1)
-        self._heading_frame.columnconfigure(3, weight=1)
-        self._heading_frame.rowconfigure(0, weight=1)
-        self._heading_frame.rowconfigure(1, weight=1)
+        self._heading_frame.columnconfigure(0, weight=constants.misc.EXPAND)
+        self._heading_frame.columnconfigure(1, weight=constants.misc.EXPAND)
+        self._heading_frame.columnconfigure(2, weight=constants.misc.EXPAND)
+        self._heading_frame.columnconfigure(3, weight=constants.misc.EXPAND)
+        self._heading_frame.rowconfigure(0, weight=constants.misc.EXPAND)
+        self._heading_frame.rowconfigure(1, weight=constants.misc.EXPAND)
         self._heading_frame.rowconfigure(2, weight=2)
-        self._heading_frame.rowconfigure(3, weight=1)
-        self._heading_frame.pack(fill=ttk.BOTH, expand=True, pady=10, padx=10)
+        self._heading_frame.rowconfigure(3, weight=constants.misc.EXPAND)
+        self._heading_frame.pack(
+            fill=ttk.BOTH,
+            expand=True,
+            pady=constants.misc.LARGE_PADDING,
+            padx=constants.misc.LARGE_PADDING,
+        )
         self._subtitle.grid(row=1, column=1, columnspan=2, sticky=ttk.EW)
         self._heading_part_one.grid(row=2, column=1, sticky=ttk.E)
         self._heading_part_two.grid(row=2, column=2, sticky=ttk.W)
 
-        self._firmware_info_frame.pack(expand=True, pady=10, padx=10, anchor=ttk.CENTER)
+        self._firmware_info_frame.pack(
+            expand=True,
+            pady=constants.misc.LARGE_PADDING,
+            padx=constants.misc.LARGE_PADDING,
+            anchor=ttk.CENTER,
+        )
         self._firmware_info_label.pack(fill=ttk.BOTH, expand=True, anchor=ttk.CENTER)
 
     def toggle_firmware(self) -> None:

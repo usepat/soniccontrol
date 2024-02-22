@@ -1,13 +1,13 @@
 from typing import TypedDict
 
 import ttkbootstrap as ttk
-from soniccontrol.components.card import Card
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import constants as const
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 from ttkbootstrap.style import Callable
 
 from soniccontrol import utils
+from soniccontrol.components.card import Card
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.utils import constants as const
 
 
 class ScriptingView(ttk.Frame):
@@ -15,8 +15,12 @@ class ScriptingView(ttk.Frame):
         super().__init__(master, *args, **kwargs)
         self._master: ttk.Window = master
         self._main_frame: ttk.Frame = ttk.Frame(self)
+
+        SCRIPTING_PADDING: Final[tuple[int, int, int, int]] = (6, 1, 6, 7)
         self._scripting_frame: ttk.Labelframe = ttk.Labelframe(
-            self._main_frame, text=const.ui.SCRIPT_EDITOR_LABEL, padding=(6, 1, 6, 7)
+            self._main_frame,
+            text=const.ui.SCRIPT_EDITOR_LABEL,
+            padding=SCRIPTING_PADDING,
         )
         self._scripting_text: ScrolledText = ScrolledText(
             self._scripting_frame, autohide=True
@@ -74,24 +78,44 @@ class ScriptingView(ttk.Frame):
         ...
 
     def _init_publish(self) -> None:
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=0, minsize=20)
-        self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=0, minsize=20)
+        self.columnconfigure(0, weight=const.misc.EXPAND)
+        self.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=20)
+        self.rowconfigure(1, weight=const.misc.EXPAND)
+        self.rowconfigure(2, weight=const.misc.DONT_EXPAND, minsize=20)
         self._navigation_button_frame.grid(
-            row=0, column=0, sticky=ttk.EW, padx=15, pady=5
+            row=0,
+            column=0,
+            sticky=ttk.EW,
+            padx=const.misc.SIDE_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
         )
-        self._start_button.pack(side=ttk.LEFT, padx=5, pady=5)
-        self._scripting_guide_button.pack(side=ttk.LEFT, padx=5, pady=5)
-        self._menue_button.pack(side=ttk.RIGHT, padx=5, pady=5)
+        self._start_button.pack(
+            side=ttk.LEFT,
+            padx=const.misc.MEDIUM_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
+        )
+        self._scripting_guide_button.pack(
+            side=ttk.LEFT,
+            padx=const.misc.MEDIUM_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
+        )
+        self._menue_button.pack(
+            side=ttk.RIGHT,
+            padx=const.misc.MEDIUM_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
+        )
 
         self._main_frame.grid(row=1, column=0, sticky=ttk.NSEW)
-        self._scripting_frame.pack(expand=True, fill=ttk.BOTH, padx=20, pady=5)
+        self._scripting_frame.pack(
+            expand=True, fill=ttk.BOTH, padx=20, pady=const.misc.MEDIUM_PADDING
+        )
         self._scripting_text.pack(expand=True, fill=ttk.BOTH)
 
-        self._script_status_frame.grid(row=2, column=0, sticky=ttk.EW, padx=20, pady=5)
+        self._script_status_frame.grid(
+            row=2, column=0, sticky=ttk.EW, padx=20, pady=const.misc.MEDIUM_PADDING
+        )
         self._script_status_frame.columnconfigure(0, weight=3)
-        self._script_status_frame.columnconfigure(1, weight=1)
+        self._script_status_frame.columnconfigure(1, weight=const.misc.EXPAND)
         self._current_task_label.grid(row=0, column=0, columnspan=2, sticky=ttk.EW)
         self._progressbar.grid(row=0, column=1, sticky=ttk.EW)
 

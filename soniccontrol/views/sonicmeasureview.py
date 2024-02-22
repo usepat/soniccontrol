@@ -287,7 +287,7 @@ class LivePlotView(ttk.Frame):
         self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._start_stop_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            text="Start LiveView",
+            text=const.ui.START_LIVE_PLOT,
             style=ttk.SUCCESS,
             image=utils.ImageLoader.load_image(
                 const.images.PLAY_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
@@ -297,37 +297,37 @@ class LivePlotView(ttk.Frame):
         self._toggle_button_frame: ttk.Frame = ttk.Frame(self._navigation_frame)
         self._toggle_frequency_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text="Frequency",
-            style="dark-square-toggle",
+            text=const.ui.FREQUENCY,
+            style=const.style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_gain_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text="Gain",
-            style="dark-square-toggle",
+            text=const.ui.GAIN,
+            style=const.style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_urms_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text="Urms",
-            style="dark-square-toggle",
+            text=const.ui.URMS,
+            style=const.style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_irms_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text="Irms",
-            style="dark-square-toggle",
+            text=const.ui.IRMS,
+            style=const.style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_phase_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text="Phase",
-            style="dark-square-toggle",
+            text=const.ui.PHASE,
+            style=const.style.DARK_SQUARE_TOGGLE,
         )
         self._body_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._init_publish()
 
     def _init_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._main_frame.columnconfigure(0, weight=1)
-        self._main_frame.rowconfigure(0, weight=0, minsize=10)
-        self._main_frame.rowconfigure(1, weight=1)
+        self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
+        self._main_frame.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=10)
+        self._main_frame.rowconfigure(1, weight=const.misc.EXPAND)
 
         self._navigation_frame.grid(
             row=0,
@@ -336,8 +336,10 @@ class LivePlotView(ttk.Frame):
             pady=const.misc.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
-        self._navigation_frame.rowconfigure(0, weight=0, minsize=10)
-        self._navigation_frame.columnconfigure(1, weight=1)
+        self._navigation_frame.rowconfigure(
+            0, weight=const.misc.DONT_EXPAND, minsize=10
+        )
+        self._navigation_frame.columnconfigure(1, weight=const.misc.EXPAND)
 
         self._start_stop_button.grid(
             row=0, column=0, padx=const.misc.SMALL_PADDING, sticky=ttk.W
