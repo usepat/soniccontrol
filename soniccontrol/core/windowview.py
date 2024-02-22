@@ -2,6 +2,9 @@ from typing import TypedDict
 
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
+
+from soniccontrol import const
+from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.utils import ImageLoader
@@ -13,9 +16,6 @@ from soniccontrol.views.serialmonitorview import SerialMonitorView
 from soniccontrol.views.settingsview import SettingsView
 from soniccontrol.views.sonicmeasureview import SonicMeasureView
 from soniccontrol.views.statusview import StatusBarView, StatusView
-
-from soniccontrol import const
-from soniccontrol import soniccontrol_logger as logger
 
 
 class SonicControlViewsDict(TypedDict):
