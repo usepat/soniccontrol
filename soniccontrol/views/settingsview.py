@@ -1,9 +1,10 @@
+import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 
-import soniccontrol.utils.constants as const
 from soniccontrol import utils
-from soniccontrol.interfaces.layouts import Layout
 
 
 class ATK_Frame(ttk.Frame):
@@ -32,7 +33,7 @@ class ATK_Frame(ttk.Frame):
         )
 
 
-class SettingsView(ttk.Frame):
+class SettingsView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
         # TODO: Things that might be considered as Settings
@@ -42,7 +43,21 @@ class SettingsView(ttk.Frame):
         # - ATK, ATF ATT values
         # - Flashing capabilites
 
-        self._master: ttk.Window = master
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return utils.ImageLoader.load_image(
+            const.images.SETTINGS_ICON_BLACK, const.misc.TAB_ICON_SIZE
+        )
+
+    @property
+    def tab_title(self) -> str:
+        return const.ui.SETTINGS_LABEL
+
+    @property
+    def layouts(self) -> set[Layout]:
+        ...
+
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
 
@@ -93,23 +108,8 @@ class SettingsView(ttk.Frame):
         self._commandset_frame: ScrolledText = ScrolledText(
             self._commandset_labelframe, autohide=True
         )
-        self._init_publish()
 
-    @property
-    def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(
-            const.images.SETTINGS_ICON_BLACK, const.misc.TAB_ICON_SIZE
-        )
-
-    @property
-    def tab_title(self) -> str:
-        return const.ui.SETTINGS_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._notebook.pack(expand=True, fill=ttk.BOTH)
         self._notebook.add(

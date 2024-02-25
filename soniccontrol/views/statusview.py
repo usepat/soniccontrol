@@ -1,17 +1,18 @@
 import ttkbootstrap as ttk
+from soniccontrol.components.horizontalscrolled import HorizontalScrolledFrame
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import View
+from soniccontrol.utils import constants as const
 
 from soniccontrol import soniccontrol_logger as logger
 from soniccontrol import utils
-from soniccontrol.components.horizontalscrolled import HorizontalScrolledFrame
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import constants as const
 
 
-class StatusBarView(ttk.Frame):
+class StatusBarView(View):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.Window = master
 
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self, style=ttk.SECONDARY)
 
         self._program_state_frame: ttk.Frame = ttk.Frame(self._main_frame)
@@ -85,13 +86,12 @@ class StatusBarView(ttk.Frame):
             ),
             compound=ttk.LEFT,
         )
-        self._init_publish()
 
     @property
     def layouts(self) -> set[Layout]:
         ...
 
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._program_state_label.pack(side=ttk.LEFT, ipadx=const.misc.MEDIUM_PADDING)
         self._freq_label.pack(side=ttk.LEFT)
         self._gain_label.pack(side=ttk.LEFT)
@@ -106,11 +106,11 @@ class StatusBarView(ttk.Frame):
         self._connection_label.pack(side=ttk.RIGHT, ipadx=const.misc.SMALL_PADDING)
 
 
-class StatusView(ttk.Frame):
+class StatusView(View):
     def __init__(self, master: ttk.Window | ttk.tk.Widget, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.Window | ttk.tk.Widget = master
 
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._meter_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._sonicmeasure_values_frame: ttk.Label = ttk.Label(
@@ -220,13 +220,12 @@ class StatusView(ttk.Frame):
             style=const.style.INVERSE_SECONDARY,
             text=const.ui.SIGNAL_OFF,
         )
-        self._init_publish()
 
     @property
     def layouts(self) -> set[Layout]:
         ...
 
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
         self._main_frame.rowconfigure(2, weight=const.misc.EXPAND)

@@ -1,19 +1,35 @@
 from typing import TypedDict
 
 import ttkbootstrap as ttk
+from soniccontrol.components.card import Card
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
+from soniccontrol.utils import constants as const
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 from ttkbootstrap.style import Callable
 
 from soniccontrol import utils
-from soniccontrol.components.card import Card
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import constants as const
 
 
-class ScriptingView(ttk.Frame):
+class ScriptingView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.Window = master
+
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return utils.ImageLoader.load_image(
+            const.images.SCRIPT_ICON_BLACK, const.misc.TAB_ICON_SIZE
+        )
+
+    @property
+    def tab_title(self) -> str:
+        return const.ui.SCRIPTING_LABEL
+
+    @property
+    def layouts(self) -> set[Layout]:
+        ...
+
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
 
         SCRIPTING_PADDING: Final[tuple[int, int, int, int]] = (6, 1, 6, 7)
@@ -63,21 +79,8 @@ class ScriptingView(ttk.Frame):
         self._menue.add_command(label=const.ui.SAVE_LABEL)
         self._menue.add_command(label=const.ui.LOAD_LABEL)
         self._menue.add_command(label=const.ui.SPECIFY_PATH_LABEL)
-        self._init_publish()
 
-    @property
-    def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(const.images.SCRIPT_ICON_BLACK, (25, 25))
-
-    @property
-    def tab_title(self) -> str:
-        return const.ui.SCRIPTING_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self.columnconfigure(0, weight=const.misc.EXPAND)
         self.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=20)
         self.rowconfigure(1, weight=const.misc.EXPAND)
@@ -107,12 +110,19 @@ class ScriptingView(ttk.Frame):
 
         self._main_frame.grid(row=1, column=0, sticky=ttk.NSEW)
         self._scripting_frame.pack(
-            expand=True, fill=ttk.BOTH, padx=20, pady=const.misc.MEDIUM_PADDING
+            expand=True,
+            fill=ttk.BOTH,
+            padx=const.misc.SIDE_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
         )
         self._scripting_text.pack(expand=True, fill=ttk.BOTH)
 
         self._script_status_frame.grid(
-            row=2, column=0, sticky=ttk.EW, padx=20, pady=const.misc.MEDIUM_PADDING
+            row=2,
+            column=0,
+            sticky=ttk.EW,
+            padx=const.misc.SIDE_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
         )
         self._script_status_frame.columnconfigure(0, weight=3)
         self._script_status_frame.columnconfigure(1, weight=const.misc.EXPAND)

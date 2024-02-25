@@ -1,16 +1,31 @@
+import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
 from ttkbootstrap.scrolled import ScrolledFrame
 
-import soniccontrol.utils.constants as const
 from soniccontrol import utils
-from soniccontrol.interfaces.layouts import Layout
 
 
-class SerialMonitorView(ttk.Frame):
+class SerialMonitorView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.Window = master
 
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return utils.ImageLoader.load_image(
+            const.images.CONSOLE_ICON_BLACK, const.misc.TAB_ICON_SIZE
+        )
+
+    @property
+    def tab_title(self) -> str:
+        return const.ui.SERIAL_MONITOR_LABEL
+
+    @property
+    def layouts(self) -> set[Layout]:
+        ...
+
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._output_frame: ttk.Labelframe = ttk.Labelframe(
             self._main_frame, text=const.ui.OUTPUT_LABEL
@@ -37,23 +52,8 @@ class SerialMonitorView(ttk.Frame):
             ),
             compound=ttk.RIGHT,
         )
-        self._init_publish()
 
-    @property
-    def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(
-            const.images.CONSOLE_ICON_BLACK, const.misc.TAB_ICON_SIZE
-        )
-
-    @property
-    def tab_title(self) -> str:
-        return const.ui.SERIAL_MONITOR_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
         self._main_frame.rowconfigure(0, weight=const.misc.EXPAND)

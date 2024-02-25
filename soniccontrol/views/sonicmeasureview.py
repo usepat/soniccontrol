@@ -1,17 +1,17 @@
-import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
-
 import soniccontrol.utils as utils
 import soniccontrol.utils.constants as const
+import ttkbootstrap as ttk
 from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView, View
+from ttkbootstrap.scrolled import ScrolledFrame
 
 
 # TODO: Look into how to tile sonicmeasure and liveplot
-class SonicMeasureView(ttk.Frame):
+class SonicMeasureView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.Window = master
 
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
 
@@ -19,8 +19,6 @@ class SonicMeasureView(ttk.Frame):
         self._sonic_measure_frame: SonicMeasureFrame = SonicMeasureFrame(
             self._main_frame
         )
-
-        self._init_publish()
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
@@ -36,7 +34,7 @@ class SonicMeasureView(ttk.Frame):
     def layouts(self) -> set[Layout]:
         ...
 
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._notebook.pack(expand=True, fill=ttk.BOTH)
         self._notebook.add(self._liveplot_frame, text=const.ui.LIVE_PLOT)
@@ -52,10 +50,11 @@ class SonicMeasureView(ttk.Frame):
         ...
 
 
-class SonicMeasureFrame(ttk.Frame):
+class SonicMeasureFrame(View):
     def __init__(self, master: ttk.tk.Widget, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.tk.Widget = master
+
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
 
@@ -138,9 +137,7 @@ class SonicMeasureFrame(ttk.Frame):
             style=const.style.DARK_SQUARE_TOGGLE,
         )
 
-        self._init_publish()
-
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
         self._main_frame.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=10)
@@ -285,10 +282,11 @@ class SonicMeasureFrame(ttk.Frame):
         )
 
 
-class LivePlotView(ttk.Frame):
+class LivePlotView(View):
     def __init__(self, master: ttk.tk.Widget, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.tk.Widget = master
+
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._start_stop_button: ttk.Button = ttk.Button(
@@ -327,9 +325,8 @@ class LivePlotView(ttk.Frame):
             style=const.style.DARK_SQUARE_TOGGLE,
         )
         self._body_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        self._init_publish()
 
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
         self._main_frame.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=10)

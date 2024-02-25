@@ -1,16 +1,29 @@
+import soniccontrol.utils.constants as constants
 import ttkbootstrap as ttk
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
 from ttkbootstrap.scrolled import ScrolledFrame
 
-import soniccontrol.utils.constants as constants
 from soniccontrol import __version__, utils
-from soniccontrol.interfaces.layouts import Layout
 
 
-class InfoView(ttk.Frame):
+class InfoView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.Window = master
 
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return utils.ImageLoader.load_image(constants.images.INFO_ICON_BLACK, (25, 25))
+
+    @property
+    def tab_title(self) -> str:
+        return constants.ui.INFO_LABEL
+
+    @property
+    def layouts(self) -> set[Layout]:
+        ...
+
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._heading_frame: ttk.Frame = ttk.Frame(self._main_frame)
 
@@ -39,21 +52,8 @@ class InfoView(ttk.Frame):
             text=f"{constants.ui.VERSION_LABEL}: {__version__}",
             anchor=ttk.CENTER,
         )
-        self._init_publish()
 
-    @property
-    def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(constants.images.INFO_ICON_BLACK, (25, 25))
-
-    @property
-    def tab_title(self) -> str:
-        return constants.ui.INFO_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=constants.misc.EXPAND)
         self._main_frame.rowconfigure(0, weight=constants.misc.DONT_EXPAND, minsize=40)

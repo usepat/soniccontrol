@@ -1,17 +1,37 @@
-import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
-
 import soniccontrol.utils as utils
 import soniccontrol.utils.constants as const
+import ttkbootstrap as ttk
 from soniccontrol.components.spinbox import Spinbox
 from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
+from ttkbootstrap.scrolled import ScrolledFrame
 
 
-class HomeView(ttk.Frame):
+class HomeView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-        self._master: ttk.Window = master
+        self._setter_widgets: set[ttk.ttk.Widget] = {
+            self._freq_spinbox,
+            self._gain_spinbox,
+            self._gain_scale,
+            self._wipe_mode_button,
+            self._catch_mode_button,
+            self._set_values_button,
+        }
 
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return utils.ImageLoader.load_image(const.images.HOME_ICON_BLACK, (25, 25))
+
+    @property
+    def tab_title(self) -> str:
+        return const.ui.HOME_LABEL
+
+    @property
+    def layouts(self) -> set[Layout]:
+        ...
+
+    def _initialize_children(self) -> None:
         self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self._top_frame: ttk.Frame = ttk.Frame(self._main_frame)
 
@@ -67,21 +87,7 @@ class HomeView(ttk.Frame):
             self._us_control_frame, text=const.ui.AUTO_LABEL, style=ttk.PRIMARY
         )
 
-        self._init_publish()
-
-    @property
-    def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(const.images.HOME_ICON_BLACK, (25, 25))
-
-    @property
-    def tab_title(self) -> str:
-        return const.ui.HOME_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
         self.columnconfigure(0, weight=const.misc.EXPAND)
         self.rowconfigure(0, weight=const.misc.EXPAND)
         self.rowconfigure(1, weight=const.misc.DONT_EXPAND, minsize=30)
@@ -166,6 +172,31 @@ class HomeView(ttk.Frame):
             fill=ttk.BOTH,
         )
 
+    def on_feedback(self, feedback: str) -> None:
+        ttk.Label(self._feedback_frame, text=feedback, font=("Consolas", 10)).pack(
+            fill=ttk.X, side=ttk.TOP, anchor=ttk.W
+        )
+        self._feedback_frame.update()
+        self._feedback_frame.yview_moveto(1)
+
+    def enable_gain(self) -> None:
+        self._change_gain(ttk.NORMAL)
+
+    def disable_gain(self) -> None:
+        self._change_gain(ttk.DISABLED)
+
+    def _change_gain(self, state: str) -> None:
+        for child in self._gain_control_frame.winfo_children():
+            child.configure(state=state)
+
+    def disable_control_panel(self, *args, **kwargs) -> None:
+        for child in self._setter_widgets:
+            child.configure(state=ttk.DISABLED)
+
+    def enable_control_panel(self, *args, **kwargs) -> None:
+        for child in self._setter_widgets:
+            child.configure(state=ttk.NORMAL)
+
     def publish(self) -> None:
         ...
 
@@ -179,9 +210,6 @@ class HomeView(ttk.Frame):
         ...
 
     def on_relay_mode_khz(self) -> None:
-        ...
-
-    def on_feedback(self) -> None:
         ...
 
     def on_wipe_mode_toggle(self) -> None:

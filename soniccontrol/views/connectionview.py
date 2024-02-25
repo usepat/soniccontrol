@@ -1,24 +1,41 @@
 from typing import Tuple
 
 import ttkbootstrap as ttk
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
+from soniccontrol.utils import ImageLoader, constants
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol import soniccontrol_logger as logger
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.utils import ImageLoader, constants
 
 
-class ConnectionView(ttk.Frame):
-    def __init__(
-        self, master: ttk.tk.Widget | ttk.tk.Misc | None, *args, **kwargs
-    ) -> None:
+class ConnectionView(TabView):
+    def __init__(self, master: ttk.tk.Widget | ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
+
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return ImageLoader.load_image(
+            constants.images.CONNECTION_ICON_BLACK, constants.misc.TAB_ICON_SIZE
+        )
+
+    @property
+    def tab_title(self) -> str:
+        return constants.ui.CONNECTION_LABEL
+
+    @property
+    def layouts(self) -> set[Layout]:
+        ...
+
+    def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._refresh_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            image=ImageLoader.load_image(constants.images.REFRESH_ICON_GREY, (13, 13)),
-            style="secondary-outline",
+            image=ImageLoader.load_image(
+                constants.images.REFRESH_ICON_GREY, constants.misc.BUTTON_ICON_SIZE
+            ),
+            style=constants.style.SECONDARY_OUTLINE,
             compound=ttk.RIGHT,
         )
         self._ports_menue: ttk.Combobox = ttk.Combobox(
@@ -62,21 +79,9 @@ class ConnectionView(ttk.Frame):
             justify=ttk.CENTER,
             text="THIS IS A FIRMWARE LABEL TEST LABELL, REMOVE THIS TODO:\n usepat LABEL\n sonicamp: SONICAMP\n Version: 1.0.0\n",
         )
-        self._init_publish()
 
-    @property
-    def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(constants.images.CONNECTION_ICON_BLACK, (25, 25))
-
-    @property
-    def tab_title(self) -> str:
-        return constants.ui.CONNECTION_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
-    def _init_publish(self) -> None:
+    def _initialize_publish(self) -> None:
+        logger.info("Initializing Publish")
         self._main_frame.pack(fill=ttk.BOTH, expand=True)
 
         self._navigation_frame.pack(
