@@ -25,6 +25,7 @@ class _Misc:
     SIDE_PADDING: Final[int] = 15
     DONT_EXPAND: Final[int] = 0
     EXPAND: Final[int] = 1
+    ADD: Final[Literal["+"]] = "+"
     DELETE_WINDOW: Final[Literal["WM_DELETE_WINDOW"]] = "WM_DELETE_WINDOW"
     GREEN: Literal["green"] = "green"
     STATUS_MEDIUM_GREY: Literal["#c3c0ba"] = "#c3c0ba"
@@ -139,6 +140,8 @@ class _Events:
     STATUS_UPDATE_EVENT: Literal["<<StatusUpdate>>"] = "<<StatusUpdate>>"
     MANUAL_MODE_EVENT: Literal["<<ManualMode>>"] = "<<ManualMode>>"
     AUTO_MODE_EVENT: Literal["<<AutoMode>>"] = "<<AutoMode>>"
+    SIGNAL_OFF: Literal["<<SignalOff>>"] = "<<SignalOff>>"
+    SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
 
 
 events: _Events = _Events()

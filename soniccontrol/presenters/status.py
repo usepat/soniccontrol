@@ -3,7 +3,13 @@ from soniccontrol.core.windowview import MainView
 from soniccontrol.interfaces.presenter import Presenter
 
 
-class SettingsPresenter(Presenter):
+class StatusBarPresenter(Presenter):
     def __init__(self, master: MainView, sonicamp: SonicAmp):
         super().__init__(master, sonicamp)
-        print("lmao settings")
+        print("lmao statusbar")
+
+
+class StatusPresenter(Presenter):
+    def __init__(self, master: MainView, sonicamp: SonicAmp):
+        super().__init__(master, sonicamp)
+        print("lmao statusbar")

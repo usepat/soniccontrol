@@ -1,7 +1,6 @@
 from typing import Any
 
 import ttkbootstrap as ttk
-
 from soniccontrol.interfaces.view import TabView
 
 
