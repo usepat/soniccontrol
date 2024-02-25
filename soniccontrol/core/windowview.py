@@ -123,9 +123,14 @@ class MainView(Root):
                 show_images=True,
             )
         elif event.width < 1000 and notebook_tkinter_path in self._main_frame.panes():
+            SONICMEASURE_TABINDEX: int = 2
+            SERIALMONITOR_TABINDEX: int = 3
             self._main_frame.forget(self._right_notebook)
             self._left_notebook.add_tabs(
-                [self.views.sonicmeasure, self.views.serialmonitor],
+                [
+                    (SONICMEASURE_TABINDEX, self.views.sonicmeasure),
+                    (SERIALMONITOR_TABINDEX, self.views.serialmonitor),
+                ],
                 keep_tabs=True,
                 show_titles=True,
                 show_images=True,
