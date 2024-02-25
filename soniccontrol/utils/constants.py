@@ -234,5 +234,30 @@ class _UIStringsEN:
     COMMAND_SET: Final[str] = "Command set"
     NEW_LABEL: Final[str] = "New"
 
+    HOME_HELP_INTRODUCTION: Final[
+        str
+    ] = "The Home tab is used to set the most important parameters of a Sonicamp device manually."
+    HOME_HELP_CONTROL_PANEL: Final[
+        str
+    ] = "The Manual Control Panel contains entries to set the named parameters. Based on your Sonicamp those parameters may differ from the shown image."
+    HOME_HELP_FREQUENCY: Final[
+        str
+    ] = "Here should be a description of the frequency entry."
+    HOME_HELP_GAIN: Final[str] = " Here should be a description of the gain entry."
+    HOME_HELP_CATCH: Final[str] = "Here should be a description of the catch entry."
+    HOME_HELP_WIPE: Final[str] = "Here should be a description of the wipe entry."
+    HOME_HELP_SET_VALUES: Final[
+        str
+    ] = "The 'Set Values' button sets all currently configured parameters."
+    HOME_HELP_OUTPUT: Final[
+        str
+    ] = "The Sonicamp device sends it's answer to the requested configuration in the Feedback frame."
+    HOME_HELP_SIGNAL_CONTROL_PANEL: Final[
+        str
+    ] = "The signal of the Sonicamp device can be set to ON, AUTO or OFF."
+    HOME_HELP_ON: Final[str] = "Here should be a description of the on entry."
+    HOME_HELP_AUTO: Final[str] = "Here should be a description of the auto entry."
+    HOME_HELP_OFF: Final[str] = "Here should be a description of the off entry."
+
 
 ui: _UIStringsEN = _UIStringsEN()

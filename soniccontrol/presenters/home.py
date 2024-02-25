@@ -80,11 +80,13 @@ class HomePresenter(Presenter):
         if self.master.user_setter_vars.relay_mode.get() != constants.ui.WIPE_LABEL:
             self.set_gain()
 
-    def set_frequency(self) -> None:
-        self.set_parameter("freq", self.master.user_setter_vars.freq.get())
+    def set_frequency(self, *args, **kwargs) -> None:
+        if self.view._freq_spinbox.get().isnumeric():
+            self.set_parameter("freq", self.master.user_setter_vars.freq.get())
 
-    def set_gain(self) -> None:
-        self.set_parameter("gain", self.master.user_setter_vars.gain.get())
+    def set_gain(self, *args, **kwargs) -> None:
+        if self.view._gain_spinbox.get().isnumeric():
+            self.set_parameter("gain", self.master.user_setter_vars.gain.get())
 
     def set_parameter(self, parameter, value) -> None:
         answer: str = f"{parameter}: {value}"
