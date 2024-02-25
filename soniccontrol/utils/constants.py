@@ -106,6 +106,11 @@ class _Images:
     END_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "end_icon_white.png"
     END_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "end_icon_black.png"
 
+    HOME_CONTROL_PANEL: Final[Path] = files.PICTURES_DIR / "home_control_panel.png"
+    HOME_SIGNAL_CONTROL_PANEL: Final[Path] = (
+        files.PICTURES_DIR / "home_signal_control_panel.png"
+    )
+
 
 images: _Images = _Images()
 
@@ -243,7 +248,7 @@ class _UIStringsEN:
     HOME_HELP_FREQUENCY: Final[
         str
     ] = "Here should be a description of the frequency entry."
-    HOME_HELP_GAIN: Final[str] = " Here should be a description of the gain entry."
+    HOME_HELP_GAIN: Final[str] = "Here should be a description of the gain entry."
     HOME_HELP_CATCH: Final[str] = "Here should be a description of the catch entry."
     HOME_HELP_WIPE: Final[str] = "Here should be a description of the wipe entry."
     HOME_HELP_SET_VALUES: Final[

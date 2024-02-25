@@ -13,7 +13,7 @@ from soniccontrol import __version__, utils
 
 @attrs.define(slots=True)
 class LableParameters:
-    text: str = attrs.field()
+    text: str = attrs.field(default="")
     image: ttk.ImageTk.PhotoImage | None = attrs.field(default=None)
     font: tuple[str, int] | None = attrs.field(default=None)
     row: int | None = attrs.field(default=None)
@@ -104,7 +104,7 @@ class InfoView(TabView):
 
         self._home_help_frame: HelpFrame = HelpFrame(
             self._body_frame,
-            wraplength=300,
+            wraplength=400,
             content=[
                 LableParameters(
                     text=constants.ui.HOME_LABEL,
@@ -116,6 +116,7 @@ class InfoView(TabView):
                         constants.images.HOME_ICON_BLACK, constants.misc.TAB_ICON_SIZE
                     ),
                     sticky=ttk.W,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_INTRODUCTION,
@@ -123,6 +124,13 @@ class InfoView(TabView):
                     sticky=ttk.EW,
                     anchor=ttk.W,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
+                ),
+                LableParameters(
+                    image=utils.ImageLoader.load_image(
+                        constants.images.HOME_CONTROL_PANEL, (300, 200)
+                    ),
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_CONTROL_PANEL,
@@ -130,6 +138,7 @@ class InfoView(TabView):
                     sticky=ttk.EW,
                     anchor=ttk.W,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_FREQUENCY,
@@ -137,6 +146,7 @@ class InfoView(TabView):
                     sticky=ttk.EW,
                     anchor=ttk.W,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_GAIN,
@@ -144,6 +154,7 @@ class InfoView(TabView):
                     sticky=ttk.EW,
                     anchor=ttk.W,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_CATCH,
@@ -151,6 +162,7 @@ class InfoView(TabView):
                     sticky=ttk.EW,
                     anchor=ttk.W,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_WIPE,
@@ -158,6 +170,7 @@ class InfoView(TabView):
                     anchor=ttk.W,
                     sticky=ttk.EW,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_SET_VALUES,
@@ -165,6 +178,7 @@ class InfoView(TabView):
                     anchor=ttk.W,
                     sticky=ttk.EW,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_OUTPUT,
@@ -172,6 +186,13 @@ class InfoView(TabView):
                     anchor=ttk.W,
                     sticky=ttk.EW,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
+                ),
+                LableParameters(
+                    image=utils.ImageLoader.load_image(
+                        constants.images.HOME_SIGNAL_CONTROL_PANEL, (400, 35)
+                    ),
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_SIGNAL_CONTROL_PANEL,
@@ -179,6 +200,7 @@ class InfoView(TabView):
                     anchor=ttk.W,
                     sticky=ttk.EW,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_ON,
@@ -186,6 +208,7 @@ class InfoView(TabView):
                     anchor=ttk.W,
                     sticky=ttk.EW,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_OFF,
@@ -193,6 +216,7 @@ class InfoView(TabView):
                     anchor=ttk.W,
                     sticky=ttk.EW,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
                 LableParameters(
                     text=constants.ui.HOME_HELP_AUTO,
@@ -200,6 +224,7 @@ class InfoView(TabView):
                     anchor=ttk.W,
                     sticky=ttk.EW,
                     padx=constants.misc.LARGE_PADDING,
+                    pady=constants.misc.MEDIUM_PADDING,
                 ),
             ],
         )
