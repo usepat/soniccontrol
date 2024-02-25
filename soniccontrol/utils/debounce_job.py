@@ -15,7 +15,7 @@ class DebounceJob:
         self._widget: ttk.tk.Widget | ttk.Window = widget
         self._job: str | None = None
 
-    def __call__(self, event: Any, *args, **kwargs) -> None:
+    def __call__(self, event: Any = None, *args, **kwargs) -> None:
         def execute_command() -> None:
             if self._command is None:
                 return

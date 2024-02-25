@@ -40,12 +40,16 @@ class HomeView(TabView):
             self._top_frame, text=const.ui.HOME_CONTROL_LABEL
         )
         self._freq_spinbox: Spinbox = Spinbox(
-            self._control_frame, placeholder=const.ui.FREQ_PLACEHOLDER, style=ttk.DARK
+            self._control_frame,
+            placeholder=const.ui.FREQ_PLACEHOLDER,
+            scrolled_frame=self._main_frame,
+            style=ttk.DARK,
         )
         self._gain_control_frame: ttk.Frame = ttk.Frame(self._control_frame)
         self._gain_spinbox: Spinbox = Spinbox(
             self._gain_control_frame,
             placeholder=const.ui.GAIN_PLACEHOLDER,
+            scrolled_frame=self._main_frame,
             style=ttk.DARK,
         )
         self._gain_scale: ttk.Scale = ttk.Scale(
