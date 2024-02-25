@@ -1,6 +1,6 @@
-import ttkbootstrap as ttk
-from numpy import delete
+from typing import Any, Callable
 
+import ttkbootstrap as ttk
 from soniccontrol.interfaces.tkintertypes import Event
 
 
@@ -9,6 +9,7 @@ class Spinbox(ttk.Spinbox):
         self, master: ttk.tk.Widget, placeholder: str = "", *args, **kwargs
     ) -> None:
         super().__init__(master, *args, **kwargs)
+
         self._placeholder: str = placeholder
         if self._placeholder and not self.get():
             self.delete(0, ttk.END)
@@ -23,10 +24,6 @@ class Spinbox(ttk.Spinbox):
     @placeholder.setter
     def placeholder(self, placeholder: str) -> None:
         self._placeholder = placeholder
-
-    def configure(self, placeholder: str = "", *args, **kwargs) -> None:
-        self._placeholder = placeholder
-        super().configure(*args, **kwargs)
 
     def _on_focus_in(self, _: Event) -> None:
         if self.get() == self._placeholder:
