@@ -1,17 +1,17 @@
 from typing import Any
 
-import soniccontrol.utils as utils
-import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
 from icecream import ic
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.interfaces.view import TabView, View
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.tableview import (TableColumn, TableEvent,
                                     TableHeaderRightClickMenu, TableRow,
                                     Tableview)
 
+import soniccontrol.utils as utils
+import soniccontrol.utils.constants as const
 from soniccontrol import soniccontrol_logger as logger
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView, View
 
 
 class SonicMeasureView(TabView):
@@ -388,6 +388,7 @@ class DataVisualizer(View):
             padding=(0, const.misc.MEDIUM_PADDING, 0, const.misc.LARGE_PADDING)
         )
         self._search_label: ttk.Label = self._navigation_frame.winfo_children()[0]
+        self._search_label.configure(text=const.ui.SEARCH)
         self._search_entry: ttk.Entry = self._navigation_frame.winfo_children()[1]
         self._refresh_button: ttk.Button = ttk.Button(
             self._navigation_frame,
@@ -398,16 +399,16 @@ class DataVisualizer(View):
                 const.images.REFRESH_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
             ),
         )
-        self._visualize_button: ttk.Button = ttk.Button(
-            self._navigation_frame,
-            text=const.ui.VISUALIZE,
-            compound=ttk.RIGHT,
-            style=ttk.SUCCESS,
-            image=utils.ImageLoader.load_image(
-                const.images.FORWARDS_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
-            ),
-            command=self._visualize,
-        )
+        # self._visualize_button: ttk.Button = ttk.Button(
+        #     self._navigation_frame,
+        #     text=const.ui.VISUALIZE,
+        #     compound=ttk.RIGHT,
+        #     style=ttk.SUCCESS,
+        #     image=utils.ImageLoader.load_image(
+        #         const.images.FORWARDS_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+        #     ),
+        #     command=self._visualize,
+        # )
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
@@ -425,11 +426,8 @@ class DataVisualizer(View):
             child.pack_forget()
         self._navigation_frame.columnconfigure(2, weight=const.misc.EXPAND)
         self._refresh_button.grid(row=0, column=0, sticky=ttk.W)
-        self._search_label.grid(row=0, column=1, padx=const.misc.SMALL_PADDING)
-        self._search_entry.grid(
-            row=0, column=2, sticky=ttk.EW, padx=const.misc.SMALL_PADDING
-        )
-        self._visualize_button.grid(row=0, column=3, sticky=ttk.E)
+        self._search_label.grid(row=0, column=1, padx=const.misc.LARGE_PADDING)
+        self._search_entry.grid(row=0, column=2, sticky=ttk.EW)
         self._tableview.grid(
             row=0,
             column=0,
