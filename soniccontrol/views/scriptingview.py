@@ -1,15 +1,17 @@
 import pathlib
+from tkinter import filedialog
 from typing import Any, TypedDict
 
 import ttkbootstrap as ttk
-from soniccontrol.components.card import Card
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.interfaces.view import TabView
-from soniccontrol.utils import constants as const
+from icecream import ic
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 from ttkbootstrap.style import Callable
 
 from soniccontrol import utils
+from soniccontrol.components.card import Card
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
+from soniccontrol.utils import constants as const
 
 
 class ScriptingView(TabView):
@@ -67,6 +69,16 @@ class ScriptingView(TabView):
             compound=ttk.LEFT,
             command=lambda: self.event_generate(const.events.SCRIPT_START_EVENT),
         )
+        self._end_button: ttk.Button = ttk.Button(
+            self._navigation_button_frame,
+            # text=const.ui.END_LABEL,
+            style=ttk.DANGER,
+            compound=ttk.LEFT,
+            command=lambda: self.event_generate(const.events.SCRIPT_STOP_EVENT),
+            image=utils.ImageLoader.load_image(
+                const.images.END_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            ),
+        )
         self._scripting_guide_button: ttk.Button = ttk.Button(
             self._navigation_button_frame,
             text=const.ui.GUIDE_LABEL,
@@ -81,6 +93,7 @@ class ScriptingView(TabView):
             menu=self._menue,
             style=ttk.DARK,
             image=utils.ImageLoader.load_image(const.images.MENUE_ICON_WHITE, (13, 13)),
+            compound=ttk.LEFT,
         )
         self._menue.add_command(label=const.ui.SAVE_LABEL, command=self.save_script)
         self._menue.add_command(label=const.ui.LOAD_LABEL, command=self.load_script)
@@ -90,6 +103,7 @@ class ScriptingView(TabView):
 
         self.bind_all(const.events.SCRIPT_STOP_EVENT, self.on_script_stop)
         self.bind_all(const.events.SCRIPT_START_EVENT, self.on_script_start)
+        self.bind_all(const.events.SCRIPT_PAUSE_EVENT, self.on_script_pause)
 
     def _initialize_publish(self) -> None:
         self.columnconfigure(0, weight=const.misc.EXPAND)
@@ -100,23 +114,31 @@ class ScriptingView(TabView):
             row=0,
             column=0,
             sticky=ttk.EW,
-            padx=const.misc.SIDE_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=const.misc.LARGE_PADDING,
+            pady=const.misc.LARGE_PADDING,
         )
-        self._start_button.pack(
-            side=ttk.LEFT,
+        self._start_button.grid(
+            row=0,
+            column=0,
             padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            sticky=ttk.W,
         )
-        self._scripting_guide_button.pack(
-            side=ttk.LEFT,
+        self._end_button.grid(
+            row=0,
+            column=1,
             padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            sticky=ttk.W,
         )
-        self._menue_button.pack(
-            side=ttk.RIGHT,
+        self._end_button.grid_remove()
+        self._scripting_guide_button.grid(
+            row=0,
+            column=2,
             padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            sticky=ttk.W,
+        )
+        self._navigation_button_frame.columnconfigure(3, weight=const.misc.EXPAND)
+        self._menue_button.grid(
+            row=0, column=3, sticky=ttk.E, padx=const.misc.MEDIUM_PADDING
         )
 
         self._main_frame.grid(row=1, column=0, sticky=ttk.NSEW)
@@ -156,8 +178,9 @@ class ScriptingView(TabView):
             image=utils.ImageLoader.load_image(
                 const.images.PAUSE_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
             ),
-            command=lambda: self.event_generate(const.events.SCRIPT_STOP_EVENT),
+            command=lambda: self.event_generate(const.events.SCRIPT_PAUSE_EVENT),
         )
+        self._end_button.grid()
         self._progressbar.start()
 
     def on_script_stop(self, event: Any, *args, **kwargs) -> None:
@@ -169,15 +192,26 @@ class ScriptingView(TabView):
                 const.images.PLAY_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
             ),
         )
+        self._end_button.grid_remove()
         self._progressbar.stop()
-        ...
+
+    def on_script_pause(self, event: Any, *args, **kwargs) -> None:
+        self.start_button.configure(
+            text=const.ui.RESUME_LABEL,
+            bootstyle=ttk.SUCCESS,
+            command=lambda: self.event_generate(const.events.SCRIPT_START_EVENT),
+            image=utils.ImageLoader.load_image(
+                const.images.PLAY_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            ),
+        )
+        self._progressbar.stop()
 
     def hightlight_line(self, line_idx: int) -> None:
         ...
 
     def load_script(self) -> None:
         filename: pathlib.Path = pathlib.Path(
-            ttk.filedialog.askopenfilename(
+            filedialog.askopenfilename(
                 defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
             )
         )
@@ -186,12 +220,12 @@ class ScriptingView(TabView):
             self._scripting_text.insert(ttk.INSERT, f.read())
 
     def save_script(self) -> None:
-        filename: pathlib.Path = pathlib.Path(
-            ttk.filedialog.asksaveasfilename(
-                defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
-            )
+        file_str: str = filedialog.asksaveasfilename(
+            defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
         )
-        with filename.open("w") as f:
+        if file_str == "." or file_str == "" or isinstance(file_str, (tuple)):
+            return
+        with pathlib.Path(file_str).open("w") as f:
             f.write(self._scripting_text.get(1.0, ttk.END))
 
     def specify_datalog_path(self) -> None:
