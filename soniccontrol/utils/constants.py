@@ -238,6 +238,9 @@ class _UIStringsEN:
     USE_SCRIPTING_INSTEAD: Final[str] = "Use scripting instead"
     COMMAND_SET: Final[str] = "Command set"
     NEW_LABEL: Final[str] = "New"
+    DATA_VISUALIZER: Final[str] = "Data Visualizer"
+    REFRESH: Final[str] = "Refresh"
+    VISUALIZE: Final[str] = "Visualize"
 
     HOME_HELP_INTRODUCTION: Final[
         str

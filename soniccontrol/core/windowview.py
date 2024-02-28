@@ -3,6 +3,7 @@ from typing import Any, get_type_hints
 import attrs
 import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
+from icecream import ic
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.root import Root
@@ -42,6 +43,9 @@ class MainView(Root):
     def _initialize_children(self) -> None:
         self.wm_title(const.ui.IDLE_TITLE)
         ttk.Style(const.ui.THEME)
+        self.option_add("*Font", "OpenSans 10")
+        self.default_font = ttk.font.nametofont("TkDefaultFont")
+        self.default_font.configure(family="OpenSans", size=10)
 
         # tkinter components
         self._main_frame: ttk.Panedwindow = ttk.Panedwindow(
