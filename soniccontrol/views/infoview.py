@@ -11,57 +11,70 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from soniccontrol import __version__, utils
 
 
-@attrs.define(slots=True)
-class LableParameters:
-    text: str = attrs.field(default="")
-    image: ttk.ImageTk.PhotoImage | None = attrs.field(default=None)
-    font: tuple[str, int] | None = attrs.field(default=None)
-    row: int | None = attrs.field(default=None)
-    column: int | None = attrs.field(default=None)
-    compound: str | None = attrs.field(default=ttk.LEFT)
-    anchor: str | None = attrs.field(default=ttk.CENTER)
-    justify: str | None = attrs.field(default=ttk.CENTER)
-    sticky: str | None = attrs.field(default=None)
-    pady: int | None = attrs.field(default=None)
-    padx: int | None = attrs.field(default=None)
-    columnspan: int | None = attrs.field(default=None)
-    _init_keys: list[str] = ["text", "image", "justify", "anchor", "font", "compound"]
-    _layout_keys: list[str] = ["row", "column", "columnspan", "sticky", "pady", "padx"]
-
-    def initialize_parameters(self) -> dict[str, Any]:
-        return {
-            key: getattr(self, key)
-            for key in self._init_keys
-            if getattr(self, key) is not None
-        }
-
-    def layout_parameters(self) -> dict[str, Any]:
-        return {
-            key: getattr(self, key)
-            for key in self._layout_keys
-            if getattr(self, key) is not None
-        }
-
-
 class HelpFrame(ttk.Frame):
     def __init__(
         self,
         master: ttk.tk.Widget,
-        content: list[LableParameters],
+        heading: str,
+        image: ttk.ImageTk.PhotoImage | None,
+        content: list[str | ttk.ImageTk.PhotoImage | dict[str, Any]],
+        paragraph_padding: int = constants.misc.MEDIUM_PADDING,
         wraplength: int = 0,
         *args,
         **kwargs,
     ) -> None:
         super().__init__(master, *args, **kwargs)
+        self._master: ttk.tk.Widget = master
+        self._wraplength: int = wraplength
+        self._paragraph_padding: int = paragraph_padding
         self.columnconfigure(0, weight=constants.misc.EXPAND)
+
+        ttk.Label(
+            self,
+            text=heading,
+            font=(
+                constants.fonts.QTYPE_OT_CONDLIGHT,
+                constants.fonts.SMALL_HEADING_SIZE,
+            ),
+            image=image if image is not None else "",
+            compound=ttk.LEFT,
+            anchor=ttk.CENTER,
+            justify=ttk.CENTER,
+        ).grid(row=0, column=0, sticky=ttk.W, pady=self._paragraph_padding)
+
         for index, parameters in enumerate(content):
-            if None in (parameters.row, parameters.column):
-                parameters.row = index
-                parameters.column = 0
-                self.rowconfigure(index, weight=constants.misc.DONT_EXPAND)
-            ttk.Label(
-                self, wraplength=wraplength, **parameters.initialize_parameters()
-            ).grid(**parameters.layout_parameters())
+            (
+                ttk.Label(self, **parameters)
+                if isinstance(parameters, dict)
+                else ttk.Label(
+                    self,
+                    wraplength=self._wraplength,
+                    text=parameters if isinstance(parameters, str) else "",
+                    anchor=(
+                        ttk.CENTER
+                        if isinstance(parameters, ttk.ImageTk.PhotoImage)
+                        else ttk.W
+                    ),
+                    justify=(
+                        ttk.CENTER
+                        if isinstance(parameters, ttk.ImageTk.PhotoImage)
+                        else ttk.LEFT
+                    ),
+                    image=(
+                        parameters
+                        if isinstance(parameters, ttk.ImageTk.PhotoImage)
+                        else ""
+                    ),
+                )
+            ).grid(
+                row=index + 1,
+                column=0,
+                sticky=ttk.EW,
+                pady=self._paragraph_padding,
+                padx=constants.misc.LARGE_PADDING,
+            )
+
+            self.rowconfigure(index + 1, weight=constants.misc.DONT_EXPAND)
 
 
 class InfoView(TabView):
@@ -102,130 +115,64 @@ class InfoView(TabView):
         self._scroll_frame: ScrolledFrame = ScrolledFrame(self._main_frame)
         self._body_frame: ttk.Frame = ttk.Frame(self._scroll_frame)
 
+        font: tuple[str, int] = (
+            constants.fonts.QTYPE_OT_CONDLIGHT,
+            constants.fonts.TEXT_SIZE,
+        )
         self._home_help_frame: HelpFrame = HelpFrame(
             self._body_frame,
             wraplength=400,
+            heading=constants.ui.HOME_LABEL,
+            image=utils.ImageLoader.load_image(
+                constants.images.HOME_ICON_BLACK, constants.misc.TAB_ICON_SIZE
+            ),
             content=[
-                LableParameters(
-                    text=constants.ui.HOME_LABEL,
-                    font=(
-                        constants.fonts.QTYPE_OT_CONDLIGHT,
-                        constants.fonts.SMALL_HEADING_SIZE,
-                    ),
-                    image=utils.ImageLoader.load_image(
-                        constants.images.HOME_ICON_BLACK, constants.misc.TAB_ICON_SIZE
-                    ),
-                    sticky=ttk.W,
-                    pady=constants.misc.MEDIUM_PADDING,
+                constants.ui.HOME_HELP_INTRODUCTION,
+                utils.ImageLoader.load_image(
+                    constants.images.HOME_CONTROL_PANEL, (300, 200)
                 ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_INTRODUCTION,
-                    justify=ttk.LEFT,
-                    sticky=ttk.EW,
-                    anchor=ttk.W,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
+                constants.ui.HOME_HELP_CONTROL_PANEL,
+                {
+                    "text": constants.ui.FREQUENCY,
+                    "font": font,
+                },
+                constants.ui.HOME_HELP_FREQUENCY,
+                {
+                    "text": constants.ui.GAIN,
+                    "font": font,
+                },
+                constants.ui.HOME_HELP_GAIN,
+                {
+                    "text": constants.ui.CATCH_MODE_LABEL,
+                    "font": font,
+                },
+                constants.ui.HOME_HELP_CATCH,
+                {
+                    "text": constants.ui.WIPE_MODE_LABEL,
+                    "font": font,
+                },
+                constants.ui.HOME_HELP_WIPE,
+                constants.ui.HOME_HELP_SET_VALUES,
+                constants.ui.HOME_HELP_OUTPUT,
+                utils.ImageLoader.load_image(
+                    constants.images.HOME_SIGNAL_CONTROL_PANEL, (400, 35)
                 ),
-                LableParameters(
-                    image=utils.ImageLoader.load_image(
-                        constants.images.HOME_CONTROL_PANEL, (300, 200)
-                    ),
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_CONTROL_PANEL,
-                    justify=ttk.LEFT,
-                    sticky=ttk.EW,
-                    anchor=ttk.W,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_FREQUENCY,
-                    justify=ttk.LEFT,
-                    sticky=ttk.EW,
-                    anchor=ttk.W,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_GAIN,
-                    justify=ttk.LEFT,
-                    sticky=ttk.EW,
-                    anchor=ttk.W,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_CATCH,
-                    justify=ttk.LEFT,
-                    sticky=ttk.EW,
-                    anchor=ttk.W,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_WIPE,
-                    justify=ttk.LEFT,
-                    anchor=ttk.W,
-                    sticky=ttk.EW,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_SET_VALUES,
-                    justify=ttk.LEFT,
-                    anchor=ttk.W,
-                    sticky=ttk.EW,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_OUTPUT,
-                    justify=ttk.LEFT,
-                    anchor=ttk.W,
-                    sticky=ttk.EW,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    image=utils.ImageLoader.load_image(
-                        constants.images.HOME_SIGNAL_CONTROL_PANEL, (400, 35)
-                    ),
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_SIGNAL_CONTROL_PANEL,
-                    justify=ttk.LEFT,
-                    anchor=ttk.W,
-                    sticky=ttk.EW,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_ON,
-                    justify=ttk.LEFT,
-                    anchor=ttk.W,
-                    sticky=ttk.EW,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_OFF,
-                    justify=ttk.LEFT,
-                    anchor=ttk.W,
-                    sticky=ttk.EW,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
-                LableParameters(
-                    text=constants.ui.HOME_HELP_AUTO,
-                    justify=ttk.LEFT,
-                    anchor=ttk.W,
-                    sticky=ttk.EW,
-                    padx=constants.misc.LARGE_PADDING,
-                    pady=constants.misc.MEDIUM_PADDING,
-                ),
+                constants.ui.HOME_HELP_SIGNAL_CONTROL_PANEL,
+                {
+                    "text": constants.ui.SIGNAL_ON,
+                    "font": font,
+                },
+                constants.ui.HOME_HELP_ON,
+                {
+                    "text": constants.ui.SIGNAL_OFF,
+                    "font": font,
+                },
+                constants.ui.HOME_HELP_OFF,
+                {
+                    "text": constants.ui.AUTO_LABEL,
+                    "font": font,
+                },
+                constants.ui.HOME_HELP_AUTO,
             ],
         )
 

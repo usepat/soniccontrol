@@ -1,4 +1,5 @@
-from typing import TypedDict
+import pathlib
+from typing import Any, TypedDict
 
 import ttkbootstrap as ttk
 from soniccontrol.components.card import Card
@@ -28,6 +29,10 @@ class ScriptingView(TabView):
     @property
     def layouts(self) -> set[Layout]:
         ...
+
+    @property
+    def start_button(self) -> ttk.Button:
+        return self._start_button
 
     def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
@@ -60,6 +65,7 @@ class ScriptingView(TabView):
             style=ttk.SUCCESS,
             image=utils.ImageLoader.load_image(const.images.PLAY_ICON_WHITE, (13, 13)),
             compound=ttk.LEFT,
+            command=lambda: self.event_generate(const.events.SCRIPT_START_EVENT),
         )
         self._scripting_guide_button: ttk.Button = ttk.Button(
             self._navigation_button_frame,
@@ -76,9 +82,14 @@ class ScriptingView(TabView):
             style=ttk.DARK,
             image=utils.ImageLoader.load_image(const.images.MENUE_ICON_WHITE, (13, 13)),
         )
-        self._menue.add_command(label=const.ui.SAVE_LABEL)
-        self._menue.add_command(label=const.ui.LOAD_LABEL)
-        self._menue.add_command(label=const.ui.SPECIFY_PATH_LABEL)
+        self._menue.add_command(label=const.ui.SAVE_LABEL, command=self.save_script)
+        self._menue.add_command(label=const.ui.LOAD_LABEL, command=self.load_script)
+        self._menue.add_command(
+            label=const.ui.SPECIFY_PATH_LABEL, command=self.specify_datalog_path
+        )
+
+        self.bind_all(const.events.SCRIPT_STOP_EVENT, self.on_script_stop)
+        self.bind_all(const.events.SCRIPT_START_EVENT, self.on_script_start)
 
     def _initialize_publish(self) -> None:
         self.columnconfigure(0, weight=const.misc.EXPAND)
@@ -138,19 +149,52 @@ class ScriptingView(TabView):
     def publish(self) -> None:
         ...
 
-    def on_script_start(self) -> None:
-        ...
+    def on_script_start(self, event: Any, *args, **kwargs) -> None:
+        self._start_button.configure(
+            text=const.ui.PAUSE_LABEL,
+            bootstyle=ttk.DANGER,
+            image=utils.ImageLoader.load_image(
+                const.images.PAUSE_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            ),
+            command=lambda: self.event_generate(const.events.SCRIPT_STOP_EVENT),
+        )
+        self._progressbar.start()
 
-    def on_script_stop(self) -> None:
+    def on_script_stop(self, event: Any, *args, **kwargs) -> None:
+        self.start_button.configure(
+            text=const.ui.START_LABEL,
+            bootstyle=ttk.SUCCESS,
+            command=lambda: self.event_generate(const.events.SCRIPT_START_EVENT),
+            image=utils.ImageLoader.load_image(
+                const.images.PLAY_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            ),
+        )
+        self._progressbar.stop()
         ...
 
     def hightlight_line(self, line_idx: int) -> None:
         ...
 
     def load_script(self) -> None:
-        ...
+        filename: pathlib.Path = pathlib.Path(
+            ttk.filedialog.askopenfilename(
+                defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
+            )
+        )
+        with filename.open("r") as f:
+            self._scripting_text.delete(1.0, ttk.END)
+            self._scripting_text.insert(ttk.INSERT, f.read())
 
     def save_script(self) -> None:
+        filename: pathlib.Path = pathlib.Path(
+            ttk.filedialog.asksaveasfilename(
+                defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
+            )
+        )
+        with filename.open("w") as f:
+            f.write(self._scripting_text.get(1.0, ttk.END))
+
+    def specify_datalog_path(self) -> None:
         ...
 
 
