@@ -53,7 +53,11 @@ class HomeView(TabView):
             style=ttk.DARK,
         )
         self._gain_scale: ttk.Scale = ttk.Scale(
-            self._gain_control_frame, orient=ttk.HORIZONTAL, style=ttk.SUCCESS
+            self._gain_control_frame,
+            orient=ttk.HORIZONTAL,
+            style=ttk.SUCCESS,
+            from_=0,
+            to=150,
         )
         self._mode_frame: ttk.Frame = ttk.Frame(self._control_frame)
         self._wipe_mode_button: ttk.Radiobutton = ttk.Radiobutton(

@@ -8,11 +8,17 @@ from soniccontrol.amp import SonicAmp
 from soniccontrol.core import core_logger as logger
 from soniccontrol.core.windowview import MainView
 from soniccontrol.interfaces.presenter import Presenter
-from soniccontrol.presenters import (ConnectionPresenter, HomePresenter,
-                                     InfoPresenter, ScriptPresenter,
-                                     SerialMonitorPresenter, SettingsPresenter,
-                                     SonicMeasurePresenter, StatusBarPresenter,
-                                     StatusPresenter)
+from soniccontrol.presenters import (
+    ConnectionPresenter,
+    HomePresenter,
+    InfoPresenter,
+    ScriptPresenter,
+    SerialMonitorPresenter,
+    SettingsPresenter,
+    SonicMeasurePresenter,
+    StatusBarPresenter,
+    StatusPresenter,
+)
 from soniccontrol.utils import constants
 from soniccontrol.utils.debounce_job import DebounceJob
 from soniccontrol.views.serialmonitorview import SerialMonitorView
@@ -79,6 +85,7 @@ class MainPresenter(Presenter):
 
     def start(self) -> None:
         if sys.platform != "win32":
+            logger.info("Enabling high dpi awareness")
             enable_high_dpi_awareness(self)
         self.master.mainloop()
         # async_mainloop(self._view)

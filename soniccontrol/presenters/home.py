@@ -1,5 +1,5 @@
 from typing import get_type_hints
-
+from icecream import ic
 from soniccontrol.amp import SonicAmp
 from soniccontrol.core.windowview import MainView
 from soniccontrol.interfaces.presenter import Presenter
@@ -87,7 +87,7 @@ class HomePresenter(Presenter):
             self.set_parameter("freq", self.master.user_setter_vars.freq.get())
 
     def set_gain(self, *args, **kwargs) -> None:
-        if self.view._gain_spinbox.get().isnumeric():
+        if isinstance(self.view._gain_scale.get(), (float, int)):
             self.set_parameter("gain", self.master.user_setter_vars.gain.get())
 
     def set_parameter(self, parameter, value) -> None:
