@@ -31,6 +31,7 @@ class HomePresenter(Presenter):
             to=100,
             textvariable=self.master.user_setter_vars.freq,
         )
+        self.view._freq_spinbox.activate_placeholder()
         self.view._gain_spinbox.configure(
             command=DebounceJob(
                 self.set_gain,
@@ -40,6 +41,7 @@ class HomePresenter(Presenter):
             to=100,
             textvariable=self.master.user_setter_vars.gain,
         )
+        self.view._gain_spinbox.activate_placeholder()
         self.view._gain_scale.configure(
             command=DebounceJob(
                 self.set_gain,

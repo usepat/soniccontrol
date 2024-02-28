@@ -47,7 +47,10 @@ class Spinbox(ttk.Spinbox):
         if (
             not self.get()
             or self.get() != self._placeholder
-            or int(self.get()) < self._from
+            or int(self.get()) <= self._from
         ):
-            self.delete(0, ttk.END)
-            self.insert(0, self._placeholder)
+            self.activate_placeholder()
+
+    def activate_placeholder(self) -> None:
+        self.delete(0, ttk.END)
+        self.insert(0, self._placeholder)
