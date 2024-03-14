@@ -3,6 +3,7 @@ from typing import Any
 
 import attrs
 import ttkbootstrap as ttk
+
 from soniccontrol.components.stringvar import StringVar
 from soniccontrol.utils import ImageLoader
 
@@ -10,6 +11,7 @@ from soniccontrol.utils import ImageLoader
 @attrs.frozen
 class MiscVars:
     program_state: ttk.StringVar = attrs.field(factory=ttk.StringVar)
+    connection_state: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     connection_port: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     connection_subtitle: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     device_heading1: StringVar = attrs.field(factory=StringVar)
@@ -60,6 +62,7 @@ class StatusVars:
     phase: ttk.DoubleVar = attrs.field(factory=ttk.DoubleVar)
     phase_text: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     signal: ttk.BooleanVar = attrs.field(factory=ttk.BooleanVar)
+    signal_text: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     wipe_mode: ttk.BooleanVar = attrs.field(factory=ttk.BooleanVar)
     relay_mode: ttk.StringVar = attrs.field(factory=ttk.StringVar)
 

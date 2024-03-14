@@ -132,6 +132,7 @@ class _Events:
     # Events
     RESIZING_EVENT: Literal["<Configure>"] = "<Configure>"
     CONNECTION_ATTEMPT_EVENT: Literal["<<ConnectionAttempt>>"] = "<<ConnectionAttempt>>"
+    CONNECTED_EVENT: Literal["<<Connected>>"] = "<<Connected>>"
     DISCONNECTED_EVENT: Literal["<<Disconnected>>"] = "<<Disconnected>>"
     SCRIPT_START_EVENT: Literal["<<ScriptStarted>>"] = "<<ScriptStarted>>"
     SCRIPT_STOP_EVENT: Literal["<<ScriptStopped>>"] = "<<ScriptStopped>>"

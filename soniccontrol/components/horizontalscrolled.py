@@ -31,7 +31,7 @@ class HorizontalScrolledFrame(ttk.Frame):
             bootstyle=bootstyle.replace("round", ""),
         )
         self.container.bind("<Configure>", lambda _: self.xview())
-        self.container.propagate(0)
+        self.container.propagate(1)
 
         # content frame
         super().__init__(

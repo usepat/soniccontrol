@@ -1,9 +1,11 @@
 from typing import Any, get_type_hints
 
 import attrs
-import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
 from icecream import ic
+
+import soniccontrol.utils.constants as const
+from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.root import Root
@@ -17,8 +19,6 @@ from soniccontrol.views.settingsview import SettingsView
 from soniccontrol.views.sonicmeasureview import SonicMeasureView
 from soniccontrol.views.statusview import StatusBarView, StatusView
 
-from soniccontrol import soniccontrol_logger as logger
-
 
 @attrs.frozen
 class SonicControlViews:
@@ -29,7 +29,6 @@ class SonicControlViews:
     info: InfoView = attrs.field()
     sonicmeasure: SonicMeasureView = attrs.field()
     serialmonitor: SerialMonitorView = attrs.field()
-    statusview: StatusView = attrs.field()
     statusbar: StatusBarView = attrs.field()
 
 
@@ -62,7 +61,6 @@ class MainView(Root):
                 for key, view in get_type_hints(SonicControlViews).items()
             }
         )
-        self._views.statusbar.configure(bootstyle=ttk.SECONDARY)
 
     @property
     def layouts(self) -> set[Layout]:
@@ -111,22 +109,29 @@ class MainView(Root):
             return
 
         if event.height < 600:
-            self._status_frame.grid_remove()
-            self._left_frame.rowconfigure(1, weight=0, minsize=0)
-        else:
+            self.remove_status_frame()
+        elif self.misc_vars.program_state.get() != "Disconnected":
             self._status_frame.grid()
 
         notebook_tkinter_path: str = self._right_notebook.winfo_pathname(
             self._right_notebook.winfo_id()
         )
-        if event.width > 1000 and notebook_tkinter_path not in self._main_frame.panes():
+        if (
+            event.width > 1000
+            and notebook_tkinter_path not in self._main_frame.panes()
+            and self.misc_vars.program_state.get() != "Disconnected"
+        ):
             self._main_frame.add(self._right_notebook, weight=const.misc.EXPAND)
             self._right_notebook.add_tabs(
                 [self.views.sonicmeasure, self.views.serialmonitor],
                 show_titles=True,
                 show_images=True,
             )
-        elif event.width < 1000 and notebook_tkinter_path in self._main_frame.panes():
+        elif (
+            event.width < 1000
+            and notebook_tkinter_path in self._main_frame.panes()
+            and self.misc_vars.program_state.get() != "Disconnected"
+        ):
             SONICMEASURE_TABINDEX: int = 2
             SERIALMONITOR_TABINDEX: int = 3
             self._main_frame.forget(self._right_notebook)
@@ -145,13 +150,25 @@ class MainView(Root):
         else:
             self._left_notebook.configure_tabs(show_titles=True, show_images=True)
 
+    def remove_status_frame(self) -> None:
+        self._status_frame.grid_remove()
+        self._left_frame.rowconfigure(1, weight=0, minsize=0)
+
     def set_large_width_layout(self) -> None:
         ...
 
     def set_small_width_layout(self) -> None:
         ...
 
-    def on_disconnect(self) -> None:
+    def on_disconnect(self, event: ttk.tk.Event) -> None:
+        self.remove_status_frame()
+        self._left_notebook.add_tabs(
+            [self.views.connection, self.views.info],
+            show_titles=True,
+            show_images=True,
+        )
+
+    def on_rescue_mode(self, event: ttk.tk.Event) -> None:
         ...
 
     def on_firmware_flash(self) -> None:

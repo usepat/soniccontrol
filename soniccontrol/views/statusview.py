@@ -1,16 +1,16 @@
 import ttkbootstrap as ttk
+
+from soniccontrol import soniccontrol_logger as logger
+from soniccontrol import utils
 from soniccontrol.components.horizontalscrolled import HorizontalScrolledFrame
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.view import View
 from soniccontrol.utils import constants as const
 
-from soniccontrol import soniccontrol_logger as logger
-from soniccontrol import utils
-
 
 class StatusBarView(View):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
-        super().__init__(master, *args, **kwargs)
+        super().__init__(master, style=ttk.SECONDARY, *args, **kwargs)
 
     def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self, style=ttk.SECONDARY)
@@ -21,52 +21,66 @@ class StatusBarView(View):
         )
 
         self._scrolled_info_frame: HorizontalScrolledFrame = HorizontalScrolledFrame(
-            self._main_frame, style=ttk.SECONDARY, autohide=True
+            self._main_frame, style=ttk.SECONDARY, autohide=False
         )
         self._scrolled_info_frame.hide_scrollbars()
 
-        self._freq_frame: ttk.Frame = ttk.Frame(self._scrolled_info_frame)
+        self._freq_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_info_frame, style=ttk.SECONDARY
+        )
         self._freq_label: ttk.Label = ttk.Label(
             self._freq_frame, style=const.style.INVERSE_SECONDARY
         )
 
-        self._gain_frame: ttk.Frame = ttk.Frame(self._scrolled_info_frame)
+        self._gain_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_info_frame, style=ttk.SECONDARY
+        )
         self._gain_label: ttk.Label = ttk.Label(
             self._gain_frame,
             style=const.style.INVERSE_SECONDARY,
         )
 
-        self._temperature_frame: ttk.Frame = ttk.Frame(self._scrolled_info_frame)
+        self._temperature_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_info_frame, style=ttk.SECONDARY
+        )
         self._temperature_label: ttk.Label = ttk.Label(
             self._temperature_frame,
             style=const.style.INVERSE_SECONDARY,
         )
 
-        self._mode_frame: ttk.Frame = ttk.Frame(self._scrolled_info_frame)
+        self._mode_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_info_frame, style=ttk.SECONDARY
+        )
         self._mode_label: ttk.Label = ttk.Label(
             self._mode_frame,
             style=const.style.INVERSE_SECONDARY,
         )
 
-        self._urms_frame: ttk.Frame = ttk.Frame(self._scrolled_info_frame)
+        self._urms_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_info_frame, style=ttk.SECONDARY
+        )
         self._urms_label: ttk.Label = ttk.Label(
             self._urms_frame,
             style=const.style.INVERSE_SECONDARY,
         )
 
-        self._irms_frame: ttk.Frame = ttk.Frame(self._scrolled_info_frame)
+        self._irms_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_info_frame, style=ttk.SECONDARY
+        )
         self._irms_label: ttk.Label = ttk.Label(
             self._irms_frame,
             style=const.style.INVERSE_SECONDARY,
         )
 
-        self._phase_frame: ttk.Frame = ttk.Frame(self._scrolled_info_frame)
+        self._phase_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_info_frame, style=ttk.SECONDARY
+        )
         self._phase_label: ttk.Label = ttk.Label(
             self._phase_frame,
             style=const.style.INVERSE_SECONDARY,
         )
 
-        self._signal_frame: ttk.Frame = ttk.Frame(self)
+        self._signal_frame: ttk.Frame = ttk.Frame(self, style=ttk.SECONDARY)
         ICON_LABEL_PADDING: tuple[int, int, int, int] = (8, 0, 0, 0)
         self._connection_label: ttk.Label = ttk.Label(
             self._signal_frame,
@@ -92,24 +106,75 @@ class StatusBarView(View):
         ...
 
     def _initialize_publish(self) -> None:
-        self._main_frame.pack(side=ttk.LEFT, fill=ttk.X)
-        self._program_state_frame.pack(side=ttk.LEFT)
-        self._program_state_label.pack(side=ttk.LEFT, ipadx=const.misc.MEDIUM_PADDING)
-        self._scrolled_info_frame.pack(side=ttk.LEFT, fill=ttk.X)
-        self._freq_label.pack(side=ttk.LEFT)
-        self._gain_label.pack(side=ttk.LEFT)
-        self._mode_label.pack(side=ttk.LEFT)
-        self._temperature_label.pack(side=ttk.LEFT)
-        self._urms_label.pack(side=ttk.LEFT)
-        self._irms_label.pack(side=ttk.LEFT)
-        self._phase_label.pack(side=ttk.LEFT)
+        self._main_frame.pack(side=ttk.LEFT, fill=ttk.X, expand=True)
+        self._main_frame.columnconfigure(1, weight=const.misc.EXPAND)
+        self._main_frame.rowconfigure(0, weight=const.misc.EXPAND)
 
         self._signal_frame.pack(side=ttk.RIGHT)
         self._signal_label.pack(side=ttk.RIGHT, ipadx=const.misc.SMALL_PADDING)
         self._connection_label.pack(side=ttk.RIGHT, ipadx=const.misc.SMALL_PADDING)
 
+        self._program_state_frame.grid(
+            row=0, column=0, sticky=ttk.EW, padx=const.misc.MEDIUM_PADDING
+        )
+        self._program_state_label.pack(side=ttk.LEFT, ipadx=const.misc.MEDIUM_PADDING)
+
+        self._scrolled_info_frame.grid(row=0, column=1, sticky=ttk.EW)
+        self._scrolled_info_frame.columnconfigure(0, weight=const.misc.EXPAND)
+        self._scrolled_info_frame.columnconfigure(1, weight=const.misc.EXPAND)
+        self._scrolled_info_frame.columnconfigure(2, weight=const.misc.EXPAND)
+        self._scrolled_info_frame.columnconfigure(3, weight=const.misc.EXPAND)
+        self._scrolled_info_frame.columnconfigure(4, weight=const.misc.EXPAND)
+        self._scrolled_info_frame.columnconfigure(5, weight=const.misc.EXPAND)
+        self._scrolled_info_frame.columnconfigure(6, weight=const.misc.EXPAND)
+        self._scrolled_info_frame.rowconfigure(0, weight=const.misc.EXPAND)
+
+        self._freq_frame.grid(
+            row=0, column=0, padx=const.misc.MEDIUM_PADDING, sticky=ttk.EW
+        )
+        self._freq_label.pack(side=ttk.LEFT, fill=ttk.X, expand=True)
+
+        self._gain_frame.grid(
+            row=0, column=1, padx=const.misc.MEDIUM_PADDING, sticky=ttk.EW
+        )
+        self._gain_label.pack(side=ttk.LEFT, fill=ttk.X)
+
+        self._mode_frame.grid(
+            row=0, column=2, padx=const.misc.MEDIUM_PADDING, sticky=ttk.EW
+        )
+        self._mode_label.pack(side=ttk.LEFT, fill=ttk.X)
+
+        self._temperature_frame.grid(
+            row=0, column=3, padx=const.misc.MEDIUM_PADDING, sticky=ttk.EW
+        )
+        self._temperature_label.pack(side=ttk.LEFT, fill=ttk.X)
+
+        self._urms_frame.grid(
+            row=0, column=4, padx=const.misc.MEDIUM_PADDING, sticky=ttk.EW
+        )
+        self._urms_label.pack(side=ttk.LEFT, fill=ttk.X)
+
+        self._irms_frame.grid(
+            row=0, column=5, padx=const.misc.MEDIUM_PADDING, sticky=ttk.EW
+        )
+        self._irms_label.pack(side=ttk.LEFT, fill=ttk.X)
+
+        self._phase_frame.grid(
+            row=0, column=6, padx=const.misc.MEDIUM_PADDING, sticky=ttk.EW
+        )
+        self._phase_label.pack(side=ttk.LEFT, fill=ttk.X)
+
+    def on_signal_turn_on(self, event: ttk.tk.Event) -> None:
+        self._signal_label.configure(bootstyle=const.style.INVERSE_SUCCESS)
+
+    def on_connected(self, event: ttk.tk.Event) -> None:
+        self._scrolled_info_frame.grid()
+        self._connection_label.configure(bootstyle=const.style.INVERSE_SUCCESS)
+
     def on_disconnected(self, event: ttk.tk.Event) -> None:
-        pass
+        self._scrolled_info_frame.grid_remove()
+        self._signal_label.configure(bootstyle=const.style.INVERSE_DANGER)
+        self._connection_label.configure(bootstyle=const.style.INVERSE_DANGER)
 
 
 class StatusView(View):
@@ -153,7 +218,6 @@ class StatusView(View):
             anchor=ttk.CENTER,
             style=ttk.PRIMARY,
             background=const.misc.STATUS_LIGHT_GREY,
-            text="URMS: 1000.10",
             font=(const.fonts.QTYPE_OT, const.fonts.TEXT_SIZE),
         )
         self._irms_label: ttk.Label = ttk.Label(
@@ -161,7 +225,6 @@ class StatusView(View):
             anchor=ttk.CENTER,
             style=ttk.DANGER,
             background=const.misc.STATUS_LIGHT_GREY,
-            text="IRMS: 1000.100",
             font=(const.fonts.QTYPE_OT, const.fonts.TEXT_SIZE),
         )
         self._phase_label: ttk.Label = ttk.Label(
@@ -170,7 +233,6 @@ class StatusView(View):
             style=ttk.INFO,
             foreground=const.misc.GREEN,
             background=const.misc.STATUS_LIGHT_GREY,
-            text="PHASE: 1000.1000",
             font=(const.fonts.QTYPE_OT, const.fonts.TEXT_SIZE),
         )
         self._connection_label: ttk.Label = ttk.Label(
@@ -241,42 +303,21 @@ class StatusView(View):
         self._urms_label.grid(
             row=0,
             column=0,
-            padx=const.misc.LARGE_PADDING,
+            padx=const.misc.SMALL_PADDING,
             pady=const.misc.MEDIUM_PADDING,
         )
         self._irms_label.grid(
             row=0,
             column=1,
-            padx=const.misc.LARGE_PADDING,
+            padx=const.misc.SMALL_PADDING,
             pady=const.misc.MEDIUM_PADDING,
         )
         self._phase_label.grid(
             row=0,
             column=2,
-            padx=const.misc.LARGE_PADDING,
+            padx=const.misc.SMALL_PADDING,
             pady=const.misc.MEDIUM_PADDING,
         )
-
-        # padding_rel = 0.02  # Example padding
-        #
-        # # The relx and rely should be small enough to not push the label outside of the frame's bounds
-        # shadow_offset_rel = 0.01  # Shadow offset
-        # label_relwidth = 1 - (2 * padding_rel)  # Adjusted width for padding
-        # label_relheight = 0.48 - (2 * padding_rel)  # Adjusted height for padding
-        #
-        # # Place the main label and shadow label within the signal frame
-        # self._connection_label.place(
-        #     relx=padding_rel,
-        #     rely=padding_rel,
-        #     relwidth=label_relwidth,
-        #     relheight=label_relheight,
-        # )
-        # self._connection_label_shadow.place(
-        #     relx=padding_rel + shadow_offset_rel,
-        #     rely=padding_rel + shadow_offset_rel,
-        #     relwidth=label_relwidth,
-        #     relheight=label_relheight,
-        # )
 
         self._signal_frame.rowconfigure(0, weight=const.misc.EXPAND)
         self._signal_frame.columnconfigure(0, weight=const.misc.EXPAND)
@@ -295,3 +336,11 @@ class StatusView(View):
             pady=const.misc.MEDIUM_PADDING,
             sticky=ttk.W,
         )
+
+    def on_connect(self) -> None:
+        self._connection_label.configure(
+            image=utils.ImageLoader.load_image(
+                const.images.LED_ICON_GREEN, const.misc.LARGE_BUTTON_ICON_SIZE
+            )
+        )
+        self._signal_label
