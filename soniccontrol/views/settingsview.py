@@ -13,6 +13,9 @@ class ATK_Frame(ttk.Frame):
         self._label: ttk.Label = ttk.Label(self, text=label)
         self._spinbox: ttk.Spinbox = ttk.Spinbox(self)
 
+    def bind_variable(self, variable: ttk.Variable) -> None:
+        self._spinbox.configure(textvariable=variable)
+
     def publish(self) -> None:
         self.columnconfigure(0, weight=const.misc.EXPAND)
         self.columnconfigure(1, weight=const.misc.EXPAND)
@@ -92,6 +95,9 @@ class SettingsView(TabView):
         self._send_config_button: ttk.Button = ttk.Button(
             self._sonicamp_settings_frame, text=const.ui.SEND_LABEL, style=ttk.SUCCESS
         )
+        self._progress_bar: ttk.Progressbar = ttk.Progressbar(
+            self._sonicamp_settings_frame, orient=ttk.HORIZONTAL, style=ttk.SUCCESS
+        )
         self._parameters_frame: ScrolledFrame = ScrolledFrame(
             self._sonicamp_settings_frame, autohide=True
         )
@@ -150,7 +156,7 @@ class SettingsView(TabView):
         self._sonicamp_settings_frame.columnconfigure(1, weight=const.misc.EXPAND)
         self._sonicamp_settings_frame.columnconfigure(2, weight=const.misc.DONT_EXPAND)
         self._sonicamp_settings_frame.columnconfigure(3, weight=const.misc.DONT_EXPAND)
-        self._sonicamp_settings_frame.rowconfigure(1, weight=const.misc.EXPAND)
+        self._sonicamp_settings_frame.rowconfigure(2, weight=const.misc.EXPAND)
         self._new_config_button.grid(
             row=0,
             column=0,
@@ -176,8 +182,16 @@ class SettingsView(TabView):
             padx=const.misc.MEDIUM_PADDING,
             pady=const.misc.MEDIUM_PADDING,
         )
-        self._parameters_frame.grid(
+        self._progress_bar.grid(
             row=1,
+            column=0,
+            columnspan=4,
+            padx=const.misc.MEDIUM_PADDING,
+            pady=const.misc.MEDIUM_PADDING,
+            sticky=ttk.EW,
+        )
+        self._parameters_frame.grid(
+            row=2,
             column=0,
             padx=const.misc.MEDIUM_PADDING,
             pady=const.misc.MEDIUM_PADDING,

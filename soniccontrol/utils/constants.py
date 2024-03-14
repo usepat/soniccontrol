@@ -148,6 +148,7 @@ class _Events:
     AUTO_MODE_EVENT: Literal["<<AutoMode>>"] = "<<AutoMode>>"
     SIGNAL_OFF: Literal["<<SignalOff>>"] = "<<SignalOff>>"
     SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
+    SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
 
 
 events: _Events = _Events()

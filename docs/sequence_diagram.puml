@@ -1,0 +1,36 @@
+@startuml
+
+
+---
+
+User -> Tkinter: Pressing "Start Scripting"
+
+Tkinter -> Presenter: START_SCRIPTING event
+activate Presenter
+
+Presenter -> ScriptingView: on_scripting_start()
+activate ScriptingView
+
+Presenter -> SonicAmp: start_scripting()
+activate SonicAmp
+
+loop until script ended or STOP_SCRIPTING event received
+  Presenter -> SonicAmp: get_current_command()
+  SonicAmp --> Presenter: current_command_information
+  Presenter -> ScriptingView: highlight_line()
+  Presenter -> ScriptingView: display_current_command()
+end
+break 
+  User -> Tkinter: Pressing "Stop Scripting"
+  Tkinter -> Presenter: STOP_SCRIPTING event
+  return SonicAmp done
+  return 
+  Presenter -> ScriptingView: on_stop_scripting()
+  activate ScriptingView
+  return
+  return
+end
+
+
+@enduml
+

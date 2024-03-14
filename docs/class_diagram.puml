@@ -1,0 +1,74 @@
+@startuml
+interface interfaces.Presenter {
+  +Model model
+  +View view
+  {abstract} +bind_events()
+}
+
+class interfaces.View {
+  {abstract} initialize_children()
+  {abstract} initialize_layout()
+}
+interfaces.View <|-- ttk.Frame
+
+interface interfaces.Model {
+}
+class SonicAmp {
+}
+SonicAmp <|-- interfaces.Model
+interfaces.Presenter *-- interfaces.Model
+interfaces.Presenter *-- interfaces.View
+
+class MainPresenter
+MainPresenter <|-- interfaces.Presenter
+
+class MainView
+MainView <|-- ttk.Window
+MainView o-- interfaces.View
+MainPresenter *-- MainView
+MainPresenter *-- SonicAmp
+
+class views.HomeView {
+  +disable_gain()
+  +enable_gain()
+  +insert_feedback()
+  +enable_control_panel()
+  +disable_control_panel()
+}
+views.HomeView <|-- interfaces.View
+class presenters.HomePresenter {
+  on_set_frequency()
+  on_set_gain()
+  on_set_values()
+  on_set_relay_mode()
+}
+presenters.HomePresenter <|-- interfaces.Presenter
+presenters.HomePresenter *-- views.HomeView
+/' HomePresenter *-- SonicAmp '/
+
+class views.SettingsView
+views.SettingsView <|-- interfaces.View
+class presenters.SettingsPresenter {
+  on_firmware_flash()
+  on_config_change()
+  on_config_send()
+}
+presenters.SettingsPresenter <|-- interfaces.Presenter
+presenters.SettingsPresenter *-- views.SettingsView
+/' SettingsPresenter *-- SonicAmp '/
+
+class views.ScriptingView
+views.ScriptingView <|-- interfaces.View
+class presenters.ScriptingPresenter {
+  on_scripting_start()
+  on_scripting_stop()
+  on_save_file()
+  on_load_file()
+  on_logconfig()
+
+}
+presenters.ScriptingPresenter <|-- interfaces.Presenter
+presenters.ScriptingPresenter *-- views.ScriptingView
+/' ScriptingPresenter *-- SonicAmp '/
+
+@enduml

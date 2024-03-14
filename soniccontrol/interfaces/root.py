@@ -3,6 +3,7 @@ from typing import Any
 
 import attrs
 import ttkbootstrap as ttk
+from soniccontrol.components.stringvar import StringVar
 from soniccontrol.utils import ImageLoader
 
 
@@ -10,8 +11,9 @@ from soniccontrol.utils import ImageLoader
 class MiscVars:
     program_state: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     connection_port: ttk.StringVar = attrs.field(factory=ttk.StringVar)
-    device_heading1: ttk.StringVar = attrs.field(factory=ttk.StringVar)
-    device_heading2: ttk.StringVar = attrs.field(factory=ttk.StringVar)
+    connection_subtitle: ttk.StringVar = attrs.field(factory=ttk.StringVar)
+    device_heading1: StringVar = attrs.field(factory=StringVar)
+    device_heading2: StringVar = attrs.field(factory=StringVar)
     subtitle: ttk.StringVar = attrs.field(factory=ttk.StringVar)
 
 
@@ -33,6 +35,7 @@ class UserSettableVars:
 @attrs.frozen
 class ATFVars:
     atf_config_name: ttk.StringVar = attrs.field(factory=ttk.StringVar)
+    submitting_progress: ttk.IntVar = attrs.field(factory=ttk.IntVar)
     atf1: ttk.IntVar = attrs.field(factory=ttk.IntVar)
     atk1: ttk.DoubleVar = attrs.field(factory=ttk.DoubleVar)
     atf2: ttk.IntVar = attrs.field(factory=ttk.IntVar)
@@ -80,6 +83,10 @@ class Root(ttk.Window):
     @abc.abstractmethod
     def views(self) -> Any:
         ...
+
+    @property
+    def misc_vars(self) -> MiscVars:
+        return self._misc_vars
 
     @property
     def status_vars(self) -> StatusVars:

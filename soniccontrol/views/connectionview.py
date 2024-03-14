@@ -1,6 +1,8 @@
 from typing import Tuple
 
 import ttkbootstrap as ttk
+from icecream import ic
+from soniccontrol.components.responsive_label import ResponsiveLabel
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.view import TabView
 from soniccontrol.utils import ImageLoader, constants
@@ -47,6 +49,9 @@ class ConnectionView(TabView):
             self._navigation_frame,
             style=ttk.SUCCESS,
             text=constants.ui.CONNECT_LABEL,
+            command=lambda: self.event_generate(
+                constants.events.CONNECTION_ATTEMPT_EVENT
+            ),
         )
         self._body_frame: ScrolledFrame = ScrolledFrame(self._main_frame)
         self._heading_frame: ttk.Frame = ttk.Frame(self._body_frame)
@@ -73,10 +78,12 @@ class ConnectionView(TabView):
         self._firmware_info_frame: ttk.Labelframe = ttk.Labelframe(
             self._body_frame, text=constants.ui.FIRMWARE_LABEL, style=ttk.DARK
         )
-        self._firmware_info_label: ttk.Label = ttk.Label(
+        self._firmware_info_label: ttk.Label = ResponsiveLabel(
             self._firmware_info_frame,
             style=ttk.DARK,
             justify=ttk.CENTER,
+            wraplength=300,
+            parent_reference=self,
             text="THIS IS A FIRMWARE LABEL TEST LABELL, REMOVE THIS TODO:\n usepat LABEL\n sonicamp: SONICAMP\n Version: 1.0.0\n",
         )
 
@@ -96,6 +103,10 @@ class ConnectionView(TabView):
         self._connect_button.pack(side=ttk.LEFT, padx=constants.misc.SMALL_PADDING)
 
         self._body_frame.pack(fill=ttk.BOTH, expand=True)
+        self._body_frame.rowconfigure(0, weight=constants.misc.DONT_EXPAND, minsize=40)
+        self._body_frame.rowconfigure(1, weight=constants.misc.EXPAND)
+        self._body_frame.columnconfigure(0, weight=constants.misc.EXPAND)
+
         self._heading_frame.columnconfigure(0, weight=constants.misc.EXPAND)
         self._heading_frame.columnconfigure(1, weight=constants.misc.EXPAND)
         self._heading_frame.columnconfigure(2, weight=constants.misc.EXPAND)
@@ -104,29 +115,37 @@ class ConnectionView(TabView):
         self._heading_frame.rowconfigure(1, weight=constants.misc.EXPAND)
         self._heading_frame.rowconfigure(2, weight=2)
         self._heading_frame.rowconfigure(3, weight=constants.misc.EXPAND)
-        self._heading_frame.pack(
-            fill=ttk.BOTH,
-            expand=True,
+        # self._heading_frame.pack(
+        #     fill=ttk.BOTH,
+        #     expand=True,
+        #     pady=constants.misc.LARGE_PADDING,
+        #     padx=constants.misc.LARGE_PADDING,
+        # )
+
+        self._heading_frame.grid(
+            row=0,
+            column=0,
+            sticky=ttk.EW,
             pady=constants.misc.LARGE_PADDING,
             padx=constants.misc.LARGE_PADDING,
         )
         self._subtitle.grid(row=1, column=1, columnspan=2, sticky=ttk.EW)
         self._heading_part_one.grid(row=2, column=1, sticky=ttk.E)
         self._heading_part_two.grid(row=2, column=2, sticky=ttk.W)
-
-        self._firmware_info_frame.pack(
-            expand=True,
+        # self._firmware_info_frame.pack(
+        #     expand=True,
+        #     pady=constants.misc.LARGE_PADDING,
+        #     padx=constants.misc.LARGE_PADDING,
+        #     anchor=ttk.CENTER,
+        # )
+        self._firmware_info_frame.grid(
+            row=1,
+            column=0,
+            # sticky=ttk.NSEW,
             pady=constants.misc.LARGE_PADDING,
             padx=constants.misc.LARGE_PADDING,
-            anchor=ttk.CENTER,
         )
         self._firmware_info_label.pack(fill=ttk.BOTH, expand=True, anchor=ttk.CENTER)
-
-    def toggle_firmware(self) -> None:
-        ...
-
-    def toggle_heading_highlight(self) -> None:
-        ...
 
     def set_small_width_heading(self) -> None:
         ...
@@ -143,25 +162,27 @@ class ConnectionView(TabView):
     def set_heading(self, heading: Tuple[str, str] | str, subtitle: str) -> None:
         ...
 
-    def change_button_to(
-        self, connected: bool = False, disconnected: bool = False
-    ) -> None:
-        ...
+    def on_connection_attempt(self, event: ttk.tk.Event) -> None:
+        self._connect_button.configure(
+            bootstyle=ttk.DANGER,
+            text="Cancel",
+            command=lambda: self.event_generate(constants.events.DISCONNECTED_EVENT),
+        )
 
-    def enable_firmware_info(self) -> None:
-        ...
+    def on_connect(
+        self, event: ttk.tk.Event
+    ) -> None:  # , event: ConnectionEvent) -> None:
+        self._firmware_info_frame.grid()
 
-    def disable_firmware_info(self) -> None:
-        ...
-
-    def on_connection_attempt(self) -> None:
-        ...
-
-    def on_connect(self) -> None:  # , event: ConnectionEvent) -> None:
-        ...
-
-    def on_disconnect(self) -> None:
-        ...
+    def on_disconnect(self, event: ttk.tk.Event) -> None:
+        self._connect_button.configure(
+            bootstyle=ttk.SUCCESS,
+            text="Connect",
+            command=lambda: self.event_generate(
+                constants.events.CONNECTION_ATTEMPT_EVENT
+            ),
+        )
+        self._firmware_info_frame.grid_remove()
 
     def publish(self) -> None:
         ...

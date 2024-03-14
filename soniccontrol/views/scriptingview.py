@@ -4,14 +4,14 @@ from typing import Any, TypedDict
 
 import ttkbootstrap as ttk
 from icecream import ic
-from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
-from ttkbootstrap.style import Callable
-
-from soniccontrol import utils
 from soniccontrol.components.card import Card
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.view import TabView
 from soniccontrol.utils import constants as const
+from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
+from ttkbootstrap.style import Callable
+
+from soniccontrol import utils
 
 
 class ScriptingView(TabView):
@@ -162,12 +162,6 @@ class ScriptingView(TabView):
         self._current_task_label.grid(row=0, column=0, columnspan=2, sticky=ttk.EW)
         self._progressbar.grid(row=0, column=1, sticky=ttk.EW)
 
-    def set_small_width_layout(self) -> None:
-        ...
-
-    def set_large_width_layout(self) -> None:
-        ...
-
     def publish(self) -> None:
         ...
 
@@ -181,7 +175,8 @@ class ScriptingView(TabView):
             command=lambda: self.event_generate(const.events.SCRIPT_PAUSE_EVENT),
         )
         self._end_button.grid()
-        self._progressbar.start()
+        self._progressbar.configure(mode=ttk.DETERMINATE)
+        self._progressbar.step()
 
     def on_script_stop(self, event: Any, *args, **kwargs) -> None:
         self.start_button.configure(
@@ -210,12 +205,12 @@ class ScriptingView(TabView):
         ...
 
     def load_script(self) -> None:
-        filename: pathlib.Path = pathlib.Path(
-            filedialog.askopenfilename(
-                defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
-            )
+        filename: str = filedialog.askopenfilename(
+            defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
         )
-        with filename.open("r") as f:
+        if filename == "." or filename == "" or isinstance(filename, (tuple)):
+            return
+        with pathlib.Path(filename).open("r") as f:
             self._scripting_text.delete(1.0, ttk.END)
             self._scripting_text.insert(ttk.INSERT, f.read())
 

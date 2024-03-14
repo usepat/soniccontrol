@@ -1,17 +1,17 @@
 from typing import Any
 
+import soniccontrol.utils as utils
+import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
 from icecream import ic
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView, View
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.tableview import (TableColumn, TableEvent,
                                     TableHeaderRightClickMenu, TableRow,
                                     Tableview)
 
-import soniccontrol.utils as utils
-import soniccontrol.utils.constants as const
 from soniccontrol import soniccontrol_logger as logger
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.interfaces.view import TabView, View
 
 
 class SonicMeasureView(TabView):
@@ -144,6 +144,7 @@ class SonicMeasureFrame(View):
             self._parameters_frame,
             text=const.ui.USE_SCRIPTING_INSTEAD,
             style=const.style.DARK_SQUARE_TOGGLE,
+            command=self._toggle_scripting_command,
         )
 
     def _initialize_publish(self) -> None:
@@ -289,6 +290,9 @@ class SonicMeasureFrame(View):
             padx=const.misc.MEDIUM_PADDING,
             pady=const.misc.LARGE_PADDING,
         )
+
+    def _toggle_scripting_command(self) -> None:
+        pass
 
 
 class DataVisualizer(View):

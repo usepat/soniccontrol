@@ -92,7 +92,10 @@ class StatusBarView(View):
         ...
 
     def _initialize_publish(self) -> None:
+        self._main_frame.pack(side=ttk.LEFT, fill=ttk.X)
+        self._program_state_frame.pack(side=ttk.LEFT)
         self._program_state_label.pack(side=ttk.LEFT, ipadx=const.misc.MEDIUM_PADDING)
+        self._scrolled_info_frame.pack(side=ttk.LEFT, fill=ttk.X)
         self._freq_label.pack(side=ttk.LEFT)
         self._gain_label.pack(side=ttk.LEFT)
         self._mode_label.pack(side=ttk.LEFT)
@@ -104,6 +107,9 @@ class StatusBarView(View):
         self._signal_frame.pack(side=ttk.RIGHT)
         self._signal_label.pack(side=ttk.RIGHT, ipadx=const.misc.SMALL_PADDING)
         self._connection_label.pack(side=ttk.RIGHT, ipadx=const.misc.SMALL_PADDING)
+
+    def on_disconnected(self, event: ttk.tk.Event) -> None:
+        pass
 
 
 class StatusView(View):
@@ -167,19 +173,6 @@ class StatusView(View):
             text="PHASE: 1000.1000",
             font=(const.fonts.QTYPE_OT, const.fonts.TEXT_SIZE),
         )
-
-        # self._connection_label_shadow: ttk.Label = ttk.Label(
-        #     self._signal_frame,
-        #     anchor=ttk.CENTER,
-        #     justify=ttk.CENTER,
-        #     compound=ttk.LEFT,
-        #     font=("QTypeOT", 15),
-        #     foreground="black",
-        #     background="#c3c0ba",
-        #     # image=utils.ImageLoader.load_image(const.images.LED_ICON_RED, (20, 20)),
-        #     style=const.style.INVERSE_SECONDARY,
-        #     text=const.ui.NOT_CONNECTED,
-        # )
         self._connection_label: ttk.Label = ttk.Label(
             self._signal_frame,
             anchor=ttk.CENTER,
@@ -194,18 +187,6 @@ class StatusView(View):
             style=const.style.INVERSE_SECONDARY,
             text=const.ui.NOT_CONNECTED,
         )
-        # self._signal_label_shadow: ttk.Label = ttk.Label(
-        #     self._signal_frame,
-        #     anchor=ttk.CENTER,
-        #     justify=ttk.CENTER,
-        #     compound=ttk.LEFT,
-        #     font=("QTypeOT", 15),
-        #     foreground="#f8f5f0",
-        #     background="#c3c0ba",
-        #     image=utils.ImageLoader.load_image(const.images.LED_ICON_RED, (20, 20)),
-        #     style=const.style.INVERSE_SECONDARY,
-        #     text=const.ui.SIGNAL_OFF,
-        # )
         self._signal_label: ttk.Label = ttk.Label(
             self._signal_frame,
             anchor=ttk.CENTER,
