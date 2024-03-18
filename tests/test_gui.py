@@ -1,5 +1,7 @@
-import soniccontrol
+from soniccontrol.core.window import MainPresenter
 from soniccontrol.core.windowview import MainView
+
+import soniccontrol
 
 # VIEW TESTING SCRIPT
 # This script it used to view the gui without any communication or presenter logic
@@ -13,12 +15,12 @@ class SonicAmp:
         pass
 
 
-class MainPresenter:
-    def __init__(self, view: MainView, sonicamp: SonicAmp) -> None:
-        self._view = view
-
-    def start(self) -> None:
-        self._view.mainloop()
+# class MainPresenter:
+#     def __init__(self, view: MainView, sonicamp: SonicAmp) -> None:
+#         self._view = view
+#
+#     def start(self) -> None:
+#         self._view.mainloop()
 
 
 def test_gui() -> None:

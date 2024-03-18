@@ -1,11 +1,9 @@
 from typing import Any, get_type_hints
 
 import attrs
+import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
 from icecream import ic
-
-import soniccontrol.utils.constants as const
-from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.components.notebook import Notebook
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.root import Root
@@ -18,6 +16,8 @@ from soniccontrol.views.serialmonitorview import SerialMonitorView
 from soniccontrol.views.settingsview import SettingsView
 from soniccontrol.views.sonicmeasureview import SonicMeasureView
 from soniccontrol.views.statusview import StatusBarView, StatusView
+
+from soniccontrol import soniccontrol_logger as logger
 
 
 @attrs.frozen
@@ -162,6 +162,7 @@ class MainView(Root):
 
     def on_disconnect(self, event: ttk.tk.Event) -> None:
         self.remove_status_frame()
+        self._main_frame.forget(self._right_notebook)
         self._left_notebook.add_tabs(
             [self.views.connection, self.views.info],
             show_titles=True,

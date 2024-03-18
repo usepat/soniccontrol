@@ -4,8 +4,6 @@ from typing import Any, Callable, Literal, TypedDict, get_type_hints
 import attrs
 import ttkbootstrap as ttk
 from async_tkinter_loop import async_mainloop
-from ttkbootstrap.utility import enable_high_dpi_awareness
-
 from soniccontrol.amp import SonicAmp
 from soniccontrol.core import core_logger as logger
 from soniccontrol.core.windowview import MainView
@@ -18,6 +16,7 @@ from soniccontrol.presenters import (ConnectionPresenter, HomePresenter,
 from soniccontrol.utils import constants
 from soniccontrol.utils.debounce_job import DebounceJob
 from soniccontrol.views.serialmonitorview import SerialMonitorView
+from ttkbootstrap.utility import enable_high_dpi_awareness
 
 
 @attrs.frozen
@@ -151,8 +150,7 @@ class MainPresenter(Presenter):
         if sys.platform != "win32":
             logger.info("Enabling high dpi awareness")
             enable_high_dpi_awareness(self)
-        self.master.mainloop()
-        # async_mainloop(self._view)
+        async_mainloop(self.master)
 
 
 print(sys.platform)
