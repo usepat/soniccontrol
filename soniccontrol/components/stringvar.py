@@ -9,13 +9,15 @@ class StringVar(ttk.StringVar):
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
-        self._master: ttk.tk.Widget | None = None
+        self._master: ttk.tk.Widget | ttk.Window | None = None
         self._dot_threshold_idx: int = 0
         self._dot_string: str = "   "
         self._is_animation_running: bool = False
         self._original_string: str = self.get()
 
-    def animate_dots(self, master: ttk.ttk.Widget, text: str | None = None) -> None:
+    def animate_dots(
+        self, master: ttk.ttk.Widget | ttk.Window, text: str | None = None
+    ) -> None:
         self._master = master
         self._is_animation_running = True
         self._original_string = text if text is not None else self.get()

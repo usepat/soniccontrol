@@ -1,11 +1,11 @@
 import ttkbootstrap as ttk
+
+from soniccontrol import soniccontrol_logger as logger
+from soniccontrol import utils
 from soniccontrol.components.horizontalscrolled import HorizontalScrolledFrame
 from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.view import View
 from soniccontrol.utils import constants as const
-
-from soniccontrol import soniccontrol_logger as logger
-from soniccontrol import utils
 
 
 class StatusBarView(View):
@@ -101,10 +101,6 @@ class StatusBarView(View):
             compound=ttk.LEFT,
         )
 
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
     def _initialize_publish(self) -> None:
         self._main_frame.pack(side=ttk.LEFT, fill=ttk.X, expand=True)
         self._main_frame.columnconfigure(1, weight=const.misc.EXPAND)
@@ -117,7 +113,7 @@ class StatusBarView(View):
         self._program_state_frame.grid(
             row=0, column=0, sticky=ttk.EW, padx=const.misc.MEDIUM_PADDING
         )
-        self._program_state_label.pack(side=ttk.LEFT, ipadx=const.misc.MEDIUM_PADDING)
+        self._program_state_label.pack(side=ttk.LEFT)
 
         self._scrolled_info_frame.grid(row=0, column=1, sticky=ttk.EW)
         self._scrolled_info_frame.columnconfigure(0, weight=const.misc.EXPAND)
@@ -175,6 +171,23 @@ class StatusBarView(View):
         self._scrolled_info_frame.grid_remove()
         self._signal_label.configure(bootstyle=const.style.INVERSE_DANGER)
         self._connection_label.configure(bootstyle=const.style.INVERSE_DANGER)
+
+    def on_script_start(self, event: ttk.tk.Event) -> None:
+        self._program_state_label.configure(bootstyle=const.style.INVERSE_SUCCESS)
+        self._program_state_frame.configure(bootstyle=ttk.SUCCESS)
+
+    def on_idle(self, event: ttk.tk.Event) -> None:
+        self._program_state_frame.configure(bootstyle=ttk.SECONDARY)
+
+    def on_auto_mode(self, event: ttk.tk.Event) -> None:
+        self._program_state_frame.configure(bootstyle=ttk.PRIMARY)
+        self._program_state_label.configure(bootstyle=const.style.INVERSE_PRIMARY)
+
+    def on_signal_off(self, event: ttk.tk.Event) -> None:
+        self._signal_label.configure(bootstyle=const.style.INVERSE_DANGER)
+
+    def on_signal_on(self, event: ttk.tk.Event) -> None:
+        self._signal_label.configure(bootstyle=const.style.INVERSE_SUCCESS)
 
 
 class StatusView(View):
@@ -264,10 +277,6 @@ class StatusView(View):
             text=const.ui.SIGNAL_OFF,
         )
 
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
-
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
@@ -337,10 +346,30 @@ class StatusView(View):
             sticky=ttk.W,
         )
 
-    def on_connect(self) -> None:
+    def on_connect(self, event: ttk.tk.Event | None = None) -> None:
         self._connection_label.configure(
             image=utils.ImageLoader.load_image(
                 const.images.LED_ICON_GREEN, const.misc.LARGE_BUTTON_ICON_SIZE
             )
         )
-        self._signal_label
+
+    def on_disconnect(self, event: ttk.tk.Event | None = None) -> None:
+        self._connection_label.configure(
+            image=utils.ImageLoader.load_image(
+                const.images.LED_ICON_RED, const.misc.LARGE_BUTTON_ICON_SIZE
+            )
+        )
+
+    def on_signal_on(self, event: ttk.tk.Event | None = None) -> None:
+        self._signal_label.configure(
+            image=utils.ImageLoader.load_image(
+                const.images.LED_ICON_GREEN, const.misc.LARGE_BUTTON_ICON_SIZE
+            )
+        )
+
+    def on_signal_off(self, event: ttk.tk.Event | None = None) -> None:
+        self._signal_label.configure(
+            image=utils.ImageLoader.load_image(
+                const.images.LED_ICON_RED, const.misc.LARGE_BUTTON_ICON_SIZE
+            )
+        )

@@ -1,17 +1,17 @@
 from typing import Any
 
-import soniccontrol.utils as utils
-import soniccontrol.utils.constants as const
 import ttkbootstrap as ttk
 from icecream import ic
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.interfaces.view import TabView, View
 from ttkbootstrap.scrolled import ScrolledFrame
 from ttkbootstrap.tableview import (TableColumn, TableEvent,
                                     TableHeaderRightClickMenu, TableRow,
                                     Tableview)
 
+import soniccontrol.utils as utils
+import soniccontrol.utils.constants as const
 from soniccontrol import soniccontrol_logger as logger
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView, View
 
 
 class SonicMeasureView(TabView):

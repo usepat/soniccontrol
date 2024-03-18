@@ -40,6 +40,8 @@ misc: _Misc = _Misc()
 class _Style:
     SECONDARY_OUTLINE: Literal["secondary-outline"] = "secondary-outline"
     INVERSE_SECONDARY: Literal["inverse-secondary"] = "inverse-secondary"
+    INVERSE_PRIMARY: Literal["inverse-primary"] = "inverse-primary"
+    INVERSE_SUCCESS: Literal["inverse-success"] = "inverse-success"
     INVERSE_LIGHT: Literal["inverse-light"] = "inverse-light"
     INVERSE_DANGER: Literal["inverse-danger"] = "inverse-danger"
     DARK_OUTLINE_TOOLBUTTON: Literal[

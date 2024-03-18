@@ -4,6 +4,8 @@ from typing import Any, Callable, Literal, TypedDict, get_type_hints
 import attrs
 import ttkbootstrap as ttk
 from async_tkinter_loop import async_mainloop
+from ttkbootstrap.utility import enable_high_dpi_awareness
+
 from soniccontrol.amp import SonicAmp
 from soniccontrol.core import core_logger as logger
 from soniccontrol.core.windowview import MainView
@@ -16,7 +18,6 @@ from soniccontrol.presenters import (ConnectionPresenter, HomePresenter,
 from soniccontrol.utils import constants
 from soniccontrol.utils.debounce_job import DebounceJob
 from soniccontrol.views.serialmonitorview import SerialMonitorView
-from ttkbootstrap.utility import enable_high_dpi_awareness
 
 
 @attrs.frozen
@@ -47,7 +48,7 @@ class MainPresenter(Presenter):
 
         self.master.bind_all(
             constants.events.DISCONNECTED_EVENT,
-            lambda _: self.master.misc_vars.program_state.set("Disconnected"),
+            self.on_disconnect,
             add=True,
         )
         self.master.bind_all(
@@ -55,6 +56,11 @@ class MainPresenter(Presenter):
             self.master.on_disconnect,
             add=True,
         )
+        self.master.bind_all(
+            constants.events.AUTO_MODE_EVENT, self.on_auto_mode, add=True
+        )
+        self.master.bind_all(constants.events.SIGNAL_OFF, self.on_signal_off, add=True)
+
         self.master.status_vars.freq_khz.set(1000)
         self.master.status_vars.gain.set(150)
         self.master.user_setter_vars.relay_mode.set("Catch")
@@ -113,37 +119,46 @@ class MainPresenter(Presenter):
             ),
         )
 
-    # def bind_presenters_views(self) -> bool:
-    #     for presenter in self._presenters:
-    #         if not presenter.bind_view():
-    #             return False
-    #     return True
-
     def bind_events(self) -> None:
         ...
 
-    def handle_firmware_flash(self) -> None:
+    def on_firmware_flash(self) -> None:
         ...
 
-    def handle_disconnect(self) -> None:
+    def on_disconnect(self, event: ttk.tk.Event | None = None) -> None:
+        self.master.misc_vars.connection_state.set(constants.ui.NOT_CONNECTED)
+
+    def on_script_start(self, event: ttk.tk.Event | None = None) -> None:
+        self.master.misc_vars.program_state.set(constants.ui.SCRIPTING_LABEL)
+        self.master.misc_vars.program_state.animate_dots(self.master)
+
+    def on_script_stop(self, event: ttk.tk.Event | None = None) -> None:
+        self.master.misc_vars.program_state.set(constants.ui.IDLE_TITLE)
+        self.master.misc_vars.program_state.stop_animation()
+
+    def on_auto_mode(self, event: ttk.tk.Event | None = None) -> None:
+        self.master.misc_vars.program_state.set(constants.ui.AUTO_LABEL)
+        self.master.misc_vars.program_state.animate_dots(self.master)
+
+    def on_signal_off(self, event: ttk.tk.Event | None = None) -> None:
+        if (
+            self.master.misc_vars.program_state._original_string
+            == constants.ui.AUTO_LABEL
+        ):
+            self.master.misc_vars.program_state.stop_animation()
+
+        self.master.misc_vars.program_state.set(constants.ui.IDLE_TITLE)
+
+    def on_closing(self) -> None:
         ...
 
-    def handle_script_start(self) -> None:
+    def on_connection_attempt(self) -> None:
         ...
 
-    def handle_script_stop(self) -> None:
+    def on_status_update(self) -> None:
         ...
 
-    def handle_closing(self) -> None:
-        ...
-
-    def handle_connection_attempt(self) -> None:
-        ...
-
-    def handle_status_update(self) -> None:
-        ...
-
-    def handle_connect(self) -> None:
+    def on_connect(self) -> None:
         ...
 
     def start(self) -> None:

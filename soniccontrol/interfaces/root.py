@@ -10,7 +10,7 @@ from soniccontrol.utils import ImageLoader
 
 @attrs.frozen
 class MiscVars:
-    program_state: ttk.StringVar = attrs.field(factory=ttk.StringVar)
+    program_state: StringVar = attrs.field(factory=StringVar)
     connection_state: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     connection_port: ttk.StringVar = attrs.field(factory=ttk.StringVar)
     connection_subtitle: ttk.StringVar = attrs.field(factory=ttk.StringVar)

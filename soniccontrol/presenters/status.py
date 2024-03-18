@@ -35,9 +35,26 @@ class StatusBarPresenter(Presenter):
             textvariable=self.master.status_vars.phase_text
         )
 
-        self.master.bind_all(constants.events.CONNECTED_EVENT, self.view.on_connected)
+        self.master.bind_all(
+            constants.events.CONNECTED_EVENT, self.view.on_connected, add=True
+        )
         self.master.bind_all(
             constants.events.DISCONNECTED_EVENT, self.view.on_disconnected, add=True
+        )
+        self.master.bind_all(
+            constants.events.SCRIPT_START_EVENT, self.view.on_script_start, add=True
+        )
+        self.master.bind_all(
+            constants.events.SCRIPT_STOP_EVENT, self.view.on_idle, add=True
+        )
+        self.master.bind_all(
+            constants.events.AUTO_MODE_EVENT, self.view.on_auto_mode, add=True
+        )
+        self.master.bind_all(
+            constants.events.SIGNAL_OFF, self.view.on_signal_off, add=True
+        )
+        self.master.bind_all(
+            constants.events.SIGNAL_ON, self.view.on_signal_on, add=True
         )
 
 
@@ -59,4 +76,20 @@ class StatusPresenter(Presenter):
         )
         self.view._connection_label.configure(
             textvariable=self.master.misc_vars.connection_state
+        )
+        self.view._signal_label.configure(
+            textvariable=self.master.status_vars.signal_text
+        )
+
+        self.master.bind_all(
+            constants.events.SIGNAL_ON, self.view.on_signal_on, add=True
+        )
+        self.master.bind_all(
+            constants.events.SIGNAL_OFF, self.view.on_signal_off, add=True
+        )
+        self.master.bind_all(
+            constants.events.CONNECTED_EVENT, self.view.on_connect, add=True
+        )
+        self.master.bind_all(
+            constants.events.DISCONNECTED_EVENT, self.view.on_disconnect
         )
