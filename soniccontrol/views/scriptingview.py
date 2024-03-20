@@ -4,14 +4,14 @@ from typing import Any, TypedDict
 
 import ttkbootstrap as ttk
 from icecream import ic
-from soniccontrol.components.card import Card
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.interfaces.view import TabView
-from soniccontrol.utils import constants as const
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 from ttkbootstrap.style import Callable
 
 from soniccontrol import utils
+from soniccontrol.components.card import Card
+from soniccontrol.interfaces.layouts import Layout
+from soniccontrol.interfaces.view import TabView
+from soniccontrol.utils import constants as const
 
 
 class ScriptingView(TabView):

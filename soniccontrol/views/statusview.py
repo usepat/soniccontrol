@@ -110,10 +110,8 @@ class StatusBarView(View):
         self._signal_label.pack(side=ttk.RIGHT, ipadx=const.misc.SMALL_PADDING)
         self._connection_label.pack(side=ttk.RIGHT, ipadx=const.misc.SMALL_PADDING)
 
-        self._program_state_frame.grid(
-            row=0, column=0, sticky=ttk.EW, padx=const.misc.MEDIUM_PADDING
-        )
-        self._program_state_label.pack(side=ttk.LEFT)
+        self._program_state_frame.grid(row=0, column=0, sticky=ttk.EW)
+        self._program_state_label.pack(side=ttk.LEFT, padx=const.misc.MEDIUM_PADDING)
 
         self._scrolled_info_frame.grid(row=0, column=1, sticky=ttk.EW)
         self._scrolled_info_frame.columnconfigure(0, weight=const.misc.EXPAND)
@@ -160,9 +158,6 @@ class StatusBarView(View):
         )
         self._phase_label.pack(side=ttk.LEFT, fill=ttk.X)
 
-    def on_signal_turn_on(self, event: ttk.tk.Event) -> None:
-        self._signal_label.configure(bootstyle=const.style.INVERSE_SUCCESS)
-
     def on_connected(self, event: ttk.tk.Event) -> None:
         self._scrolled_info_frame.grid()
         self._connection_label.configure(bootstyle=const.style.INVERSE_SUCCESS)
@@ -176,8 +171,9 @@ class StatusBarView(View):
         self._program_state_label.configure(bootstyle=const.style.INVERSE_SUCCESS)
         self._program_state_frame.configure(bootstyle=ttk.SUCCESS)
 
-    def on_idle(self, event: ttk.tk.Event) -> None:
+    def on_idle(self, event: ttk.tk.Event | None = None) -> None:
         self._program_state_frame.configure(bootstyle=ttk.SECONDARY)
+        self._program_state_label.configure(bootstyle=const.style.INVERSE_SECONDARY)
 
     def on_auto_mode(self, event: ttk.tk.Event) -> None:
         self._program_state_frame.configure(bootstyle=ttk.PRIMARY)
@@ -185,6 +181,7 @@ class StatusBarView(View):
 
     def on_signal_off(self, event: ttk.tk.Event) -> None:
         self._signal_label.configure(bootstyle=const.style.INVERSE_DANGER)
+        self.on_idle()
 
     def on_signal_on(self, event: ttk.tk.Event) -> None:
         self._signal_label.configure(bootstyle=const.style.INVERSE_SUCCESS)

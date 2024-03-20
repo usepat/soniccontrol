@@ -60,9 +60,20 @@ class MainPresenter(Presenter):
             constants.events.AUTO_MODE_EVENT, self.on_auto_mode, add=True
         )
         self.master.bind_all(constants.events.SIGNAL_OFF, self.on_signal_off, add=True)
+        self.master.bind_all(
+            constants.events.SCRIPT_START_EVENT, self.on_script_start, add=True
+        )
+        self.master.bind_all(
+            constants.events.SCRIPT_STOP_EVENT, self.on_script_stop, add=True
+        )
+        self.master.bind_all(
+            constants.events.FIRMWARE_FLASH_EVENT, self.on_firmware_flash, add=True
+        )
 
         self.master.status_vars.freq_khz.set(1000)
         self.master.status_vars.gain.set(150)
+        self.master.status_vars.signal.set(True)
+        self.master.misc_vars.connection_state.set(constants.ui.CONNECTED_LABEL)
         self.master.user_setter_vars.relay_mode.set("Catch")
         self.master.status_vars.temp.set(23.4577)
         self.master.status_vars.urms.set(1000.10)
@@ -122,7 +133,7 @@ class MainPresenter(Presenter):
     def bind_events(self) -> None:
         ...
 
-    def on_firmware_flash(self) -> None:
+    def on_firmware_flash(self, event: ttk.tk.Event | None = None) -> None:
         ...
 
     def on_disconnect(self, event: ttk.tk.Event | None = None) -> None:
@@ -141,6 +152,10 @@ class MainPresenter(Presenter):
         self.master.misc_vars.program_state.animate_dots(self.master)
 
     def on_signal_off(self, event: ttk.tk.Event | None = None) -> None:
+        ## TEST - should be called via Status Loop ##
+        self.master.status_vars.signal.set(False)
+        ###
+
         if (
             self.master.misc_vars.program_state._original_string
             == constants.ui.AUTO_LABEL
