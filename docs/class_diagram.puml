@@ -1,74 +1,237 @@
 @startuml
-interface interfaces.Presenter {
-  +Model model
-  +View view
-  {abstract} +bind_events()
+interface network.CommunicationProtocol {
+  {abstract} +convert_message(message: Sendable): str
+}
+interface network.Communicator {
+  {abstract} +send(message: Sendable): None
+}
+network.Communicator "1" --> "1" network.CommunicationProtocol: uses
+
+class network.BasicProtocol implements network.CommunicationProtocol {}
+class network.SonicProtocol implements network.CommunicationProtocol {}
+
+class network.SerialCommunicator implements network.Communicator {
+  -_port: str
+  -_init_data: str
+  +port: str
+  +init_data: str
 }
 
-class interfaces.View {
-  {abstract} initialize_children()
-  {abstract} initialize_layout()
+class command.Converter<InputType, OutputType> {
+  -_worker: Callable[[InputType], OutputType]
+  -_converted: bool
+  -_result: OutputType
+  +convert(input_data: InputType): OutputType
 }
-interfaces.View <|-- ttk.Frame
-
-interface interfaces.Model {
-}
-class SonicAmp {
-}
-SonicAmp <|-- interfaces.Model
-interfaces.Presenter *-- interfaces.Model
-interfaces.Presenter *-- interfaces.View
-
-class MainPresenter
-MainPresenter <|-- interfaces.Presenter
-
-class MainView
-MainView <|-- ttk.Window
-MainView o-- interfaces.View
-MainPresenter *-- MainView
-MainPresenter *-- SonicAmp
-
-class views.HomeView {
-  +disable_gain()
-  +enable_gain()
-  +insert_feedback()
-  +enable_control_panel()
-  +disable_control_panel()
-}
-views.HomeView <|-- interfaces.View
-class presenters.HomePresenter {
-  on_set_frequency()
-  on_set_gain()
-  on_set_values()
-  on_set_relay_mode()
-}
-presenters.HomePresenter <|-- interfaces.Presenter
-presenters.HomePresenter *-- views.HomeView
-/' HomePresenter *-- SonicAmp '/
-
-class views.SettingsView
-views.SettingsView <|-- interfaces.View
-class presenters.SettingsPresenter {
-  on_firmware_flash()
-  on_config_change()
-  on_config_send()
-}
-presenters.SettingsPresenter <|-- interfaces.Presenter
-presenters.SettingsPresenter *-- views.SettingsView
-/' SettingsPresenter *-- SonicAmp '/
-
-class views.ScriptingView
-views.ScriptingView <|-- interfaces.View
-class presenters.ScriptingPresenter {
-  on_scripting_start()
-  on_scripting_stop()
-  on_save_file()
-  on_load_file()
-  on_logconfig()
+class command.CommandValidator {
+  -_pattern: str
+  -_is_validated: bool
+  -_compiled_pattern: re.Pattern[str]
+  -_converters: dict[str, command.Converter]
+  -_after_converters: dict[str, command.Converter]
+  -_result: dict[str, Any]
+  +result: dict[str, Any]
+  +is_validated: bool
+  +accepts(data: str): bool
 
 }
-presenters.ScriptingPresenter <|-- interfaces.Presenter
-presenters.ScriptingPresenter *-- views.ScriptingView
-/' ScriptingPresenter *-- SonicAmp '/
+class command.Answer {
+  -_string_repr: str
+  -_line_repr: list[str]
+  -_unkown_answers: set[str]
+  -_valid: bool
+  -_received_event: asyncio.Event
+  -_received_timestamp: float | None
+  -_measured_response_time: float | None
+  -_started_expecting_data: float
+  +as_string: str
+  +as_lines: str
+  +valid: bool
+  +unkown_answers: set[str]
+  +received_timestamp: float | None
+  +measured_response_time: float | None
+  +receive_answer(answer: Iterable[str] | str): None
+  +reset(): None
+  +is_received(): bool
+}
+command.Converter ..> command.Answer: converts
+network.Communicator ..> command.Answer: gets 
+command.CommandValidator ..> command.Answer: validates
+command.CommandValidator "1" --> "1..*" command.Converter: uses 
+class command.Command {
+  -_message: str
+  -_validators: tuple[CommandValidators, ...]
+  -_answer: command.Answer
+  -_byte_message: bytes
+  -_captured_data: dict[str, Any]
+  +captured_data: dict[str, Any]
+  +execute(communicator: network.Communicator, argument: Any = None)
+}
+command.Command ..> network.Communicator: uses
+command.Command "1" *-- "1" command.Answer
+command.Command "1" --> "0..*" command.CommandValidator
+
+enum model.ErrorType {
+  OVERHEAT
+  SOFTWARE
+  
+  -_description: str
+  +description: str
+}
+enum model.ProcedureType {
+  RAMP
+  CHIRP
+  SQUARE
+  SIN
+
+  -_name: str
+  +name: str
+}
+enum model.SonicAmpType {
+  CATCH
+  WIPE
+  ANCIENT_CATCH
+  ANCIENT_WIPE
+
+  -_name: str
+  +name: str
+}
+enum model.AmpMode {
+  CATCH
+  WIPE
+  KHZ
+  MHZ
+
+  -_name: str
+  +name: str
+}
+
+interface model.DataModel {
+  -_notify(): None
+  +subscribe(attribute: str, worker: Callable[[Any], Any])
+  +as_json(): str
+  +as_dict(): dict[str, Any]
+}
+struct model.Status implements model.DataModel {
+  +error: model.ErrorType
+  +frequency: int
+  +frequency_text: str
+  +gain: int
+  +gain_text: str
+  +procedure: model.ProcedureType
+  +wipe_mode: bool
+  +temperature: float
+  +temperature_text: str
+  +signal: bool
+  +signal_text: str
+  +urms: float
+  +urms_text: str
+  +irms: float
+  +irms_text: str
+  +phase: float
+  +phase_text: str
+  +amp_mode: model.AmpMode
+  +timestamp: datetime
+}
+model.Status --> model.AmpMode
+model.Status --> model.ProcedureType
+model.Status --> model.ErrorType
+struct model.ATFStatus implements model.DataModel {
+  +atf1: int
+  +atk1: float
+  +atf2: int
+  +atk2: float
+  +atf3: int
+  +atk3: float
+  +att1: float
+}
+enum model.Modules {
+  KHZ
+  MHZ
+  SONICMEASURE
+  FREQUENCY
+  GAIN
+  CATCH
+  WIPE
+  MILLIAMP_INTERFACE
+}
+struct model.Info implements model.DataModel {
+  +type: model.SonicAmpType
+  +source: str
+  +firmware_info: str
+  +hardware_version: str
+  +firmware_version: str
+}
+model.Info --> model.SonicAmpType
+
+interface Device {}
+class model.SonicAmp  implements Device {
+  -_communicator: network.Communicator
+  -_commands: dict[str, command.Command]
+  +disconnect(): None
+  +execute_command(command_type: CommandType, *args, **kwargs)
+}
+Device "1" *-- "1" network.Communicator
+Device "1" o-- "1..*" command.Command
+model.SonicAmp "1" --> "0..1" model.ATFStatus
+model.SonicAmp "1" --> "1" model.Info
+model.Status "1" --> "1" model.Modules
+model.SonicAmp "1" --> "1" model.Status
+
+class SonicAmpBuilder {
+  +create_amp(communicator: network.Communicator): model.SonicAmp
+}
+SonicAmpBuilder ..> network.Communicator: uses
+SonicAmpBuilder ..> command.Command: injects
+SonicAmpBuilder --> model.SonicAmp: creates
+SonicAmpBuilder --> model.Info: finds out
+
+protocol View {}
+View <.. model.DataModel: notifies
+
+class SonicController {
+  -_devices: Set[Device]
+  +register_device(communicator: network.Communicator): Device
+}
+SonicController --> command.Command: executes
+SonicController --> View
+SonicController --> model.DataModel
+SonicController --> Device
+SonicController ..> SonicAmpBuilder
+
+struct model.UserSetterVars implements model.DataModel {
+}
+model.SonicAmp --> model.UserSetterVars
+struct model.FilePaths implements model.DataModel {
+  firmware_flash_file: Path
+  sonicmeasure_log: Path
+  status_log: Path
+  scripting_log: Path
+}
+
+class ttkgui.HomeFrame implements View {}
+ttkgui.HomeFrame --|> ttk.Frame
+ttkgui.MainApp o-- ttkgui.HomeFrame
+class ttkgui.ScriptingFrame implements View {}
+ttkgui.ScriptingFrame --|> ttk.Frame
+ttkgui.MainApp o-- ttkgui.ScriptingFrame
+class ttkgui.SettingsFrame implements View {}
+ttkgui.SettingsFrame --|> ttk.Frame
+ttkgui.SettingsFrame --o ttkgui.MainApp
+class ttkgui.ConnectionFrame implements View {}
+ttkgui.ConnectionFrame --|> ttk.Frame
+ttkgui.ConnectionFrame --o ttkgui.MainApp
+class ttkgui.InfoFrame implements View {}
+ttkgui.InfoFrame --|> ttk.Frame
+ttkgui.InfoFrame --o ttkgui.MainApp
+class ttkgui.SonicMeasure implements View {}
+ttkgui.SonicMeasure --|> ttk.Frame
+ttkgui.SonicMeasure --o ttkgui.MainApp
+class ttkgui.SerialMonitor implements View {}
+ttkgui.SerialMonitor --|> ttk.Frame
+ttkgui.SerialMonitor --o ttkgui.MainApp
+
+class ttkgui.MainApp implements View {}
+ttkgui.MainApp --|> ttk.Window
 
 @enduml
