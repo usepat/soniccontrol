@@ -48,6 +48,15 @@ class ObservableVar(Generic[T]):
         self._callbacks[ObserverAction.WRITE].append(callback)
 
 
+class Status1:
+    error: ObservableVar[ErrorType] = ObservableVar(ErrorType.NO_ERROR)
+    frequency: ObservableVar[int] = ObservableVar(0)
+    gain: ObservableVar[int] = ObservableVar(0)
+    procedureType: ObservableVar[ProcedureType] = ObservableVar(ProcedureType.NONE)
+    wipe_mode: ObservableVar[bool] = ObservableVar(False)
+    temperature: ObservableVar[Optional[float]] = ObservableVar(None)
+
+
 def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
     none_converter = attrs.converters.default_if_none(default)
 
