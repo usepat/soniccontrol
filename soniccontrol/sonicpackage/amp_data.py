@@ -201,3 +201,56 @@ class Info:
             if hasattr(self, key):
                 setattr(self, key, value)
         return self
+
+from typing import TypeVar, Generic
+from enum import Enum, auto
+
+T = TypeVar("T")
+
+class ObserverAction(Enum):
+    READ = auto()
+    WRITE = auto()
+
+class ObservableVar(Generic[T]):
+    def __init__(self, value: T) -> None:
+        self._value: T = value
+        self._callbacks: dict[ObserverAction, list[Callable[[T], Any]]] = {
+            ObserverAction.READ: [],
+            ObserverAction.WRITE: [],
+        }
+    
+    def set(self, value: T) -> None:
+        print("test")
+        self._value = value
+        self._invoke_callbacks(ObserverAction.WRITE)
+        
+    def get(self) -> T:
+        print("test read")
+        self._invoke_callbacks(ObserverAction.READ)
+        return self._value        
+            
+    def _invoke_callbacks(self, action: ObserverAction) -> None:
+        for callback in self._callbacks.get(action, []):
+            callback(self._value)
+    
+    def add_read_callback(self, callback: Callable[[T], Any]) -> None:
+        self._callbacks.get(ObserverAction.READ).append(callback)
+        
+    def add_write_callback(self, callback: Callable[[T], Any]) -> None:
+        self._callbacks.get(ObserverAction.WRITE).append(callback)
+
+
+
+class Model():
+    lol: ObservableVar[int] = ObservableVar(10)
+        
+        
+if __name__ == "__main__":
+    print("starting")
+    obj = Model()
+    obj.lol.add_read_callback(lambda x: print(f"get {x}"))
+    obj.lol.add_write_callback(lambda x: print(f"set {x}"))
+    obj.lol.get()
+    obj.lol.set(11)
+    
+    print(obj.lol)

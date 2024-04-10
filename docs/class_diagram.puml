@@ -187,15 +187,15 @@ SonicAmpBuilder --> model.SonicAmp: creates
 SonicAmpBuilder --> model.Info: finds out
 
 protocol View {}
-View <.. model.DataModel: notifies
+View <.. model.DataModel: updates
 
 class SonicController {
   -_devices: Set[Device]
   +register_device(communicator: network.Communicator): Device
 }
 SonicController --> command.Command: executes
-SonicController --> View
-SonicController --> model.DataModel
+SonicController *-- View
+SonicController --> model.DataModel: manipulates
 SonicController --> Device
 SonicController ..> SonicAmpBuilder
 
