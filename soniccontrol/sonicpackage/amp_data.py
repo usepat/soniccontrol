@@ -202,7 +202,7 @@ class Info:
                 setattr(self, key, value)
         return self
 
-from typing import TypeVar, Generic
+from typing import Any, TypeVar, Generic
 from enum import Enum, auto
 
 T = TypeVar("T")
@@ -240,17 +240,48 @@ class ObservableVar(Generic[T]):
         self._callbacks.get(ObserverAction.WRITE).append(callback)
 
 
+class ObservableModel:
+    _observers: dict[str, list[Callable[[Any], Any]]] = dict()
+    
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        if __name.startswith("_"):
+            return
+        if __name not in self._observers:
+            self._observers[__name] = []
+        self._notify(__name, __value)
+        super().__setattr__(__name, __value)
+    
+    def _notify(self, name: str,   value: Any = None) -> None:
+        if not self._observers[name]:
+            return
+        for callback in self._observers[name]:
+            callback(value)
+
+    def add_obverser(self, name: str,   callback: Callable[[Any], Any]) -> None:
+        if name not in self._observers:
+            self._observers[name] = []
+        self._observers[name].append(callback)
 
 class Model():
     lol: ObservableVar[int] = ObservableVar(10)
         
+@attrs.define
+class LolModel(ObservableModel):
+    lol: int = attrs.field(default=10)
         
 if __name__ == "__main__":
-    print("starting")
-    obj = Model()
-    obj.lol.add_read_callback(lambda x: print(f"get {x}"))
-    obj.lol.add_write_callback(lambda x: print(f"set {x}"))
-    obj.lol.get()
-    obj.lol.set(11)
+    # print("starting")
+    # obj = Model()
+    # obj.lol.add_read_callback(lambda x: print(f"get {x}"))
+    # obj.lol.add_write_callback(lambda x: print(f"set {x}"))
+    # obj.lol.get()
+    # obj.lol.set(11)
     
-    print(obj.lol)
+    # print(obj.lol)
+
+    model: LolModel = LolModel()
+    model.add_obverser("lol", lambda x: print(f"set {x}"))
+    model.add_obverser("lol", lambda x: print(f"set 2 {x}"))
+    model.lol = 10
+    print(model.lol)
+    
