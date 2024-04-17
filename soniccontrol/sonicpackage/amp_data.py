@@ -252,14 +252,86 @@ class Info:
                 setattr(self, key, value)
         return self
 
+from typing import Any, TypeVar, Generic
+from enum import Enum, auto
 
+T = TypeVar("T")
+
+class ObserverAction(Enum):
+    READ = auto()
+    WRITE = auto()
+
+class ObservableVar(Generic[T]):
+    def __init__(self, value: T) -> None:
+        self._value: T = value
+        self._callbacks: dict[ObserverAction, list[Callable[[T], Any]]] = {
+            ObserverAction.READ: [],
+            ObserverAction.WRITE: [],
+        }
+    
+    def set(self, value: T) -> None:
+        print("test")
+        self._value = value
+        self._invoke_callbacks(ObserverAction.WRITE)
+        
+    def get(self) -> T:
+        print("test read")
+        self._invoke_callbacks(ObserverAction.READ)
+        return self._value        
+            
+    def _invoke_callbacks(self, action: ObserverAction) -> None:
+        for callback in self._callbacks.get(action, []):
+            callback(self._value)
+    
+    def add_read_callback(self, callback: Callable[[T], Any]) -> None:
+        self._callbacks.get(ObserverAction.READ).append(callback)
+        
+    def add_write_callback(self, callback: Callable[[T], Any]) -> None:
+        self._callbacks.get(ObserverAction.WRITE).append(callback)
+
+
+class ObservableModel:
+    _observers: dict[str, list[Callable[[Any], Any]]] = dict()
+    
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        if __name.startswith("_"):
+            return
+        if __name not in self._observers:
+            self._observers[__name] = []
+        self._notify(__name, __value)
+        super().__setattr__(__name, __value)
+    
+    def _notify(self, name: str,   value: Any = None) -> None:
+        if not self._observers[name]:
+            return
+        for callback in self._observers[name]:
+            callback(value)
+
+    def add_obverser(self, name: str,   callback: Callable[[Any], Any]) -> None:
+        if name not in self._observers:
+            self._observers[name] = []
+        self._observers[name].append(callback)
+
+class Model():
+    lol: ObservableVar[int] = ObservableVar(10)
+        
+@attrs.define
+class LolModel(ObservableModel):
+    lol: int = attrs.field(default=10)
+        
 if __name__ == "__main__":
-    print("starting")
-    obj = Model()
-    obj.lol.add_read_callback(lambda x: print(f"get {x}"))
-    obj.lol.add_write_callback(lambda x: print(f"set {x}"))
-    obj.lol.get()
-    obj.lol.set(11)
+    # print("starting")
+    # obj = Model()
+    # obj.lol.add_read_callback(lambda x: print(f"get {x}"))
+    # obj.lol.add_write_callback(lambda x: print(f"set {x}"))
+    # obj.lol.get()
+    # obj.lol.set(11)
+    
+    # print(obj.lol)
 
-    print(obj.lol)
-
+    model: LolModel = LolModel()
+    model.add_obverser("lol", lambda x: print(f"set {x}"))
+    model.add_obverser("lol", lambda x: print(f"set 2 {x}"))
+    model.lol = 10
+    print(model.lol)
+    
