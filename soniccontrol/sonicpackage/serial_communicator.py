@@ -14,7 +14,6 @@ from soniccontrol.sonicpackage.interfaces import Communicator
 
 @attrs.define
 class SerialCommunicator(Communicator):
-    _port: str = attrs.define()
     _init_command: Optional[Command] = attrs.field(init=False, default=None)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
@@ -54,10 +53,6 @@ class SerialCommunicator(Communicator):
         )
 
     @property
-    def port(self) -> str:
-        return self._port
-
-    @property
     def connection_opened(self) -> asyncio.Event:
         return self._connection_opened
 
@@ -69,7 +64,7 @@ class SerialCommunicator(Communicator):
     def init_command(self) -> Optional[Command]:
         return self._init_command
 
-    async def connect(self) -> None:
+    async def connect(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         async def get_first_message() -> None:
             self._init_command.answer.receive_answer(
                 await self.read_long_message(reading_time=6)
@@ -77,19 +72,28 @@ class SerialCommunicator(Communicator):
             self._init_command.validate()
             ic(f"Init Command: {self._init_command}")
 
-        try:
-            self._reader, self._writer = await aserial.open_serial_connection(
-                url=self.port,
-                baudrate=115200,
-            )
-        except Exception as e:
-            ic(sys.exc_info())
-            self._reader = None
-            self._writer = None
-        else:
-            await get_first_message()
-            self._connection_opened.set()
-            asyncio.create_task(self._worker())
+        # try:
+        #     self._reader, self._writer = await aserial.open_serial_connection(
+        #         url=self.port,
+        #         baudrate=115200,
+        #     )
+        #     process = await asyncio.create_subprocess_shell(
+        #         "",
+        #         stdin=asyncio.subprocess.PIPE,
+        #         stdout=asyncio.subprocess.PIPE,
+        #         stderr=asyncio.subprocess.PIPE
+        #     )
+        #     self._reader, self._writer = process.stdout, process.stdin
+        # except Exception as e:
+        #     ic(sys.exc_info())
+        #     self._reader = None
+        #     self._writer = None
+        # else:
+        self._reader = reader
+        self._writer = writer
+        await get_first_message()
+        self._connection_opened.set()
+        asyncio.create_task(self._worker())
 
     async def _worker(self) -> None:
         async def send_and_get(command: Command) -> None:
