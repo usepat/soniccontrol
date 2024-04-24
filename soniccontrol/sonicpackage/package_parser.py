@@ -14,6 +14,7 @@ class Package:
 
 
 class PackageParser:
+    max_bytes = 2048
     start_symbol = "<"
     end_symbol = ">"
 

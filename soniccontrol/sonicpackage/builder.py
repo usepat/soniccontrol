@@ -11,7 +11,6 @@ from soniccontrol.sonicpackage.sonicamp_ import (Command, Commands, Info,
 @attrs.define
 class AmpBuilder:
     async def build_amp(self, ser: SerialCommunicator) -> SonicAmp:
-        await ser.connect()
         await ser.connection_opened.wait()
         Command.set_serial_communication(ser)
 

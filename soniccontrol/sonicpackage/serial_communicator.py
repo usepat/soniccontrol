@@ -6,10 +6,12 @@ from typing import *
 import attrs
 import serial
 import serial_asyncio as aserial
+from soniccontrol.sonicpackage.package_fetcher import PackageFetcher
 import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
+from soniccontrol.sonicpackage.package_parser import PackageParser, Package
 
 
 @attrs.define
@@ -72,40 +74,32 @@ class SerialCommunicator(Communicator):
             self._init_command.validate()
             ic(f"Init Command: {self._init_command}")
 
-        # try:
-        #     self._reader, self._writer = await aserial.open_serial_connection(
-        #         url=self.port,
-        #         baudrate=115200,
-        #     )
-        #     process = await asyncio.create_subprocess_shell(
-        #         "",
-        #         stdin=asyncio.subprocess.PIPE,
-        #         stdout=asyncio.subprocess.PIPE,
-        #         stderr=asyncio.subprocess.PIPE
-        #     )
-        #     self._reader, self._writer = process.stdout, process.stdin
-        # except Exception as e:
-        #     ic(sys.exc_info())
-        #     self._reader = None
-        #     self._writer = None
-        # else:
         self._reader = reader
         self._writer = writer
+        self._package_fetcher = PackageFetcher(self._reader, print)
         await get_first_message()
         self._connection_opened.set()
+
+        self._package_fetcher.run()
         asyncio.create_task(self._worker())
 
     async def _worker(self) -> None:
+
+        package_counter = 0
         async def send_and_get(command: Command) -> None:
-            self._writer.write(command.byte_message)
+            nonlocal package_counter
+            package_counter += 1
+
+            package = Package("0", "0", package_counter, command.message)
+            message_str = PackageParser.write_package(package) + "\n"
+            message = message_str.encode(const.misc.ENCODING)
+            self._writer.write(message)
             await self._writer.drain()
-            response = await (
-                self.read_long_message(response_time=command.estimated_response_time)
-                if command.expects_long_answer
-                else self.read_message(response_time=command.estimated_response_time)
-            )
-            command.answer.receive_answer(response)
+
+            answer = await self._package_fetcher.get_answer_of_package(package_counter)
+            command.answer.receive_answer(answer)
             await self._answer_queue.put(command)
+
 
         if self._writer is None or self._reader is None:
             ic("No connection available")

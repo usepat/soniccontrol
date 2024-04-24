@@ -17,6 +17,13 @@ class ObserverAction(Enum):
     READ = auto()
     WRITE = auto()
 
+# TODO: ask Ilja, why those enums were not defined?
+class ErrorType(Enum):
+    NO_ERROR = auto()
+
+class ProcedureType(Enum):
+    NONE = auto()
+
 
 class ObservableVar(Generic[T]):
     def __init__(self, value: T) -> None:
