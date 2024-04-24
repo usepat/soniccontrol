@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Dict, Callable
 from asyncio import StreamReader
 import sys
@@ -7,6 +8,7 @@ from icecream import ic
 import soniccontrol.utils.constants as const
 from soniccontrol.sonicpackage.package_parser import Package, PackageParser
 
+logger = logging.getLogger()
 
 class PackageFetcher():
     def __init__(self, reader: StreamReader, log_callback: Callable[[str], None]):
@@ -51,7 +53,6 @@ class PackageFetcher():
                 else:
                     answer += line
             
-            #
             if len(answer) > 0:
                 self._answers[package.identifier] = answer
                 self._answer_received.set()

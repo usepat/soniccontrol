@@ -89,7 +89,7 @@ class SerialCommunicator(Communicator):
             nonlocal package_counter
             package_counter += 1
 
-            package = Package("0", "0", package_counter, command.message)
+            package = Package("0", "0", package_counter, command.full_message)
             message_str = PackageParser.write_package(package) + "\n" # \n is needed after the package.
             message = message_str.encode(const.misc.ENCODING)
             self._writer.write(message)
@@ -97,6 +97,7 @@ class SerialCommunicator(Communicator):
 
             answer = ""
             try:
+                # answer = await self._package_fetcher.get_answer_of_package(package_counter)
                 answer = await asyncio.wait_for(
                     self._package_fetcher.get_answer_of_package(package_counter), timeout=command.estimated_response_time
                 )

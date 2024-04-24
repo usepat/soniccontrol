@@ -1,4 +1,6 @@
 import asyncio
+import json
+import logging
 import re
 import sys
 import time
@@ -10,6 +12,7 @@ import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Communicator, Sendable
 
+logger = logging.getLogger()
 
 @attrs.define
 class Converter:
@@ -212,6 +215,10 @@ class Command(Sendable):
         )
 
     @property
+    def full_message(self) -> str:
+        return f"{self.message}{self.argument}\n"
+
+    @property
     def byte_message(self) -> bytes:
         return self._byte_message
 
@@ -268,6 +275,7 @@ class Command(Sendable):
         if argument is not None:
             self.set_argument(argument)
 
+        logger.debug("COMMAND_CALL(%s)", json.dumps(self.__dict__))
         await connection.send_and_wait_for_answer(self)
 
         self.answer.valid = self.validate()

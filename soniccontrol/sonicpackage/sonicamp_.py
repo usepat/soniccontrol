@@ -1,4 +1,6 @@
 import asyncio
+import json
+import logging
 from typing import *
 
 import attrs
@@ -12,6 +14,7 @@ from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
+logger = logging.getLogger()
 
 @attrs.define
 class MeasureUpdater(Updater):
@@ -185,6 +188,8 @@ class SonicAmp(Scriptable):
         await self._status.update(
             **command.status_result, **status_kwargs_if_valid_command
         )
+
+        logger.debug("DEVICE_STATE(%s)", json.dumps(self._status.__dict__))
         self._check_updater_strategy()
         ic(command.byte_message, command.answer, command.status_result, self._status)
 
