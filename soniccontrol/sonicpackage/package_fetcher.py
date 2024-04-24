@@ -33,7 +33,7 @@ class PackageFetcher():
             package = await self._read_package()
 
             if package.identifier == 0:
-                pass # 0 id means that it is a update message, maybe also a log
+                raise NotImplementedError() # 0 id means that it is a update message, maybe also a log
 
             lines = package.content.splitlines()
             for line in lines:

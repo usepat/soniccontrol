@@ -23,10 +23,10 @@ class PackageParser:
         regex_match = re.search(regex, data)
         try:
             return Package(
-                destination=regex_match.group(0),
-                source=regex_match.group(1),
-                identifier=int(regex_match.group(2)),
-                content=regex_match.group(3)
+                destination=regex_match.group(1),
+                source=regex_match.group(2),
+                identifier=int(regex_match.group(3)),
+                content=regex_match.group(4)
             )
         except e:
             # TODO: error handling
