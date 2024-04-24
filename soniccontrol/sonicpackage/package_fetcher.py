@@ -51,6 +51,7 @@ class PackageFetcher():
                 else:
                     answer += line
             
+            #
             if len(answer) > 0:
                 self._answers[package.identifier] = answer
                 self._answer_received.set()
