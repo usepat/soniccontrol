@@ -28,9 +28,8 @@ class PackageParser:
                 identifier=int(regex_match.group(3)),
                 content=regex_match.group(4)
             )
-        except e:
-            # TODO: error handling
-            raise e
+        except:
+            raise RuntimeError(f"Could not parse package: {data}")
 
 
     def write_package(package: Package) -> str:

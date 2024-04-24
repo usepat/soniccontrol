@@ -1,6 +1,8 @@
 import asyncio
 from typing import Dict, Callable
 from asyncio import StreamReader
+import sys
+from icecream import ic
 
 import soniccontrol.utils.constants as const
 from soniccontrol.sonicpackage.package_parser import Package, PackageParser
@@ -30,29 +32,40 @@ class PackageFetcher():
 
     async def _worker(self) -> None:
         while True:
-            package = await self._read_package()
+            try:
+                package = await self._read_package()
+            except:
+                ic(f"Exception while reading/parsing package {sys.exc_info()}")
+                continue
 
             if package.identifier == 0:
                 raise NotImplementedError() # 0 id means that it is a update message, maybe also a log
 
             lines = package.content.splitlines()
+            answer = ""
             for line in lines:
                 if line.startswith("LOG"):
                     self._log_callback(line)
                 elif line.isspace() or len(line) == 0:
                     continue # ignore whitespace
                 else:
-                    self._answers[package.identifier] = line
-                    self._answer_received.set()
+                    answer += line
+            
+            if len(answer) > 0:
+                self._answers[package.identifier] = answer
+                self._answer_received.set()
 
 
     async def _read_package(self) -> Package:
         if self._reader is None:
             raise RuntimeError("reader was not initialized")
         
-        # TODO: check for errors
         message: str = PackageParser.start_symbol
-        await self._reader.readuntil(PackageParser.start_symbol.encode(const.misc.ENCODING))
+        garbage_data = await self._reader.readuntil(PackageParser.start_symbol.encode(const.misc.ENCODING))
+        garbage = garbage_data.decode(const.misc.ENCODING)
+        if garbage.strip() != PackageParser.start_symbol:
+            raise RuntimeError(f"Before the package start, there were unexpected characters: {garbage}")
+        
         data = await self._reader.readuntil(PackageParser.end_symbol.encode(const.misc.ENCODING))
         message += data.decode(const.misc.ENCODING)
 

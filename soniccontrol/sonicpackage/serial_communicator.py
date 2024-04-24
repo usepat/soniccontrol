@@ -76,7 +76,7 @@ class SerialCommunicator(Communicator):
 
         self._reader = reader
         self._writer = writer
-        self._package_fetcher = PackageFetcher(self._reader, print)
+        self._package_fetcher = PackageFetcher(self._reader, print) # TODO: change log callback
         await get_first_message()
         self._connection_opened.set()
 
@@ -84,19 +84,25 @@ class SerialCommunicator(Communicator):
         asyncio.create_task(self._worker())
 
     async def _worker(self) -> None:
-
         package_counter = 0
         async def send_and_get(command: Command) -> None:
             nonlocal package_counter
             package_counter += 1
 
             package = Package("0", "0", package_counter, command.message)
-            message_str = PackageParser.write_package(package) + "\n"
+            message_str = PackageParser.write_package(package) + "\n" # \n is needed after the package.
             message = message_str.encode(const.misc.ENCODING)
             self._writer.write(message)
             await self._writer.drain()
 
-            answer = await self._package_fetcher.get_answer_of_package(package_counter)
+            answer = ""
+            try:
+                answer = await asyncio.wait_for(
+                    self._package_fetcher.get_answer_of_package(package_counter), timeout=command.estimated_response_time
+                )
+            except Exception as e:
+                ic(f"Exception while reading {sys.exc_info()}")
+
             command.answer.receive_answer(answer)
             await self._answer_queue.put(command)
 
