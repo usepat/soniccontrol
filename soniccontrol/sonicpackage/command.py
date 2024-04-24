@@ -216,7 +216,7 @@ class Command(Sendable):
 
     @property
     def full_message(self) -> str:
-        return f"{self.message}{self.argument}\n"
+        return f"{self.message}{self.argument}" # MAYBE: add newline at the end
 
     @property
     def byte_message(self) -> bytes:
@@ -275,7 +275,7 @@ class Command(Sendable):
         if argument is not None:
             self.set_argument(argument)
 
-        logger.debug("COMMAND_CALL(%s)", json.dumps(self.__dict__))
+        logger.debug("COMMAND_CALL(%s)", json.dumps(attrs.asdict(self)))
         await connection.send_and_wait_for_answer(self)
 
         self.answer.valid = self.validate()

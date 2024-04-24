@@ -80,8 +80,9 @@ class SerialCommunicator(Communicator):
         await get_first_message()
         self._connection_opened.set()
 
-        self._package_fetcher.run()
         asyncio.create_task(self._worker())
+        self._package_fetcher.run()
+
 
     async def _worker(self) -> None:
         package_counter = 0
@@ -97,10 +98,10 @@ class SerialCommunicator(Communicator):
 
             answer = ""
             try:
-                # answer = await self._package_fetcher.get_answer_of_package(package_counter)
-                answer = await asyncio.wait_for(
-                    self._package_fetcher.get_answer_of_package(package_counter), timeout=command.estimated_response_time
-                )
+                answer = await self._package_fetcher.get_answer_of_package(package_counter)
+                # answer = await asyncio.wait_for(
+                #     self._package_fetcher.get_answer_of_package(package_counter), timeout=command.estimated_response_time
+                # )
             except Exception as e:
                 ic(f"Exception while reading {sys.exc_info()}")
 
