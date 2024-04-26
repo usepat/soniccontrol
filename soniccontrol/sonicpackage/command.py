@@ -261,6 +261,12 @@ class Command(Sendable):
             const.misc.ENCODING
         )
 
+    def get_dict(self) -> dict:
+        return {
+            "argument": self.argument,
+            "message": self.message
+        }
+
     async def execute(
         self, argument: Any = None, connection: Optional[Communicator] = None
     ) -> object:
@@ -275,7 +281,8 @@ class Command(Sendable):
         if argument is not None:
             self.set_argument(argument)
 
-        logger.debug("COMMAND_CALL(%s)", json.dumps(attrs.asdict(self)))
+        print(json.dumps(self.get_dict()))
+        logger.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
         await connection.send_and_wait_for_answer(self)
 
         self.answer.valid = self.validate()
