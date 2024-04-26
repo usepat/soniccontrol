@@ -36,6 +36,17 @@ class AmpBuilder:
         ic(result_dict)
         sonicamp: SonicAmp = SonicAmp(serial=ser, info=info, status=status)
 
+        await Commands.get_command_list.execute()
+        if Commands.get_command_list.answer.valid:
+            command_names = Commands.get_command_list.answer.string.split("#")
+            for command_name in command_names:
+                field_names = [ key for key in Commands.__dict__.keys() if not str(key).startswith("__") ]
+                filtered_field_names = filter(lambda field_name: getattr(Commands, field_name).message == command_name, field_names)
+                field_name = next(filtered_field_names, None)
+                if field_name:
+                    sonicamp.add_command(getattr(Commands, field_name))
+            return sonicamp
+
         basic_commands: Tuple[Command] = (
             Commands.signal_on,
             Commands.signal_off,

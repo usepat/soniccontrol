@@ -55,6 +55,13 @@ class Commands:
         ),
     )
 
+    get_command_list: Command = Command(
+        message="?list_commands",
+        estimated_response_time=0.5,
+        expects_long_answer=True,
+        validators=CommandValidator(pattern=r"(.+)(#(.+))+")
+    )
+
     get_status: Command = Command(
         message="-",
         estimated_response_time=0.35,
