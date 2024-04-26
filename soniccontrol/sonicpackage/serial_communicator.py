@@ -3,6 +3,7 @@ import sys
 import time
 from typing import *
 
+import logging
 import attrs
 import serial
 import serial_asyncio as aserial
@@ -13,6 +14,7 @@ from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.package_parser import PackageParser, Package
 
+logger = logging.getLogger()
 
 @attrs.define
 class SerialCommunicator(Communicator):
@@ -92,6 +94,7 @@ class SerialCommunicator(Communicator):
 
             package = Package("0", "0", package_counter, command.full_message)
             message_str = PackageParser.write_package(package) + "\n" # \n is needed after the package.
+            logger.debug(f"WRITE_PACKAGE({message_str})")
             message = message_str.encode(const.misc.ENCODING)
             self._writer.write(message)
             await self._writer.drain()

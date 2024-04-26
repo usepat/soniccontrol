@@ -28,8 +28,7 @@ async def main():
     builder = AmpBuilder()
     sonicAmp = await builder.build_amp(communicator)
 
-    print(await sonicAmp.set_signal_on())
-    print("wtf")
+    await sonicAmp.set_signal_on()
 
 
 if __name__ == "__main__":

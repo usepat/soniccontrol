@@ -189,7 +189,11 @@ class SonicAmp(Scriptable):
             **command.status_result, **status_kwargs_if_valid_command
         )
 
-        logger.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
+        try:
+            logger.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
+        except Exception as e:
+            pass
+        
         self._check_updater_strategy()
         ic(command.byte_message, command.answer, command.status_result, self._status)
 

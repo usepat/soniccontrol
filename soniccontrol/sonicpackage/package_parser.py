@@ -19,7 +19,7 @@ class PackageParser:
     end_symbol = ">"
 
     def parse_package(data: str) -> Package:
-        regex = re.compile(r"<(.+)#(.+)#(\d+)#\d+#(.*)>", re.DOTALL)
+        regex = re.compile(r"<([^#]+)#([^#]+)#(\d+)#\d+#(.*)>", re.DOTALL)
         regex_match = re.search(regex, data)
         try:
             return Package(

@@ -71,4 +71,6 @@ class PackageFetcher():
         data = await self._reader.readuntil(PackageParser.end_symbol.encode(const.misc.ENCODING))
         message += data.decode(const.misc.ENCODING)
 
+        logger.debug(f"READ_PACKAGE({message})")
+
         return PackageParser.parse_package(message)

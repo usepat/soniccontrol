@@ -281,7 +281,6 @@ class Command(Sendable):
         if argument is not None:
             self.set_argument(argument)
 
-        print(json.dumps(self.get_dict()))
         logger.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
         await connection.send_and_wait_for_answer(self)
 

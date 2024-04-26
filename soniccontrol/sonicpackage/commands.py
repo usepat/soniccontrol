@@ -158,16 +158,30 @@ class Commands:
 
     signal_on: Command = Command(
         message="!ON",
-        validators=CommandValidator(
-            pattern=r"signal.*(on)", signal=lambda b: b.lower() == "on"
+        validators=(
+            CommandValidator(
+                pattern=r"signal.*(on)", 
+                signal=lambda b: b.lower() == "on"
+            ),
+            CommandValidator(
+                pattern=r"\d+#(.+)",
+                signal=lambda b: b.lower() == "on"
+            )
         ),
     )
 
     signal_off: Command = Command(
         message="!OFF",
         estimated_response_time=0.4,
-        validators=CommandValidator(
-            pattern=r"signal.*(off)", signal=lambda b: not b.lower() == "off"
+        validators=(
+            CommandValidator(
+                pattern=r"signal.*(off)", 
+                signal=lambda b: not b.lower() == "off"
+            ),
+            CommandValidator(
+                pattern=r"\d+#(.+)",
+                signal=lambda b: not b.lower() == "off"
+            )
         ),
     )
 
