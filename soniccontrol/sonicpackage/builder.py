@@ -3,6 +3,7 @@ from typing import *
 
 import attrs
 from icecream import ic
+from soniccontrol.sonicpackage.command import Answer
 from soniccontrol.sonicpackage.sonicamp_ import (Command, Commands, Info,
                                                  Modules, SerialCommunicator,
                                                  SonicAmp, Status)
@@ -10,6 +11,16 @@ from soniccontrol.sonicpackage.sonicamp_ import (Command, Commands, Info,
 
 @attrs.define
 class AmpBuilder:
+    def _add_commands_from_list_command_answer(self, sonicAmp: SonicAmp, answer: Answer) -> None:
+        command_names = answer.string.split("#")
+        for command_name in command_names:
+            field_names = [ key for key in Commands.__dict__.keys() if not str(key).startswith("__") ]
+            commands = [ getattr(Commands, field_name) for field_name in field_names ]
+            command = next(filter(lambda c: c.message == command_name, commands), None)
+            if command:
+                sonicAmp.add_command(command)
+
+
     async def build_amp(self, ser: SerialCommunicator) -> SonicAmp:
         await ser.connection_opened.wait()
         Command.set_serial_communication(ser)
@@ -38,13 +49,7 @@ class AmpBuilder:
 
         await Commands.get_command_list.execute()
         if Commands.get_command_list.answer.valid:
-            command_names = Commands.get_command_list.answer.string.split("#")
-            for command_name in command_names:
-                field_names = [ key for key in Commands.__dict__.keys() if not str(key).startswith("__") ]
-                filtered_field_names = filter(lambda field_name: getattr(Commands, field_name).message == command_name, field_names)
-                field_name = next(filtered_field_names, None)
-                if field_name:
-                    sonicamp.add_command(getattr(Commands, field_name))
+            self._add_commands_from_list_command_answer(sonicamp, Commands.get_command_list.answer)
             return sonicamp
 
         basic_commands: Tuple[Command] = (
