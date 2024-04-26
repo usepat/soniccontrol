@@ -28,8 +28,8 @@ async def main():
     builder = AmpBuilder()
     sonicAmp = await builder.build_amp(communicator)
 
-    for _ in range(10):
-        print(await sonicAmp.get_status())
+    print(await sonicAmp.set_signal_on())
+    print("wtf")
 
 
 if __name__ == "__main__":
