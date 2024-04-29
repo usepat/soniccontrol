@@ -6,6 +6,7 @@ import pathlib
 import soniccontrol.utils.constants as const
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from sonic_test_parrot.parrot import Parrot
 
 def setup_logging() -> None:
     config_file: pathlib.Path = const.files.LOGGING_CONFIG
@@ -25,10 +26,13 @@ async def main():
     communicator = SerialCommunicator()
     await communicator.connect(process.stdout, process.stdin)
     
-    builder = AmpBuilder()
-    sonicAmp = await builder.build_amp(communicator)
+    with open("./logs/soniccontrol.log", "r") as file:
+        log_lines = file.readlines()
 
-    await sonicAmp.set_signal_on()
+    parrot = Parrot(communicator, log_lines)
+    parrot.register_parrot_log_handler(logging.getLogger())
+    await parrot.setup_amp()
+    await parrot.run_imitation()
 
 
 if __name__ == "__main__":
