@@ -37,6 +37,7 @@ class SerialCommunicator(Communicator):
     )
 
     def __attrs_post_init__(self) -> None:
+        self._task = None
         self._init_command = Command(
             estimated_response_time=0.5,
             validators=(
@@ -82,7 +83,7 @@ class SerialCommunicator(Communicator):
         await get_first_message()
         self._connection_opened.set()
 
-        asyncio.create_task(self._worker())
+        self._task = asyncio.create_task(self._worker())
         self._package_fetcher.run()
 
 
@@ -170,8 +171,13 @@ class SerialCommunicator(Communicator):
         return message
 
     def disconnect(self) -> None:
+        if self._task is not None:
+            self._package_fetcher.stop()
+            self._task.cancel()
+            self._task = None
         self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None
         self._writer = None
+

@@ -14,7 +14,7 @@ from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
-logger = logging.getLogger()
+parrot_feeder = logging.getLogger("parrot_feeder")
 
 @attrs.define
 class MeasureUpdater(Updater):
@@ -190,7 +190,7 @@ class SonicAmp(Scriptable):
         )
 
         try:
-            logger.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
+            parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
         except Exception as e:
             pass
         

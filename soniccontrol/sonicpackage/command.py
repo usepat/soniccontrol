@@ -12,7 +12,7 @@ import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Communicator, Sendable
 
-logger = logging.getLogger()
+parrot_feeder = logging.getLogger("parrot_feeder")
 
 @attrs.define
 class Converter:
@@ -281,7 +281,7 @@ class Command(Sendable):
         if argument is not None:
             self.set_argument(argument)
 
-        logger.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
+        parrot_feeder.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
         await connection.send_and_wait_for_answer(self)
 
         self.answer.valid = self.validate()

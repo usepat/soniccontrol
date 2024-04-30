@@ -16,6 +16,7 @@ class PackageFetcher():
         self._answers: Dict[int, str] = {}
         self._answer_received = asyncio.Event()
         self._log_callback = log_callback
+        self._task = None
     
 
     async def get_answer_of_package(self, package_id: int) -> str:
@@ -29,16 +30,23 @@ class PackageFetcher():
 
 
     def run(self) -> None:
-        asyncio.create_task(self._worker())
+        self._task = asyncio.create_task(self._worker())
 
+    def stop(self) -> None:
+        if self._task  is not None:
+            self._task.cancel()
+            self._task = None
 
     async def _worker(self) -> None:
         while True:
             try:
                 package = await self._read_package()
+            except asyncio.CancelledError:
+                ic(f"Task was cancelled {sys.exc_info()}")
+                return
             except:
                 ic(f"Exception while reading/parsing package {sys.exc_info()}")
-                continue
+                raise
 
             if package.identifier == 0:
                 raise NotImplementedError() # 0 id means that it is a update message, maybe also a log

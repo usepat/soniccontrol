@@ -60,23 +60,25 @@ class LogParser:
 
     def _parse_command_call(line: str) -> LogCommandCall:
         regex = fr".*{LogCommandCall.LOG_STR}\((.+)\).*"
-        match = re.match(line, regex)
+        match = re.match(regex, line)
         data = json.loads(match.group(1))
         return LogCommandCall(**data)
 
     def _parse_device_state(line: str) -> LogDeviceState:
         regex = fr".*{LogDeviceState.LOG_STR}\((.+)\).*"
-        match = re.match(line, regex)
+        match = re.match(regex, line)
         data = json.loads(match.group(1))
-        data = { k: v for (k, v) in data if k in LogDeviceState.__dict__ } # filter out those attributes we are interested in
+        data = { k: v for (k, v) in data.items() if k in LogDeviceState.__dict__ } # filter out those attributes we are interested in
         return LogDeviceState(**data)
 
 
 
 class Parrot:
-    class ParrotLogHandler(logging.StreamHandler):
+    class ParrotLogHandler(logging.Handler):
         def __init__(self, parrot):
+            super(Parrot.ParrotLogHandler, self).__init__()
             self.parrot = parrot
+            self.setLevel(logging.DEBUG)
 
         def emit(self, record: logging.LogRecord):
             try:
@@ -91,8 +93,9 @@ class Parrot:
     def __init__(self, serial_communicator: SerialCommunicator, log_lines: List[str]):
         self.serial_communicator = serial_communicator
         self.sonic_amp = None
-        self.logs = LogParser.parse_logs(self.log_lines)
+        self.logs = LogParser.parse_logs(log_lines)
         self.log_iter = iter(self.logs)
+        self.log_elem = next(self.log_iter, None)
         self.parrot_logs: List[ParrotLog] = []
 
     def register_parrot_log_handler(self, logger: logging.Logger):
@@ -109,12 +112,12 @@ class Parrot:
         if not self.sonic_amp:
             raise RuntimeError("Sonic amp was not initialized. Call setup_amp first") 
         
-        while self.log_iter:
-            if type(self.log_iter) is not LogCommandCall:
+        while self.log_elem:
+            if type(self.log_elem) is not LogCommandCall:
                 raise TypeError("Expected a command call")
 
-            argument = self.log_iter.argument
-            message = self.log_iter.message
+            argument = self.log_elem.argument
+            message = self.log_elem.message
 
             if message == "-":
                 self._skip_logs_until_next_command_call()
@@ -125,13 +128,13 @@ class Parrot:
 
             
     def _skip_logs_until_next_command_call(self):
-        while self.log_iter is not LogCommandCall and self.log_iter is not None:
-            self.log_iter = next(self.log_iter, None)
+        while self.log_elem is not LogCommandCall and self.log_elem is not None:
+            self.log_elem = next(self.log_iter, None)
 
     def _validate_imitation(self): # Maybe it would be better to call this after the run of an imitation
         for parrot_log in self.parrot_logs:
-            if type(self.log_iter) is type(parrot_log) and self.log_iter == parrot_log:
-                self.log_iter = next(self.log_iter, None)
+            if type(self.log_elem) is type(parrot_log) and self.log_elem == parrot_log:
+                self.log_elem = next(self.log_iter, None)
             else:
-                raise RuntimeError(f"Logs are not identical: log {self.log_iter}, parrot_log: {parrot_log}")
+                raise RuntimeError(f"Logs are not identical: log {self.log_elem}, parrot_log: {parrot_log}")
         self.parrot_logs.clear()
