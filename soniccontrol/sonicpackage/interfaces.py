@@ -25,7 +25,7 @@ class Communicator(abc.ABC):
         ...
 
     @abc.abstractmethod
-    async def connect(self):
+    async def connect(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         ...
 
     def disconnect(self) -> None:

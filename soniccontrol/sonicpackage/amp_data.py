@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import fields
 import datetime
 from enum import Enum, auto
 from typing import Any, Callable, Dict, Generic, Optional, TypeVar, Union
@@ -16,6 +17,13 @@ T = TypeVar("T")
 class ObserverAction(Enum):
     READ = auto()
     WRITE = auto()
+
+# TODO: ask Ilja, why those enums were not defined?
+class ErrorType(Enum):
+    NO_ERROR = auto()
+
+class ProcedureType(Enum):
+    NONE = auto()
 
 
 class ObservableVar(Generic[T]):
@@ -185,6 +193,14 @@ class Status:
     @property
     def version(self) -> int:
         return self._version
+    
+    def get_dict(self) -> dict:
+        result = {}
+        for field in attrs.fields(Status):
+            if field.name in ["timestamp", "_changed", "_changed_data"]: # skip not json serializable fields like datetime
+                continue
+            result[field.name] = getattr(self, field.name)
+        return result
 
     async def update(self, **kwargs) -> Status:
         self._changed.clear()

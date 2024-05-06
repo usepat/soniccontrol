@@ -1,4 +1,6 @@
 import asyncio
+import json
+import logging
 import re
 import sys
 import time
@@ -10,6 +12,7 @@ import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Communicator, Sendable
 
+parrot_feeder = logging.getLogger("parrot_feeder")
 
 @attrs.define
 class Converter:
@@ -212,6 +215,10 @@ class Command(Sendable):
         )
 
     @property
+    def full_message(self) -> str:
+        return f"{self.message}{self.argument}" # MAYBE: add newline at the end
+
+    @property
     def byte_message(self) -> bytes:
         return self._byte_message
 
@@ -254,6 +261,12 @@ class Command(Sendable):
             const.misc.ENCODING
         )
 
+    def get_dict(self) -> dict:
+        return {
+            "argument": self.argument,
+            "message": self.message
+        }
+
     async def execute(
         self, argument: Any = None, connection: Optional[Communicator] = None
     ) -> object:
@@ -268,6 +281,7 @@ class Command(Sendable):
         if argument is not None:
             self.set_argument(argument)
 
+        parrot_feeder.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
         await connection.send_and_wait_for_answer(self)
 
         self.answer.valid = self.validate()
