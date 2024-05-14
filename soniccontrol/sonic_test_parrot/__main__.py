@@ -9,6 +9,7 @@ async def simulate_soniccontrol_user_interaction(sonicamp: SonicAmp):
 
 
 async def main():
+    setup_logging()
     process_name = "/home/david-wild/Documents/sonic-firmware/build/linux/test/cli/cli_simulation_mvp/cli_simulation_mvp"
     await cli_wrapper(process_name, teach_parrot, simulate_soniccontrol_user_interaction)
     await cli_wrapper(process_name, test_parrot)

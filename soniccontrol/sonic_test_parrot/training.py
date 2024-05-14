@@ -19,14 +19,11 @@ def setup_logging() -> None:
         config = json.load(file)
     logging.config.dictConfig(config)
 
-
 CommandList = List[List[str]]
 CommandCaller = Callable[[SonicAmp], typing.Coroutine]
 async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, commands: Union[CommandList, CommandCaller]):
-    setup_logging()
-
     communicator = SerialCommunicator()
-    await communicator.connect(reader,writer)
+    await communicator.connect(reader, writer)
 
     builder = AmpBuilder()
     sonicamp = await builder.build_amp(communicator)
@@ -41,8 +38,6 @@ async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWrite
 
 
 async def test_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, parrot_food_file: Optional[str] = None):
-    setup_logging()
-
     communicator = SerialCommunicator()
     await communicator.connect(reader,writer)
 
@@ -52,6 +47,9 @@ async def test_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     # if you do not want to feed the parrot when starting soniccontrol, then just set the logging to a higher level than debug 
     with open(parrot_food_file, "r") as file:
         log_lines = file.readlines()
+
+    if len(log_lines) == 0:
+        raise Exception("Parrot cannot imitate, because the logs are empty")
 
     parrot = Parrot(communicator, log_lines)
     parrot.register_parrot_log_handler(parrot_feeder)
@@ -76,8 +74,7 @@ async def cli_wrapper(process_name, func, *args, **kwargs):
 
     result = await func(process.stdout, process.stdin, *args, **kwargs)
 
-    process.terminte()
+    process.terminate()
     await process.wait()
 
     return result
-    
