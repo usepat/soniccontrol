@@ -8,10 +8,11 @@ from ttkbootstrap.tableview import (TableColumn, TableEvent,
                                     Tableview)
 
 import soniccontrol.utils as utils
-import soniccontrol.utils.constants as const
 from soniccontrol import soniccontrol_logger as logger
-from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.view import TabView, View
+from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
+from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.utils.files import images
 
 
 class SonicMeasureView(TabView):
@@ -30,24 +31,20 @@ class SonicMeasureView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(
-            const.images.LINECHART_ICON_BLACK, const.misc.TAB_ICON_SIZE
-        )
+        return ImageLoader.load_image(images.LINECHART_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:
-        return const.ui.SONIC_MEASURE_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
+        return ui_labels.SONIC_MEASURE_LABEL
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._notebook.pack(expand=True, fill=ttk.BOTH)
-        self._notebook.add(self._liveplot_frame, text=const.ui.LIVE_PLOT)
-        self._notebook.add(self._sonic_measure_frame, text=const.ui.SONIC_MEASURE_LABEL)
-        self._notebook.add(self._data_visualizer, text=const.ui.DATA_VISUALIZER)
+        self._notebook.add(self._liveplot_frame, text=ui_labels.LIVE_PLOT)
+        self._notebook.add(
+            self._sonic_measure_frame, text=ui_labels.SONIC_MEASURE_LABEL
+        )
+        self._notebook.add(self._data_visualizer, text=ui_labels.DATA_VISUALIZER)
 
     def set_small_width_layout(self) -> None:
         ...
@@ -69,38 +66,38 @@ class SonicMeasureFrame(View):
 
         self._back_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            text=const.ui.BACK_LABEL,
+            text=ui_labels.BACK_LABEL,
             style=ttk.DARK,
             compound=ttk.LEFT,
-            image=utils.ImageLoader.load_image(
-                const.images.BACK_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            image=ImageLoader.load_image(
+                images.BACK_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
         )
         self._start_stop_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            text=const.ui.START_LABEL,
+            text=ui_labels.START_LABEL,
             style=ttk.SUCCESS,
             compound=ttk.RIGHT,
-            image=utils.ImageLoader.load_image(
-                const.images.FORWARDS_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            image=ImageLoader.load_image(
+                images.FORWARDS_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
         )
         self._restart_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            text=const.ui.RESTART,
+            text=ui_labels.RESTART,
             style=ttk.DARK,
             compound=ttk.LEFT,
-            image=utils.ImageLoader.load_image(
-                const.images.REFRESH_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            image=ImageLoader.load_image(
+                images.REFRESH_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
         )
         self._end_new_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            text=const.ui.END,
+            text=ui_labels.END,
             style=ttk.DANGER,
             compound=ttk.LEFT,
             # image=utils.ImageLoader.load_image(
-            #     const.images.END_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            #     images.END_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             # ),
         )
 
@@ -110,185 +107,181 @@ class SonicMeasureFrame(View):
         self._parameters_frame: ttk.Frame = ttk.Frame(self._greeter_frame)
 
         self._start_value_label: ttk.Label = ttk.Label(
-            self._parameters_frame, text=const.ui.START_VALUE
+            self._parameters_frame, text=ui_labels.START_VALUE
         )
         self._start_value_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
 
         self._stop_value_label: ttk.Label = ttk.Label(
-            self._parameters_frame, text=const.ui.STOP_VALUE
+            self._parameters_frame, text=ui_labels.STOP_VALUE
         )
         self._stop_value_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
 
         self._step_value_label: ttk.Label = ttk.Label(
-            self._parameters_frame, text=const.ui.STEP_VALUE
+            self._parameters_frame, text=ui_labels.STEP_VALUE
         )
         self._step_value_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
 
         self._on_duration_label: ttk.Label = ttk.Label(
-            self._parameters_frame, text=const.ui.ON_DURATION
+            self._parameters_frame, text=ui_labels.ON_DURATION
         )
         self._on_duration_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
         self._on_duration_unit_entry: ttk.Combobox = ttk.Combobox(
-            self._parameters_frame, width=const.misc.MEDIUM_PADDING
+            self._parameters_frame, width=sizes.MEDIUM_PADDING
         )
 
         self._off_duration_label: ttk.Label = ttk.Label(
-            self._parameters_frame, text=const.ui.OFF_DURATION
+            self._parameters_frame, text=ui_labels.OFF_DURATION
         )
         self._off_duration_entry: ttk.Spinbox = ttk.Spinbox(self._parameters_frame)
         self._off_duration_unit_entry: ttk.Combobox = ttk.Combobox(
-            self._parameters_frame, width=const.misc.MEDIUM_PADDING
+            self._parameters_frame, width=sizes.MEDIUM_PADDING
         )
 
         self._toggle_scripting: ttk.Checkbutton = ttk.Checkbutton(
             self._parameters_frame,
-            text=const.ui.USE_SCRIPTING_INSTEAD,
-            style=const.style.DARK_SQUARE_TOGGLE,
+            text=ui_labels.USE_SCRIPTING_INSTEAD,
+            style=style.DARK_SQUARE_TOGGLE,
             command=self._toggle_scripting_command,
         )
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
-        self._main_frame.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=10)
-        self._main_frame.rowconfigure(1, weight=const.misc.EXPAND)
+        self._main_frame.columnconfigure(0, weight=sizes.EXPAND)
+        self._main_frame.rowconfigure(0, weight=sizes.DONT_EXPAND, minsize=10)
+        self._main_frame.rowconfigure(1, weight=sizes.EXPAND)
 
         self._navigation_frame.grid(
             row=0,
             column=0,
-            padx=const.misc.LARGE_PART_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.LARGE_PART_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
-        self._navigation_frame.rowconfigure(
-            0, weight=const.misc.DONT_EXPAND, minsize=10
-        )
-        self._navigation_frame.columnconfigure(1, weight=const.misc.EXPAND)
+        self._navigation_frame.rowconfigure(0, weight=sizes.DONT_EXPAND, minsize=10)
+        self._navigation_frame.columnconfigure(1, weight=sizes.EXPAND)
 
         self._back_button.grid(
             row=0,
             column=0,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.W,
         )
         self._start_stop_button.grid(
             row=0,
             column=1,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.E,
         )
 
         self._greeter_frame.grid(row=1, column=0, sticky=ttk.NSEW)
-        self._greeter_frame.columnconfigure(0, weight=const.misc.EXPAND)
-        self._greeter_frame.rowconfigure(0, weight=const.misc.EXPAND)
+        self._greeter_frame.columnconfigure(0, weight=sizes.EXPAND)
+        self._greeter_frame.rowconfigure(0, weight=sizes.EXPAND)
         self._parameters_frame.grid(
             row=0,
             column=0,
-            padx=const.misc.SIDE_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.SIDE_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.NSEW,
         )
-        self._parameters_frame.columnconfigure(0, weight=const.misc.DONT_EXPAND)
-        self._parameters_frame.columnconfigure(1, weight=const.misc.EXPAND, minsize=10)
-        self._parameters_frame.columnconfigure(
-            2, weight=const.misc.DONT_EXPAND, minsize=10
-        )
+        self._parameters_frame.columnconfigure(0, weight=sizes.DONT_EXPAND)
+        self._parameters_frame.columnconfigure(1, weight=sizes.EXPAND, minsize=10)
+        self._parameters_frame.columnconfigure(2, weight=sizes.DONT_EXPAND, minsize=10)
 
         self._start_value_label.grid(
             row=0,
             column=0,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.E,
         )
         self._start_value_entry.grid(
             row=0,
             column=1,
             columnspan=2,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
         self._stop_value_label.grid(
             row=1,
             column=0,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.E,
         )
         self._stop_value_entry.grid(
             row=1,
             column=1,
             columnspan=2,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
         self._step_value_label.grid(
             row=2,
             column=0,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.E,
         )
         self._step_value_entry.grid(
             row=2,
             column=1,
             columnspan=2,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
         self._on_duration_label.grid(
             row=3,
             column=0,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.E,
         )
         self._on_duration_entry.grid(
             row=3,
             column=1,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
         self._on_duration_unit_entry.grid(
             row=3,
             column=2,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.W,
         )
         self._off_duration_label.grid(
             row=4,
             column=0,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.E,
         )
         self._off_duration_entry.grid(
             row=4,
             column=1,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
         self._off_duration_unit_entry.grid(
             row=4,
             column=2,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.W,
         )
         self._toggle_scripting.grid(
             row=5,
             column=0,
             columnspan=3,
-            padx=const.misc.MEDIUM_PADDING,
-            pady=const.misc.LARGE_PADDING,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.LARGE_PADDING,
         )
 
     def _toggle_scripting_command(self) -> None:
@@ -305,20 +298,20 @@ class DataVisualizer(View):
         # self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
         # self._refresh_button: ttk.Button = ttk.Button(
         #     self._navigation_frame,
-        #     text=const.ui.REFRESH,
+        #     text=ui_labels.REFRESH,
         #     compound=ttk.LEFT,
         #     style=ttk.DARK,
         #     image=utils.ImageLoader.load_image(
-        #         const.images.REFRESH_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+        #         images.REFRESH_ICON_WHITE, sizes.BUTTON_ICON_SIZE
         #     ),
         # )
         # self._visualize_button: ttk.Button = ttk.Button(
         #     self._navigation_frame,
-        #     text=const.ui.VISUALIZE,
+        #     text=ui_labels.VISUALIZE,
         #     compound=ttk.RIGHT,
         #     style=ttk.SUCCESS,
         #     image=utils.ImageLoader.load_image(
-        #         const.images.FORWARDS_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+        #         images.FORWARDS_ICON_WHITE, sizes.BUTTON_ICON_SIZE
         #     ),
         #     command=self._visualize,
         # )
@@ -389,55 +382,55 @@ class DataVisualizer(View):
 
         self._navigation_frame: ttk.Frame = self._tableview.winfo_children()[0]
         self._navigation_frame.configure(
-            padding=(0, const.misc.MEDIUM_PADDING, 0, const.misc.LARGE_PADDING)
+            padding=(0, sizes.MEDIUM_PADDING, 0, sizes.LARGE_PADDING)
         )
         self._search_label: ttk.Label = self._navigation_frame.winfo_children()[0]
-        self._search_label.configure(text=const.ui.SEARCH)
+        self._search_label.configure(text=ui_labels.SEARCH)
         self._search_entry: ttk.Entry = self._navigation_frame.winfo_children()[1]
         self._refresh_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            text=const.ui.REFRESH,
+            text=ui_labels.REFRESH,
             compound=ttk.LEFT,
             style=ttk.DARK,
-            image=utils.ImageLoader.load_image(
-                const.images.REFRESH_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            image=ImageLoader.load_image(
+                images.REFRESH_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
         )
         # self._visualize_button: ttk.Button = ttk.Button(
         #     self._navigation_frame,
-        #     text=const.ui.VISUALIZE,
+        #     text=ui_labels.VISUALIZE,
         #     compound=ttk.RIGHT,
         #     style=ttk.SUCCESS,
         #     image=utils.ImageLoader.load_image(
-        #         const.images.FORWARDS_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+        #         images.FORWARDS_ICON_WHITE, sizes.BUTTON_ICON_SIZE
         #     ),
         #     command=self._visualize,
         # )
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._main_frame.rowconfigure(0, weight=const.misc.EXPAND)
-        self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
+        self._main_frame.rowconfigure(0, weight=sizes.EXPAND)
+        self._main_frame.columnconfigure(0, weight=sizes.EXPAND)
 
         # self._navigation_frame.grid(
         #     row=0,
         #     column=0,
         #     sticky=ttk.EW,
-        #     pady=const.misc.MEDIUM_PADDING,
-        #     padx=const.misc.SIDE_PADDING,
+        #     pady=sizes.MEDIUM_PADDING,
+        #     padx=sizes.SIDE_PADDING,
         # )
         for child in self._navigation_frame.winfo_children():
             child.pack_forget()
-        self._navigation_frame.columnconfigure(2, weight=const.misc.EXPAND)
+        self._navigation_frame.columnconfigure(2, weight=sizes.EXPAND)
         self._refresh_button.grid(row=0, column=0, sticky=ttk.W)
-        self._search_label.grid(row=0, column=1, padx=const.misc.LARGE_PADDING)
+        self._search_label.grid(row=0, column=1, padx=sizes.LARGE_PADDING)
         self._search_entry.grid(row=0, column=2, sticky=ttk.EW)
         self._tableview.grid(
             row=0,
             column=0,
             sticky=ttk.NSEW,
-            padx=const.misc.SIDE_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.SIDE_PADDING,
+            pady=sizes.MEDIUM_PADDING,
         )
 
     def _visualize(self, event: Any = None, *args, **kwargs) -> None:
@@ -457,69 +450,65 @@ class LivePlotView(View):
         self._navigation_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._start_stop_button: ttk.Button = ttk.Button(
             self._navigation_frame,
-            text=const.ui.START_LIVE_PLOT,
+            text=ui_labels.START_LIVE_PLOT,
             style=ttk.SUCCESS,
-            image=utils.ImageLoader.load_image(
-                const.images.PLAY_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            image=ImageLoader.load_image(
+                images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
             compound=ttk.RIGHT,
         )
         self._toggle_button_frame: ttk.Frame = ttk.Frame(self._navigation_frame)
         self._toggle_frequency_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text=const.ui.FREQUENCY,
-            style=const.style.DARK_SQUARE_TOGGLE,
+            text=ui_labels.FREQUENCY,
+            style=style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_gain_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text=const.ui.GAIN,
-            style=const.style.DARK_SQUARE_TOGGLE,
+            text=ui_labels.GAIN,
+            style=style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_urms_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text=const.ui.URMS,
-            style=const.style.DARK_SQUARE_TOGGLE,
+            text=ui_labels.URMS,
+            style=style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_irms_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text=const.ui.IRMS,
-            style=const.style.DARK_SQUARE_TOGGLE,
+            text=ui_labels.IRMS,
+            style=style.DARK_SQUARE_TOGGLE,
         )
         self._toggle_phase_button: ttk.Checkbutton = ttk.Checkbutton(
             self._toggle_button_frame,
-            text=const.ui.PHASE,
-            style=const.style.DARK_SQUARE_TOGGLE,
+            text=ui_labels.PHASE,
+            style=style.DARK_SQUARE_TOGGLE,
         )
         self._body_frame: ttk.Frame = ttk.Frame(self._main_frame)
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._main_frame.columnconfigure(0, weight=const.misc.EXPAND)
-        self._main_frame.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=10)
-        self._main_frame.rowconfigure(1, weight=const.misc.EXPAND)
+        self._main_frame.columnconfigure(0, weight=sizes.EXPAND)
+        self._main_frame.rowconfigure(0, weight=sizes.DONT_EXPAND, minsize=10)
+        self._main_frame.rowconfigure(1, weight=sizes.EXPAND)
 
         self._navigation_frame.grid(
             row=0,
             column=0,
-            padx=const.misc.LARGE_PART_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.LARGE_PART_PADDING,
+            pady=sizes.MEDIUM_PADDING,
             sticky=ttk.EW,
         )
-        self._navigation_frame.rowconfigure(
-            0, weight=const.misc.DONT_EXPAND, minsize=10
-        )
-        self._navigation_frame.columnconfigure(1, weight=const.misc.EXPAND)
+        self._navigation_frame.rowconfigure(0, weight=sizes.DONT_EXPAND, minsize=10)
+        self._navigation_frame.columnconfigure(1, weight=sizes.EXPAND)
 
         self._start_stop_button.grid(
-            row=0, column=0, padx=const.misc.SMALL_PADDING, sticky=ttk.W
+            row=0, column=0, padx=sizes.SMALL_PADDING, sticky=ttk.W
         )
         self._toggle_button_frame.grid(row=0, column=1, sticky=ttk.E)
-        self._toggle_frequency_button.grid(
-            row=0, column=0, padx=const.misc.SMALL_PADDING
-        )
-        self._toggle_gain_button.grid(row=0, column=1, padx=const.misc.SMALL_PADDING)
-        self._toggle_urms_button.grid(row=0, column=2, padx=const.misc.SMALL_PADDING)
-        self._toggle_irms_button.grid(row=0, column=3, padx=const.misc.SMALL_PADDING)
-        self._toggle_phase_button.grid(row=0, column=4, padx=const.misc.SMALL_PADDING)
+        self._toggle_frequency_button.grid(row=0, column=0, padx=sizes.SMALL_PADDING)
+        self._toggle_gain_button.grid(row=0, column=1, padx=sizes.SMALL_PADDING)
+        self._toggle_urms_button.grid(row=0, column=2, padx=sizes.SMALL_PADDING)
+        self._toggle_irms_button.grid(row=0, column=3, padx=sizes.SMALL_PADDING)
+        self._toggle_phase_button.grid(row=0, column=4, padx=sizes.SMALL_PADDING)
 
         self._body_frame.grid(row=1, column=0, sticky=ttk.NSEW)

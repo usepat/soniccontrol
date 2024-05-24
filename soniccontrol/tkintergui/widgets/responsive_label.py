@@ -1,5 +1,6 @@
 import ttkbootstrap as ttk
-from soniccontrol.utils import constants
+
+from soniccontrol.tkintergui.utils.constants import events
 
 
 class ResponsiveLabel(ttk.Label):
@@ -16,10 +17,8 @@ class ResponsiveLabel(ttk.Label):
         if self._parent_reference is None:
             return
 
-        self.bind(constants.events.RESIZING_EVENT, self.adapt, add=True)
-        self._parent_reference.bind(
-            constants.events.RESIZING_EVENT, self.grow_bigger, add=True
-        )
+        self.bind(events.RESIZING_EVENT, self.adapt, add=True)
+        self._parent_reference.bind(events.RESIZING_EVENT, self.grow_bigger, add=True)
         self._old_width: int = self.winfo_vrootwidth()
         self._wraplength: int = wraplength
 

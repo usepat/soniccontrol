@@ -1,19 +1,34 @@
-import platform
-from pathlib import Path
 from typing import Final, Literal
 
 import attrs
 
-# TODO: Better way to manage constants and test the directory reading
-# TODO: Maybe consider moving few constants into a json config file
+
+@attrs.frozen
+class _TkinterConstants:
+    WRITE: Literal["write"] = "write"
+    READ: Literal["read"] = "read"
+    IMAGE: Literal["image"] = "image"
+    COMPOUND: Literal["compound"] = "compound"
+    DELETE_WINDOW: Literal["WM_DELETE_WINDOW"] = "WM_DELETE_WINDOW"
+
+
+tk_const: Final[_TkinterConstants] = _TkinterConstants()
 
 
 @attrs.frozen
-class _Misc:
-    ENCODING: Final[str] = "windows-1252" if platform.system() == "Windows" else "utf-8"
-    IMAGE: Literal["image"] = "image"
-    TEXT: Literal["text"] = "text"
-    COMPOUND: Literal["compound"] = "compound"
+class _Fonts:
+    QTYPE_OT: Literal["QTypeOT"] = "QTypeOT"
+    QTYPE_OT_CONDLIGHT: Literal["QTypeOT-CondLight"] = "QTypeOT-CondLight"
+    HEADING_SIZE: Final[int] = 24
+    TEXT_SIZE: Final[int] = 10
+    SMALL_HEADING_SIZE: Final[int] = 15
+
+
+fonts: _Fonts = _Fonts()
+
+
+@attrs.frozen
+class _Sizes:
     BUTTON_ICON_SIZE: Final[tuple[int, int]] = (15, 15)
     LARGE_BUTTON_ICON_SIZE: Final[tuple[int, int]] = (20, 20)
     TAB_ICON_SIZE: Final[tuple[int, int]] = (25, 25)
@@ -25,15 +40,20 @@ class _Misc:
     SIDE_PADDING: Final[int] = 15
     DONT_EXPAND: Final[int] = 0
     EXPAND: Final[int] = 1
-    ADD: Final[Literal["+"]] = "+"
-    DELETE_WINDOW: Final[Literal["WM_DELETE_WINDOW"]] = "WM_DELETE_WINDOW"
-    GREEN: Literal["green"] = "green"
-    STATUS_MEDIUM_GREY: Literal["#c3c0ba"] = "#c3c0ba"
-    STATUS_LIGHT_GREY: Literal["#f8f5f0"] = "#f8f5f0"
     METERSIZE: Final[int] = 130
 
 
-misc: _Misc = _Misc()
+sizes: Final[_Sizes] = _Sizes()
+
+
+@attrs.frozen
+class _Color:
+    DARK_GREEN: Literal["green"] = "green"
+    STATUS_MEDIUM_GREY: Literal["#c3c0ba"] = "#c3c0ba"
+    STATUS_LIGHT_GREY: Literal["#f8f5f0"] = "#f8f5f0"
+
+
+color: Final[_Color] = _Color()
 
 
 @attrs.frozen
@@ -50,111 +70,7 @@ class _Style:
     DARK_SQUARE_TOGGLE: Literal["dark-square-toggle"] = "dark-square-toggle"
 
 
-style: _Style = _Style()
-
-
-@attrs.frozen
-class _Files:
-    # Paths
-    SOURCE_DIR: Final[Path] = Path(__file__).parent.parent
-    ROOT_DIR: Final[Path] = SOURCE_DIR.parent
-    LOG_DIR: Final[Path] = ROOT_DIR / "logs"
-    LOGGING_CONFIG: Final[Path] = LOG_DIR / "config.json"
-    RESOURCES_DIR: Final[Path] = ROOT_DIR / "resources"
-    PICTURES_DIR: Final[Path] = RESOURCES_DIR / "pictures"
-    FONTS_DIR: Final[Path] = RESOURCES_DIR / "fonts"
-    DOCUMENTS_DIR: Final[Path] = RESOURCES_DIR / "docs"
-    CONFIG_JSON: Final[Path] = ROOT_DIR / "config.json"
-    SONICCONTROL_LOG: Final[Path] = LOG_DIR / "soniccontrol.log"
-
-
-files: _Files = _Files()
-
-
-@attrs.frozen
-class _Images:
-    HOME_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "home_icon_black.png"
-    BACK_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "back_icon_white.png"
-    BACK_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "back_icon_black.png"
-    CONNECTION_ICON_BLACK: Final[Path] = (
-        files.PICTURES_DIR / "connection_icon_black.png"
-    )
-    CONNECTION_ICON_WHITE: Final[Path] = (
-        files.PICTURES_DIR / "connection_icon_white.png"
-    )
-    CONSOLE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "console_icon_black.png"
-    SCRIPT_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "script_icon_black.png"
-    SETTINGS_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "settings_icon_black.png"
-    STATUS_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "status_icon_black.png"
-    FORWARDS_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "forwards_icon_black.png"
-    FORWARDS_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "forwards_icon_white.png"
-    INFO_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "info_icon_black.png"
-    INFO_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "info_icon_white.png"
-    LED_ICON_GREEN: Final[Path] = files.PICTURES_DIR / "led_green_icon.png"
-    LED_ICON_RED: Final[Path] = files.PICTURES_DIR / "led_red_icon.png"
-    LIGHTNING_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "lightning_icon_white.png"
-    LINECHART_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "linechart_icon_black.png"
-    MENUE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "menue_icon_black.png"
-    MENUE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "menue_icon_white.png"
-    PAUSE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "pause_icon_black.png"
-    PAUSE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "pause_icon_white.png"
-    PLAY_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "play_icon_black.png"
-    PLAY_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "play_icon_white.png"
-    REFRESH_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "refresh_icon_white.png"
-    REFRESH_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "refresh_icon_black.png"
-    REFRESH_ICON_GREY: Final[Path] = files.PICTURES_DIR / "refresh_icon_grey.png"
-    SAVE_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "save_icon_black.png"
-    SAVE_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "save_icon_white.png"
-    END_ICON_WHITE: Final[Path] = files.PICTURES_DIR / "end_icon_white.png"
-    END_ICON_BLACK: Final[Path] = files.PICTURES_DIR / "end_icon_black.png"
-
-    HOME_CONTROL_PANEL: Final[Path] = files.PICTURES_DIR / "home_control_panel.png"
-    HOME_SIGNAL_CONTROL_PANEL: Final[Path] = (
-        files.PICTURES_DIR / "home_signal_control_panel.png"
-    )
-
-
-images: _Images = _Images()
-
-
-@attrs.frozen
-class _Fonts:
-    QTYPE_OT: Literal["QTypeOT"] = "QTypeOT"
-    QTYPE_OT_CONDLIGHT: Literal["QTypeOT-CondLight"] = "QTypeOT-CondLight"
-    HEADING_SIZE: Final[int] = 24
-    TEXT_SIZE: Final[int] = 10
-    SMALL_HEADING_SIZE: Final[int] = 15
-
-
-fonts: _Fonts = _Fonts()
-
-
-@attrs.frozen
-class _Events:
-    # Events
-    RESIZING_EVENT: Literal["<Configure>"] = "<Configure>"
-    CONNECTION_ATTEMPT_EVENT: Literal["<<ConnectionAttempt>>"] = "<<ConnectionAttempt>>"
-    CONNECTED_EVENT: Literal["<<Connected>>"] = "<<Connected>>"
-    DISCONNECTED_EVENT: Literal["<<Disconnected>>"] = "<<Disconnected>>"
-    SCRIPT_START_EVENT: Literal["<<ScriptStarted>>"] = "<<ScriptStarted>>"
-    SCRIPT_STOP_EVENT: Literal["<<ScriptStopped>>"] = "<<ScriptStopped>>"
-    FIRMWARE_FLASH_EVENT: Literal["<<FirmwareFlash>>"] = "<<FirmwareFlash>>"
-    SONICMEASURE_START_EVENT: Literal[
-        "<<SonicMeasureStarted>>"
-    ] = "<<SonicMeasureStarted>>"
-    SONICMEASURE_STOP_EVENT: Literal[
-        "<<SonicMeasureStopped>>"
-    ] = "<<SonicMeasureStopped>>"
-    SCRIPT_PAUSE_EVENT: Literal["<<ScriptPause>>"] = "<<ScriptPause>>"
-    STATUS_UPDATE_EVENT: Literal["<<StatusUpdate>>"] = "<<StatusUpdate>>"
-    MANUAL_MODE_EVENT: Literal["<<ManualMode>>"] = "<<ManualMode>>"
-    AUTO_MODE_EVENT: Literal["<<AutoMode>>"] = "<<AutoMode>>"
-    SIGNAL_OFF: Literal["<<SignalOff>>"] = "<<SignalOff>>"
-    SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
-    SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
-
-
-events: _Events = _Events()
+style: Final[_Style] = _Style()
 
 
 @attrs.frozen
@@ -249,7 +165,6 @@ class _UIStringsEN:
     DATA_VISUALIZER: Final[str] = "Data Visualizer"
     REFRESH: Final[str] = "Refresh"
     VISUALIZE: Final[str] = "Visualize"
-
     HOME_HELP_INTRODUCTION: Final[
         str
     ] = "The Home tab is used to set the most important parameters of a Sonicamp device manually."
@@ -276,4 +191,32 @@ class _UIStringsEN:
     HOME_HELP_OFF: Final[str] = "Here should be a description of the off entry."
 
 
-ui: _UIStringsEN = _UIStringsEN()
+ui_labels: Final[_UIStringsEN] = _UIStringsEN()
+
+
+@attrs.frozen
+class _Events:
+    RESIZING_EVENT: Literal["<Configure>"] = "<Configure>"
+    CONNECTION_ATTEMPT_EVENT: Literal["<<ConnectionAttempt>>"] = "<<ConnectionAttempt>>"
+    CONNECTED_EVENT: Literal["<<Connected>>"] = "<<Connected>>"
+    DISCONNECTED_EVENT: Literal["<<Disconnected>>"] = "<<Disconnected>>"
+    SCRIPT_START_EVENT: Literal["<<ScriptStarted>>"] = "<<ScriptStarted>>"
+    SCRIPT_STOP_EVENT: Literal["<<ScriptStopped>>"] = "<<ScriptStopped>>"
+    FIRMWARE_FLASH_EVENT: Literal["<<FirmwareFlash>>"] = "<<FirmwareFlash>>"
+    SONICMEASURE_START_EVENT: Literal[
+        "<<SonicMeasureStarted>>"
+    ] = "<<SonicMeasureStarted>>"
+    SONICMEASURE_STOP_EVENT: Literal[
+        "<<SonicMeasureStopped>>"
+    ] = "<<SonicMeasureStopped>>"
+    SCRIPT_PAUSE_EVENT: Literal["<<ScriptPause>>"] = "<<ScriptPause>>"
+    STATUS_UPDATE_EVENT: Literal["<<StatusUpdate>>"] = "<<StatusUpdate>>"
+    MANUAL_MODE_EVENT: Literal["<<ManualMode>>"] = "<<ManualMode>>"
+    AUTO_MODE_EVENT: Literal["<<AutoMode>>"] = "<<AutoMode>>"
+    SIGNAL_OFF: Literal["<<SignalOff>>"] = "<<SignalOff>>"
+    SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
+    SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
+    PROPERTY_CHANGE_EVENT: Literal["<<PropertyChange>>"] = "<<PropertyChange>>"
+
+
+events: Final[_Events] = _Events()

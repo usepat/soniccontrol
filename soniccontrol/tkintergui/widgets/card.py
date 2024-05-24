@@ -1,4 +1,3 @@
-import time
 from typing import Any, Callable
 
 import ttkbootstrap as ttk

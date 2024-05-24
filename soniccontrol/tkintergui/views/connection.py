@@ -1,14 +1,15 @@
 from typing import Tuple
 
 import ttkbootstrap as ttk
-from icecream import ic
-from soniccontrol.components.responsive_label import ResponsiveLabel
-from soniccontrol.interfaces.layouts import Layout
-from soniccontrol.interfaces.view import TabView
-from soniccontrol.utils import ImageLoader, constants
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol import soniccontrol_logger as logger
+from soniccontrol.interfaces.view import TabView
+from soniccontrol.tkintergui.utils.constants import (events, fonts, sizes,
+                                                     style, ui_labels)
+from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.tkintergui.widgets.responsive_label import ResponsiveLabel
+from soniccontrol.utils.files import images
 
 
 class ConnectionView(TabView):
@@ -17,17 +18,11 @@ class ConnectionView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(
-            constants.images.CONNECTION_ICON_BLACK, constants.misc.TAB_ICON_SIZE
-        )
+        return ImageLoader.load_image(images.CONNECTION_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:
-        return constants.ui.CONNECTION_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
+        return ui_labels.CONNECTION_LABEL
 
     def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
@@ -35,9 +30,9 @@ class ConnectionView(TabView):
         self._refresh_button: ttk.Button = ttk.Button(
             self._navigation_frame,
             image=ImageLoader.load_image(
-                constants.images.REFRESH_ICON_GREY, constants.misc.BUTTON_ICON_SIZE
+                images.REFRESH_ICON_GREY, sizes.BUTTON_ICON_SIZE
             ),
-            style=constants.style.SECONDARY_OUTLINE,
+            style=style.SECONDARY_OUTLINE,
             compound=ttk.RIGHT,
         )
         self._ports_menue: ttk.Combobox = ttk.Combobox(
@@ -48,35 +43,33 @@ class ConnectionView(TabView):
         self._connect_button: ttk.Button = ttk.Button(
             self._navigation_frame,
             style=ttk.SUCCESS,
-            text=constants.ui.CONNECT_LABEL,
-            command=lambda: self.event_generate(
-                constants.events.CONNECTION_ATTEMPT_EVENT
-            ),
+            text=ui_labels.CONNECT_LABEL,
+            command=lambda: self.event_generate(events.CONNECTION_ATTEMPT_EVENT),
         )
         self._body_frame: ScrolledFrame = ScrolledFrame(self._main_frame)
         self._heading_frame: ttk.Frame = ttk.Frame(self._body_frame)
         self._subtitle: ttk.Label = ttk.Label(
             self._heading_frame,
-            text=constants.ui.PLEASE_CONNECT_LABEL,
+            text=ui_labels.PLEASE_CONNECT_LABEL,
             anchor=ttk.CENTER,
         )
         self._heading_part_one: ttk.Label = ttk.Label(
             self._heading_frame,
-            text=constants.ui.NOT_LABEL,
-            font=(constants.fonts.QTYPE_OT_CONDLIGHT, constants.fonts.HEADING_SIZE),
+            text=ui_labels.NOT_LABEL,
+            font=(fonts.QTYPE_OT_CONDLIGHT, fonts.HEADING_SIZE),
             justify=ttk.CENTER,
             anchor=ttk.CENTER,
         )
         self._heading_part_two: ttk.Label = ttk.Label(
             self._heading_frame,
-            text=constants.ui.CONNECTED_LABEL,
-            font=(constants.fonts.QTYPE_OT, constants.fonts.HEADING_SIZE),
+            text=ui_labels.CONNECTED_LABEL,
+            font=(fonts.QTYPE_OT, fonts.HEADING_SIZE),
             justify=ttk.CENTER,
             anchor=ttk.CENTER,
         )
 
         self._firmware_info_frame: ttk.Labelframe = ttk.Labelframe(
-            self._body_frame, text=constants.ui.FIRMWARE_LABEL, style=ttk.DARK
+            self._body_frame, text=ui_labels.FIRMWARE_LABEL, style=ttk.DARK
         )
         self._firmware_info_label: ttk.Label = ResponsiveLabel(
             self._firmware_info_frame,
@@ -93,28 +86,28 @@ class ConnectionView(TabView):
 
         self._navigation_frame.pack(
             fill=ttk.X,
-            pady=constants.misc.LARGE_PADDING,
-            padx=constants.misc.LARGE_PART_PADDING,
+            pady=sizes.LARGE_PADDING,
+            padx=sizes.LARGE_PART_PADDING,
         )
         self._ports_menue.pack(
-            side=ttk.LEFT, expand=True, fill=ttk.X, padx=constants.misc.SMALL_PADDING
+            side=ttk.LEFT, expand=True, fill=ttk.X, padx=sizes.SMALL_PADDING
         )
-        self._refresh_button.pack(side=ttk.LEFT, padx=constants.misc.SMALL_PADDING)
-        self._connect_button.pack(side=ttk.LEFT, padx=constants.misc.SMALL_PADDING)
+        self._refresh_button.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING)
+        self._connect_button.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING)
 
         self._body_frame.pack(fill=ttk.BOTH, expand=True)
-        self._body_frame.rowconfigure(0, weight=constants.misc.DONT_EXPAND, minsize=40)
-        self._body_frame.rowconfigure(1, weight=constants.misc.EXPAND)
-        self._body_frame.columnconfigure(0, weight=constants.misc.EXPAND)
+        self._body_frame.rowconfigure(0, weight=sizes.DONT_EXPAND, minsize=40)
+        self._body_frame.rowconfigure(1, weight=sizes.EXPAND)
+        self._body_frame.columnconfigure(0, weight=sizes.EXPAND)
 
-        self._heading_frame.columnconfigure(0, weight=constants.misc.EXPAND)
-        self._heading_frame.columnconfigure(1, weight=constants.misc.EXPAND)
-        self._heading_frame.columnconfigure(2, weight=constants.misc.EXPAND)
-        self._heading_frame.columnconfigure(3, weight=constants.misc.EXPAND)
-        self._heading_frame.rowconfigure(0, weight=constants.misc.EXPAND)
-        self._heading_frame.rowconfigure(1, weight=constants.misc.EXPAND)
+        self._heading_frame.columnconfigure(0, weight=sizes.EXPAND)
+        self._heading_frame.columnconfigure(1, weight=sizes.EXPAND)
+        self._heading_frame.columnconfigure(2, weight=sizes.EXPAND)
+        self._heading_frame.columnconfigure(3, weight=sizes.EXPAND)
+        self._heading_frame.rowconfigure(0, weight=sizes.EXPAND)
+        self._heading_frame.rowconfigure(1, weight=sizes.EXPAND)
         self._heading_frame.rowconfigure(2, weight=2)
-        self._heading_frame.rowconfigure(3, weight=constants.misc.EXPAND)
+        self._heading_frame.rowconfigure(3, weight=sizes.EXPAND)
         # self._heading_frame.pack(
         #     fill=ttk.BOTH,
         #     expand=True,
@@ -126,8 +119,8 @@ class ConnectionView(TabView):
             row=0,
             column=0,
             sticky=ttk.EW,
-            pady=constants.misc.LARGE_PADDING,
-            padx=constants.misc.LARGE_PADDING,
+            pady=sizes.LARGE_PADDING,
+            padx=sizes.LARGE_PADDING,
         )
         self._subtitle.grid(row=1, column=1, columnspan=2, sticky=ttk.EW)
         self._heading_part_one.grid(row=2, column=1, sticky=ttk.E)
@@ -142,8 +135,8 @@ class ConnectionView(TabView):
             row=1,
             column=0,
             # sticky=ttk.NSEW,
-            pady=constants.misc.LARGE_PADDING,
-            padx=constants.misc.LARGE_PADDING,
+            pady=sizes.LARGE_PADDING,
+            padx=sizes.LARGE_PADDING,
         )
         self._firmware_info_label.pack(fill=ttk.BOTH, expand=True, anchor=ttk.CENTER)
 
@@ -166,7 +159,7 @@ class ConnectionView(TabView):
         self._connect_button.configure(
             bootstyle=ttk.DANGER,
             text="Cancel",
-            command=lambda: self.event_generate(constants.events.DISCONNECTED_EVENT),
+            command=lambda: self.event_generate(events.DISCONNECTED_EVENT),
         )
 
     def on_connect(
@@ -178,9 +171,7 @@ class ConnectionView(TabView):
         self._connect_button.configure(
             bootstyle=ttk.SUCCESS,
             text="Connect",
-            command=lambda: self.event_generate(
-                constants.events.CONNECTION_ATTEMPT_EVENT
-            ),
+            command=lambda: self.event_generate(events.CONNECTION_ATTEMPT_EVENT),
         )
         self._firmware_info_frame.grid_remove()
 

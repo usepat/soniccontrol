@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import ModuleType
+from typing import Final
 
 __version__ = "1.9.8"
 __author__ = "usePAT G.m.b.H"
@@ -18,20 +19,14 @@ import pathlib
 import subprocess
 import sys
 
-import soniccontrol.utils.constants as const
-from ttkbootstrap.utility import enable_high_dpi_awareness
+from soniccontrol.utils.files import files
 
 
 def setup_logging() -> None:
-    config_file: pathlib.Path = const.files.LOGGING_CONFIG
+    config_file: pathlib.Path = files.LOGGING_CONFIG
     with config_file.open() as file:
         config = json.load(file)
     logging.config.dictConfig(config)
-
-
-def check_high_dpi_windows() -> None:
-    if sys.platform == "":
-        enable_high_dpi_awareness()
 
 
 def setup_fonts() -> None:
@@ -49,10 +44,8 @@ def setup_fonts() -> None:
 
 
 setup_logging()
-check_high_dpi_windows()
 setup_fonts()
 soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
-const: ModuleType = const
 
 soniccontrol_logger.info("SonicControl %s", __version__)
 soniccontrol_logger.info("Author: %s", __author__)

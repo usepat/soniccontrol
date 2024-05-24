@@ -1,17 +1,17 @@
 import pathlib
 from tkinter import filedialog
-from typing import Any, TypedDict
+from typing import Any, Final, TypedDict
 
 import ttkbootstrap as ttk
-from icecream import ic
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
-from ttkbootstrap.style import Callable
 
 from soniccontrol import utils
-from soniccontrol.components.card import Card
-from soniccontrol.interfaces.layouts import Layout
 from soniccontrol.interfaces.view import TabView
-from soniccontrol.utils import constants as const
+from soniccontrol.tkintergui.utils.constants import (events, sizes, tk_const,
+                                                     ui_labels)
+from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.tkintergui.widgets.card import Card
+from soniccontrol.utils.files import images
 
 
 class ScriptingView(TabView):
@@ -20,17 +20,11 @@ class ScriptingView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return utils.ImageLoader.load_image(
-            const.images.SCRIPT_ICON_BLACK, const.misc.TAB_ICON_SIZE
-        )
+        return ImageLoader.load_image(images.SCRIPT_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:
-        return const.ui.SCRIPTING_LABEL
-
-    @property
-    def layouts(self) -> set[Layout]:
-        ...
+        return ui_labels.SCRIPTING_LABEL
 
     @property
     def start_button(self) -> ttk.Button:
@@ -42,7 +36,7 @@ class ScriptingView(TabView):
         SCRIPTING_PADDING: Final[tuple[int, int, int, int]] = (6, 1, 6, 7)
         self._scripting_frame: ttk.Labelframe = ttk.Labelframe(
             self._main_frame,
-            text=const.ui.SCRIPT_EDITOR_LABEL,
+            text=ui_labels.SCRIPT_EDITOR_LABEL,
             padding=SCRIPTING_PADDING,
         )
         self._scripting_text: ScrolledText = ScrolledText(
@@ -63,27 +57,25 @@ class ScriptingView(TabView):
         self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
         self._start_button: ttk.Button = ttk.Button(
             self._navigation_button_frame,
-            text=const.ui.START_LABEL,
+            text=ui_labels.START_LABEL,
             style=ttk.SUCCESS,
-            image=utils.ImageLoader.load_image(const.images.PLAY_ICON_WHITE, (13, 13)),
+            image=ImageLoader.load_image(images.PLAY_ICON_WHITE, (13, 13)),
             compound=ttk.LEFT,
-            command=lambda: self.event_generate(const.events.SCRIPT_START_EVENT),
+            command=lambda: self.event_generate(events.SCRIPT_START_EVENT),
         )
         self._end_button: ttk.Button = ttk.Button(
             self._navigation_button_frame,
             # text=const.ui.END_LABEL,
             style=ttk.DANGER,
             compound=ttk.LEFT,
-            command=lambda: self.event_generate(const.events.SCRIPT_STOP_EVENT),
-            image=utils.ImageLoader.load_image(
-                const.images.END_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
-            ),
+            command=lambda: self.event_generate(events.SCRIPT_STOP_EVENT),
+            image=ImageLoader.load_image(images.END_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
         )
         self._scripting_guide_button: ttk.Button = ttk.Button(
             self._navigation_button_frame,
-            text=const.ui.GUIDE_LABEL,
+            text=ui_labels.GUIDE_LABEL,
             style=ttk.INFO,
-            image=utils.ImageLoader.load_image(const.images.INFO_ICON_WHITE, (13, 13)),
+            image=ImageLoader.load_image(images.INFO_ICON_WHITE, (13, 13)),
             compound=ttk.LEFT,
             command=self._scripting_guide.publish,
         )
@@ -92,61 +84,61 @@ class ScriptingView(TabView):
             self._navigation_button_frame,
             menu=self._menue,
             style=ttk.DARK,
-            image=utils.ImageLoader.load_image(const.images.MENUE_ICON_WHITE, (13, 13)),
+            image=ImageLoader.load_image(images.MENUE_ICON_WHITE, (13, 13)),
             compound=ttk.LEFT,
         )
-        self._menue.add_command(label=const.ui.SAVE_LABEL, command=self.save_script)
-        self._menue.add_command(label=const.ui.LOAD_LABEL, command=self.load_script)
+        self._menue.add_command(label=ui_labels.SAVE_LABEL, command=self.save_script)
+        self._menue.add_command(label=ui_labels.LOAD_LABEL, command=self.load_script)
         self._menue.add_command(
-            label=const.ui.SPECIFY_PATH_LABEL, command=self.specify_datalog_path
+            label=ui_labels.SPECIFY_PATH_LABEL, command=self.specify_datalog_path
         )
 
-        self.bind_all(const.events.SCRIPT_STOP_EVENT, self.on_script_stop)
-        self.bind_all(const.events.SCRIPT_START_EVENT, self.on_script_start)
-        self.bind_all(const.events.SCRIPT_PAUSE_EVENT, self.on_script_pause)
+        self.bind_all(events.SCRIPT_STOP_EVENT, self.on_script_stop)
+        self.bind_all(events.SCRIPT_START_EVENT, self.on_script_start)
+        self.bind_all(events.SCRIPT_PAUSE_EVENT, self.on_script_pause)
 
     def _initialize_publish(self) -> None:
-        self.columnconfigure(0, weight=const.misc.EXPAND)
-        self.rowconfigure(0, weight=const.misc.DONT_EXPAND, minsize=20)
-        self.rowconfigure(1, weight=const.misc.EXPAND)
-        self.rowconfigure(2, weight=const.misc.DONT_EXPAND, minsize=20)
+        self.columnconfigure(0, weight=sizes.EXPAND)
+        self.rowconfigure(0, weight=sizes.DONT_EXPAND, minsize=20)
+        self.rowconfigure(1, weight=sizes.EXPAND)
+        self.rowconfigure(2, weight=sizes.DONT_EXPAND, minsize=20)
         self._navigation_button_frame.grid(
             row=0,
             column=0,
             sticky=ttk.EW,
-            padx=const.misc.LARGE_PADDING,
-            pady=const.misc.LARGE_PADDING,
+            padx=sizes.LARGE_PADDING,
+            pady=sizes.LARGE_PADDING,
         )
         self._start_button.grid(
             row=0,
             column=0,
-            padx=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
             sticky=ttk.W,
         )
         self._end_button.grid(
             row=0,
             column=1,
-            padx=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
             sticky=ttk.W,
         )
         self._end_button.grid_remove()
         self._scripting_guide_button.grid(
             row=0,
             column=2,
-            padx=const.misc.MEDIUM_PADDING,
+            padx=sizes.MEDIUM_PADDING,
             sticky=ttk.W,
         )
-        self._navigation_button_frame.columnconfigure(3, weight=const.misc.EXPAND)
+        self._navigation_button_frame.columnconfigure(3, weight=sizes.EXPAND)
         self._menue_button.grid(
-            row=0, column=3, sticky=ttk.E, padx=const.misc.MEDIUM_PADDING
+            row=0, column=3, sticky=ttk.E, padx=sizes.MEDIUM_PADDING
         )
 
         self._main_frame.grid(row=1, column=0, sticky=ttk.NSEW)
         self._scripting_frame.pack(
             expand=True,
             fill=ttk.BOTH,
-            padx=const.misc.SIDE_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.SIDE_PADDING,
+            pady=sizes.MEDIUM_PADDING,
         )
         self._scripting_text.pack(expand=True, fill=ttk.BOTH)
 
@@ -154,11 +146,11 @@ class ScriptingView(TabView):
             row=2,
             column=0,
             sticky=ttk.EW,
-            padx=const.misc.SIDE_PADDING,
-            pady=const.misc.MEDIUM_PADDING,
+            padx=sizes.SIDE_PADDING,
+            pady=sizes.MEDIUM_PADDING,
         )
         self._script_status_frame.columnconfigure(0, weight=3)
-        self._script_status_frame.columnconfigure(1, weight=const.misc.EXPAND)
+        self._script_status_frame.columnconfigure(1, weight=sizes.EXPAND)
         self._current_task_label.grid(row=0, column=0, columnspan=2, sticky=ttk.EW)
         self._progressbar.grid(row=0, column=1, sticky=ttk.EW)
 
@@ -167,12 +159,12 @@ class ScriptingView(TabView):
 
     def on_script_start(self, event: Any, *args, **kwargs) -> None:
         self._start_button.configure(
-            text=const.ui.PAUSE_LABEL,
+            text=ui_labels.PAUSE_LABEL,
             bootstyle=ttk.DANGER,
-            image=utils.ImageLoader.load_image(
-                const.images.PAUSE_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            image=ImageLoader.load_image(
+                images.PAUSE_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
-            command=lambda: self.event_generate(const.events.SCRIPT_PAUSE_EVENT),
+            command=lambda: self.event_generate(events.SCRIPT_PAUSE_EVENT),
         )
         self._end_button.grid()
         self._progressbar.configure(mode=ttk.DETERMINATE)
@@ -180,11 +172,11 @@ class ScriptingView(TabView):
 
     def on_script_stop(self, event: Any, *args, **kwargs) -> None:
         self.start_button.configure(
-            text=const.ui.START_LABEL,
+            text=ui_labels.START_LABEL,
             bootstyle=ttk.SUCCESS,
-            command=lambda: self.event_generate(const.events.SCRIPT_START_EVENT),
-            image=utils.ImageLoader.load_image(
-                const.images.PLAY_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            command=lambda: self.event_generate(events.SCRIPT_START_EVENT),
+            image=ImageLoader.load_image(
+                images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
         )
         self._end_button.grid_remove()
@@ -192,11 +184,11 @@ class ScriptingView(TabView):
 
     def on_script_pause(self, event: Any, *args, **kwargs) -> None:
         self.start_button.configure(
-            text=const.ui.RESUME_LABEL,
+            text=ui_labels.RESUME_LABEL,
             bootstyle=ttk.SUCCESS,
-            command=lambda: self.event_generate(const.events.SCRIPT_START_EVENT),
-            image=utils.ImageLoader.load_image(
-                const.images.PLAY_ICON_WHITE, const.misc.BUTTON_ICON_SIZE
+            command=lambda: self.event_generate(events.SCRIPT_START_EVENT),
+            image=ImageLoader.load_image(
+                images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
         )
         self._progressbar.stop()
@@ -307,7 +299,7 @@ class ScriptingGuide(ttk.Toplevel):
             )
             card.pack(side=ttk.TOP, fill=ttk.X, padx=15, pady=15)
         self._scrolled_frame.pack(side=ttk.TOP, fill=ttk.BOTH, expand=True)
-        self.protocol(const.misc.DELETE_WINDOW, self.withdraw)
+        self.protocol(tk_const.DELETE_WINDOW, self.withdraw)
         self.withdraw()
 
     def publish(self) -> None:

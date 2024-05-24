@@ -1,8 +1,6 @@
 import abc
-from typing import Protocol
 
 import ttkbootstrap as ttk
-from soniccontrol.interfaces.layouts import Layout
 
 
 class View(ttk.Frame):
