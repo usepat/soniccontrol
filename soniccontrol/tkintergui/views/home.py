@@ -93,6 +93,7 @@ class HomeView(TabView):
         )
 
     def _initialize_publish(self) -> None:
+        # TODO: Comments to know in which row and order one is initializing the layout
         self.columnconfigure(0, weight=sizes.EXPAND)
         self.rowconfigure(0, weight=sizes.EXPAND)
         self.rowconfigure(1, weight=sizes.DONT_EXPAND, minsize=30)
