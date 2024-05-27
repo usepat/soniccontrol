@@ -32,10 +32,15 @@ class PackageFetcher():
     def run(self) -> None:
         self._task = asyncio.create_task(self._worker())
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         if self._task  is not None:
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
             self._task = None
+
 
     async def _worker(self) -> None:
         while True:

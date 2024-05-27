@@ -115,7 +115,7 @@ class SonicAmp(Scriptable):
     def holder(self) -> Holder:
         return self._holder
 
-    def disconnect(self) -> None:
+    async def disconnect(self) -> None:
         if self.sequencer.running.is_set():
             self.sequencer.stop_execution()
         if self.frequency_ramper.running.is_set():
@@ -124,8 +124,8 @@ class SonicAmp(Scriptable):
             self.holder.stop_execution()
 
         self.should_update.clear()
+        await self.serial.disconnect()
         Command.set_serial_communication(None)
-        self.serial.disconnect()
         del self
 
     def add_command(

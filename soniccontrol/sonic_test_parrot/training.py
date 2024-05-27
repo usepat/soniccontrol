@@ -2,8 +2,9 @@ import asyncio
 import json
 import logging
 import pathlib
-from typing import Any, Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union
 import typing
+import shutil
 from serial_asyncio import open_serial_connection
 
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
@@ -19,9 +20,10 @@ def setup_logging() -> None:
         config = json.load(file)
     logging.config.dictConfig(config)
 
+
 CommandList = List[List[str]]
 CommandCaller = Callable[[SonicAmp], typing.Coroutine]
-async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, commands: Union[CommandList, CommandCaller]):
+async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, commands: Union[CommandList, CommandCaller], parrot_food_file: Optional[str] = None):
     communicator = SerialCommunicator()
     await communicator.connect(reader, writer)
 
@@ -34,7 +36,12 @@ async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWrite
     elif callable(commands):
         await commands(sonicamp)
 
-    communicator.disconnect()
+    await communicator.stop()
+
+    if parrot_food_file is not None:
+        parrot_feeder = logging.getLogger("parrot_feeder")
+        log_filename = parrot_feeder.handlers[0].baseFilename
+        shutil.copy(log_filename, parrot_food_file)
 
 
 async def test_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, parrot_food_file: Optional[str] = None):
@@ -56,7 +63,7 @@ async def test_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     await parrot.setup_amp()
     await parrot.run_imitation()
 
-    communicator.disconnect()
+    await communicator.stop()
 
 
 async def uart_wrapper(port, baudrate, func, *args, **kwargs):
