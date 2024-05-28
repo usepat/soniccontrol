@@ -3,10 +3,12 @@ import pandas as pd
 
 from typing import Dict, Optional
 
+from soniccontrol.tkintergui.utils.events import Event, EventManager, PropertyChangeEvent
 
 
 class Plot:
     def __init__(self, subplot: matplotlib.axes.Axes, dataAttrNameXAxis: str, xlabel: str):
+        super()
         self._plot: matplotlib.axes.Axes = subplot
         self._plot.set_xlabel(xlabel)
         self._dataAttrNameXAxis = dataAttrNameXAxis
@@ -17,11 +19,19 @@ class Plot:
             handles=[]
         )
         self._selectedAxis: Optional[matplotlib.axes.Axes] = None
+        self._eventManager = EventManager()
 
     @property
     def plot(self) -> matplotlib.axes.Axes:
         return self._plot
     
+    @property
+    def lines(self) -> matplotlib.lines.Line2D:
+        return self._lines
+    
+    @property
+    def eventManager(self) -> EventManager:
+        return self._eventManager
 
     def add_line(self, dataAttrName: str, ylabel: str, **kwargs):
         if dataAttrName in self._lines:
@@ -42,15 +52,15 @@ class Plot:
 
     def toggle_line(self, dataAttrName: str, isVisible: bool):
         self._lines[dataAttrName].set_visible(isVisible)
-
+        self.eventManager.emit(PropertyChangeEvent("plot", self._plot, self._plot))
 
     def select_axis(self, dataAttrName: str):
         if dataAttrName not in self._lines:
             raise KeyError("There exists no line for this data attribute")
         
         self._selectedAxis = self._axes[dataAttrName]
+        self.eventManager.emit(PropertyChangeEvent("plot", self._plot, self._plot))
         
-
     def update_plot(self):
         for _, axis in self._axes.items():
             axis.relim()
@@ -66,3 +76,6 @@ class Plot:
     def update_data(self, data: pd.DataFrame):
         for attrName, line in self._lines.items():
             line.set_data(data[self._dataAttrNameXAxis], data[attrName])
+        self.update_plot()
+        self.eventManager.emit(PropertyChangeEvent("plot", self._plot, self._plot))
+

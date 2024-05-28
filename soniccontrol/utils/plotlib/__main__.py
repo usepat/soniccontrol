@@ -1,4 +1,5 @@
 import matplotlib.figure
+from soniccontrol.tkintergui.views.plot_view import PlotView, PlotViewModel
 from soniccontrol.utils.plotlib.plot import Plot
 from soniccontrol.utils.plotlib.plot_builder import PlotBuilder 
 
@@ -18,12 +19,11 @@ def main():
     data = pd.read_csv(filepath)
     data["timestamp"] = pd.to_datetime(data["timestamp"])
     plot.update_data(data)
-    plot.update_plot()
 
     root = tk.Tk()
-    tkagg_canvas = FigureCanvasTkAgg(figure, master=root)
-    tkagg_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-    tkagg_canvas.draw()
+    plotViewModel = PlotViewModel(plot)
+    plotView = PlotView(root, plotViewModel)
+    plotView.grid()
     root.mainloop()
 
 

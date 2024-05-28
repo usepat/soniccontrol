@@ -68,9 +68,13 @@ class EventManager:
             logger.warning(f"There is no listener for {event._type} event type")
 
     def _emit_for_listeners(self, event: Event) -> None:
+        if not event._type in self._listeners:
+            return
         for listener in self._listeners[event._type]:
             listener(event)
 
     def _emit_for_property_listeners(self, event: PropertyChangeEvent) -> None:
+        if not event.property_name in self._property_listeners:
+            return
         for listener in self._property_listeners[event.property_name]:
             listener(event)

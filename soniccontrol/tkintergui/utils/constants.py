@@ -79,6 +79,7 @@ class _UIStringsEN:
     FREQ_PLACEHOLDER: Final[str] = "Set Frequency..."
     GAIN_PLACEHOLDER: Final[str] = "Set Gain..."
     SAVE_LABEL: Final[str] = "Save"
+    SAVE_PLOT_LABEL: Final[str] = "Save Plot"
     START_LABEL: Final[str] = "Start"
     END_LABEL: Final[str] = "End"
     PAUSE_LABEL: Final[str] = "Pause"
