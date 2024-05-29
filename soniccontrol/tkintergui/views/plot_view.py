@@ -15,8 +15,8 @@ from soniccontrol.utils.plotlib.plot import Plot
 
 
 class SavePlotCommand(MvcCommand):
-    def __init__(self, target: any, source: any = None):
-        super(target, source)
+    def __init__(self, target, source = None):
+        super().__init__(target, source)
 
     def can_execute(self) -> bool:
         return isinstance(self.target,  Figure)

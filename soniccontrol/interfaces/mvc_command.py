@@ -1,7 +1,7 @@
 import abc
 
 class MvcCommand:
-    def __init__(self, target: any = None, source: any = None):
+    def __init__(self, target = None, source = None):
         self.target = target
         self.source = source
 
