@@ -20,6 +20,13 @@ class Plot:
         )
         self._selectedAxis: Optional[matplotlib.axes.Axes] = None
         self._eventManager = EventManager()
+        self._lineDefaultStyle: dict = {
+            "lw": 2,
+            "marker": "o",
+            "markersize": 4,
+            "linestyle": "-",
+            "color": "blue"
+        }
 
     @property
     def plot(self) -> matplotlib.axes.Axes:
@@ -33,6 +40,15 @@ class Plot:
     def eventManager(self) -> EventManager:
         return self._eventManager
 
+    @property
+    def lineDefaultStyle(self) -> dict:
+        return self._lineDefaultStyle
+    
+    @lineDefaultStyle.setter
+    def lineDefaultStyle(self, value) -> None:
+        self._lineDefaultStyle = value
+
+
     def add_line(self, dataAttrName: str, ylabel: str, **kwargs):
         if dataAttrName in self._lines:
             raise KeyError("There already exists a line for this attribute")
@@ -41,7 +57,10 @@ class Plot:
         ax.set_ylabel(ylabel)
         ax.get_yaxis().set_visible(False)
         ax.spines['right'].set_color('none')
-        (line, ) = ax.plot([], [], **kwargs)
+        
+        linekwargs = self.lineDefaultStyle.copy()
+        linekwargs.update(**kwargs)
+        (line, ) = ax.plot([], [], **linekwargs)
 
         self._axes[dataAttrName] = ax
         self._lines[dataAttrName] = line
@@ -54,13 +73,15 @@ class Plot:
         self._lines[dataAttrName].set_visible(isVisible)
         self.eventManager.emit(PropertyChangeEvent("plot", self._plot, self._plot))
 
+
     def select_axis(self, dataAttrName: str):
         if dataAttrName not in self._lines:
             raise KeyError("There exists no line for this data attribute")
         
         self._selectedAxis = self._axes[dataAttrName]
         self.eventManager.emit(PropertyChangeEvent("plot", self._plot, self._plot))
-        
+
+
     def update_plot(self):
         for _, axis in self._axes.items():
             axis.relim()

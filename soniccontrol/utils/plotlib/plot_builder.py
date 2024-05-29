@@ -10,40 +10,24 @@ class PlotBuilder:
         plot.add_line(
             "frequency", 
             "Frequency / Hz",
-            lw=2,
-            marker="o",
-            markersize=4,
-            linestyle="-",
             label="Frequency",
             color="black"
         )
         plot.add_line(
             "phase", 
             "Phase / °",
-            lw=2,
-            marker="o",
-            markersize=4,
-            linestyle="-",
             label="Phase",
             color="green",
         )
         plot.add_line(
             "urms", 
             "U$_{RMS}$ / mV",
-            lw=2,
-            marker="o",
-            markersize=4,
-            linestyle="-",
             label="Urms",
             color="blue",
         )
         plot.add_line(
             "irms", 
             "I$_{RMS}$ / mA",
-            lw=2,
-            marker="o",
-            markersize=4,
-            linestyle="-",
             label="Irms",
             color="red",
         )

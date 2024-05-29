@@ -15,9 +15,8 @@ from soniccontrol.utils.plotlib.plot import Plot
 
 
 class SavePlotCommand(MvcCommand):
-    def __init__(self, target: Figure):
-        super()
-        self.target = target
+    def __init__(self, target: any, source: any = None):
+        super(target, source)
 
     def can_execute(self) -> bool:
         return isinstance(self.target,  Figure)
@@ -105,6 +104,4 @@ class PlotView(View):
     def _on_plot_changed(self, _: PropertyChangeEvent):
         self._figure_canvas.draw()
         self._figure_canvas.flush_events()
-
-
 
