@@ -1,8 +1,6 @@
 import ctypes
 from cefpython3 import cefpython as cef
 import tkinter as tk
-import sys
-import os
 import platform
 
 
