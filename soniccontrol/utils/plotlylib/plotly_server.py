@@ -2,30 +2,6 @@ from dash import Dash, html, dash_table, dcc, dependencies
 import pandas as pd
 import abc
 
-from soniccontrol.tkintergui.utils.events import EventManager, PropertyChangeEvent
-
-
-class DataProvider:
-    def __init__(self):
-        self._max_size = 100
-        self._data = pd.DataFrame
-        self._eventManager = EventManager()
-
-
-    @property
-    def data(self) -> pd.DataFrame:
-        return self._data
-    
-
-    def add_row(self, row: dict):
-        old_val = self._data.copy()
-
-        self._data = self._data.append(row, ignore_index=True)
-        if len(self._data) > self._max_size:
-            self._data.drop(self._data.index[:-self._max_size], axis=0, inplace=True)
-
-        self._eventManager.emit(PropertyChangeEvent("data", old_val, self._data))
-
 
 class PlotlyPageFactory:
     @abc.abstractmethod
