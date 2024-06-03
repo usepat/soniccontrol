@@ -28,6 +28,8 @@ def setup_logging() -> None:
         config = json.load(file)
     logging.config.dictConfig(config)
 
+setup_logging()
+soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
 
 def check_high_dpi_windows() -> None:
     if sys.platform == "":
@@ -38,20 +40,23 @@ def setup_fonts() -> None:
     print("Installing fonts...")
     platform: str = sys.platform
     font_files = glob.glob("./resources/fonts/*.ttf")
-    process = subprocess.run(
-        [
-            rf"./bin/font-install/{platform}/font-install",
-            *list(font for font in font_files),
-        ],
-    )
-    if process.returncode != 0:
-        soniccontrol_logger.warning("Failed to install fonts")
+    try:
+        process = subprocess.run(
+            [
+                rf"./bin/font-install/{platform}/font-install",
+                *list(font for font in font_files),
+            ],
+        )
+        if process.returncode != 0:
+            raise RuntimeError("Failed to install fonts")
+    except Exception:
+        soniccontrol_logger.warning("Failed to install fonts", exc_info=True)
 
 
-setup_logging()
+
+
 check_high_dpi_windows()
 setup_fonts()
-soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
 const: ModuleType = const
 
 soniccontrol_logger.info("SonicControl %s", __version__)
