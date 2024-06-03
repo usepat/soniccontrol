@@ -11,6 +11,7 @@ from soniccontrol.sonicpackage.commands import (Command, Commands,
 from soniccontrol.sonicpackage.interfaces import Scriptable, Updater
 from soniccontrol.sonicpackage.scripts import Holder, Ramper, Sequencer
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.tkintergui.utils.events import Event
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 

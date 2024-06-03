@@ -2,6 +2,7 @@ import pandas as pd
 from soniccontrol.tkintergui.utils.events import EventManager, PropertyChangeEvent
 from collections import deque
 
+
 class DataProvider:
     def __init__(self):
         self._max_size = 100
