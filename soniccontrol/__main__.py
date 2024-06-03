@@ -1,15 +1,13 @@
-from soniccontrol.amp import SonicAmp
-from soniccontrol.core.window import MainPresenter
-from soniccontrol.core.windowview import MainView
-
-import soniccontrol
+from soniccontrol.core.soniccontroller import SonicController
+from soniccontrol.tkintergui.mainview import MainView
+from soniccontrol.tkintergui.models import DeviceModel
 
 
 def main() -> None:
-    sonicamp: SonicAmp = SonicAmp()
     view: MainView = MainView()
-    presenter: MainPresenter = MainPresenter(view, sonicamp)
-    presenter.start()
+    model: DeviceModel = DeviceModel()
+    controller: SonicController = SonicController(view, model)
+    controller.start()
 
 
 if __name__ == "__main__":

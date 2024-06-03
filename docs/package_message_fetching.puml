@@ -1,0 +1,52 @@
+@startuml Package Message Fetching
+
+class Package {
+    + destination: str
+    + source: str
+    + id: int
+    + length: int
+    + content: str 
+}
+
+class PackageParser {
+    + parse_package()
+    + write_package()
+}
+PackageParser --> Package
+
+class Command {
+    - callback_answer_received: lambda
+    + receive_answer(answer: str)
+}
+
+class LogHandler {
+    + handleLog(log: str)
+}
+
+class PackageFetcher {
+    - reader
+    - answers: Map<id, answer_str>
+    + runWorker()
+    + get_answer_with_id(id: int): Optional<str>
+    - read_package(): Package
+}
+PackageFetcher --> PackageParser
+PackageFetcher --> Package
+PackageFetcher --> LogHandler
+
+
+class SerialCommunicator {
+    - reader
+    - writer
+    - commands: Map<id, Command>
+    + runWorker()
+    + send_command(command: Command)
+    + send_command_blocking(command: Command)
+    - write_command()
+    - check_answers()
+}
+
+SerialCommunicator --> PackageFetcher
+SerialCommunicator --> Command
+
+@enduml

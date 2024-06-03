@@ -1,8 +1,0 @@
-from soniccontrol.presenters.connection import ConnectionPresenter
-from soniccontrol.presenters.home import HomePresenter
-from soniccontrol.presenters.info import InfoPresenter
-from soniccontrol.presenters.scripting import ScriptPresenter
-from soniccontrol.presenters.serialmonitor import SerialMonitorPresenter
-from soniccontrol.presenters.settings import SettingsPresenter
-from soniccontrol.presenters.sonicmeasure import SonicMeasurePresenter
-from soniccontrol.presenters.status import StatusBarPresenter, StatusPresenter

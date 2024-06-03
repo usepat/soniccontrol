@@ -23,9 +23,17 @@
       "filename": "logs/soniccontrol.log",
       "maxBytes": 10000,
       "backupCount": 3
+    },
+    "parrot_file": {
+      "class": "logging.handlers.WatchedFileHandler",
+      "level": "DEBUG",
+      "formatter": "simple",
+      "filename": "logs/parrot_food_logs_for_integration_tesing.log",
+      "mode": "w"
     }
   },
   "loggers": {
-    "root": { "level": "DEBUG", "handlers": ["stderr", "file"] }
+    "root": { "level": "DEBUG", "handlers": ["stderr", "file"] },
+    "parrot_feeder": { "level": "DEBUG", "handlers": ["parrot_file"]}
   }
 }
