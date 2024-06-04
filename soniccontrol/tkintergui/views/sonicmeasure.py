@@ -1,5 +1,6 @@
 import matplotlib.figure
 import pandas as pd
+from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView, View
 import tkinter as tk
 import ttkbootstrap as ttk
@@ -20,10 +21,10 @@ from soniccontrol.tkintergui.views.plot_view import PlotView, PlotViewModel
 from soniccontrol.utils.plotlib.plot_builder import PlotBuilder
 
 
-class SonicMeasurePresenter:
+class SonicMeasure(UIComponent):
     def __init__(self):
         self._capture = Capture()
-        self._view = SonicMeasureView()
+        super().__init__(SonicMeasureView())
 
         # # TODO remove this, only for testing
         # filepath = "./logs/status_log.csv"
@@ -99,7 +100,6 @@ class SonicMeasureView(TabView):
     def image(self) -> ttk.ImageTk.PhotoImage:
         return ImageLoader.load_image(images.LINECHART_ICON_BLACK, sizes.TAB_ICON_SIZE)
     
-
     @property
     def tab_title(self) -> str:
         return ui_labels.SONIC_MEASURE_LABEL
