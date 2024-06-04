@@ -1,3 +1,4 @@
+from typing import Optional
 import matplotlib.figure
 import pandas as pd
 from soniccontrol.interfaces.ui_component import UIComponent
@@ -22,9 +23,9 @@ from soniccontrol.utils.plotlib.plot_builder import PlotBuilder
 
 
 class SonicMeasure(UIComponent):
-    def __init__(self):
+    def __init__(self, parent: Optional[UIComponent]):
         self._capture = Capture()
-        super().__init__(SonicMeasureView())
+        super().__init__(parent, SonicMeasureView(parent.view))
 
         # # TODO remove this, only for testing
         # filepath = "./logs/status_log.csv"

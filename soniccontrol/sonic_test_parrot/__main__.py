@@ -3,13 +3,13 @@ import json
 import logging
 import pathlib
 
-import soniccontrol.utils.constants as const
+from soniccontrol.utils.files import files
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.sonic_test_parrot.parrot import Parrot
 
 def setup_logging() -> None:
-    config_file: pathlib.Path = const.files.LOGGING_CONFIG
+    config_file: pathlib.Path = files.LOGGING_CONFIG
     with config_file.open() as file:
         config = json.load(file)
     logging.config.dictConfig(config)

@@ -7,6 +7,7 @@ from soniccontrol.tkintergui.utils.events import Event, EventManager
 
 class Updater(EventManager):
     def __init__(self, device: SonicAmp) -> None:
+        super().__init__()
         self._device = device
         self._running: asyncio.Event = asyncio.Event()
         self._task: Optional[asyncio.Task] = None

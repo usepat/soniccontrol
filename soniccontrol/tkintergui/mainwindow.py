@@ -4,6 +4,9 @@ import ttkbootstrap as ttk
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
+from soniccontrol.sonicpackage.amp_data import Info, Status
+from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
@@ -14,15 +17,20 @@ from soniccontrol.tkintergui.widgets.notebook import Notebook
 
 class MainWindow(UIComponent):
     def __init__(self):
-        self._updater = Updater()
-        self._sonicmeasure = SonicMeasure()
-        super().__init__(MainWindowView([self._sonicmeasure.view]))
+        super().__init__(None, MainWindowView())
 
-        self._updater._event_emitter.subscribe("update", self._sonicmeasure.on_status_update)
+        self._serial_communicator = SerialCommunicator()
+        self._device = SonicAmp(serial=self._serial_communicator, status=Status(), info=Info())
+        self._updater = Updater(self._device)
+
+        self._sonicmeasure = SonicMeasure(self)
+
+        self._view.add_tab_views([self._sonicmeasure.view])
+        self._updater.subscribe("update", self._sonicmeasure.on_status_update)
 
 
-class MainWindowView(tk.Window):
-    def __init__(self, tab_views: List[TabView],  *args, **kwargs) -> None:
+class MainWindowView(ttk.Window):
+    def __init__(self,  *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         ImageLoader(self)
 
@@ -45,7 +53,6 @@ class MainWindowView(tk.Window):
         self.rowconfigure(1, weight=sizes.DONT_EXPAND)
         self.grid_rowconfigure(1, minsize=16)
         self._main_frame.grid(row=0, column=0, sticky=ttk.NSEW)
-        self._views.statusbar.grid(row=1, column=0, sticky=ttk.EW)
 
         self._left_frame.columnconfigure(0, weight=sizes.EXPAND)
         self._left_frame.rowconfigure(0, weight=sizes.EXPAND)
@@ -53,10 +60,16 @@ class MainWindowView(tk.Window):
 
         self._left_frame.rowconfigure(1, weight=0, minsize=60)
         self._left_notebook.grid(row=0, column=0, sticky=ttk.NSEW)
-        self._status_frame.grid(row=1, column=0, sticky=ttk.EW)
 
         self._main_frame.add(self._left_frame, weight=sizes.DONT_EXPAND)
         self._left_notebook.add_tabs(
+            [],
+            show_titles=True,
+            show_images=True,
+        )
+
+    def add_tab_views(self, tab_views: List[TabView]):
+         self._left_notebook.add_tabs(
             tab_views,
             show_titles=True,
             show_images=True,

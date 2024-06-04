@@ -5,8 +5,8 @@ from asyncio import StreamReader
 import sys
 from icecream import ic
 
-import soniccontrol.utils.constants as const
 from soniccontrol.sonicpackage.package_parser import Package, PackageParser
+from soniccontrol.utils.system import PLATFORM
 
 logger = logging.getLogger()
 
@@ -71,13 +71,13 @@ class PackageFetcher():
             raise RuntimeError("reader was not initialized")
         
         message: str = PackageParser.start_symbol
-        garbage_data = await self._reader.readuntil(PackageParser.start_symbol.encode(const.misc.ENCODING))
-        garbage = garbage_data.decode(const.misc.ENCODING)
+        garbage_data = await self._reader.readuntil(PackageParser.start_symbol.encode(PLATFORM.encoding))
+        garbage = garbage_data.decode(PLATFORM.encoding)
         if garbage.strip() != PackageParser.start_symbol:
             raise RuntimeError(f"Before the package start, there were unexpected characters: {garbage}")
         
-        data = await self._reader.readuntil(PackageParser.end_symbol.encode(const.misc.ENCODING))
-        message += data.decode(const.misc.ENCODING)
+        data = await self._reader.readuntil(PackageParser.end_symbol.encode(PLATFORM.encoding))
+        message += data.decode(PLATFORM.encoding)
 
         logger.debug(f"READ_PACKAGE({message})")
 

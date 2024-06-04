@@ -8,11 +8,11 @@ import attrs
 import serial
 import serial_asyncio as aserial
 from soniccontrol.sonicpackage.package_fetcher import PackageFetcher
-import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.package_parser import PackageParser, Package
+from soniccontrol.utils.system import PLATFORM
 
 logger = logging.getLogger()
 
@@ -96,7 +96,7 @@ class SerialCommunicator(Communicator):
             package = Package("0", "0", package_counter, command.full_message)
             message_str = PackageParser.write_package(package) + "\n" # \n is needed after the package.
             logger.debug(f"WRITE_PACKAGE({message_str})")
-            message = message_str.encode(const.misc.ENCODING)
+            message = message_str.encode(PLATFORM.encoding)
             self._writer.write(message)
             await self._writer.drain()
 
@@ -142,7 +142,7 @@ class SerialCommunicator(Communicator):
             response = await asyncio.wait_for(
                 self._reader.readline(), timeout=response_time
             )
-            message = response.decode(const.misc.ENCODING).strip()
+            message = response.decode(PLATFORM.encoding).strip()
         except Exception as e:
             ic(f"Exception while reading {sys.exc_info()}")
         return message
@@ -160,7 +160,7 @@ class SerialCommunicator(Communicator):
                 response = await asyncio.wait_for(
                     self._reader.readline(), timeout=response_time
                 )
-                line = response.decode(const.misc.ENCODING).strip()
+                line = response.decode(PLATFORM.encoding).strip()
                 message.append(line)
             except asyncio.TimeoutError:
                 continue

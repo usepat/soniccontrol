@@ -58,7 +58,7 @@ class SonicAmp(Scriptable):
     _sequencer: Sequencer = attrs.field(init=False)
 
     def __attrs_post_init__(self) -> None:
-        self.updater = OverviewUpdater(self)
+        self.updater = None # OverviewUpdater(self)
         self._frequency_ramper = Ramper(self, self.set_frequency)
         self._sequencer = Sequencer(self)
 

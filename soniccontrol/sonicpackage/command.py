@@ -8,9 +8,9 @@ from typing import (Any, Callable, Dict, Generator, Iterable, List, Literal,
                     Optional, Union)
 
 import attrs
-import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Communicator, Sendable
+from soniccontrol.utils.system import PLATFORM
 
 parrot_feeder = logging.getLogger("parrot_feeder")
 
@@ -211,7 +211,7 @@ class Command(Sendable):
         if not isinstance(self._validators, (tuple, list, set, Generator)):
             self._validators = [self._validators]
         self._byte_message = f"{self.message}{self.argument}\n".encode(
-            const.misc.ENCODING
+            PLATFORM.encoding
         )
 
     @property
@@ -258,7 +258,7 @@ class Command(Sendable):
     def set_argument(self, argument: Any) -> None:
         self.argument = argument
         self._byte_message = f"{self.message}{self.argument}\n".encode(
-            const.misc.ENCODING
+            PLATFORM.encoding
         )
 
     def get_dict(self) -> dict:
