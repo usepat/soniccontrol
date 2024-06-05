@@ -8,11 +8,11 @@ import attrs
 import serial
 import serial_asyncio as aserial
 from soniccontrol.sonicpackage.package_fetcher import PackageFetcher
-import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.package_parser import PackageParser, Package
+from soniccontrol.utils.system import PLATFORM
 
 logger = logging.getLogger()
 
@@ -96,7 +96,7 @@ class SerialCommunicator(Communicator):
             package = Package("0", "0", package_counter, command.full_message)
             message_str = PackageParser.write_package(package) + "\n" # \n is needed after the package.
             logger.debug(f"WRITE_PACKAGE({message_str})")
-            message = message_str.encode(const.misc.ENCODING)
+            message = message_str.encode(PLATFORM.encoding)
             self._writer.write(message)
             await self._writer.drain()
 
@@ -116,38 +116,30 @@ class SerialCommunicator(Communicator):
         if self._writer is None or self._reader is None:
             ic("No connection available")
             return
-        while self._writer is not None and not self._writer.is_closing():
-            command: Command = await self._command_queue.get()
-            async with self._lock:
-                try:
-                    await send_and_get(command)
-                except serial.SerialException:
-                    self.disconnect()
-                    return
-                except Exception as e:
-                    ic(sys.exc_info())
-                    break
-        self.disconnect()
+    
+        try:    
+            while self._writer is not None and not self._writer.is_closing():
+                command: Command = await self._command_queue.get()
+                async with self._lock:
+                    try:
+                        await send_and_get(command)
+                    except serial.SerialException:
+                        await self.disconnect()
+                        return
+                    except Exception as e:
+                        ic(sys.exc_info())
+                        break
+        except asyncio.CancelledError:
+            await self.disconnect()
+            return
+        await self.disconnect()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
         await self._command_queue.put(command)
         await command.answer.received.wait()
 
-    async def read_message(self, response_time: float = 0.3) -> str:
-        message: str = ""
-        await asyncio.sleep(0.2)
-        if self._reader is None:
-            return message
-        try:
-            response = await asyncio.wait_for(
-                self._reader.readline(), timeout=response_time
-            )
-            message = response.decode(const.misc.ENCODING).strip()
-        except Exception as e:
-            ic(f"Exception while reading {sys.exc_info()}")
-        return message
 
-    async def read_long_message(
+    async def read_long_message( # TODO: delete this method
         self, response_time: float = 0.3, reading_time: float = 0.2
     ) -> List[str]:
         if self._reader is None:
@@ -160,7 +152,7 @@ class SerialCommunicator(Communicator):
                 response = await asyncio.wait_for(
                     self._reader.readline(), timeout=response_time
                 )
-                line = response.decode(const.misc.ENCODING).strip()
+                line = response.decode(PLATFORM.encoding).strip()
                 message.append(line)
             except asyncio.TimeoutError:
                 continue
@@ -170,11 +162,18 @@ class SerialCommunicator(Communicator):
 
         return message
 
-    def disconnect(self) -> None:
-        if self._task is not None:
-            self._package_fetcher.stop()
+    async def stop(self) -> None:
+        if self._task  is not None:
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
             self._task = None
+
+    async def disconnect(self) -> None:
+        if self._task is not None:
+            await self._package_fetcher.stop()
         self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()

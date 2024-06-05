@@ -21,7 +21,7 @@ class Event:
     def data(self) -> dict[str, Any]:
         return self._data
 
-
+# TODO add sender
 @attrs.define
 class PropertyChangeEvent(Event):
     _property_name: str = attrs.field()
@@ -44,10 +44,10 @@ class PropertyChangeEvent(Event):
         return self._new_value
 
 
-@attrs.define
 class EventManager:
-    _listeners: dict[str, list[Callable[[Event], None]]] = attrs.field(factory=dict)
-    _property_listeners: dict[str, list[Callable[[PropertyChangeEvent], None]]] = attrs.field(factory=dict)
+    def __init__(self):
+        self._listeners: dict[str, list[Callable[[Event], None]]] = {}
+        self._property_listeners: dict[str, list[Callable[[PropertyChangeEvent], None]]] = {}
 
     def subscribe(self, event_type: str, listener: Callable[[Event], None]) -> None:
         if self._listeners.get(event_type) is None:
@@ -68,9 +68,13 @@ class EventManager:
             logger.warning(f"There is no listener for {event._type} event type")
 
     def _emit_for_listeners(self, event: Event) -> None:
+        if not event._type in self._listeners:
+            return
         for listener in self._listeners[event._type]:
             listener(event)
 
     def _emit_for_property_listeners(self, event: PropertyChangeEvent) -> None:
+        if not event.property_name in self._property_listeners:
+            return
         for listener in self._property_listeners[event.property_name]:
             listener(event)

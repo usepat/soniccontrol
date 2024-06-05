@@ -79,6 +79,7 @@ class _UIStringsEN:
     FREQ_PLACEHOLDER: Final[str] = "Set Frequency..."
     GAIN_PLACEHOLDER: Final[str] = "Set Gain..."
     SAVE_LABEL: Final[str] = "Save"
+    SAVE_PLOT_LABEL: Final[str] = "Save Plot"
     START_LABEL: Final[str] = "Start"
     END_LABEL: Final[str] = "End"
     PAUSE_LABEL: Final[str] = "Pause"
@@ -189,6 +190,8 @@ class _UIStringsEN:
     HOME_HELP_ON: Final[str] = "Here should be a description of the on entry."
     HOME_HELP_AUTO: Final[str] = "Here should be a description of the auto entry."
     HOME_HELP_OFF: Final[str] = "Here should be a description of the off entry."
+    START_CAPTURE: Final[str] = "Start Capture"
+    END_CAPTURE: Final[str] = "End Capture"
 
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()

@@ -11,6 +11,7 @@ from soniccontrol.sonicpackage.commands import (Command, Commands,
 from soniccontrol.sonicpackage.interfaces import Scriptable, Updater
 from soniccontrol.sonicpackage.scripts import Holder, Ramper, Sequencer
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.tkintergui.utils.events import Event
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
@@ -57,7 +58,7 @@ class SonicAmp(Scriptable):
     _sequencer: Sequencer = attrs.field(init=False)
 
     def __attrs_post_init__(self) -> None:
-        self.updater = OverviewUpdater(self)
+        self.updater = None # OverviewUpdater(self)
         self._frequency_ramper = Ramper(self, self.set_frequency)
         self._sequencer = Sequencer(self)
 
@@ -115,7 +116,7 @@ class SonicAmp(Scriptable):
     def holder(self) -> Holder:
         return self._holder
 
-    def disconnect(self) -> None:
+    async def disconnect(self) -> None:
         if self.sequencer.running.is_set():
             self.sequencer.stop_execution()
         if self.frequency_ramper.running.is_set():
@@ -124,8 +125,8 @@ class SonicAmp(Scriptable):
             self.holder.stop_execution()
 
         self.should_update.clear()
+        await self.serial.disconnect()
         Command.set_serial_communication(None)
-        self.serial.disconnect()
         del self
 
     def add_command(
@@ -331,7 +332,6 @@ async def main():
     ser = SerialCommunicator("/dev/cu.usbserial-AB0M45SW")
     await ser.connect()
     await ser.connection_opened.wait()
-    Command.set_serial_communication(ser)
 
     sonicamp = SonicAmp(
         serial=ser,
@@ -339,12 +339,13 @@ async def main():
         status=Status(),
     )
 
-    sonicamp.add_command(Commands.signal_on)
-    sonicamp.add_command(Commands.signal_off)
-    sonicamp.add_command(Commands.get_atf1)
-    sonicamp.add_command(Commands.get_atf2)
-    sonicamp.add_command(Commands.get_atf3)
-    sonicamp.add_command(Commands.get_att1)
+    commands = Commands(serial=ser)
+    sonicamp.add_command(commands.signal_on)
+    sonicamp.add_command(commands.signal_off)
+    sonicamp.add_command(commands.get_atf1)
+    sonicamp.add_command(commands.get_atf2)
+    sonicamp.add_command(commands.get_atf3)
+    sonicamp.add_command(commands.get_att1)
     sonicamp.add_command(
         message="?sens",
         estimated_response_time=0.35,
@@ -356,8 +357,8 @@ async def main():
             phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
         ),
     )
-    sonicamp.add_command(Commands.get_status)
-    sonicamp.add_command(Commands.get_overview)
+    sonicamp.add_command(commands.get_status)
+    sonicamp.add_command(commands.get_overview)
 
     # await sonicamp.set_serial_mode()
     # await sonicamp.set_relay_mode_khz()

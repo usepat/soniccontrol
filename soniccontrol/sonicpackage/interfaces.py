@@ -4,6 +4,8 @@ from typing import *
 
 import attrs
 
+from soniccontrol.tkintergui.utils.events import EventManager
+
 
 class Sendable(abc.ABC):
     def __init__(self) -> None:
@@ -55,6 +57,7 @@ class Updater(abc.ABC):
     def __init__(self) -> None:
         super().__init__()
         self.__attrs_init__()
+        self._event_emitter = EventManager()
 
     @property
     def running(self) -> asyncio.Event:

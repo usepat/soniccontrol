@@ -8,9 +8,9 @@ from typing import (Any, Callable, Dict, Generator, Iterable, List, Literal,
                     Optional, Union)
 
 import attrs
-import soniccontrol.utils.constants as const
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Communicator, Sendable
+from soniccontrol.utils.system import PLATFORM
 
 parrot_feeder = logging.getLogger("parrot_feeder")
 
@@ -205,13 +205,13 @@ class Command(Sendable):
     answer: Answer = attrs.field(init=False, factory=Answer)
     _byte_message: bytes = attrs.field(init=False)
     _status_result: Dict[str, Any] = attrs.field(init=False, factory=dict)
-    _serial_communication: Optional[Communicator] = None
+    _serial_communication: Optional[Communicator] = attrs.field(init=False)
 
     def __attrs_post_init__(self) -> None:
         if not isinstance(self._validators, (tuple, list, set, Generator)):
             self._validators = [self._validators]
         self._byte_message = f"{self.message}{self.argument}\n".encode(
-            const.misc.ENCODING
+            PLATFORM.encoding
         )
 
     @property
@@ -241,10 +241,6 @@ class Command(Sendable):
     def status_result(self) -> Dict[str, Any]:
         return self._status_result
 
-    @classmethod
-    def set_serial_communication(cls, serial: Any) -> None:
-        cls._serial_communication = serial
-
     def add_validators(
         self, validators: Union[CommandValidator, Iterable[CommandValidator]]
     ) -> None:
@@ -258,7 +254,7 @@ class Command(Sendable):
     def set_argument(self, argument: Any) -> None:
         self.argument = argument
         self._byte_message = f"{self.message}{self.argument}\n".encode(
-            const.misc.ENCODING
+            PLATFORM.encoding
         )
 
     def get_dict(self) -> dict:
