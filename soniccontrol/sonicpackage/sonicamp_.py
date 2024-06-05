@@ -8,7 +8,7 @@ from icecream import ic
 from soniccontrol.sonicpackage.amp_data import Info, Modules, Status
 from soniccontrol.sonicpackage.commands import (Command, Commands,
                                                 CommandValidator)
-from soniccontrol.sonicpackage.interfaces import Scriptable, Updater
+from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.scripts import Holder, Ramper, Sequencer
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.tkintergui.utils.events import Event
@@ -16,31 +16,6 @@ from soniccontrol.tkintergui.utils.events import Event
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
 parrot_feeder = logging.getLogger("parrot_feeder")
-
-@attrs.define
-class MeasureUpdater(Updater):
-    async def worker(self) -> None:
-        await self._device.get_sens()
-
-
-@attrs.define
-class StatusUpdater(Updater):
-    async def worker(self) -> None:
-        await self._device.get_status()
-
-
-@attrs.define
-class OverviewUpdater(Updater):
-    async def worker(self) -> None:
-        await self._device.get_overview()
-
-
-@attrs.define
-class Catch03Updater(Updater):
-    async def worker(self) -> None:
-        if self._device.status.signal and self._device.status.relay_mode == "Mhz":
-            self._device.updater = MeasureUpdater(self._device)
-        await self._device
 
 
 @attrs.define(kw_only=True)
@@ -51,14 +26,11 @@ class SonicAmp(Scriptable):
     _status: Status = attrs.field()
     _info: Info = attrs.field()
 
-    _should_update: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
-    _updater: Updater = attrs.field(init=False, default=None)
     _holder: Holder = attrs.field(init=False, factory=Holder)
     _frequency_ramper: Ramper = attrs.field(init=False)
     _sequencer: Sequencer = attrs.field(init=False)
 
     def __attrs_post_init__(self) -> None:
-        self.updater = None # OverviewUpdater(self)
         self._frequency_ramper = Ramper(self, self.set_frequency)
         self._sequencer = Sequencer(self)
 
@@ -69,28 +41,6 @@ class SonicAmp(Scriptable):
     @serial.setter
     def serial(self, serial: SerialCommunicator) -> None:
         self._serial = serial
-
-    @property
-    def should_update(self) -> asyncio.Event:
-        return self._should_update
-
-    @property
-    def updater(self) -> Updater:
-        return self._updater
-
-    @updater.setter
-    def updater(self, updater: Updater) -> None:
-        if self._updater is not None and (
-            type(self._updater) == type(updater) or self._updater is updater
-        ):
-            return
-        if self._updater is not None:
-            self._updater.stop_execution()
-
-        self._updater = updater
-
-        if self._updater is not None:
-            self._updater.execute()
 
     @property
     def commands(self) -> Dict[str, Command]:
@@ -124,7 +74,6 @@ class SonicAmp(Scriptable):
         if self.holder.running.is_set():
             self.holder.stop_execution()
 
-        self.should_update.clear()
         await self.serial.disconnect()
         Command.set_serial_communication(None)
         del self
@@ -194,27 +143,10 @@ class SonicAmp(Scriptable):
             parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
         except Exception as e:
             pass
-        
-        self._check_updater_strategy()
+
         ic(command.byte_message, command.answer, command.status_result, self._status)
 
         return command.answer.string
-
-    def _check_updater_strategy(self) -> None:
-        if not self.should_update.is_set():
-            self.updater.stop_execution() if self.updater.running.is_set() else None
-            return
-
-        if (
-            self.status.signal
-            and self.status.relay_mode == "MHz"
-            and self.has_command("?sens")
-        ):
-            self.updater = MeasureUpdater(self)
-        elif self.has_command("-"):
-            self.updater = StatusUpdater(self)
-        else:
-            self.updater = OverviewUpdater(self)
 
     async def set_signal_off(self) -> str:
         return await self.execute_command("!OFF", urms=0.0, irms=0.0, phase=0.0)
