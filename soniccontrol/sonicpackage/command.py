@@ -205,7 +205,7 @@ class Command(Sendable):
     answer: Answer = attrs.field(init=False, factory=Answer)
     _byte_message: bytes = attrs.field(init=False)
     _status_result: Dict[str, Any] = attrs.field(init=False, factory=dict)
-    _serial_communication: Optional[Communicator] = None
+    _serial_communication: Optional[Communicator] = attrs.field(init=False)
 
     def __attrs_post_init__(self) -> None:
         if not isinstance(self._validators, (tuple, list, set, Generator)):
@@ -240,10 +240,6 @@ class Command(Sendable):
     @property
     def status_result(self) -> Dict[str, Any]:
         return self._status_result
-
-    @classmethod
-    def set_serial_communication(cls, serial: Any) -> None:
-        cls._serial_communication = serial
 
     def add_validators(
         self, validators: Union[CommandValidator, Iterable[CommandValidator]]

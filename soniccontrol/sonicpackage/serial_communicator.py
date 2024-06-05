@@ -138,21 +138,8 @@ class SerialCommunicator(Communicator):
         await self._command_queue.put(command)
         await command.answer.received.wait()
 
-    async def read_message(self, response_time: float = 0.3) -> str:
-        message: str = ""
-        await asyncio.sleep(0.2)
-        if self._reader is None:
-            return message
-        try:
-            response = await asyncio.wait_for(
-                self._reader.readline(), timeout=response_time
-            )
-            message = response.decode(PLATFORM.encoding).strip()
-        except Exception as e:
-            ic(f"Exception while reading {sys.exc_info()}")
-        return message
 
-    async def read_long_message(
+    async def read_long_message( # TODO: delete this method
         self, response_time: float = 0.3, reading_time: float = 0.2
     ) -> List[str]:
         if self._reader is None:

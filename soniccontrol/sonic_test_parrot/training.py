@@ -7,15 +7,16 @@ import typing
 import shutil
 from serial_asyncio import open_serial_connection
 
+from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-import soniccontrol.utils.constants as const
+import soniccontrol.utils.files as files
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.sonic_test_parrot.parrot import Parrot
 
 
 def setup_logging() -> None:
-    config_file: pathlib.Path = const.files.LOGGING_CONFIG
+    config_file: pathlib.Path = files.LOGGING_CONFIG
     with config_file.open() as file:
         config = json.load(file)
     logging.config.dictConfig(config)
@@ -28,7 +29,7 @@ async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWrite
     await communicator.connect(reader, writer)
 
     builder = AmpBuilder()
-    sonicamp = await builder.build_amp(communicator)
+    sonicamp = await builder.build_amp(communicator, Status(), Info())
     
     if isinstance(commands, list):
         for command in commands:
@@ -72,7 +73,7 @@ async def uart_wrapper(port, baudrate, func, *args, **kwargs):
 
 
 async def cli_wrapper(process_name, func, *args, **kwargs):
-    process = await asyncio.create_subprocess_shell(
+    process = await asyncio.create_subprocesfiless_shell(
         process_name,
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,

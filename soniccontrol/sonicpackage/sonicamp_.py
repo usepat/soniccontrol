@@ -332,7 +332,6 @@ async def main():
     ser = SerialCommunicator("/dev/cu.usbserial-AB0M45SW")
     await ser.connect()
     await ser.connection_opened.wait()
-    Command.set_serial_communication(ser)
 
     sonicamp = SonicAmp(
         serial=ser,
@@ -340,12 +339,13 @@ async def main():
         status=Status(),
     )
 
-    sonicamp.add_command(Commands.signal_on)
-    sonicamp.add_command(Commands.signal_off)
-    sonicamp.add_command(Commands.get_atf1)
-    sonicamp.add_command(Commands.get_atf2)
-    sonicamp.add_command(Commands.get_atf3)
-    sonicamp.add_command(Commands.get_att1)
+    commands = Commands(serial=ser)
+    sonicamp.add_command(commands.signal_on)
+    sonicamp.add_command(commands.signal_off)
+    sonicamp.add_command(commands.get_atf1)
+    sonicamp.add_command(commands.get_atf2)
+    sonicamp.add_command(commands.get_atf3)
+    sonicamp.add_command(commands.get_att1)
     sonicamp.add_command(
         message="?sens",
         estimated_response_time=0.35,
@@ -357,8 +357,8 @@ async def main():
             phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
         ),
     )
-    sonicamp.add_command(Commands.get_status)
-    sonicamp.add_command(Commands.get_overview)
+    sonicamp.add_command(commands.get_status)
+    sonicamp.add_command(commands.get_overview)
 
     # await sonicamp.set_serial_mode()
     # await sonicamp.set_relay_mode_khz()

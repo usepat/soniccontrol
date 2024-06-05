@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Literal, Optional, Union, ClassVar
 
+from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.command import Command
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
@@ -104,7 +105,7 @@ class Parrot:
 
     async def setup_amp(self):
         builder = AmpBuilder()
-        self.sonic_amp = await builder.build_amp(self.serial_communicator)
+        self.sonic_amp = await builder.build_amp(self.serial_communicator, Status(), Info())
 
         self._validate_imitation()
         
