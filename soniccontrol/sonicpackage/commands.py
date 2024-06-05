@@ -1,11 +1,45 @@
+import datetime
 import attrs
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 
 
-
 class Commands:
     def __init__(self, serial: SerialCommunicator):
+        
+        # TODO: Ask about ?error, how do we validate errors, if there is not a known number of errors
+        type_validator: CommandValidator = CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str)
+        version_validator: CommandValidator = CommandValidator(pattern=r".*([\d]\.[\d]\.[\d]).*", version=str)
+        update_date_validator: CommandValidator = CommandValidator(
+            pattern=r".*(\d{2}.\d{2}.\d{4}).*", date=lambda date: (
+                datetime.datetime.strptime(date, "%d.%m.%Y").date()
+            )
+        )
+        protocol_version_validator: CommandValidator = CommandValidator(
+            pattern=r".*([\d]\.[\d]\.[\d]).*", protocol_version=str
+        )
+        pzt_validator: CommandValidator = CommandValidator(
+            pattern=r"(.*)[#](\d+)", 
+            id=str,
+            frequency=int,
+        )
+        frequency_validator: CommandValidator = CommandValidator(pattern=r"(\d+)\s*Hz", frequency=int)
+        gain_validator: CommandValidator = CommandValidator(pattern=r"(\d+)\s*%", gain=int)
+        temp_validator: CommandValidator = CommandValidator(pattern=r"(\d+)\s* °C", temp=float)
+        
+        # TODO: What should be the units in sonicpackage?
+        uipt_validator: CommandValidator = CommandValidator(
+            pattern=r"(\d+)\s*uV[#](\d+)\s*uA[#](\d+)\s*mDeg[#](\d+)\s*mDegC",
+            urms=int,
+            irms=int,
+            phase=int
+            temperature=int
+        )
+        adc_validator: CommandValidator = CommandValidator(
+            pattern=r"(\d+) uV", adc_voltage=int
+        )
+        
+        
         self.set_frequency: Command = Command(
             message="!f=",
             validators=CommandValidator(
@@ -22,7 +56,7 @@ class Commands:
 
         self.set_switching_frequency: Command = Command(
             message="!swf=",
-            validators=CommandValidator(
+            validators=CommandValidator( 
                 pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", switching_frequency=int
             ),
             serial_communication=serial
@@ -72,6 +106,7 @@ class Commands:
             serial_communication=serial
         )
 
+        # TODO: Ask if there are really 2 procedures sending like in the excel sheet
         self.get_status: Command = Command(
             message="-",
             estimated_response_time=0.35,
@@ -79,16 +114,13 @@ class Commands:
                 pattern=r"([\d])(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d])(?:[-#])(?:[']?)([-]?[\d]+[.][\d]+)?(?:[']?)",
                 error=int,
                 frequency=int,
+                signal=attrs.converters.to_bool,
                 gain=int,
-                protocol=int,
-                wipe_mode=attrs.converters.to_bool,
-                temperature=attrs.converters.pipe(
-                    float, lambda t: t if -70 < t < 200 else None
-                ),
-                signal={
-                    "keywords": ("frequency",),
-                    "worker": lambda frequency: frequency != 0,
-                },
+                procedure=int,
+                temperature=float,
+                urms=int,
+                irms=int,
+                phase=int,
             ),
             serial_communication=serial
         )
