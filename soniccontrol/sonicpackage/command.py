@@ -265,7 +265,7 @@ class Command(Sendable):
 
     async def execute(
         self, argument: Any = None, connection: Optional[Communicator] = None
-    ) -> object:
+    ) -> tuple[Answer, Dict[str, Any]]:
         if not (Command._serial_communication or connection):
             raise ValueError(
                 f"The serial communication reference is not viable. {Command._serial_communication = } {type(self._serial_communication) = }"
@@ -282,7 +282,7 @@ class Command(Sendable):
 
         self.answer.valid = self.validate()
         self.status_result.update({"timestamp": self.answer.received_timestamp})
-        return self
+        return (self.answer, self.status_result)
 
     def validate(self) -> bool:
         if not self.answer.lines:
