@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from types import ModuleType
-from typing import Final
-
 __version__ = "1.9.8"
 __author__ = "usePAT G.m.b.H"
 __email__ = "info@usepat.com"
@@ -18,9 +15,9 @@ import logging.config
 import pathlib
 import subprocess
 import sys
-
+from ttkbootstrap.utility import enable_high_dpi_awareness
 from soniccontrol.utils.files import files
-
+from soniccontrol.utils.system import System, PLATFORM
 
 def setup_logging() -> None:
     config_file: pathlib.Path = files.LOGGING_CONFIG
@@ -30,6 +27,11 @@ def setup_logging() -> None:
 
 setup_logging()
 soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
+
+def check_high_dpi_windows() -> None:
+    if PLATFORM == System.WINDOWS:
+        enable_high_dpi_awareness()
+
 
 def setup_fonts() -> None:
     print("Installing fonts...")
@@ -48,10 +50,9 @@ def setup_fonts() -> None:
         soniccontrol_logger.warning("Failed to install fonts", exc_info=True)
 
 
-
-
 check_high_dpi_windows()
 setup_fonts()
+
 
 soniccontrol_logger.info("SonicControl %s", __version__)
 soniccontrol_logger.info("Author: %s", __author__)
