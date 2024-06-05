@@ -57,7 +57,7 @@ async def test_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         log_lines = file.readlines()
 
     if len(log_lines) == 0:
-        raise Exception("Parrot cannot imitate, because the logs are empty")
+        raise Exception("Parrot cannot imitate, because the logs are emptbaudratey")
 
     parrot = Parrot(communicator, log_lines)
     parrot.register_parrot_log_handler(parrot_feeder)

@@ -7,7 +7,6 @@ from icecream import ic
 from soniccontrol import soniccontrol_logger as logger
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
-from soniccontrol.tkintergui.views.connection import ConnectionView
 from soniccontrol.tkintergui.views.home import HomeView
 from soniccontrol.tkintergui.views.info import InfoView
 from soniccontrol.tkintergui.views.scripting import ScriptingView
@@ -22,7 +21,6 @@ from soniccontrol.tkintergui.utils.events import Event, PropertyChangeEvent
 class SonicControlViews:
     home: HomeView = attrs.field()
     scripting: ScriptingView = attrs.field()
-    connection: ConnectionView = attrs.field()
     settings: SettingsView = attrs.field()
     info: InfoView = attrs.field()
     sonicmeasure: SonicMeasureView = attrs.field()

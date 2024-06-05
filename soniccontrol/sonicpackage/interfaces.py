@@ -30,21 +30,12 @@ class Communicator(abc.ABC):
     async def connect(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         ...
 
+    @abc.abstractmethod
     def disconnect(self) -> None:
         ...
 
     @abc.abstractmethod
-    async def _worker(self) -> None:
-        ...
-
-    @abc.abstractmethod
     async def send_and_wait_for_answer(self, message: Sendable) -> None:
-        ...
-
-    @abc.abstractmethod
-    async def read_message(
-        self, timeout: Optional[float] = None, *args, **kwargs
-    ) -> Any:
         ...
 
 

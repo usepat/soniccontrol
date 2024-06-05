@@ -2,6 +2,7 @@ from soniccontrol.core.soniccontroller import SonicController
 from soniccontrol.tkintergui.mainview import MainView
 from soniccontrol.tkintergui.mainwindow import MainWindow
 from soniccontrol.tkintergui.models import DeviceModel
+from soniccontrol.tkintergui.views.connection import ConnectionWindow
 from soniccontrol.utils.system import PLATFORM, System
 from soniccontrol import soniccontrol_logger as logger
 
@@ -16,7 +17,7 @@ def main() -> None:
 
 
 def main_refactored() -> None:
-    mainwindow = MainWindow()
+    mainwindow = ConnectionWindow()
     if PLATFORM != System.WINDOWS:
         logger.info("Enabling high dpi awareness for DARWIN/ LINUX")
         enable_high_dpi_awareness(mainwindow.view)

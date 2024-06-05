@@ -21,7 +21,7 @@ class SavePlotCommand(MvcCommand):
     def can_execute(self) -> bool:
         return isinstance(self.target,  Figure)
 
-    def execute(self) -> None:
+    async def execute(self) -> None:
         filetypes = [("PNG File", "*.png")]
         fileHandle = tk.filedialog.asksaveasfilename(
             defaultextension=".png", filetypes=filetypes
