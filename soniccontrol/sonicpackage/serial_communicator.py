@@ -116,18 +116,23 @@ class SerialCommunicator(Communicator):
         if self._writer is None or self._reader is None:
             ic("No connection available")
             return
-        while self._writer is not None and not self._writer.is_closing():
-            command: Command = await self._command_queue.get()
-            async with self._lock:
-                try:
-                    await send_and_get(command)
-                except serial.SerialException:
-                    self.disconnect()
-                    return
-                except Exception as e:
-                    ic(sys.exc_info())
-                    break
-        self.disconnect()
+    
+        try:    
+            while self._writer is not None and not self._writer.is_closing():
+                command: Command = await self._command_queue.get()
+                async with self._lock:
+                    try:
+                        await send_and_get(command)
+                    except serial.SerialException:
+                        await self.disconnect()
+                        return
+                    except Exception as e:
+                        ic(sys.exc_info())
+                        break
+        except asyncio.CancelledError:
+            await self.disconnect()
+            return
+        await self.disconnect()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
         await self._command_queue.put(command)
@@ -170,11 +175,18 @@ class SerialCommunicator(Communicator):
 
         return message
 
-    def disconnect(self) -> None:
-        if self._task is not None:
-            self._package_fetcher.stop()
+    async def stop(self) -> None:
+        if self._task  is not None:
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
             self._task = None
+
+    async def disconnect(self) -> None:
+        if self._task is not None:
+            await self._package_fetcher.stop()
         self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
