@@ -129,13 +129,11 @@ class Commands:
             validators=frequency_validator,
             serial_communication=serial,
         )
-
         self.set_gain: Command = Command(
             message="!gain=",
             validators=gain_validator,
             serial_communication=serial,
         )
-
         self.set_switching_frequency: Command = Command(
             message="!swf=",
             validators=frequency_validator,
@@ -182,6 +180,7 @@ class Commands:
             serial_communication=serial,
         )
 
+        # TODO: maybe refactor CommandValidator to store multiple values
         self.get_command_list: Command = Command(
             message="?list_commands",
             estimated_response_time=0.5,
@@ -214,7 +213,6 @@ class Commands:
             validators=signal_on_validator,
             serial_communication=serial,
         )
-
         self.signal_off: Command = Command(
             message="!OFF",
             estimated_response_time=0.4,
@@ -229,6 +227,73 @@ class Commands:
         #     validators=CommandValidator(pattern=r".*(auto).*", protocol=str),
         #     serial_communication=serial,
         # )
+
+        self.get_frequency: Command = Command(
+            message="?freq",
+            validators=frequency_validator,
+            serial_communication=serial,
+        )
+        self.get_gain: Command = Command(
+            message="?gain",
+            validators=gain_validator,
+            serial_communication=serial,
+        )
+        self.get_uipt: Command = Command(
+            message="?uipt",
+            validators=uipt_validator,
+            serial_communication=serial,
+        )
+        self.get_pzt: Command = Command(
+            message="?pzt",
+            validators=pzt_validator,
+            serial_communication=serial,
+        )
+
+        # ?-ATF,ATK,ATT,ATON Commands
+        self.get_atf_values: Command = Command(
+            message="?atf",
+            estimated_response_time=0.5,
+            validators=(
+                atf1_validator,
+                atf2_validator,
+                atf3_validator,
+                atf4_validator,
+            ),
+            serial_communication=serial,
+        )
+        self.get_atk_values: Command = Command(
+            message="?atk",
+            estimated_response_time=0.5,
+            validators=(
+                atk1_validator,
+                atk2_validator,
+                atk3_validator,
+                atk4_validator,
+            ),
+            serial_communication=serial,
+        )
+        self.get_att_values: Command = Command(
+            message="?att",
+            estimated_response_time=0.5,
+            validators=(
+                att1_validator,
+                att2_validator,
+                att3_validator,
+                att4_validator,
+            ),
+            serial_communication=serial,
+        )
+        self.get_aton_values: Command = Command(
+            message="?aton",
+            estimated_response_time=0.5,
+            validators=(
+                aton1_validator,
+                aton2_validator,
+                aton3_validator,
+                aton4_validator,
+            ),
+            serial_communication=serial,
+        )
 
         # ATF Commands
         self.set_atf1: Command = Command(
