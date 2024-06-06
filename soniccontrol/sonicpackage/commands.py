@@ -35,9 +35,12 @@ class Commands:
             phase=int
             temperature=int
         )
-        adc_validator: CommandValidator = CommandValidator(
-            pattern=r"(\d+) uV", adc_voltage=int
-        )
+        adc_validator: CommandValidator = CommandValidator(pattern=r"(\d+) uV", adc_voltage=int)
+        
+        # TODO: Ask about the diffirence between !EXTERN and !RELAY
+        control_mode_validator: CommandValidator = CommandValidator(pattern=r"(\w+) mode", control_mode=str)
+        relay_mode_validator: CommandValidator = CommandValidator(pattern=r"(\w+) mode", relay_mode=str)
+        
         
         
         self.set_frequency: Command = Command(
@@ -69,7 +72,7 @@ class Commands:
             validators=(
                 CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
                 CommandValidator(pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int),
-                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+                CommandValidator(pattern=r".*g ain\s*=?\s*([\d]+).*", gain=int),
                 CommandValidator(
                     pattern=r".*signal.*(on|off).*",
                     signal=lambda b: bool(b.lower() == "on"),
