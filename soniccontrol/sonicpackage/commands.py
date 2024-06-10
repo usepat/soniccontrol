@@ -8,6 +8,44 @@ class Commands:
     def __init__(self, serial: SerialCommunicator):
         self._init_new_commands(serial)
 
+        self.get_overview: Command = Command(
+            message="?",
+            estimated_response_time=0.5,
+            expects_long_answer=True,
+            validators=(
+                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
+                CommandValidator(
+                    pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
+                ),
+                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+                CommandValidator(
+                    pattern=r".*signal.*(on|off).*",
+                    signal=lambda b: bool(b.lower() == "on"),
+                ),
+            ),
+            serial_communication=serial,
+        )
+
+        self.get_type: Command = Command(
+            message="?type",
+            estimated_response_time=0.5,
+            validators=CommandValidator(
+                pattern=r"sonic(catch|wipe|descale)", device_type=str
+            ),
+            serial_communication=serial,
+        )
+
+        self.get_info: Command = Command(
+            message="?info",
+            estimated_response_time=0.5,
+            expects_long_answer=True,
+            validators=(
+                CommandValidator(pattern=r".*ver.*([\d]+[.][\d]+).*", version=float),
+                CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
+            ),
+            serial_communication=serial,
+        )
+
     def _init_new_commands(self, serial: SerialCommunicator):
         # TODO: Ask about ?error, how do we validate errors, if there is not a known number of errors
         type_validator: CommandValidator = CommandValidator(
@@ -407,45 +445,6 @@ class Commands:
             ),
             serial_communication=serial,
         )
-
-        self.get_overview: Command = Command(
-            message="?",
-            estimated_response_time=0.5,
-            expects_long_answer=True,
-            validators=(
-                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
-                CommandValidator(
-                    pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
-                ),
-                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
-                CommandValidator(
-                    pattern=r".*signal.*(on|off).*",
-                    signal=lambda b: bool(b.lower() == "on"),
-                ),
-            ),
-            serial_communication=serial,
-        )
-
-        self.get_type: Command = Command(
-            message="?type",
-            estimated_response_time=0.5,
-            validators=CommandValidator(
-                pattern=r"sonic(catch|wipe|descale)", device_type=str
-            ),
-            serial_communication=serial,
-        )
-
-        self.get_info: Command = Command(
-            message="?info",
-            estimated_response_time=0.5,
-            expects_long_answer=True,
-            validators=(
-                CommandValidator(pattern=r".*ver.*([\d]+[.][\d]+).*", version=float),
-                CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
-            ),
-            serial_communication=serial,
-        )
-
         self.get_command_list: Command = Command(
             message="?list_commands",
             estimated_response_time=0.5,
