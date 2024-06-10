@@ -73,7 +73,7 @@ async def uart_wrapper(port, baudrate, func, *args, **kwargs):
 
 
 async def cli_wrapper(process_name, func, *args, **kwargs):
-    process = await asyncio.create_subprocesfiless_shell(
+    process = await asyncio.create_subprocess_shell(
         process_name,
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,

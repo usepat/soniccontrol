@@ -14,16 +14,15 @@ class AmpBuilder:
     def _add_commands_from_list_command_answer(self, commands: Commands, sonicAmp: SonicAmp, answer: Answer) -> None:
         command_names = answer.string.split("#")
         for command_name in command_names:
-            field_names = [ key for key in commands.__dict__.keys() if not str(key).startswith("__") ]
-            commands = [ getattr(commands, field_name) for field_name in field_names ]
-            command = next(filter(lambda c: c.message == command_name, commands), None)
+            command_attrs = [ command for name, command in commands.__dict__.items() if not name.startswith("_") and not callable(command) ]
+            command = next(filter(lambda c: c.message == command_name, command_attrs), None)
             if command:
                 sonicAmp.add_command(command)
 
 
     async def build_amp(self, ser: SerialCommunicator, status: Status, info: Info) -> SonicAmp:
         await ser.connection_opened.wait()
-        commands = Commands(serial=ser)
+        commands = Commands(ser)
 
         result_dict: Dict[str, Any] = ser.init_command.status_result
 

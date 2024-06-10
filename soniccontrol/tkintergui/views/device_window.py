@@ -6,15 +6,15 @@ from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 
 
 class DeviceWindow(UIComponent):
-    def __init__(self, root, device: SonicAmp):
+    def __init__(self, device: SonicAmp, root):
         self._device = device
-        self._view = DeviceWindowView()
+        self._view = DeviceWindowView(root)
         super().__init__(None, self._view)
 
 
 class DeviceWindowView(tk.Toplevel):
-    def __init__(self,  *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, root, *args, **kwargs) -> None:
+        super().__init__(root, *args, **kwargs)
         self.title("Device Window")
         self.geometry('450x550')
         self.minsize(450, 400)

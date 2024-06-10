@@ -8,6 +8,7 @@ import attrs
 class _Files:
     SOURCE_DIR: Final[Path] = Path(__file__).parent.parent
     ROOT_DIR: Final[Path] = SOURCE_DIR.parent
+    BIN_DIR: Final[Path] = ROOT_DIR / "bin"
     LOG_DIR: Final[Path] = ROOT_DIR / "logs"
     LOGGING_CONFIG: Final[Path] = LOG_DIR / "config.json"
     RESOURCES_DIR: Final[Path] = ROOT_DIR / "resources"
@@ -16,6 +17,7 @@ class _Files:
     DOCUMENTS_DIR: Final[Path] = RESOURCES_DIR / "docs"
     CONFIG_JSON: Final[Path] = ROOT_DIR / "config.json"
     SONICCONTROL_LOG: Final[Path] = LOG_DIR / "soniccontrol.log"
+    CLI_MVC_MOCK: Final[Path] = BIN_DIR / "cli_simulation_mvp"
 
 
 files: _Files = _Files()
