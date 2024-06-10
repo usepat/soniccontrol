@@ -79,7 +79,7 @@ def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
     return converter
 
 
-@attrs.define()
+@attrs.define(slots=True)
 class Status:
     error: int = attrs.field(
         default=0,

@@ -1,11 +1,47 @@
+from typing import Callable, List
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 
+from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
+from soniccontrol.sonicpackage.command import Command
+from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.utils.files import images
 
+
+
+class SerialMonitor(UIComponent):
+    def __init__(self, parent: UIComponent, sonicamp: SonicAmp):
+        super().__init__(parent, SerialMonitorView(parent.view()))
+        self._sonicamp = sonicamp
+        self._command_history: List[str] = []
+        self._command_history_index: int = 0
+        self._view.set_send_command_button_command(lambda: self._send_command())
+        self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
+        self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
+
+    def _send_command(self): 
+        command_str = self._view.get_command_line_input()
+
+    def _print_answer(self, answer_str: str):
+        pass
+
+    def _print_log(self, log_msg: str):
+        pass
+
+    def _is_internal_command(self, command_str: str):
+        pass
+
+    def _handle_internal_command(self, command_str: str):
+        pass
+
+    def _scroll_command_history(self, is_scrolling_up: bool):
+        if len(self._command_history) == 0:
+            return
+        
+    
 
 class SerialMonitorView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
@@ -106,3 +142,20 @@ class SerialMonitorView(TabView):
 
     def publish(self) -> None:
         ...
+
+    def set_send_command_button_command(self, command: Callable[[None], None]):
+        pass
+
+    @property
+    def command_line_input(self) -> str:
+        pass
+
+    @command_line_input.setter
+    def command_line_input(self, text: str):
+        pass
+
+    def bind_command_line_input_on_down_pressed(self, command: Callable[[None], None]):
+        pass
+
+    def bind_command_line_input_on_up_pressed(self, command: Callable[[None], None]):
+        pass
