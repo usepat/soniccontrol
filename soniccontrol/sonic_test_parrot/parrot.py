@@ -105,7 +105,7 @@ class Parrot:
 
     async def setup_amp(self):
         builder = AmpBuilder()
-        self.sonic_amp = await builder.build_amp(self.serial_communicator, Status(), Info())
+        self.sonic_amp = await builder.build_amp(self.serial_communicator)
 
         self._validate_imitation()
         

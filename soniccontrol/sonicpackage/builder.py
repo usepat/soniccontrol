@@ -20,7 +20,7 @@ class AmpBuilder:
                 sonicAmp.add_command(command)
 
 
-    async def build_amp(self, ser: SerialCommunicator, status: Status, info: Info) -> SonicAmp:
+    async def build_amp(self, ser: SerialCommunicator) -> SonicAmp:
         await ser.connection_opened.wait()
         commands = Commands(ser)
 
@@ -38,6 +38,8 @@ class AmpBuilder:
         if commands.get_overview.answer.valid:
             result_dict.update(commands.get_overview.status_result)
 
+        status = Status()
+        info = Info()
         await status.update(**result_dict)
         info.update(**result_dict)
         info.firmware_info = commands.get_info.answer.string

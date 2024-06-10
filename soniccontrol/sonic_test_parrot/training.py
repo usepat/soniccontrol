@@ -29,7 +29,7 @@ async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWrite
     await communicator.connect(reader, writer)
 
     builder = AmpBuilder()
-    sonicamp = await builder.build_amp(communicator, Status(), Info())
+    sonicamp = await builder.build_amp(communicator)
     
     if isinstance(commands, list):
         for command in commands:

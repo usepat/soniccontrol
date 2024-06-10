@@ -28,7 +28,7 @@ class CliConnectionWindow(UIComponent):
         )
         serial = SerialCommunicator()
         await serial.connect(process.stdout, process.stdin)
-        sonicamp = await AmpBuilder().build_amp(ser=serial, status=Status(), info=Info())
+        sonicamp = await AmpBuilder().build_amp(ser=serial)
         await sonicamp.serial.connection_opened.wait()
         self._device_window_manager.open_device_window(sonicamp)
 
