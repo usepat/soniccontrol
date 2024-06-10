@@ -29,7 +29,7 @@ async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWrite
     await communicator.connect(reader, writer)
 
     builder = AmpBuilder()
-    sonicamp = await builder.build_amp(communicator, Status(), Info())
+    sonicamp = await builder.build_amp(communicator)
     
     if isinstance(commands, list):
         for command in commands:
@@ -57,7 +57,7 @@ async def test_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         log_lines = file.readlines()
 
     if len(log_lines) == 0:
-        raise Exception("Parrot cannot imitate, because the logs are empty")
+        raise Exception("Parrot cannot imitate, because the logs are emptbaudratey")
 
     parrot = Parrot(communicator, log_lines)
     parrot.register_parrot_log_handler(parrot_feeder)
@@ -73,7 +73,7 @@ async def uart_wrapper(port, baudrate, func, *args, **kwargs):
 
 
 async def cli_wrapper(process_name, func, *args, **kwargs):
-    process = await asyncio.create_subprocesfiless_shell(
+    process = await asyncio.create_subprocess_shell(
         process_name,
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,

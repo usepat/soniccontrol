@@ -39,6 +39,7 @@ class SerialCommunicator(Communicator):
     def __attrs_post_init__(self) -> None:
         self._task = None
         self._init_command = Command(
+            serial_communication=self,
             estimated_response_time=0.5,
             validators=(
                 CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),

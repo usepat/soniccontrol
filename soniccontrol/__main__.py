@@ -1,11 +1,19 @@
+import asyncio
 from soniccontrol.core.soniccontroller import SonicController
+from soniccontrol.sonicpackage.amp_data import Info, Status
+from soniccontrol.sonicpackage.builder import AmpBuilder
+from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.tkintergui.mainview import MainView
 from soniccontrol.tkintergui.mainwindow import MainWindow
 from soniccontrol.tkintergui.models import DeviceModel
+from soniccontrol.tkintergui.views.cli_connection_window import CliConnectionWindow
+from soniccontrol.tkintergui.views.connection_window import ConnectionWindow, DeviceWindowManager
+from soniccontrol.utils import files
 from soniccontrol.utils.system import PLATFORM, System
 from soniccontrol import soniccontrol_logger as logger
 
 from async_tkinter_loop import async_mainloop
+import tkinter as tk
 from ttkbootstrap.utility import enable_high_dpi_awareness
 
 def main() -> None:
@@ -16,12 +24,18 @@ def main() -> None:
 
 
 def main_refactored() -> None:
-    mainwindow = MainWindow()
+    mainwindow = ConnectionWindow()
     if PLATFORM != System.WINDOWS:
         logger.info("Enabling high dpi awareness for DARWIN/ LINUX")
         enable_high_dpi_awareness(mainwindow.view)
     async_mainloop(mainwindow.view)
 
+def main_cli():
+    mainwindow = CliConnectionWindow()
+    if PLATFORM != System.WINDOWS:
+        logger.info("Enabling high dpi awareness for DARWIN/ LINUX")
+        enable_high_dpi_awareness(mainwindow.view)
+    async_mainloop(mainwindow.view)
 
 if __name__ == "__main__":
-    main_refactored()
+    main_cli()

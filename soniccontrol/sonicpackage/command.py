@@ -215,7 +215,7 @@ class Command(Sendable):
     answer: Answer = attrs.field(init=False, factory=Answer)
     _byte_message: bytes = attrs.field(init=False)
     _status_result: Dict[str, Any] = attrs.field(init=False, factory=dict)
-    _serial_communication: Optional[Communicator] = attrs.field(init=False)
+    _serial_communication: Optional[Communicator] = attrs.field()
 
     def __attrs_post_init__(self) -> None:
         if not isinstance(self._validators, (tuple, list, set, Generator)):
@@ -272,13 +272,14 @@ class Command(Sendable):
 
     async def execute(
         self, argument: Any = None, connection: Optional[Communicator] = None
-    ) -> tuple[Answer, Dict[str, Any]]:
-        if not (Command._serial_communication or connection):
+    ) -> tuple[Answer, dict[str, Any]]:
+        if not (self._serial_communication or connection):
             raise ValueError(
-                f"The serial communication reference is not viable. {Command._serial_communication = } {type(self._serial_communication) = }"
+                f"The serial communication reference is not viable. {self._serial_communication = } {type(self._serial_communication) = }"
             )
+
         if not connection:
-            connection = Command._serial_communication
+            connection = self._serial_communication
 
         self.answer.reset()
         if argument is not None:

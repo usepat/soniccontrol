@@ -14,16 +14,15 @@ class AmpBuilder:
     def _add_commands_from_list_command_answer(self, commands: Commands, sonicAmp: SonicAmp, answer: Answer) -> None:
         command_names = answer.string.split("#")
         for command_name in command_names:
-            field_names = [ key for key in commands.__dict__.keys() if not str(key).startswith("__") ]
-            commands = [ getattr(commands, field_name) for field_name in field_names ]
-            command = next(filter(lambda c: c.message == command_name, commands), None)
+            command_attrs = [ command for name, command in commands.__dict__.items() if not name.startswith("_") and not callable(command) ]
+            command = next(filter(lambda c: c.message == command_name, command_attrs), None)
             if command:
                 sonicAmp.add_command(command)
 
 
-    async def build_amp(self, ser: SerialCommunicator, status: Status, info: Info) -> SonicAmp:
+    async def build_amp(self, ser: SerialCommunicator) -> SonicAmp:
         await ser.connection_opened.wait()
-        commands = Commands(serial=ser)
+        commands = Commands(ser)
 
         result_dict: Dict[str, Any] = ser.init_command.status_result
 
@@ -39,6 +38,8 @@ class AmpBuilder:
         if commands.get_overview.answer.valid:
             result_dict.update(commands.get_overview.status_result)
 
+        status = Status()
+        info = Info()
         await status.update(**result_dict)
         info.update(**result_dict)
         info.firmware_info = commands.get_info.answer.string

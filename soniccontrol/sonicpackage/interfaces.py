@@ -13,8 +13,7 @@ class Sendable(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def byte_message(self) -> None:
-        ...
+    def byte_message(self) -> None: ...
 
 
 class Communicator(abc.ABC):
@@ -23,30 +22,18 @@ class Communicator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def connection_opened(self) -> asyncio.Event:
-        ...
+    def connection_opened(self) -> asyncio.Event: ...
 
     @abc.abstractmethod
-    async def connect(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        ...
-
-    def disconnect(self) -> None:
-        ...
+    async def connect(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ): ...
 
     @abc.abstractmethod
-    async def _worker(self) -> None:
-        ...
+    def disconnect(self) -> None: ...
 
     @abc.abstractmethod
-    async def send_and_wait_for_answer(self, message: Sendable) -> None:
-        ...
-
-    @abc.abstractmethod
-    async def read_message(
-        self, timeout: Optional[float] = None, *args, **kwargs
-    ) -> Any:
-        ...
-        
+    async def send_and_wait_for_answer(self, message: Sendable) -> None: ...
 
 
 class Script(abc.ABC):
@@ -55,12 +42,10 @@ class Script(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def running(self) -> asyncio.Event:
-        ...
+    def running(self) -> asyncio.Event: ...
 
     @abc.abstractmethod
-    def execute(self, *args, **kwargs) -> None:
-        ...
+    def execute(self, *args, **kwargs) -> None: ...
 
     def stop_execution(self) -> None:
         self.running.clear()
@@ -76,16 +61,13 @@ class Scriptable(abc.ABC):
     #     ...
 
     @abc.abstractmethod
-    def execute_command(*args, **kwargs) -> None:
-        ...
+    def execute_command(*args, **kwargs) -> None: ...
 
     @abc.abstractmethod
-    def set_signal_on() -> None:
-        ...
+    def set_signal_on() -> None: ...
 
     @abc.abstractmethod
-    def set_signal_off() -> None:
-        ...
+    def set_signal_off() -> None: ...
 
     # @abc.abstractmethod
     # def hold(self) -> None:
