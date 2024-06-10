@@ -4,21 +4,34 @@ from typing import *
 import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.command import Answer
-from soniccontrol.sonicpackage.sonicamp_ import (Command, Commands, Info,
-                                                 Modules, SerialCommunicator,
-                                                 SonicAmp, Status)
+from soniccontrol.sonicpackage.sonicamp_ import (
+    Command,
+    Commands,
+    Info,
+    Modules,
+    SerialCommunicator,
+    SonicAmp,
+    Status,
+)
 
 
 @attrs.define
 class AmpBuilder:
-    def _add_commands_from_list_command_answer(self, commands: Commands, sonicAmp: SonicAmp, answer: Answer) -> None:
+    def _add_commands_from_list_command_answer(
+        self, commands: Commands, sonicAmp: SonicAmp, answer: Answer
+    ) -> None:
         command_names = answer.string.split("#")
         for command_name in command_names:
-            command_attrs = [ command for name, command in commands.__dict__.items() if not name.startswith("_") and not callable(command) ]
-            command = next(filter(lambda c: c.message == command_name, command_attrs), None)
+            command_attrs = [
+                command
+                for name, command in commands.__dict__.items()
+                if not name.startswith("_") and not callable(command)
+            ]
+            command = next(
+                filter(lambda c: c.message == command_name, command_attrs), None
+            )
             if command:
                 sonicAmp.add_command(command)
-
 
     async def build_amp(self, ser: SerialCommunicator) -> SonicAmp:
         await ser.connection_opened.wait()
@@ -47,10 +60,13 @@ class AmpBuilder:
         ic(result_dict)
         sonicamp: SonicAmp = SonicAmp(serial=ser, info=info, status=status)
 
-        await commands.get_command_list.execute()
-        if commands.get_command_list.answer.valid:
-            self._add_commands_from_list_command_answer(commands, sonicamp, commands.get_command_list.answer)
-            return sonicamp
+        if hasattr(commands, "get_command_list"):
+            await commands.get_command_list.execute()
+            if commands.get_command_list.answer.valid:
+                self._add_commands_from_list_command_answer(
+                    commands, sonicamp, commands.get_command_list.answer
+                )
+                return sonicamp
 
         basic_commands: Tuple[Command] = (
             commands.signal_on,

@@ -4,8 +4,17 @@ import logging
 import re
 import sys
 import time
-from typing import (Any, Callable, Dict, Generator, Iterable, List, Literal,
-                    Optional, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Union,
+)
 
 import attrs
 from icecream import ic
@@ -13,6 +22,7 @@ from soniccontrol.sonicpackage.interfaces import Communicator, Sendable
 from soniccontrol.utils.system import PLATFORM
 
 parrot_feeder = logging.getLogger("parrot_feeder")
+
 
 @attrs.define
 class Converter:
@@ -216,7 +226,7 @@ class Command(Sendable):
 
     @property
     def full_message(self) -> str:
-        return f"{self.message}{self.argument}" # MAYBE: add newline at the end
+        return f"{self.message}{self.argument}"  # MAYBE: add newline at the end
 
     @property
     def byte_message(self) -> bytes:
@@ -258,14 +268,11 @@ class Command(Sendable):
         )
 
     def get_dict(self) -> dict:
-        return {
-            "argument": self.argument,
-            "message": self.message
-        }
+        return {"argument": self.argument, "message": self.message}
 
     async def execute(
         self, argument: Any = None, connection: Optional[Communicator] = None
-    ) -> object:
+    ) -> tuple[Answer, dict[str, Any]]:
         if not (self._serial_communication or connection):
             raise ValueError(
                 f"The serial communication reference is not viable. {self._serial_communication = } {type(self._serial_communication) = }"
@@ -283,7 +290,7 @@ class Command(Sendable):
 
         self.answer.valid = self.validate()
         self.status_result.update({"timestamp": self.answer.received_timestamp})
-        return self
+        return (self.answer, self.status_result)
 
     def validate(self) -> bool:
         if not self.answer.lines:

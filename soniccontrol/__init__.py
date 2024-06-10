@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from types import ModuleType
-from typing import Final
-
 __version__ = "1.9.8"
 __author__ = "usePAT G.m.b.H"
 __email__ = "info@usepat.com"
@@ -18,9 +15,9 @@ import logging.config
 import pathlib
 import subprocess
 import sys
-
+from ttkbootstrap.utility import enable_high_dpi_awareness
 from soniccontrol.utils.files import files
-
+from soniccontrol.utils.system import System, PLATFORM
 
 def setup_logging() -> None:
     config_file: pathlib.Path = files.LOGGING_CONFIG
@@ -28,24 +25,34 @@ def setup_logging() -> None:
         config = json.load(file)
     logging.config.dictConfig(config)
 
+setup_logging()
+soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
+
+def check_high_dpi_windows() -> None:
+    if PLATFORM == System.WINDOWS:
+        enable_high_dpi_awareness()
+
 
 def setup_fonts() -> None:
     print("Installing fonts...")
     platform: str = sys.platform
     font_files = glob.glob("./resources/fonts/*.ttf")
-    process = subprocess.run(
-        [
-            rf"./bin/font-install/{platform}/font-install",
-            *list(font for font in font_files),
-        ],
-    )
-    if process.returncode != 0:
-        soniccontrol_logger.warning("Failed to install fonts")
+    try:
+        process = subprocess.run(
+            [
+                rf"./bin/font-install/{platform}/font-install",
+                *list(font for font in font_files),
+            ],
+        )
+        if process.returncode != 0:
+            raise RuntimeError("Failed to install fonts")
+    except Exception:
+        soniccontrol_logger.warning("Failed to install fonts", exc_info=True)
 
 
-setup_logging()
+check_high_dpi_windows()
 setup_fonts()
-soniccontrol_logger: logging.Logger = logging.getLogger("soniccontrol")
+
 
 soniccontrol_logger.info("SonicControl %s", __version__)
 soniccontrol_logger.info("Author: %s", __author__)
