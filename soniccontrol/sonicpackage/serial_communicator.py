@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import time
-from typing import Optional, List
+from typing import Callable, Optional, List
 
 import logging
 import attrs
@@ -91,12 +91,13 @@ class SerialCommunicator(Communicator):
         self._package_fetcher.run()
 
     async def _worker(self) -> None:
-        package_counter = 0
+        message_counter = 0
 
         async def send_and_get(command: Command) -> None:
-            nonlocal package_counter
-            package_counter += 1
+            nonlocal message_counter
+            message_counter += 1
 
+            message_str = self._protocol.parse_request(command.full_message, message_counter)
             message = message_str.encode(PLATFORM.encoding)
             self._writer.write(message)
             await self._writer.drain()
@@ -104,7 +105,7 @@ class SerialCommunicator(Communicator):
             answer = ""
             try:
                 answer = await self._package_fetcher.get_answer_of_package(
-                    package_counter
+                    message_counter
                 )
                 # answer = await asyncio.wait_for(
                 #     self._package_fetcher.get_answer_of_package(package_counter), timeout=command.estimated_response_time
