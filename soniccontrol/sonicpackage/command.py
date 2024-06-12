@@ -191,7 +191,7 @@ class Answer:
         self._measured_response = None
         self._received_timestamp = None
 
-    def receive_answer(self, answer: list[Iterable[str] | str]) -> None:
+    def receive_answer(self, answer: Iterable[str] | str) -> None:
         self._received_timestamp = time.time()
         if isinstance(answer, Iterable) and not isinstance(answer, str):
             self._lines = answer

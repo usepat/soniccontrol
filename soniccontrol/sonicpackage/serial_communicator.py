@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import time
-from typing import *
+from typing import Optional, List
 
 import logging
 import attrs
@@ -12,23 +12,22 @@ from icecream import ic
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.package_parser import PackageParser, Package
+from soniccontrol.sonicpackage.sonicprotocol import SonicProtocol
 from soniccontrol.utils.system import PLATFORM
 
-logger = logging.getLogger()
 
 @attrs.define
 class SerialCommunicator(Communicator):
-    _init_command: Optional[Command] = attrs.field(init=False, default=None)
+    _init_command: Command = attrs.field(init=False, default=None)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _lock: asyncio.Lock = attrs.field(init=False, factory=asyncio.Lock, repr=False)
-    _command_queue: asyncio.Queue = attrs.field(
+    _command_queue: asyncio.Queue[Command] = attrs.field(
         init=False, factory=asyncio.Queue, repr=False
     )
-    _answer_queue: asyncio.Queue = attrs.field(
+    _answer_queue: asyncio.Queue[Command] = attrs.field(
         init=False, factory=asyncio.Queue, repr=False
     )
-
     _reader: Optional[asyncio.StreamReader] = attrs.field(
         init=False, default=None, repr=False
     )
@@ -39,6 +38,7 @@ class SerialCommunicator(Communicator):
 
     def __attrs_post_init__(self) -> None:
         self._task = None
+        self._protocol = SonicProtocol(lambda _: None)
         self._init_command = Command(
             serial_communication=self,
             estimated_response_time=0.5,
@@ -71,7 +71,9 @@ class SerialCommunicator(Communicator):
     def init_command(self) -> Optional[Command]:
         return self._init_command
 
-    async def connect(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+    async def connect(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ) -> None:
         async def get_first_message() -> None:
             self._init_command.answer.receive_answer(
                 await self.read_long_message(reading_time=6)
@@ -81,30 +83,29 @@ class SerialCommunicator(Communicator):
 
         self._reader = reader
         self._writer = writer
-        self._package_fetcher = PackageFetcher(self._reader, self._log_callback)
+        self._package_fetcher = PackageFetcher(self._reader, self._protocol)
         await get_first_message()
         self._connection_opened.set()
 
         self._task = asyncio.create_task(self._worker())
         self._package_fetcher.run()
 
-
     async def _worker(self) -> None:
         package_counter = 0
+
         async def send_and_get(command: Command) -> None:
             nonlocal package_counter
             package_counter += 1
 
-            package = Package("0", "0", package_counter, command.full_message)
-            message_str = PackageParser.write_package(package) + "\n" # \n is needed after the package.
-            logger.debug(f"WRITE_PACKAGE({message_str})")
             message = message_str.encode(PLATFORM.encoding)
             self._writer.write(message)
             await self._writer.drain()
 
             answer = ""
             try:
-                answer = await self._package_fetcher.get_answer_of_package(package_counter)
+                answer = await self._package_fetcher.get_answer_of_package(
+                    package_counter
+                )
                 # answer = await asyncio.wait_for(
                 #     self._package_fetcher.get_answer_of_package(package_counter), timeout=command.estimated_response_time
                 # )
@@ -114,12 +115,11 @@ class SerialCommunicator(Communicator):
             command.answer.receive_answer(answer)
             await self._answer_queue.put(command)
 
-
         if self._writer is None or self._reader is None:
             ic("No connection available")
             return
-    
-        try:    
+
+        try:
             while self._writer is not None and not self._writer.is_closing():
                 command: Command = await self._command_queue.get()
                 async with self._lock:
@@ -140,8 +140,7 @@ class SerialCommunicator(Communicator):
         await self._command_queue.put(command)
         await command.answer.received.wait()
 
-
-    async def read_long_message( # TODO: delete this method
+    async def read_long_message(  # TODO: delete this method
         self, response_time: float = 0.3, reading_time: float = 0.2
     ) -> List[str]:
         if self._reader is None:
@@ -165,7 +164,7 @@ class SerialCommunicator(Communicator):
         return message
 
     async def stop(self) -> None:
-        if self._task  is not None:
+        if self._task is not None:
             self._task.cancel()
             try:
                 await self._task
@@ -181,4 +180,3 @@ class SerialCommunicator(Communicator):
         self._connection_closed.set()
         self._reader = None
         self._writer = None
-

@@ -19,7 +19,6 @@ from soniccontrol.tkintergui.views.device_window import DeviceWindow
 from soniccontrol.utils.files import images
 
 
-
 class DeviceWindowManager:
     def __init__(self, root):
         self._root = root
@@ -32,12 +31,15 @@ class DeviceWindowManager:
         self._id_device_window_counter += 1
         device_window_id = self._id_device_window_counter
         self._opened_device_windows[device_window_id] = device_window
-        device_window.subscribe("close", lambda _: self._opened_device_windows.pop(device_window_id))
+        device_window.subscribe(
+            "close", lambda _: self._opened_device_windows.pop(device_window_id)
+        )
         return device_window
+
 
 class ConnectionWindow(UIComponent):
     def __init__(self):
-        self._view = ConnectionWindowView()
+        self._view: ConnectionWindowView = ConnectionWindowView()
         super().__init__(None, self._view)
         self._device_window_manager = DeviceWindowManager(self._view)
         self._view.set_connect_button_command(lambda: self._attempt_connection())
@@ -98,10 +100,10 @@ class ConnectionWindowView(ttk.Window):
     def get_url(self) -> str:
         return self._port.get()
 
-    def set_connect_button_command(self, command: Callable[[None], None]) -> None:
+    def set_connect_button_command(self, command: Callable[[], None]) -> None:
         self._connect_button.configure(command=command)
 
-    def set_refresh_button_command(self, command: Callable[[None], None]) -> None:
+    def set_refresh_button_command(self, command: Callable[[], None]) -> None:
         self._refresh_button.configure(command=command)
 
     def set_ports(self, ports: List[str]) -> None:
