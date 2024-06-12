@@ -27,7 +27,7 @@ class DeviceWindowManager:
         self._opened_device_windows: Dict[int, DeviceWindow] = {}
 
     def open_device_window(self, sonicamp: SonicAmp, logger: Logger) -> DeviceWindow:
-        device_window = DeviceWindow(sonicamp, self._root)
+        device_window = DeviceWindow(sonicamp, self._root, logger)
         device_window._view.grab_set() # grab focus and bring window to front
         self._id_device_window_counter += 1
         device_window_id = self._id_device_window_counter
