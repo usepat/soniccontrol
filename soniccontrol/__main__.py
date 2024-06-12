@@ -1,13 +1,9 @@
 import asyncio
 from soniccontrol.core.soniccontroller import SonicController
-from soniccontrol.sonicpackage.amp_data import Info, Status
-from soniccontrol.sonicpackage.builder import AmpBuilder
-from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.tkintergui.mainview import MainView
-from soniccontrol.tkintergui.mainwindow import MainWindow
 from soniccontrol.tkintergui.models import DeviceModel
 from soniccontrol.tkintergui.views.cli_connection_window import CliConnectionWindow
-from soniccontrol.tkintergui.views.connection_window import ConnectionWindow, DeviceWindowManager
+from soniccontrol.tkintergui.views.connection_window import ConnectionWindow
 from soniccontrol.utils import files
 from soniccontrol.utils.system import PLATFORM, System
 from soniccontrol import soniccontrol_logger as logger

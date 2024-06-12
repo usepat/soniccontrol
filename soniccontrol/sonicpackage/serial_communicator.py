@@ -35,6 +35,7 @@ class SerialCommunicator(Communicator):
     _writer: Optional[asyncio.StreamWriter] = attrs.field(
         init=False, default=None, repr=False
     )
+    _log_callback: Callable[[str], None] = attrs.field(default=lambda _: None)
 
     def __attrs_post_init__(self) -> None:
         self._task = None
@@ -80,7 +81,7 @@ class SerialCommunicator(Communicator):
 
         self._reader = reader
         self._writer = writer
-        self._package_fetcher = PackageFetcher(self._reader, print) # TODO: change log callback
+        self._package_fetcher = PackageFetcher(self._reader, self._log_callback)
         await get_first_message()
         self._connection_opened.set()
 

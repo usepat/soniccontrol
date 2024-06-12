@@ -110,12 +110,13 @@ class SonicAmp(Scriptable):
     async def send_message(self, message: str = "", argument: Any = "") -> str:
         return (
             await Command(
+                serial_communication=self._serial,
                 message=message,
                 argument=argument,
                 estimated_response_time=0.4,
                 expects_long_answer=True,
-            ).execute(connection=self.serial)
-        ).answer.string
+            ).execute()
+        )[0].string
 
     async def execute_command(
         self,
@@ -132,8 +133,8 @@ class SonicAmp(Scriptable):
             command: Command = self._commands[message]
             await command.execute(argument=argument, connection=self._serial)
 
-        except Exception:
-            self.disconnect()
+        except Exception as e:
+            await self.disconnect()
 
         await self._status.update(
             **command.status_result, **status_kwargs_if_valid_command

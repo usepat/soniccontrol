@@ -4,6 +4,7 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.state_updater.logger import Logger
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.connection_window import DeviceWindowManager
@@ -26,11 +27,12 @@ class CliConnectionWindow(UIComponent):
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT
         )
-        serial = SerialCommunicator()
+        logger = Logger()
+        serial = SerialCommunicator(log_callback=lambda log: logger.insert_log_to_queue(log))
         await serial.connect(process.stdout, process.stdin)
         sonicamp = await AmpBuilder().build_amp(ser=serial)
         await sonicamp.serial.connection_opened.wait()
-        self._device_window_manager.open_device_window(sonicamp)
+        self._device_window_manager.open_device_window(sonicamp, logger)
 
 
 class CliConnectionWindowView(ttk.Window):

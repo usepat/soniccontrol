@@ -15,12 +15,12 @@ from soniccontrol.utils.files import images
 
 class SerialMonitor(UIComponent):
     def __init__(self, parent: UIComponent, sonicamp: SonicAmp):
-        super().__init__(parent, SerialMonitorView(parent.view()))
+        super().__init__(parent, SerialMonitorView(parent.view))
         self._sonicamp = sonicamp
         self._command_history: List[str] = []
         self._command_history_index: int = 0
         self._view.set_send_command_button_command(lambda: self._send_command())
-        self._view.bind_command_line_input_on_return_pressed(lambda: self._send_command)
+        self._view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
         self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
         self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
         self._HELPTEXT = "Help me step bro, I am stuck" # TODO: add help message
@@ -31,7 +31,7 @@ class SerialMonitor(UIComponent):
         command_str = self._view.command_line_input.strip()
         self._view.command_line_input = ""
         self._view.add_text_line(">>> " + command_str)
-        if command_str != self._command_history[self._command_history_index]:
+        if len(self._command_history) == 0 or command_str != self._command_history[self._command_history_index]:
             self._command_history.append(command_str)
             self._command_history_index = 0
         
@@ -184,13 +184,13 @@ class SerialMonitorView(TabView):
         self._command_line_input.set(text)
 
     def bind_command_line_input_on_down_pressed(self, command: Callable[[None], None]):
-        self._command_line_input_field.bind("<Down>", command)
+        self._command_line_input_field.bind("<Down>", lambda _: command())
 
     def bind_command_line_input_on_up_pressed(self, command: Callable[[None], None]):
-        self._command_line_input_field.bind("<Up>", command)
+        self._command_line_input_field.bind("<Up>", lambda _: command())
 
     def bind_command_line_input_on_return_pressed(self, command: Callable[[None], None]):
-        self._command_line_input_field.bind("<Return>", command)
+        self._command_line_input_field.bind("<Return>", lambda _: command())
 
     def add_text_line(self, text: str):
         ttk.Label(self._scrolled_frame, text=text, font=("Consolas", 10)).pack(
