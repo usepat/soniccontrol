@@ -80,6 +80,7 @@ class _UIStringsEN:
     GAIN_PLACEHOLDER: Final[str] = "Set Gain..."
     SAVE_LABEL: Final[str] = "Save"
     SAVE_PLOT_LABEL: Final[str] = "Save Plot"
+    CSV_TAB_TITLE: Final[str] = "Csv"
     START_LABEL: Final[str] = "Start"
     END_LABEL: Final[str] = "End"
     PAUSE_LABEL: Final[str] = "Pause"

@@ -3,12 +3,12 @@ from soniccontrol.tkintergui.utils.events import EventManager, PropertyChangeEve
 from collections import deque
 
 
-class DataProvider:
+class DataProvider(EventManager):
     def __init__(self):
+        super().__init__()
         self._max_size = 100
         self._data = pd.DataFrame
         self._dataqueue = deque([], maxlen=100)
-        self._eventManager = EventManager()
 
 
     @property
@@ -20,4 +20,4 @@ class DataProvider:
         self._dataqueue.append(row)
         self._data = pd.DataFrame(list(self._dataqueue), columns=row.keys())
 
-        self._eventManager.emit(PropertyChangeEvent("data", None, self._data))
+        self.emit(PropertyChangeEvent("data", None, self._data))

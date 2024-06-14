@@ -74,7 +74,7 @@ class DeviceWindowView(tk.Toplevel):
 
 
     def add_tab_views(self, tab_views: List[TabView]):
-         self._left_notebook.add_tabs(
+        self._left_notebook.add_tabs(
             tab_views,
             show_titles=True,
             show_images=True,
