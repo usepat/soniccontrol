@@ -28,15 +28,20 @@ class SonicMeasure(UIComponent):
         self._capture = Capture()
         super().__init__(parent, SonicMeasureView(parent.view))
 
-        self._figure = matplotlib.figure.Figure(dpi=100)
-        self._subplot = self._figure.add_subplot(1, 1, 1)
-        self._timeplot = PlotBuilder.create_timeplot_fuip(self._subplot)
+        self._time_figure = matplotlib.figure.Figure(dpi=100)
+        self._time_subplot = self._time_figure.add_subplot(1, 1, 1)
+        self._timeplot = PlotBuilder.create_timeplot_fuip(self._time_subplot)
         self._timeplottab = Plotting(self, self._timeplot)
-        self._spectralplot = PlotBuilder.create_timeplot_fuip(self._subplot) # TODO: change this to spectral plot
+
+        self._spectral_figure = matplotlib.figure.Figure(dpi=100)
+        self._spectral_subplot = self._spectral_figure.add_subplot(1, 1, 1)
+        self._spectralplot = PlotBuilder.create_timeplot_fuip(self._spectral_subplot) # TODO: change this to spectral plot
         self._spectralplottab = Plotting(self, self._spectralplot)
+        
         self._csv_table = CsvTable(self)
 
-        self.view.set_capture_button_command(lambda: self._on_toogle_capture)
+        self.view.set_capture_button_command(lambda: self._on_toggle_capture())
+        self.view.set_capture_button_label(ui_labels.START_CAPTURE)
         self.view.add_tabs({
             ui_labels.LIVE_PLOT: self._timeplottab.view, 
             ui_labels.SONIC_MEASURE_LABEL: self._spectralplottab.view, 
@@ -44,16 +49,8 @@ class SonicMeasure(UIComponent):
         })
 
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._timeplot.update_data(e.new_value))
-        # self._capture.data_provider.subscribe_property_listener("data", lambda e: self._spectralplot.update_data(e.new_value))
+        self._capture.data_provider.subscribe_property_listener("data", lambda e: self._spectralplot.update_data(e.new_value))
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._csv_table.on_update_data(e))
-
-
-        # TODO remove this, only for testing
-        filepath = "./logs/status_log.csv"
-        data = pd.read_csv(filepath)
-        data["timestamp"] = pd.to_datetime(data["timestamp"])
-        for row in data.itertuples():
-            self._capture.data_provider.add_row(row._asdict())
 
 
     def on_status_update(self, status: Status):
@@ -87,6 +84,10 @@ class SonicMeasureView(TabView):
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
+        
+        self._capture_frame.pack(fill=ttk.X, padx=3, pady=3)
+        self._capture_btn.grid(row=0, column=0, padx=sizes.SMALL_PADDING)
+
         self._notebook.pack(expand=True, fill=ttk.BOTH)
 
     def add_tabs(self, tabs: Dict[str, View]) -> None:

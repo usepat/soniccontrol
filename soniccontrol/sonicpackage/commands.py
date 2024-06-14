@@ -230,20 +230,24 @@ class Commands:
         )
 
         # TODO: Ask if there are really 2 procedures sending like in the excel sheet
+        rInt = r"(\d+)"
+        rFloat = r"(\d+\.\d+)"
+        rAlpha = r"([a-zA-Z]+)"
         self.get_status: Command = Command(
             message="-",
             estimated_response_time=0.35,
             validators=CommandValidator(
-                pattern=r"([\d])(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d])(?:[-#])(?:[']?)([-]?[\d]+[.][\d]+)?(?:[']?)",
+                pattern=f"{rInt}#{rInt}#{rInt}#{rInt}#{rFloat}#{rInt}#{rInt}#{rInt}#{rInt}#{rAlpha}",
                 error=int,
                 frequency=int,
-                signal=attrs.converters.to_bool,
                 gain=int,
                 procedure=int,
                 temperature=float,
                 urms=int,
                 irms=int,
                 phase=int,
+                ts_flag=int,
+                signal=attrs.converters.to_bool,
             ),
             serial_communication=serial,
         )

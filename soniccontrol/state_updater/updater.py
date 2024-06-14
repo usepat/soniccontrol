@@ -23,8 +23,8 @@ class Updater(EventManager):
 
 
     def execute(self, *args, **kwargs) -> None:
-        self._task = asyncio.create_task(self._loop())
         self._running.set()
+        self._task = asyncio.create_task(self._loop())
 
 
     def stop_execution(self, *args, **kwargs) -> None:
@@ -33,7 +33,7 @@ class Updater(EventManager):
 
     async def _loop(self) -> None:
         while self._running.is_set():
-            await self.worker()
+            await self._worker()
 
 
     async def _worker(self) -> None:
@@ -42,4 +42,4 @@ class Updater(EventManager):
         # HINT: If ever needed to update different device attributes, we can do that, by checking what components the device has
         # and then additionally call other commands to get this information
 
-        self.emit(Event("update", self._device.status))
+        self.emit(Event("update", status=self._device.status))

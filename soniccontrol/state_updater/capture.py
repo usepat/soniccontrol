@@ -25,7 +25,8 @@ class Capture:
     
 
     def start_capture(self):
-        capture_filename = self._capture_file_format % datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+        timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+        capture_filename = self._capture_file_format.format(timestamp)
         self._csv_data_collector.open_file(capture_filename, self._data_attrs)
         self._is_capturing = True
 

@@ -28,7 +28,8 @@ class DeviceWindow(UIComponent):
         self._logging = Logging(self, self._logger.logs)
 
         self._view.add_tab_views([self._sonicmeasure.view, self._serialmonitor.view, self._logging.view])
-        self._updater.subscribe("update", self._sonicmeasure.on_status_update)
+        self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
+        self._updater.execute()
 
 
 class DeviceWindowView(tk.Toplevel):

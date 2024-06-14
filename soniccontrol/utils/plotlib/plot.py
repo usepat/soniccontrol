@@ -2,6 +2,7 @@ import matplotlib
 import pandas as pd
 
 from typing import Dict, Optional
+import datetime
 
 from soniccontrol.tkintergui.utils.events import Event, EventManager, PropertyChangeEvent
 
@@ -59,9 +60,11 @@ class Plot(EventManager):
 
         self._axes[dataAttrName] = ax
         self._lines[dataAttrName] = line
-        handles, _ = ax.get_legend_handles_labels()
-        handles.append(line)
-        self._plot.legend(handles=handles)
+
+        all_handles = []
+        for line in self._lines.values():
+            all_handles.append(line)
+        self._plot.legend(loc="upper left", handles=all_handles)
 
 
     def toggle_line(self, dataAttrName: str, isVisible: bool):

@@ -1,9 +1,13 @@
 from soniccontrol.utils.plotlib.plot import Plot
 
 import matplotlib
+import pandas as pd
+import datetime
+
 
 class PlotBuilder:
     # creates a timeplot for frequency, urms, irms and phase
+    @staticmethod
     def create_timeplot_fuip(subplot: matplotlib.axes.Axes) -> Plot:
         plot = Plot(subplot, "timestamp", "Time")
         plot._plot.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M:%S"))
