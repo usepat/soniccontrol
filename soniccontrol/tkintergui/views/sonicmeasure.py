@@ -43,9 +43,10 @@ class SonicMeasure(UIComponent):
             ui_labels.CSV_TAB_TITLE: self._csv_table.view
         })
 
-        # self._capture.data_provider.subscribe_property_listener("data", lambda e: self._timeplot.update_data(e.new_value))
+        self._capture.data_provider.subscribe_property_listener("data", lambda e: self._timeplot.update_data(e.new_value))
         # self._capture.data_provider.subscribe_property_listener("data", lambda e: self._spectralplot.update_data(e.new_value))
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._csv_table.on_update_data(e))
+
 
         # TODO remove this, only for testing
         filepath = "./logs/status_log.csv"

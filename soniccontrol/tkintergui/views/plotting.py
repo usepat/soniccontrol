@@ -60,8 +60,6 @@ class PlottingView(View):
 
 
     def _initialize_children(self) -> None:
-        
-
         self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
         self._plot_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._figure_canvas: FigureCanvasTkAgg = FigureCanvasTkAgg(
@@ -84,8 +82,6 @@ class PlottingView(View):
         self._figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
 
         self._toggle_button_frame.pack(fill=ttk.X, padx=3, pady=3)
-        for (i, toggle_button) in enumerate(self._line_toggle_buttons.values()):
-            toggle_button.grid(row=0, column=i, padx=sizes.SMALL_PADDING)
         self._save_button.grid(row=0, column=len(self._line_toggle_buttons), padx=sizes.SMALL_PADDING)
 
 
@@ -93,7 +89,7 @@ class PlottingView(View):
         self._figure_canvas.draw()
         self._figure_canvas.flush_events()
 
-    def get_line_visiblity(self, attrName: str) -> bool:
+    def get_line_visibility(self, attrName: str) -> bool:
         return self._line_visibilities[attrName].get()
 
     def add_line(self, attrName: str, line_label: str, toggle_command: Callable[[None], None]) -> None:
@@ -104,7 +100,10 @@ class PlottingView(View):
             variable=self._line_visibilities[attrName],
             command=toggle_command
         )
+        toggle_button.grid(row=0, column=len(self._line_toggle_buttons), padx=sizes.SMALL_PADDING)
         self._line_toggle_buttons[attrName] = toggle_button
+
+        self._save_button.grid(row=0, column=len(self._line_toggle_buttons), padx=sizes.SMALL_PADDING)
 
     def set_save_button_command(self, command: Callable[[None], None]) -> None:
         self._save_button.configure(command=command)

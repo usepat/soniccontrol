@@ -14,6 +14,7 @@ class CsvTable(UIComponent):
 
     def on_update_data(self, e: PropertyChangeEvent):
         dataFrame: pd.DataFrame = e.new_value
+        dataFrame["timestamp"] = dataFrame["timestamp"].apply(lambda x: x.strftime('%Y/%m/%d-%H:%M:%S'))
         columns = [{"text": column, "stretch": True} for column in dataFrame.columns]
         row_data = dataFrame.to_records(index=False).tolist()
         self.view.set_csv_data(columns, row_data)
