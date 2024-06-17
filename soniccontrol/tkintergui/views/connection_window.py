@@ -12,8 +12,7 @@ from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import Logger
-from soniccontrol.tkintergui.utils.constants import (sizes,
-                                                     style, ui_labels)
+from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.device_window import DeviceWindow
 from soniccontrol.utils.files import images
@@ -27,7 +26,7 @@ class DeviceWindowManager:
 
     def open_device_window(self, sonicamp: SonicAmp, logger: Logger) -> DeviceWindow:
         device_window = DeviceWindow(sonicamp, self._root, logger)
-        device_window._view.grab_set() # grab focus and bring window to front
+        device_window._view.grab_set()  # grab focus and bring window to front
         self._id_device_window_counter += 1
         device_window_id = self._id_device_window_counter
         self._opened_device_windows[device_window_id] = device_window
@@ -53,9 +52,13 @@ class ConnectionWindow(UIComponent):
     @async_handler
     async def _attempt_connection(self):
         logger = Logger()
-        baudrate = 4000 # TODO: change baudrate
-        reader, writer = await open_serial_connection(url=self._view.get_url(), baudrate=baudrate)
-        serial = SerialCommunicator(log_callback=lambda log: logger.insert_log_to_queue(log))
+        baudrate = 115200  # TODO: change baudrate to a dropdown menue
+        reader, writer = await open_serial_connection(
+            url=self._view.get_url(), baudrate=baudrate
+        )
+        serial = SerialCommunicator(
+            log_callback=lambda log: logger.insert_log_to_queue(log)
+        )
         await serial.connect(reader, writer)
         sonicamp = await AmpBuilder().build_amp(ser=serial)
         await sonicamp.serial.connection_opened.wait()

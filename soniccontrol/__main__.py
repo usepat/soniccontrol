@@ -12,6 +12,7 @@ from async_tkinter_loop import async_mainloop
 import tkinter as tk
 from ttkbootstrap.utility import enable_high_dpi_awareness
 
+
 def main() -> None:
     view: MainView = MainView()
     model: DeviceModel = DeviceModel()
@@ -26,6 +27,7 @@ def main_refactored() -> None:
         enable_high_dpi_awareness(mainwindow.view)
     async_mainloop(mainwindow.view)
 
+
 def main_cli():
     mainwindow = CliConnectionWindow()
     if PLATFORM != System.WINDOWS:
@@ -33,5 +35,6 @@ def main_cli():
         enable_high_dpi_awareness(mainwindow.view)
     async_mainloop(mainwindow.view)
 
+
 if __name__ == "__main__":
-    main_cli()
+    main_refactored()
