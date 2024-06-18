@@ -1,17 +1,83 @@
 import pathlib
 from tkinter import filedialog
-from typing import Any, Final, TypedDict
+from typing import Any, Final, Optional, TypedDict
 
+import attrs
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
 
-from soniccontrol import utils
+from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
+from soniccontrol.sonicpackage.interfaces import Scriptable
+from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
+from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.tkintergui.utils.constants import (events, sizes, tk_const,
                                                      ui_labels)
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.card import Card
 from soniccontrol.utils.files import images
+
+
+@attrs.define
+class ScriptFile:
+    filename: str = attrs.ib(default = "./script.sonic")
+    text: str = attrs.ib(default="")
+
+    def load_script(self, filename: Optional[str] = None):
+        if filename is not None:
+            self.filename = filename
+        with pathlib.Path(self.filename).open("r") as f:
+            self.text = f.read()
+
+    def save_script(self, filename: Optional[str] = None):
+        if filename is not None:
+            self.filename = filename
+        with pathlib.Path(self.filename).open("w") as f:
+            f.write(self.text)
+        
+
+class Scripting(UIComponent):
+    def __init__(self, parent: UIComponent, device: Scriptable):
+        self._device = device
+        self._scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
+        self._interpreter_worker = None
+        self._script: ScriptFile = ScriptFile()
+        super().__init__(parent, ScriptingView(parent.view))
+
+
+    def _on_open_script(self):
+        filename: str = filedialog.askopenfilename(
+            defaultextension=".sonic", filetypes=(("Text Files", "*.txt"), ("Sonic Script", "*.sonic"))
+        )
+        if filename == "." or filename == "" or isinstance(filename, (tuple)):
+            return
+        
+        self._script.load_script(filename)
+        self.view.script_text = self._script.text
+
+
+    def _on_save_as_script(self):
+        filename: str = filedialog.asksaveasfilename(
+            defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
+        )
+        if filename == "." or filename == "" or isinstance(filename, (tuple)):
+            return
+        
+        self._script.text = self._view.script_text
+        self._script.save_script(filename)
+
+
+    def _on_start_script(self):
+        pass
+
+    def _on_stop_script(self):
+        pass
+
+    def _on_pause_script(self):
+        pass
+
+    async def _interpreter_engine(self):
+        pass
 
 
 class ScriptingView(TabView):
@@ -30,6 +96,15 @@ class ScriptingView(TabView):
     def start_button(self) -> ttk.Button:
         return self._start_button
 
+    @property
+    def script_text(self) -> str:
+        return self._script_text.get(1.0, ttk.END)
+    
+    @script_text.setter
+    def script_text(self, value: str) -> None:
+        self._script_text.delete(1.0, ttk.END)
+        self._script_text.insert(ttk.INSERT, value)
+
     def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
 
@@ -39,7 +114,7 @@ class ScriptingView(TabView):
             text=ui_labels.SCRIPT_EDITOR_LABEL,
             padding=SCRIPTING_PADDING,
         )
-        self._scripting_text: ScrolledText = ScrolledText(
+        self._script_text: ScrolledText = ScrolledText(
             self._scripting_frame, autohide=True
         )
 
@@ -53,7 +128,7 @@ class ScriptingView(TabView):
             orient=ttk.HORIZONTAL,
             style=ttk.DARK,
         )
-        self._scripting_guide: ScriptingGuide = ScriptingGuide(self._scripting_text)
+        self._scripting_guide: ScriptingGuide = ScriptingGuide(self._script_text)
         self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
         self._start_button: ttk.Button = ttk.Button(
             self._navigation_button_frame,
@@ -140,7 +215,7 @@ class ScriptingView(TabView):
             padx=sizes.SIDE_PADDING,
             pady=sizes.MEDIUM_PADDING,
         )
-        self._scripting_text.pack(expand=True, fill=ttk.BOTH)
+        self._script_text.pack(expand=True, fill=ttk.BOTH)
 
         self._script_status_frame.grid(
             row=2,
@@ -195,25 +270,6 @@ class ScriptingView(TabView):
 
     def hightlight_line(self, line_idx: int) -> None:
         ...
-
-    def load_script(self) -> None:
-        filename: str = filedialog.askopenfilename(
-            defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
-        )
-        if filename == "." or filename == "" or isinstance(filename, (tuple)):
-            return
-        with pathlib.Path(filename).open("r") as f:
-            self._scripting_text.delete(1.0, ttk.END)
-            self._scripting_text.insert(ttk.INSERT, f.read())
-
-    def save_script(self) -> None:
-        file_str: str = filedialog.asksaveasfilename(
-            defaultextension=".txt", filetypes=(("Text Files", "*.txt"),)
-        )
-        if file_str == "." or file_str == "" or isinstance(file_str, (tuple)):
-            return
-        with pathlib.Path(file_str).open("w") as f:
-            f.write(self._scripting_text.get(1.0, ttk.END))
 
     def specify_datalog_path(self) -> None:
         ...
