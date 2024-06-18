@@ -26,14 +26,6 @@ class SonicAmp(Scriptable):
     _status: Status = attrs.field()
     _info: Info = attrs.field()
 
-    _holder: Holder = attrs.field(init=False, factory=Holder)
-    _frequency_ramper: Ramper = attrs.field(init=False)
-    _sequencer: LegacySequencer = attrs.field(init=False)
-
-    def __attrs_post_init__(self) -> None:
-        self._frequency_ramper = Ramper(self, self.set_frequency)
-        self._sequencer = LegacySequencer(self)
-
     @property
     def serial(self) -> SerialCommunicator:
         return self._serial
@@ -54,26 +46,7 @@ class SonicAmp(Scriptable):
     def info(self) -> Info:
         return self._info
 
-    @property
-    def frequency_ramper(self) -> Ramper:
-        return self._frequency_ramper
-
-    @property
-    def sequencer(self) -> LegacySequencer:
-        return self._sequencer
-
-    @property
-    def holder(self) -> Holder:
-        return self._holder
-
     async def disconnect(self) -> None:
-        if self.sequencer.running.is_set():
-            self.sequencer.stop_execution()
-        if self.frequency_ramper.running.is_set():
-            self.frequency_ramper.stop_execution()
-        if self.holder.running.is_set():
-            self.holder.stop_execution()
-
         await self.serial.disconnect()
         Command.set_serial_communication(None)
         del self
@@ -235,26 +208,17 @@ class SonicAmp(Scriptable):
         hold_on_time: float = 100,
         hold_on_unit: Literal["ms", "s"] = "ms",
         hold_off_time: float = 0,
-        hold_off_unit: Literal["ms", "s"] = "ms",
-        event: Optional[asyncio.Event] = None,
+        hold_off_unit: Literal["ms", "s"] = "ms"
     ) -> None:
-        return await self._frequency_ramper.execute(
+        # TODO check first if self._commands contains the necessary commands to run the ramp on the device.
+
+        return await Ramper.execute(
+            self,
+            lambda f: self.execute_command("!f=", f),
             (start, stop, step),
             (hold_on_time, hold_on_unit),
-            (hold_off_time, hold_off_unit),
-            external_event=event,
+            (hold_off_time, hold_off_unit)
         )
-
-    async def hold(
-        self,
-        duration: float,
-        unit: Literal["ms", "s"] = "ms",
-        event: Optional[asyncio.Event] = None,
-    ) -> None:
-        return await self._holder.execute(duration, unit, event)
-
-    async def sequence(self, script: str) -> None:
-        await self._sequencer.execute(script)
 
 
 import serial.tools.list_ports as list_ports

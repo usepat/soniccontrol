@@ -263,6 +263,5 @@ class LegacyScriptingFacade(ScriptingFacade):
         
         interpreter = LegacySequencer(self._device, commands=commands, original_commands=original_commands)     
         return interpreter
-    
 
     def lint_text(self, text: str) -> str: ...
