@@ -36,21 +36,6 @@ class Communicator(abc.ABC):
     async def send_and_wait_for_answer(self, message: Sendable) -> None: ...
 
 
-class Script(abc.ABC):
-    def __init__(self) -> None:
-        super().__init__()
-
-    @property
-    @abc.abstractmethod
-    def running(self) -> asyncio.Event: ...
-
-    @abc.abstractmethod
-    def execute(self, *args, **kwargs) -> None: ...
-
-    def stop_execution(self) -> None:
-        self.running.clear()
-
-
 class Scriptable(abc.ABC):
     def __init__(self) -> None:
         super().__init__()

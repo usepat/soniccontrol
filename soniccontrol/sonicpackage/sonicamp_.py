@@ -9,7 +9,7 @@ from soniccontrol.sonicpackage.amp_data import Info, Modules, Status
 from soniccontrol.sonicpackage.commands import (Command, Commands,
                                                 CommandValidator)
 from soniccontrol.sonicpackage.interfaces import Scriptable
-from soniccontrol.sonicpackage.scripts import Holder, Ramper, Sequencer
+from soniccontrol.sonicpackage.script.legacy_scripting import Holder, Ramper, LegacySequencer
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.tkintergui.utils.events import Event
 
@@ -28,11 +28,11 @@ class SonicAmp(Scriptable):
 
     _holder: Holder = attrs.field(init=False, factory=Holder)
     _frequency_ramper: Ramper = attrs.field(init=False)
-    _sequencer: Sequencer = attrs.field(init=False)
+    _sequencer: LegacySequencer = attrs.field(init=False)
 
     def __attrs_post_init__(self) -> None:
         self._frequency_ramper = Ramper(self, self.set_frequency)
-        self._sequencer = Sequencer(self)
+        self._sequencer = LegacySequencer(self)
 
     @property
     def serial(self) -> SerialCommunicator:
@@ -59,7 +59,7 @@ class SonicAmp(Scriptable):
         return self._frequency_ramper
 
     @property
-    def sequencer(self) -> Sequencer:
+    def sequencer(self) -> LegacySequencer:
         return self._sequencer
 
     @property
