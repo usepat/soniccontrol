@@ -9,7 +9,7 @@ from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.home import HomeView
 from soniccontrol.tkintergui.views.info import InfoView
-from soniccontrol.tkintergui.views.scripting import ScriptingView
+from soniccontrol.tkintergui.views.editor import EditorView
 from soniccontrol.tkintergui.views.serialmonitor import SerialMonitorView
 from soniccontrol.tkintergui.views.settings import SettingsView
 from soniccontrol.tkintergui.views.sonicmeasure import SonicMeasureView
@@ -20,7 +20,7 @@ from soniccontrol.tkintergui.utils.events import Event, PropertyChangeEvent
 @attrs.frozen
 class SonicControlViews:
     home: HomeView = attrs.field()
-    scripting: ScriptingView = attrs.field()
+    scripting: EditorView = attrs.field()
     settings: SettingsView = attrs.field()
     info: InfoView = attrs.field()
     sonicmeasure: SonicMeasureView = attrs.field()

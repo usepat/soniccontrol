@@ -7,11 +7,11 @@ import attrs
 
 @attrs.define()
 class ParsingError:
+    msg: str = attrs.field()
     line_begin: int = attrs.field()
     col_begin: int = attrs.field()
     line_end: Optional[int] = attrs.field(default=None)
     col_end: Optional[int] = attrs.field(default=None)
-    msg: str = attrs.field()
 
 class ScriptError:
     pass

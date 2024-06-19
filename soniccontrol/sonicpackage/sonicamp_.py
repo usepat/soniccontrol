@@ -9,9 +9,8 @@ from soniccontrol.sonicpackage.amp_data import Info, Modules, Status
 from soniccontrol.sonicpackage.commands import (Command, Commands,
                                                 CommandValidator)
 from soniccontrol.sonicpackage.interfaces import Scriptable
-from soniccontrol.sonicpackage.script.legacy_scripting import Holder, Ramper, LegacySequencer
+from soniccontrol.sonicpackage.procedures.script_procedures import Ramper
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
-from soniccontrol.tkintergui.utils.events import Event
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
