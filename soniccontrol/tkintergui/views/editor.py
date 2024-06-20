@@ -54,7 +54,7 @@ class Editor(UIComponent):
         self._scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
         self._interpreter_worker = None
         self._script: ScriptFile = ScriptFile()
-        self._interpreter_iter: Iterable = iter([])
+        self._interpreter: Iterable = iter([])
         self._interpreter_state = InterpreterState.READY
         super().__init__(parent, EditorView(parent.view))
         self._set_interpreter_state(self._interpreter_state)
@@ -66,14 +66,14 @@ class Editor(UIComponent):
                 self.view.start_pause_continue_button.configure(
                     label=ui_labels.START_LABEL,
                     image=(images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
-                    command=lambda: self._on_start_script(single_instruction=False),
+                    command=lambda: self._on_start_script(False),
                     enabled=True
                 )
                 self.view.single_step_button.configure(
                     label=ui_labels.SINGLE_STEP_LABEL,
                     image=(images.FORWARDS_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
-                    command=lambda: self._on_start_script(single_instruction=True),
-                    enabled=False
+                    command=lambda: self._on_start_script(True),
+                    enabled=True
                 )
                 self.view.stop_button.configure(
                     label=ui_labels.STOP_LABEL,
@@ -143,13 +143,13 @@ class Editor(UIComponent):
         self._script.save_script()
 
     @async_handler
-    async def _on_start_script(self, single_instruction: bool = False):
+    async def _on_start_script(self, single_instruction: bool):
+        self._script.text = self.view.editor_text
         if self._interpreter_state == InterpreterState.READY:
-            interpreter = self._scripting.parse_script(self._script.text)
-            self._interpreter_iter = await iter(interpreter)
+            self._interpreter = self._scripting.parse_script(self._script.text)
 
-        self._interpreter_worker = asyncio.create_task(self._interpreter_engine(), single_instruction=single_instruction)
         self._set_interpreter_state(InterpreterState.RUNNING)
+        self._interpreter_worker = asyncio.create_task(self._interpreter_engine(single_instruction=single_instruction))
 
     @async_handler
     async def _on_stop_script(self):
@@ -160,9 +160,9 @@ class Editor(UIComponent):
         self._set_interpreter_state(InterpreterState.READY)
 
     @async_handler
-    def _on_continue_script(self):
-        self._interpreter_worker = asyncio.create_task(self._interpreter_engine())
+    async def _on_continue_script(self):
         self._set_interpreter_state(InterpreterState.RUNNING)
+        self._interpreter_worker = asyncio.create_task(self._interpreter_engine())
 
     @async_handler
     async def _on_pause_script(self):
@@ -174,10 +174,10 @@ class Editor(UIComponent):
 
     async def _interpreter_engine(self, single_instruction: bool = False):
         try:
-            async for line_index, task in self._interpreter_iter:
+            async for line_index, task in self._interpreter:
                 self.view.highlight_line(line_index)
                 self.view.current_task = task
-                if single_instruction:
+                if single_instruction and line_index != 0:
                     break
         except asyncio.CancelledError:
             return
@@ -185,7 +185,7 @@ class Editor(UIComponent):
             self._show_err_msg(e)   
             self._set_interpreter_state(InterpreterState.PAUSED)
             return
-        self._set_interpreter_state(InterpreterState.PAUSED if single_instruction else InterpreterState.READY)
+        self._set_interpreter_state(InterpreterState.PAUSED if single_instruction and not self._interpreter.is_finished else InterpreterState.READY)
 
     def _show_err_msg(self, e: Exception):
         pass
@@ -349,7 +349,7 @@ class EditorView(TabView):
 
     @editor_enabled.setter 
     def editor_enabled(self, enabled: bool) -> None:
-        self._editor_text.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
+        pass
 
     @property
     def start_pause_continue_button(self) -> PushButtonView:
@@ -365,12 +365,12 @@ class EditorView(TabView):
 
     def highlight_line(self, line_idx: Optional[int]) -> None:
         current_line_tag = "currentLine"
-        self._scripttext.tag_remove(current_line_tag, 1.0, "end")
+        self._editor_text.tag_remove(current_line_tag, 1.0, "end")
 
         if line_idx:
             line_idx += 1
-            self._scripttext.tag_add(current_line_tag, f"{line_idx}.0", f"{line_idx}.end")
-            self._scripttext.tag_configure(
+            self._editor_text.tag_add(current_line_tag, f"{line_idx}.0", f"{line_idx}.end")
+            self._editor_text.tag_configure(
                 current_line_tag, background="#3e3f3a", foreground="#dfd7ca"
             )
 

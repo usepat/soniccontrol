@@ -20,6 +20,7 @@ class ScriptError:
 class Script(abc.ABC):
     def __init__(self) -> None:
         super().__init__()
+        self._script_started = False
 
     """
     Raises:
@@ -46,15 +47,17 @@ class Script(abc.ABC):
     @abc.abstractmethod
     async def _after_script(self) -> None: ...
 
-    async def __aiter__(self):
-        await self._before_script()
+    def __aiter__(self):
         return self
     
     async def __anext__(self) -> Tuple[int, str]:
         if self.is_finished:
+            self._script_started = False
             await self._after_script()
-            raise StopIteration
-        elif self.current_line == 0: # to return and highlight the line before we execute the line
+            raise StopAsyncIteration
+        elif not self._script_started: # to return and highlight the line before we execute the line and run before_script
+            self._script_started = True
+            await self._before_script()
             return self.current_line, self.current_task
         else:
             try:

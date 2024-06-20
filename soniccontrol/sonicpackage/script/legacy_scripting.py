@@ -164,11 +164,11 @@ class LegacySequencer(Script):
 
     @property
     def current_task(self) -> str: 
-        return self.current_command
+        return self._current_command
 
     @property
     def is_finished(self) -> bool:
-        return self._current_line < len(self._commands)
+        return self._current_line >= len(self._commands)
 
     async def _before_script(self) -> None:
         await self._sonicamp.get_overview()

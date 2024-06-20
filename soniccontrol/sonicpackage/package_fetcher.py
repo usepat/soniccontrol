@@ -47,7 +47,7 @@ class PackageFetcher:
             except asyncio.CancelledError:
                 ic(f"Task was cancelled {sys.exc_info()}")
                 return
-            except:
+            except Exception as e:
                 ic(f"Exception while reading/parsing package {sys.exc_info()}")
                 raise
 

@@ -117,7 +117,7 @@ class SonicAmp(Scriptable):
         except Exception as e:
             pass
 
-        ic(command.byte_message, command.answer, command.status_result, self._status)
+        # ic(command.byte_message, command.answer, command.status_result, self._status)
 
         return command.answer.string
 
