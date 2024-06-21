@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import time
-from typing import Callable, Optional, List
+from typing import Callable, Final, Optional, List
 
 import logging
 import attrs
@@ -91,11 +91,12 @@ class SerialCommunicator(Communicator):
         self._package_fetcher.run()
 
     async def _worker(self) -> None:
-        message_counter = 0
+        message_counter: int = 0
+        message_id_max_client: Final[int] = 2 ** 16 - 1 # 65535 is the max for uint16. so we cannot go higher than that.
 
         async def send_and_get(command: Command) -> None:
             nonlocal message_counter
-            message_counter += 1
+            message_counter = (message_counter + 1) % message_id_max_client
 
             message_str = self._protocol.parse_request(command.full_message, message_counter)
             message = message_str.encode(PLATFORM.encoding)
