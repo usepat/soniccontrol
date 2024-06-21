@@ -27,7 +27,7 @@ class DeviceWindow(UIComponent):
         self._sonicmeasure = SonicMeasure(self)
         self._serialmonitor = SerialMonitor(self, self._device)
         self._logging = Logging(self, self._logger.logs)
-        self._editor = Editor(self, self._device)
+        self._editor = Editor(self, root, self._device)
 
         self._view.add_tab_views([self._sonicmeasure.view, self._serialmonitor.view, self._logging.view, self._editor.view])
         self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
