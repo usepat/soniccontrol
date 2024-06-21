@@ -9,6 +9,8 @@ import tkinter as tk
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.builder import AmpBuilder
+from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
+from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import Logger
@@ -53,16 +55,18 @@ class ConnectionWindow(UIComponent):
     async def _attempt_connection(self):
         logger = Logger()
         baudrate = 115200  # TODO: change baudrate to a dropdown menue
+
         reader, writer = await open_serial_connection(
             url=self._view.get_url(), baudrate=baudrate
         )
-        serial = SerialCommunicator(
-            log_callback=lambda log: logger.insert_log_to_queue(log)
+        serial, commands = await ConnectionBuilder.build(
+            reader=reader,
+            writer=writer,
+            log_callback=lambda log: logger.insert_log_to_queue(log),
         )
-        await serial.connect(reader, writer)
-        sonicamp = await AmpBuilder().build_amp(ser=serial)
+
+        sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands)
         await sonicamp.serial.connection_opened.wait()
-        self._view.hwinfo()
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

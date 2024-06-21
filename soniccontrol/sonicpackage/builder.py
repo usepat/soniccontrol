@@ -4,6 +4,7 @@ from typing import *
 import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.command import Answer
+from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.sonicamp_ import (
     Command,
     Commands,
@@ -33,9 +34,8 @@ class AmpBuilder:
             if command:
                 sonicAmp.add_command(command)
 
-    async def build_amp(self, ser: SerialCommunicator) -> SonicAmp:
+    async def build_amp(self, ser: Communicator, commands: Commands) -> SonicAmp:
         await ser.connection_opened.wait()
-        commands = Commands(ser)
 
         result_dict: Dict[str, Any] = ser.init_command.status_result
 
@@ -111,7 +111,6 @@ class AmpBuilder:
             sonicamp.add_commands((commands.get_status, commands.get_type))
 
         if sonicamp.info.device_type == "catch":
-            sonicamp.should_update.set()
             sonicamp.add_commands(basic_catch_commands)
             if sonicamp.info.version == 0.3:
                 sonicamp.add_command(commands.get_sens)
@@ -129,7 +128,6 @@ class AmpBuilder:
             sonicamp.add_commands(basic_descale_commands)
 
         elif sonicamp.info.device_type == "wipe":
-            sonicamp.should_update.set()
             sonicamp.add_commands(basic_wipe_commands)
 
         return sonicamp
