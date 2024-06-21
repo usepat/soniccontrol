@@ -1,52 +1,16 @@
+from __future__ import annotations
 import datetime
 import attrs
 from soniccontrol.sonicpackage.command import Command, CommandValidator
-from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.sonicpackage.interfaces import Communicator
 
 
 class Commands:
-    def __init__(self, serial: SerialCommunicator):
-        self._init_new_commands(serial)
 
-        self.get_overview: Command = Command(
-            message="?",
-            estimated_response_time=0.5,
-            expects_long_answer=True,
-            validators=(
-                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
-                CommandValidator(
-                    pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
-                ),
-                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
-                CommandValidator(
-                    pattern=r".*signal.*(on|off).*",
-                    signal=lambda b: bool(b.lower() == "on"),
-                ),
-            ),
-            serial_communication=serial,
-        )
+    @classmethod
+    def with_new_commands(cls, serial: Communicator) -> Commands:
+        obj: Commands = cls()
 
-        self.get_type: Command = Command(
-            message="?type",
-            estimated_response_time=0.5,
-            validators=CommandValidator(
-                pattern=r"sonic(catch|wipe|descale)", device_type=str
-            ),
-            serial_communication=serial,
-        )
-
-        self.get_info: Command = Command(
-            message="?info",
-            estimated_response_time=0.5,
-            expects_long_answer=True,
-            validators=(
-                CommandValidator(pattern=r".*ver.*([\d]+[.][\d]+).*", version=float),
-                CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
-            ),
-            serial_communication=serial,
-        )
-
-    def _init_new_commands(self, serial: SerialCommunicator):
         # TODO: Ask about ?error, how do we validate errors, if there is not a known number of errors
         type_validator: CommandValidator = CommandValidator(
             pattern=r"sonic(catch|wipe|descale)", type_=str
@@ -164,24 +128,24 @@ class Commands:
             pattern=r"(\d+\.\d+)", value=float
         )
 
-        self.set_frequency: Command = Command(
+        obj.set_frequency: Command = Command(
             message="!freq=",
             validators=frequency_validator,
             serial_communication=serial,
         )
-        self.set_gain: Command = Command(
+        obj.set_gain: Command = Command(
             message="!gain=",
             validators=gain_validator,
             serial_communication=serial,
         )
-        self.set_switching_frequency: Command = Command(
+        obj.set_switching_frequency: Command = Command(
             message="!swf=",
             validators=frequency_validator,
             serial_communication=serial,
         )
 
         # TODO: implement this command for MVP AMP, if needed
-        # self.get_overview: Command = Command(
+        # obj.get_overview: Command = Command(
         #     message="?",
         #     estimated_response_time=0.5,
         #     expects_long_answer=True,
@@ -200,14 +164,14 @@ class Commands:
         # )
 
         # TODO: Is the type command in the set of MVP AMP commands?
-        # self.get_type: Command = Command(
+        # obj.get_type: Command = Command(
         #     message="?type",
         #     estimated_response_time=0.5,
         #     validators=type_validator,
         #     serial_communication=serial,
         # )
 
-        self.get_info: Command = Command(
+        obj.get_info: Command = Command(
             message="?info",
             estimated_response_time=0.5,
             expects_long_answer=True,
@@ -221,7 +185,7 @@ class Commands:
         )
 
         # TODO: maybe refactor CommandValidator to store multiple values
-        self.get_command_list: Command = Command(
+        obj.get_command_list: Command = Command(
             message="?list_commands",
             estimated_response_time=0.5,
             expects_long_answer=True,
@@ -233,7 +197,7 @@ class Commands:
         rInt = r"(\d+)"
         rFloat = r"(\d+\.\d+)"
         rAlpha = r"([a-zA-Z]+)"
-        self.get_status: Command = Command(
+        obj.get_status: Command = Command(
             message="-",
             estimated_response_time=0.35,
             validators=CommandValidator(
@@ -252,12 +216,12 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.signal_on: Command = Command(
+        obj.signal_on: Command = Command(
             message="!ON",
             validators=signal_on_validator,
             serial_communication=serial,
         )
-        self.signal_off: Command = Command(
+        obj.signal_off: Command = Command(
             message="!OFF",
             estimated_response_time=0.4,
             validators=signal_off_validator,
@@ -265,36 +229,36 @@ class Commands:
         )
 
         # TODO: Implement this command using info from david
-        # self.signal_auto: Command = Command(
+        # obj.signal_auto: Command = Command(
         #     message="!AUTO",
         #     estimated_response_time=0.5,
         #     validators=CommandValidator(pattern=r".*(auto).*", protocol=str),
         #     serial_communication=serial,
         # )
 
-        self.get_frequency: Command = Command(
+        obj.get_frequency: Command = Command(
             message="?freq",
             validators=frequency_validator,
             serial_communication=serial,
         )
-        self.get_gain: Command = Command(
+        obj.get_gain: Command = Command(
             message="?gain",
             validators=gain_validator,
             serial_communication=serial,
         )
-        self.get_uipt: Command = Command(
+        obj.get_uipt: Command = Command(
             message="?uipt",
             validators=uipt_validator,
             serial_communication=serial,
         )
-        self.get_pzt: Command = Command(
+        obj.get_pzt: Command = Command(
             message="?pzt",
             validators=pzt_validator,
             serial_communication=serial,
         )
 
         # ?-ATF,ATK,ATT,ATON Commands
-        self.get_atf_values: Command = Command(
+        obj.get_atf_values: Command = Command(
             message="?atf",
             estimated_response_time=0.5,
             validators=(
@@ -305,7 +269,7 @@ class Commands:
             ),
             serial_communication=serial,
         )
-        self.get_atk_values: Command = Command(
+        obj.get_atk_values: Command = Command(
             message="?atk",
             estimated_response_time=0.5,
             validators=(
@@ -316,7 +280,7 @@ class Commands:
             ),
             serial_communication=serial,
         )
-        self.get_att_values: Command = Command(
+        obj.get_att_values: Command = Command(
             message="?att",
             estimated_response_time=0.5,
             validators=(
@@ -327,7 +291,7 @@ class Commands:
             ),
             serial_communication=serial,
         )
-        self.get_aton_values: Command = Command(
+        obj.get_aton_values: Command = Command(
             message="?aton",
             estimated_response_time=0.5,
             validators=(
@@ -340,95 +304,137 @@ class Commands:
         )
 
         # ATF Commands
-        self.set_atf1: Command = Command(
+        obj.set_atf1: Command = Command(
             message="!atf1=",
             validators=frequency_validator,
             serial_communication=serial,
         )
-        self.set_atf2: Command = Command(
+        obj.set_atf2: Command = Command(
             message="!atf2=",
             validators=frequency_validator,
             serial_communication=serial,
         )
-        self.set_atf3: Command = Command(
+        obj.set_atf3: Command = Command(
             message="!atf3=",
             validators=frequency_validator,
             serial_communication=serial,
         )
-        self.set_atf4: Command = Command(
+        obj.set_atf4: Command = Command(
             message="!atf4=",
             validators=frequency_validator,
             serial_communication=serial,
         )
 
         # ATON Commands
-        self.set_aton1: Command = Command(
+        obj.set_aton1: Command = Command(
             message="!aton1=",
             validators=ms_value_validator,
             serial_communication=serial,
         )
-        self.set_aton2: Command = Command(
+        obj.set_aton2: Command = Command(
             message="!aton2=",
             validators=ms_value_validator,
             serial_communication=serial,
         )
-        self.set_aton3: Command = Command(
+        obj.set_aton3: Command = Command(
             message="!aton3=",
             validators=ms_value_validator,
             serial_communication=serial,
         )
-        self.set_aton4: Command = Command(
+        obj.set_aton4: Command = Command(
             message="!aton4=",
             validators=ms_value_validator,
             serial_communication=serial,
         )
 
         # ATK Commands
-        self.set_atk1: Command = Command(
+        obj.set_atk1: Command = Command(
             message="!atk1=",
             validators=float_value_validator,
             serial_communication=serial,
         )
-        self.set_atk2: Command = Command(
+        obj.set_atk2: Command = Command(
             message="!atk2=",
             validators=float_value_validator,
             serial_communication=serial,
         )
-        self.set_atk3: Command = Command(
+        obj.set_atk3: Command = Command(
             message="!atk3=",
             validators=float_value_validator,
             serial_communication=serial,
         )
-        self.set_atk4: Command = Command(
+        obj.set_atk4: Command = Command(
             message="!atk4=",
             validators=float_value_validator,
             serial_communication=serial,
         )
 
         # ATT Commands
-        self.set_att1: Command = Command(
+        obj.set_att1: Command = Command(
             message="!att1=",
             validators=float_value_validator,
             serial_communication=serial,
         )
-        self.set_att2: Command = Command(
+        obj.set_att2: Command = Command(
             message="!att2=",
             validators=float_value_validator,
             serial_communication=serial,
         )
-        self.set_att3: Command = Command(
+        obj.set_att3: Command = Command(
             message="!att3=",
             validators=float_value_validator,
             serial_communication=serial,
         )
-        self.set_att4: Command = Command(
+        obj.set_att4: Command = Command(
             message="!att4=",
             validators=float_value_validator,
             serial_communication=serial,
         )
 
-    def _init_legacy_commands(self, serial: SerialCommunicator):
-        self.set_frequency: Command = Command(
+        return obj
+
+    @classmethod
+    def with_legacy_commands(cls, serial: Communicator) -> Commands:
+        obj: Commands = cls()
+
+        obj.get_overview: Command = Command(
+            message="?",
+            estimated_response_time=0.5,
+            expects_long_answer=True,
+            validators=(
+                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
+                CommandValidator(
+                    pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
+                ),
+                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+                CommandValidator(
+                    pattern=r".*signal.*(on|off).*",
+                    signal=lambda b: bool(b.lower() == "on"),
+                ),
+            ),
+            serial_communication=serial,
+        )
+
+        obj.get_type: Command = Command(
+            message="?type",
+            estimated_response_time=0.5,
+            validators=CommandValidator(
+                pattern=r"sonic(catch|wipe|descale)", device_type=str
+            ),
+            serial_communication=serial,
+        )
+
+        obj.get_info: Command = Command(
+            message="?info",
+            estimated_response_time=0.5,
+            expects_long_answer=True,
+            validators=(
+                CommandValidator(pattern=r".*ver.*([\d]+[.][\d]+).*", version=float),
+                CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
+            ),
+            serial_communication=serial,
+        )
+        obj.set_frequency: Command = Command(
             message="!f=",
             validators=CommandValidator(
                 pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
@@ -436,28 +442,21 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.set_gain: Command = Command(
+        obj.set_gain: Command = Command(
             message="!g=",
             validators=CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
             serial_communication=serial,
         )
 
-        self.set_switching_frequency: Command = Command(
+        obj.set_switching_frequency: Command = Command(
             message="!swf=",
             validators=CommandValidator(
                 pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", switching_frequency=int
             ),
             serial_communication=serial,
         )
-        self.get_command_list: Command = Command(
-            message="?list_commands",
-            estimated_response_time=0.5,
-            expects_long_answer=True,
-            validators=CommandValidator(pattern=r"(.+)(#(.+))+"),
-            serial_communication=serial,
-        )
 
-        self.get_status: Command = Command(
+        obj.get_status: Command = Command(
             message="-",
             estimated_response_time=0.35,
             validators=CommandValidator(
@@ -478,7 +477,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.get_sens: Command = Command(
+        obj.get_sens: Command = Command(
             message="?sens",
             estimated_response_time=0.35,
             validators=(
@@ -501,7 +500,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.get_sens_factorised: Command = Command(
+        obj.get_sens_factorised: Command = Command(
             message="?sens",
             estimated_response_time=0.35,
             validators=(
@@ -524,7 +523,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.get_sens_fullscale_values: Command = Command(
+        obj.get_sens_fullscale_values: Command = Command(
             message="?sens",
             estimated_response_time=0.35,
             validators=(
@@ -558,7 +557,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.signal_on: Command = Command(
+        obj.signal_on: Command = Command(
             message="!ON",
             validators=(
                 CommandValidator(
@@ -571,7 +570,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.signal_off: Command = Command(
+        obj.signal_off: Command = Command(
             message="!OFF",
             estimated_response_time=0.4,
             validators=(
@@ -585,14 +584,14 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.signal_auto: Command = Command(
+        obj.signal_auto: Command = Command(
             message="!AUTO",
             estimated_response_time=0.5,
             validators=CommandValidator(pattern=r".*(auto).*", protocol=str),
             serial_communication=serial,
         )
 
-        self.set_serial_mode: Command = Command(
+        obj.set_serial_mode: Command = Command(
             message="!SERIAL",
             validators=CommandValidator(
                 pattern=r".*mode.*(serial).*", communication_mode=str
@@ -600,7 +599,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.set_analog_mode: Command = Command(
+        obj.set_analog_mode: Command = Command(
             message="!ANALOG",
             validators=CommandValidator(
                 pattern=r".*mode.*(analog).*", communication_mode=str
@@ -608,19 +607,19 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.set_khz_mode: Command = Command(
+        obj.set_khz_mode: Command = Command(
             message="!KHZ",
             validators=CommandValidator(pattern=r".*(khz).*", relay_mode=str),
             serial_communication=serial,
         )
 
-        self.set_mhz_mode: Command = Command(
+        obj.set_mhz_mode: Command = Command(
             message="!MHZ",
             validators=CommandValidator(pattern=r".*(mhz).*", relay_mode=str),
             serial_communication=serial,
         )
 
-        self.set_atf1: Command = Command(
+        obj.set_atf1: Command = Command(
             message="!atf1=",
             validators=CommandValidator(
                 pattern=r".*freq[quency]*.*1.*=.*([\d]+)", atf1=int
@@ -628,7 +627,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.get_atf1: Command = Command(
+        obj.get_atf1: Command = Command(
             message="?atf1",
             expects_long_answer=True,
             validators=CommandValidator(
@@ -637,13 +636,13 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.set_atk1: Command = Command(
+        obj.set_atk1: Command = Command(
             message="!atk1=",
             validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk1=float),
             serial_communication=serial,
         )
 
-        self.set_atf2: Command = Command(
+        obj.set_atf2: Command = Command(
             message="!atf2=",
             validators=CommandValidator(
                 pattern=r".*freq[quency]*.*2.*=.*([\d]+)", atf2=int
@@ -651,7 +650,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.get_atf2: Command = Command(
+        obj.get_atf2: Command = Command(
             message="?atf2",
             expects_long_answer=True,
             validators=CommandValidator(
@@ -660,13 +659,13 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.set_atk2: Command = Command(
+        obj.set_atk2: Command = Command(
             message="!atk2=",
             validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk2=float),
             serial_communication=serial,
         )
 
-        self.set_atf3: Command = Command(
+        obj.set_atf3: Command = Command(
             message="!atf3=",
             validators=CommandValidator(
                 pattern=r".*freq[quency]*.*3.*=.*([\d]+)", atf3=int
@@ -674,7 +673,7 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.get_atf3: Command = Command(
+        obj.get_atf3: Command = Command(
             message="?atf3",
             expects_long_answer=True,
             validators=CommandValidator(
@@ -683,20 +682,22 @@ class Commands:
             serial_communication=serial,
         )
 
-        self.set_atk3: Command = Command(
+        obj.set_atk3: Command = Command(
             message="!atk3=",
             validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk3=float),
             serial_communication=serial,
         )
 
-        self.set_att1: Command = Command(
+        obj.set_att1: Command = Command(
             message="!att1=",
             validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", att1=float),
             serial_communication=serial,
         )
 
-        self.get_att1: Command = Command(
+        obj.get_att1: Command = Command(
             message="?att1",
             validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", att1=float),
             serial_communication=serial,
         )
+
+        return obj

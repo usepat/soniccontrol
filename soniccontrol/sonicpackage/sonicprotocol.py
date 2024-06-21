@@ -1,9 +1,56 @@
-from typing import Callable
+from typing import Callable, Any
+import abc
 from soniccontrol.sonicpackage.package_parser import Package, PackageParser
 from soniccontrol.sonicpackage import logger
 
 
-class SonicProtocol:
+class CommunicationProtocol:
+    def __init__(self, log_callback: Callable[[str], None]):
+        self._log_callback: Callable[[str], None] = log_callback
+
+    @property
+    def start_symbol(self) -> str:
+        return PackageParser.start_symbol
+
+    @property
+    def end_symbol(self) -> str:
+        return PackageParser.end_symbol
+
+    @property
+    def max_bytes(self) -> int:
+        return PackageParser.max_bytes
+
+    @abc.abstractmethod
+    def parse_response(self, response: str) -> Any: ...
+
+    @abc.abstractmethod
+    def parse_request(self, request: str, request_id: int) -> Any: ...
+
+
+class LegacySonicProtocol(CommunicationProtocol):
+    def __init__(self, log_callback: Callable[[str], None]):
+        self._log_callback: Callable[[str], None] = log_callback
+
+    @property
+    def start_symbol(self) -> str:
+        return ""
+
+    @property
+    def end_symbol(self) -> str:
+        return "\n"
+
+    @property
+    def max_bytes(self) -> int:
+        return PackageParser.max_bytes
+
+    def parse_response(self, response: str) -> str:
+        return response
+
+    def parse_request(self, request: str, request_id: int) -> Any:
+        return request
+
+
+class SonicProtocol(CommunicationProtocol):
     def __init__(self, log_callback: Callable[[str], None]):
         self._log_callback: Callable[[str], None] = log_callback
 
