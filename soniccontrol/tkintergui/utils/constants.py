@@ -1,6 +1,8 @@
-from typing import Final, Literal
+from typing import Final, List, Literal
 
 import attrs
+
+from soniccontrol.tkintergui.utils.types import ScriptingGuideCardDataDict
 
 
 @attrs.frozen
@@ -79,12 +81,15 @@ class _UIStringsEN:
     FREQ_PLACEHOLDER: Final[str] = "Set Frequency..."
     GAIN_PLACEHOLDER: Final[str] = "Set Gain..."
     SAVE_LABEL: Final[str] = "Save"
+    SAVE_AS_LABEL: Final[str] = "Save As"
     SAVE_PLOT_LABEL: Final[str] = "Save Plot"
     CSV_TAB_TITLE: Final[str] = "Csv"
     START_LABEL: Final[str] = "Start"
     END_LABEL: Final[str] = "End"
+    STOP_LABEL: Final[str] = "Stop"
     PAUSE_LABEL: Final[str] = "Pause"
     RESUME_LABEL: Final[str] = "Resume"
+    SINGLE_STEP_LABEL: Final[str] = "Single Step"
     CONNECT_LABEL: Final[str] = "Connect"
     DISCONNECT_LABEL: Final[str] = "Disconnect"
     HOME_LABEL: Final[str] = "Home"
@@ -225,3 +230,62 @@ class _Events:
 
 
 events: Final[_Events] = _Events()
+
+
+
+scripting_cards_data: Final[List[ScriptingGuideCardDataDict]] = [
+    {
+        "keyword": "startloop",
+        "arguments": "times: optional uint",
+        "description": "Starts a loop and loops until an endloop was found. \nIf no argument was passed, \nthen the loop turns to a 'While True loop'",
+        "example": "startloop 5",
+    },
+    {
+        "keyword": "endloop",
+        "arguments": "None",
+        "description": "Ends the last started loop",
+        "example": "endloop",
+    },
+    {
+        "keyword": "on",
+        "arguments": "None",
+        "description": "Sets the signal to ON",
+        "example": "on",
+    },
+    {
+        "keyword": "off",
+        "arguments": "None",
+        "description": "Set the signal to OFF",
+        "example": "off",
+    },
+    {
+        "keyword": "auto",
+        "arguments": "None",
+        "description": "Turns the auto mode on.\nIt is important to hold after that \ncommand to stay in auto mode.\nIn the following example the \nauto mode is turned on for 5 seconds",
+        "example": "auto\nhold 5s",
+    },
+    {
+        "keyword": "frequency",
+        "arguments": "frequency: uint",
+        "description": "Set the frequency of the device",
+        "example": "frequency 1000000",
+    },
+    {
+        "keyword": "gain",
+        "arguments": "gain: uint",
+        "description": "Set the Gain of the device",
+        "example": "gain 100",
+    },
+    {
+        "keyword": "hold",
+        "arguments": "hold: int,\nunit: 'ms' or 's'",
+        "description": "Hold the state of the device\nfor a certain amount of time",
+        "example": "hold 10s",
+    },
+    {
+        "keyword": "ramp_freq",
+        "arguments": "start: uint,\nstop: uint,\nstep: int,\non_signal_hold: uint,\nunit: 'ms' or 's',\noff_signal_hold: uint,\nunit: 'ms' or 's'",
+        "description": "Ramp up the frequency from\none point to another",
+        "example": "ramp_freq 1000000 2000000 1000 100ms 100ms",
+    },
+]

@@ -19,10 +19,10 @@ class SerialMonitor(UIComponent):
         self._sonicamp = sonicamp
         self._command_history: List[str] = []
         self._command_history_index: int = 0
-        self._view.set_send_command_button_command(lambda: self._send_command())
-        self._view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
-        self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
-        self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
+        self.view.set_send_command_button_command(lambda: self._send_command())
+        self.view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
+        self.view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
+        self.view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
         self._HELPTEXT = "Help me step bro, I am stuck" # TODO: add help message
 
 

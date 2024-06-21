@@ -9,6 +9,7 @@ from soniccontrol.state_updater.logger import Logger
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.views.logging import Logging
+from soniccontrol.tkintergui.views.editor import Editor
 from soniccontrol.tkintergui.views.serialmonitor import SerialMonitor
 from soniccontrol.tkintergui.views.sonicmeasure import SonicMeasure
 from soniccontrol.tkintergui.widgets.notebook import Notebook
@@ -26,8 +27,9 @@ class DeviceWindow(UIComponent):
         self._sonicmeasure = SonicMeasure(self)
         self._serialmonitor = SerialMonitor(self, self._device)
         self._logging = Logging(self, self._logger.logs)
+        self._editor = Editor(self, root, self._device)
 
-        self._view.add_tab_views([self._sonicmeasure.view, self._serialmonitor.view, self._logging.view])
+        self._view.add_tab_views([self._sonicmeasure.view, self._serialmonitor.view, self._logging.view, self._editor.view])
         self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
         self._updater.execute()
 
