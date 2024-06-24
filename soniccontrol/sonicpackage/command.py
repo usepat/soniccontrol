@@ -45,6 +45,7 @@ class Converter:
             ic("ERROR", sys.exc_info())
             return False
         else:
+            self._converted = True
             return self._result
 
 
@@ -63,14 +64,46 @@ class CommandValidator:
         pattern: str,
         **kwargs: type[Any] | Callable[[Any], Any] | dict[str, Any],
     ) -> None:
+        """
+        Initializes the CommandValidator instance with the specified pattern and converters.
+
+        Parameters:
+            pattern (str): The pattern to be used.
+            **kwargs:   Additional keyword arguments that are passed to the Converter constructor.
+                        The keyword argument should be a string that is the name of the
+                        value. The value should be a Callable that takes in the value and returns
+                        the value in the correct type. The converted values are available in the
+                        result attribute.
+
+                        Additionally, the keyword argument can be a dictionary with the following
+                        keys: "worker" and "keywords". The "worker" key should be a Callable that
+                        takes in the value and returns the value in the correct type. The "keywords"
+                        are the names of the values used to determine the type of the value. These
+                        are "after converters". They are using the previously converted values.
+
+        Example:
+            CommandValidator(
+                pattern="(?P<foo>[a-z]+) (?P<bar>[0-9]+)",
+                foo=int,
+                bar=float,
+                foobar={
+                    "worker": lambda foo, bar: foo * bar,
+                    "keywords": ["foo", "bar"],
+                }
+
+        Returns:
+            None
+        """
         workers: dict[str, Callable[[Any], Any]] = dict()
         after_workers: dict[str, Callable[[Any], Any]] = dict()
+
         for keyword, worker in kwargs.items():
             if isinstance(worker, dict):
                 worker["worker"] = Converter(worker["worker"])
                 after_workers[keyword] = worker
                 continue
             workers[keyword] = Converter(worker)
+
         self.__attrs_init__(
             pattern=pattern,
             converters=workers,
@@ -88,10 +121,37 @@ class CommandValidator:
 
     @property
     def result(self) -> Dict[str, Any]:
+        """
+        Returns the result of the CommandValidator's converters as a dictionary of key-value pairs.
+
+        :return: A dictionary containing the result of the CommandValidator.
+        :rtype: Dict[str, Any]
+        """
         return self._result
 
     @staticmethod
     def generate_named_pattern(pattern: str, keywords: List[str]) -> str:
+        """
+        Generates a named pattern by replacing the unnamed capture groups in the given pattern with named capture groups.
+
+        Args:
+            pattern (str): The pattern to generate the named pattern from.
+            keywords (List[str]): The list of keywords to use for naming the capture groups.
+
+        Returns:
+            str: The generated named pattern.
+
+        Example:
+            >>> generate_named_pattern("(?:foo) (bar) (?:baz)", ["keyword1", "keyword2"])
+            '(?P<keyword1>:foo) (?P<keyword2>(bar)) (?:baz)'
+
+        Note:
+            - The named capture groups are generated using the keywords provided.
+            - The unnamed capture groups are replaced with named capture groups.
+            - The named capture groups are enclosed in parentheses and prefixed with '?P<keyword>'.
+            - The named capture groups are generated in the order of the keywords provided.
+            - If no keywords are provided, the original pattern is returned.
+        """
         if not keywords:
             return pattern
         keyword_iter = iter(keywords)
@@ -113,6 +173,16 @@ class CommandValidator:
         return processed
 
     def accepts(self, data: str) -> bool:
+        """
+        Checks if the given data matches the compiled pattern and performs conversions on the matched groups.
+        The converted values are stored in the result attribute.
+
+        Args:
+            data (str): The input data to check against the pattern.
+
+        Returns:
+            bool: True if the data matches the pattern and conversions are successful, False otherwise.
+        """
         if not data:
             return False
         result: Optional[re.Match] = self._compiled_pattern.search(data)
@@ -172,17 +242,48 @@ class Answer:
 
     @property
     def received(self) -> asyncio.Event:
+        """
+        Returns the asyncio.Event object representing the reception of the answer.
+
+        :return: An asyncio.Event object.
+        :rtype: asyncio.Event
+        """
         return self._received
 
     @property
     def received_timestamp(self) -> float | None:
+        """
+        Returns the timestamp of when the answer was received.
+
+        :return: A float representing the timestamp of when the answer was received, or None if the answer has not been received yet.
+        :rtype: float | None
+        """
         return self._received_timestamp
 
     @property
     def measured_response(self) -> float | None:
+        """
+        Returns the measured response value.
+
+        :return: The measured response as a float, or None if the response is not measured yet.
+        :rtype: float | None
+        """
         return self._measured_response
 
     def reset(self) -> None:
+        """
+        Resets the state of the object to its initial state.
+
+        This method clears the received flag, clears the lines list, sets the valid flag to False,
+        sets the string attribute to an empty string, sets the creation timestamp to the current time,
+        sets the measured response to None, and sets the received timestamp to None.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         self._received.clear()
         self._lines.clear()
         self._valid = False
@@ -192,6 +293,16 @@ class Answer:
         self._received_timestamp = None
 
     def receive_answer(self, answer: Iterable[str] | str) -> None:
+        """
+        Sets the received timestamp to the current time, processes the answer based on its type,
+        calculates the measured response, and sets the received flag.
+
+        Parameters:
+            answer: Either an Iterable of strings or a single string as the received answer.
+
+        Returns:
+            None
+        """
         self._received_timestamp = time.time()
         if isinstance(answer, Iterable) and not isinstance(answer, str):
             self._lines = answer
@@ -249,6 +360,13 @@ class Command(Sendable):
 
     @property
     def status_result(self) -> Dict[str, Any]:
+        """
+        Returns the status result of the object. This is a dictionary of key-value pairs containing
+        all results of the CommandValidator's converters.
+
+        :return: A dictionary containing the status result.
+        :rtype: Dict[str, Any]
+        """
         return self._status_result
 
     def add_validators(
@@ -273,6 +391,22 @@ class Command(Sendable):
     async def execute(
         self, argument: Any = None, connection: Optional[Communicator] = None
     ) -> tuple[Answer, dict[str, Any]]:
+        """
+        Executes a command asynchronously.
+
+        Args:
+            argument (Any, optional): The argument for the command. Defaults to None.
+            connection (Optional[Communicator], optional): The connection to use for executing the command. Defaults to None.
+
+        Returns:
+            tuple[Answer, dict[str, Any]]: A tuple containing the answer and the status result of the command.
+
+        Raises:
+            ValueError: If the serial communication reference is not viable.
+
+        This method resets the answer, sets the argument if provided, and sends the command asynchronously using the specified connection.
+        It then validates the answer and updates the status result with the received timestamp. Finally, it returns a tuple containing the answer and the status result.
+        """
         if not (self._serial_communication or connection):
             raise ValueError(
                 f"The serial communication reference is not viable. {self._serial_communication = } {type(self._serial_communication) = }"
@@ -293,6 +427,22 @@ class Command(Sendable):
         return (self.answer, self.status_result)
 
     def validate(self) -> bool:
+        """
+        Validates the answer received from the command execution.
+
+        This function checks if the answer has any lines. If not, it returns False.
+        It then clears the unknown answers and status result.
+        It updates the unknown answers with the lines of the answer.
+        It iterates through each validator and checks if it accepts the entire string of the answer.
+        If it does, it updates the status result and continues to the next validator.
+        If not, it checks if any of the lines of the answer are accepted by the validator.
+        If a line is accepted, it removes it from the unknown answers and updates the status result.
+        If the entire string is accepted by at least one validator, it clears the unknown answers.
+        Finally, it returns True if the number of lines in the answer is not equal to the number of unknown answers, otherwise False.
+
+        Returns:
+            bool: True if the answer is valid, False otherwise.
+        """
         if not self.answer.lines:
             return False
 

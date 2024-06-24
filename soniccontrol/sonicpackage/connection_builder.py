@@ -17,6 +17,22 @@ class ConnectionBuilder:
     async def build(
         reader: asyncio.StreamReader, writer: asyncio.StreamWriter, **kwargs
     ) -> tuple[Communicator, Commands]:
+        """
+        Builds a connection using the provided `reader` and `writer` objects.
+
+        Args:
+            reader (asyncio.StreamReader): The reader object for the connection.
+            writer (asyncio.StreamWriter): The writer object for the connection.
+            **kwargs: Additional keyword arguments to be passed to the `SerialCommunicator` constructor.
+
+        Returns:
+            tuple[Communicator, Commands]: A tuple containing the `Communicator` object and the `Commands` object
+            representing the successful connection.
+
+        Raises:
+            ConnectionError: If the connection fails due to incompatibility.
+
+        """
 
         serial: Communicator = LegacySerialCommunicator()
         await serial.connect(reader, writer)
