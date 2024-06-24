@@ -66,12 +66,10 @@ class DeviceWindowView(tk.Toplevel):
         self._main_frame.grid(row=0, column=0, sticky=ttk.NSEW)
 
         self._left_frame.columnconfigure(0, weight=sizes.EXPAND)
-        self._left_frame.rowconfigure(0, weight=sizes.EXPAND)
-        self._left_frame.rowconfigure(1, weight=sizes.DONT_EXPAND, minsize=0)
-
-        self._left_frame.rowconfigure(1, weight=0, minsize=60)
+        self._left_frame.rowconfigure(0, weight=3)
+        self._left_frame.rowconfigure(1, weight=1, minsize=30)
         self._left_notebook.grid(row=0, column=0, sticky=ttk.NSEW)
-        self._status_bar_slot.grid(row=1, column=0, sticky=ttk.EW)
+        self._status_bar_slot.grid(row=1, column=0, sticky=ttk.NSEW)
 
         self._main_frame.add(self._left_frame, weight=sizes.DONT_EXPAND)
         self._left_notebook.add_tabs(

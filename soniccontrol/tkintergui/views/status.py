@@ -14,7 +14,7 @@ from soniccontrol.utils.files import images
 
 class StatusBar(UIComponent):
     def __init__(self, parent: UIComponent, parent_slot: View):
-        min_height = 500
+        min_height = 150
         self._view = AdaptiveFrame(parent_slot, min_height)
         self._status_bar_view = StatusBarView(self._view.frame_small)
         self._status_bar_expanded_view = StatusBarExpandedView(self._view.frame_large)
@@ -62,6 +62,9 @@ class AdaptiveFrame(View):
         self._frame_large: ttk.Frame = ttk.Frame(self)
 
     def _initialize_publish(self) -> None:
+        self.pack(expand=True, fill=ttk.BOTH)
+        self.columnconfigure(0, weight=sizes.EXPAND)
+        self.rowconfigure(0, weight=sizes.EXPAND)
         self._frame_small.grid(row=0, column=0, sticky=ttk.NSEW)
         self._frame_large.grid(row=0, column=0, sticky=ttk.NSEW)
         self._frame_large.grid_forget()
@@ -88,7 +91,7 @@ class StatusBarView(View):
         self._mode_frame: ttk.Frame = ttk.Frame(self)
         self._mode_label: ttk.Label = ttk.Label(
             self._mode_frame,
-            bootstyle=style.INVERSE_SECONDARY,
+            bootstyle=style.INVERSE_SECONDARY
         )
 
         self._scrolled_info: HorizontalScrolledFrame = HorizontalScrolledFrame(
@@ -139,11 +142,12 @@ class StatusBarView(View):
             compound=ttk.LEFT,
         )
         self.configure(bootstyle=ttk.SECONDARY)
-        
+
 
     def _initialize_publish(self) -> None:
+        self.pack(fill=ttk.BOTH, padx=3, pady=3)
         self._signal_frame.pack(side=ttk.RIGHT)
-        self._scrolled_info.pack(side=ttk.RIGHT)
+        self._scrolled_info.pack(expand=True, fill=ttk.BOTH, side=ttk.RIGHT)
         self._mode_frame.pack(side=ttk.RIGHT)
 
         self._mode_label.pack(side=ttk.LEFT, ipadx=5)
@@ -244,6 +248,7 @@ class StatusBarExpandedView(View):
         )
 
     def _initialize_publish(self) -> None:
+        self.pack(fill=ttk.X, padx=3, pady=3)
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         self._main_frame.columnconfigure(0, weight=sizes.EXPAND)
         self._main_frame.rowconfigure(2, weight=sizes.EXPAND)
