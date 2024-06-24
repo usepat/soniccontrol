@@ -59,7 +59,6 @@ class ConnectionWindow(UIComponent):
         await serial.connect(reader, writer)
         sonicamp = await AmpBuilder().build_amp(ser=serial)
         await sonicamp.serial.connection_opened.wait()
-        self._view.hwinfo()
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

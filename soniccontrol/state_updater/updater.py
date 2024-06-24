@@ -32,8 +32,11 @@ class Updater(EventManager):
 
 
     async def _loop(self) -> None:
-        while self._running.is_set():
-            await self._worker()
+        try:
+            while self._running.is_set():
+                await self._worker()
+        except Exception as e:
+            raise
 
 
     async def _worker(self) -> None:
