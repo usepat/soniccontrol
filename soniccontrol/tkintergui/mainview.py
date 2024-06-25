@@ -13,7 +13,7 @@ from soniccontrol.tkintergui.views.editor import EditorView
 from soniccontrol.tkintergui.views.serialmonitor import SerialMonitorView
 from soniccontrol.tkintergui.views.settings import SettingsView
 from soniccontrol.tkintergui.views.sonicmeasure import SonicMeasureView
-from soniccontrol.tkintergui.views.status import StatusBarView, StatusView
+from soniccontrol.tkintergui.views.status import StatusBar
 from soniccontrol.tkintergui.widgets.notebook import Notebook
 from soniccontrol.tkintergui.utils.events import Event, PropertyChangeEvent
 
@@ -25,7 +25,7 @@ class SonicControlViews:
     info: InfoView = attrs.field()
     sonicmeasure: SonicMeasureView = attrs.field()
     serialmonitor: SerialMonitorView = attrs.field()
-    statusbar: StatusBarView = attrs.field()
+    statusbar: StatusBar = attrs.field()
 
 
 class MainView(ttk.Window):

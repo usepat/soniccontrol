@@ -12,6 +12,7 @@ from soniccontrol.tkintergui.views.logging import Logging
 from soniccontrol.tkintergui.views.editor import Editor
 from soniccontrol.tkintergui.views.serialmonitor import SerialMonitor
 from soniccontrol.tkintergui.views.sonicmeasure import SonicMeasure
+from soniccontrol.tkintergui.views.status import StatusBar
 from soniccontrol.tkintergui.widgets.notebook import Notebook
 
 
@@ -28,9 +29,11 @@ class DeviceWindow(UIComponent):
         self._serialmonitor = SerialMonitor(self, self._device)
         self._logging = Logging(self, self._logger.logs)
         self._editor = Editor(self, root, self._device)
+        self._status_bar = StatusBar(self, self._view.status_bar_slot)
 
         self._view.add_tab_views([self._sonicmeasure.view, self._serialmonitor.view, self._logging.view, self._editor.view])
         self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
+        self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))
         self._updater.execute()
 
 
@@ -54,6 +57,7 @@ class DeviceWindowView(tk.Toplevel):
         self._left_frame: ttk.Frame = ttk.Frame(self)
         self._left_notebook: Notebook = Notebook(self._left_frame)
         self._right_notebook: Notebook = Notebook(self)
+        self._status_bar_slot: ttk.Frame = ttk.Frame(self._left_frame)
 
         self.columnconfigure(0, weight=sizes.EXPAND)
         self.rowconfigure(0, weight=sizes.EXPAND)
@@ -62,11 +66,10 @@ class DeviceWindowView(tk.Toplevel):
         self._main_frame.grid(row=0, column=0, sticky=ttk.NSEW)
 
         self._left_frame.columnconfigure(0, weight=sizes.EXPAND)
-        self._left_frame.rowconfigure(0, weight=sizes.EXPAND)
-        self._left_frame.rowconfigure(1, weight=sizes.DONT_EXPAND, minsize=0)
-
-        self._left_frame.rowconfigure(1, weight=0, minsize=60)
+        self._left_frame.rowconfigure(0, weight=3)
+        self._left_frame.rowconfigure(1, weight=1, minsize=30)
         self._left_notebook.grid(row=0, column=0, sticky=ttk.NSEW)
+        self._status_bar_slot.grid(row=1, column=0, sticky=ttk.NSEW)
 
         self._main_frame.add(self._left_frame, weight=sizes.DONT_EXPAND)
         self._left_notebook.add_tabs(
@@ -75,6 +78,9 @@ class DeviceWindowView(tk.Toplevel):
             show_images=True,
         )
 
+    @property
+    def status_bar_slot(self) -> ttk.Frame:
+        return self._status_bar_slot
 
     def add_tab_views(self, tab_views: List[TabView]):
         self._left_notebook.add_tabs(

@@ -168,7 +168,7 @@ class Status:
         converter=attrs.converters.optional(str),
         kw_only=True,
     )
-    communication_mode: Optional[Literal["Serial", "Manual", "Analog", "Diconnected"]] = attrs.field(
+    communication_mode: Optional[Literal["Serial", "Manual", "Analog", "Disconnected"]] = attrs.field(
         default="Manual"
     )
     timestamp: datetime.datetime = attrs.field(
