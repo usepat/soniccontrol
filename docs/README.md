@@ -64,3 +64,21 @@ To run soniccontrol, either run the ``__main__.py`` file within the editor like 
 python -m soniccontrol
 ```
 Due to the fact, that soniccontrol was installed as a python module. The user can start the application as a python module.
+
+## Software that helps develop python code
+
+### mypy
+
+One of the best static type checker for python. It is recommended to at least try writing typed python code and check it trough mypy.
+Mypy is available through different installations, depending on how one is writing code and using which software, but the official 
+website is available [here](https://mypy-lang.org/). There is also a VSCode extension of mypy.
+
+### black formatter
+
+A very handy and simple formatter for python code. It is recommended to install black and activate it in your editor. Specifically, so
+that black runs through your code everytime one is saving. This is also available in the VSCode extension store.
+
+### Ruff Linter
+
+Ruff is the new "state of the art" python linter written in rust, that is fast and helps to develop clean python code. It is very recommended
+to use it, along or by itself mypy. Ruff is also supported in VSCode.
