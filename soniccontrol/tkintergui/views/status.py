@@ -21,11 +21,12 @@ class StatusBar(UIComponent):
         super().__init__(parent, self._view)
 
     def on_update_status(self, status: Status):
+        temperature = status.temperature if status.temperature else 0
         self._status_bar_view.update_labels(
             f"{status.communication_mode}",
             f"Freq.: {status.frequency / 1000} kHz",
             f"Gain: {status.gain} %",
-            f"Temp.: {status.temperature} °C",
+            f"Temp.: {temperature} °C",
             f"Urms: {status.urms} mV",
             f"Irms: {status.irms} mA",
             f"Phase: {status.phase} °",
@@ -34,13 +35,16 @@ class StatusBar(UIComponent):
         self._status_bar_expanded_view.update_stats(
             status.frequency / 1000,
             status.gain,
-            status.temperature,
+            temperature,
             f"Urms: {status.urms} mV",
             f"Irms: {status.irms} mA",
             f"Phase: {status.phase} °",
             ui_labels.SIGNAL_ON if status.signal else ui_labels.SIGNAL_OFF
         )
-        # set_signal_image
+        self._status_bar_expanded_view.set_signal_image(
+            images.LED_ICON_GREEN if status.signal else images.LED_ICON_RED, 
+            sizes.LARGE_BUTTON_ICON_SIZE
+        )
 
 
 class AdaptiveFrame(View):

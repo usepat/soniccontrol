@@ -39,17 +39,19 @@ class AmpBuilder:
 
         result_dict: Dict[str, Any] = ser.init_command.status_result
 
-        await commands.get_type.execute()
-        if commands.get_type.answer.valid:
-            result_dict.update(commands.get_type.status_result)
+        if hasattr(commands, "get_type"):
+            await commands.get_type.execute()
+            if commands.get_type.answer.valid:
+                result_dict.update(commands.get_type.status_result)
 
         await commands.get_info.execute()
         if commands.get_info.answer.valid:
             result_dict.update(commands.get_info.status_result)
 
-        await commands.get_overview.execute()
-        if commands.get_overview.answer.valid:
-            result_dict.update(commands.get_overview.status_result)
+        if hasattr(commands, "get_overview"):
+            await commands.get_overview.execute()
+            if commands.get_overview.answer.valid:
+                result_dict.update(commands.get_overview.status_result)
 
         status = Status()
         info = Info()

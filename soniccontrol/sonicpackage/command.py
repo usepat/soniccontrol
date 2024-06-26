@@ -300,18 +300,21 @@ class Command(Sendable):
         self._status_result.clear()
         self.answer.unknown_answers = set(self.answer.lines)
         entire_string_accepted: bool = False
+        accepted: bool = False
 
         for validator in self.validators:
             if validator.accepts(self.answer.string):
                 entire_string_accepted = True
+                accepted = True
                 self._status_result.update(validator.result)
                 continue
             for answer in self.answer.lines:
                 if validator.accepts(data=answer):
+                    accepted = True
                     self.answer.unknown_answers.discard(answer)
                     self._status_result.update(validator.result)
 
         if entire_string_accepted:
             self.answer.unknown_answers.clear()
 
-        return len(self.answer.lines) != len(self.answer.unknown_answers)
+        return accepted

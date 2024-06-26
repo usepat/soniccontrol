@@ -1,83 +1,53 @@
-from typing import Any
+from pathlib import Path
+from typing import Any, List, Tuple
 
+import attrs
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol import __version__
-from soniccontrol.interfaces.view import TabView
+from soniccontrol.interfaces.ui_component import UIComponent
+from soniccontrol.interfaces.view import TabView, View
 from soniccontrol.tkintergui.utils.constants import fonts, sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.tkintergui.widgets.document import Document, DocumentView, Image, Text
 from soniccontrol.utils.files import images
 
 
-class HelpFrame(ttk.Frame):
-    def __init__(
-        self,
-        master: ttk.tk.Widget,
-        heading: str,
-        image: ttk.ImageTk.PhotoImage | None,
-        content: list[str | ttk.ImageTk.PhotoImage | dict[str, Any]],
-        paragraph_padding: int = sizes.MEDIUM_PADDING,
-        wraplength: int = 0,
-        *args,
-        **kwargs,
-    ) -> None:
-        super().__init__(master, *args, **kwargs)
-        self._master: ttk.tk.Widget = master
-        self._wraplength: int = wraplength
-        self._paragraph_padding: int = paragraph_padding
-        self.columnconfigure(0, weight=sizes.EXPAND)
-
-        ttk.Label(
-            self,
-            text=heading,
-            font=(
-                fonts.QTYPE_OT_CONDLIGHT,
-                fonts.SMALL_HEADING_SIZE,
-            ),
-            image=image if image is not None else "",
-            compound=ttk.LEFT,
-            anchor=ttk.CENTER,
-            justify=ttk.CENTER,
-        ).grid(row=0, column=0, sticky=ttk.W, pady=self._paragraph_padding)
-
-        for index, parameters in enumerate(content):
-            (
-                ttk.Label(self, **parameters)
-                if isinstance(parameters, dict)
-                else ttk.Label(
-                    self,
-                    wraplength=self._wraplength,
-                    text=parameters if isinstance(parameters, str) else "",
-                    anchor=(
-                        ttk.CENTER
-                        if isinstance(parameters, ttk.ImageTk.PhotoImage)
-                        else ttk.W
-                    ),
-                    justify=(
-                        ttk.CENTER
-                        if isinstance(parameters, ttk.ImageTk.PhotoImage)
-                        else ttk.LEFT
-                    ),
-                    image=(
-                        parameters
-                        if isinstance(parameters, ttk.ImageTk.PhotoImage)
-                        else ""
-                    ),
-                )
-            ).grid(
-                row=index + 1,
-                column=0,
-                sticky=ttk.EW,
-                pady=self._paragraph_padding,
-                padx=sizes.LARGE_PADDING,
-            )
-
-            self.rowconfigure(index + 1, weight=sizes.DONT_EXPAND)
+class Info(UIComponent):
+    def __init__(self, parent: UIComponent):
+        # Todo implement markdown parser instead of doing this
+        content=[
+            ui_labels.HOME_HELP_INTRODUCTION,
+            ImageLoader.load_image(images.HOME_CONTROL_PANEL, (300, 200)),
+            ui_labels.HOME_HELP_CONTROL_PANEL,
+            Text(ui_labels.FREQUENCY, font=fonts.QTYPE_OT_CONDLIGHT),
+            ui_labels.HOME_HELP_FREQUENCY,
+            Text(ui_labels.GAIN, font=fonts.QTYPE_OT_CONDLIGHT),
+            ui_labels.HOME_HELP_GAIN,
+            Text(ui_labels.CATCH_MODE_LABEL, font=fonts.QTYPE_OT_CONDLIGHT),
+            ui_labels.HOME_HELP_CATCH,
+            Text(ui_labels.WIPE_MODE_LABEL, font=fonts.QTYPE_OT_CONDLIGHT),
+            ui_labels.HOME_HELP_WIPE,
+            ui_labels.HOME_HELP_SET_VALUES,
+            ui_labels.HOME_HELP_OUTPUT,
+            Image(images.HOME_SIGNAL_CONTROL_PANEL, (400, 35)),
+            ui_labels.HOME_HELP_SIGNAL_CONTROL_PANEL,
+            Text(ui_labels.SIGNAL_ON, font=fonts.QTYPE_OT_CONDLIGHT),
+            ui_labels.HOME_HELP_ON,
+            Text(ui_labels.SIGNAL_OFF, font=fonts.QTYPE_OT_CONDLIGHT),
+            ui_labels.HOME_HELP_OFF,
+            Text(ui_labels.AUTO_LABEL, font=fonts.QTYPE_OT_CONDLIGHT),
+            ui_labels.HOME_HELP_AUTO,
+        ]
+        self._view = InfoView(parent.view, self, content)
+        super().__init__(parent, self._view)
 
 
 class InfoView(TabView):
-    def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
+    def __init__(self, master: ttk.Window, presenter: UIComponent, content: List[str | Image | Text], *args, **kwargs) -> None:
+        self._presenter = presenter
+        self._content = content
         super().__init__(master, *args, **kwargs)
 
     @property
@@ -109,60 +79,26 @@ class InfoView(TabView):
 
         self._scroll_frame: ScrolledFrame = ScrolledFrame(self._main_frame)
         self._body_frame: ttk.Frame = ttk.Frame(self._scroll_frame)
+        self.columnconfigure(0, weight=sizes.EXPAND)
 
-        font: tuple[str, int] = (
-            fonts.QTYPE_OT_CONDLIGHT,
-            fonts.TEXT_SIZE,
+        self._home_help_heading = ttk.Label(
+            self._body_frame,
+            text=ui_labels.HOME_LABEL,
+            font=(
+                fonts.QTYPE_OT_CONDLIGHT,
+                fonts.SMALL_HEADING_SIZE,
+            ),
+            image=ImageLoader.load_image(images.HOME_ICON_BLACK, sizes.TAB_ICON_SIZE),
+            compound=ttk.LEFT,
+            anchor=ttk.CENTER,
+            justify=ttk.CENTER
         )
-        self._home_help_frame: HelpFrame = HelpFrame(
+
+        self._home_help_frame: Document = Document(
+            self._presenter,
             self._body_frame,
             wraplength=400,
-            heading=ui_labels.HOME_LABEL,
-            image=ImageLoader.load_image(images.HOME_ICON_BLACK, sizes.TAB_ICON_SIZE),
-            content=[
-                ui_labels.HOME_HELP_INTRODUCTION,
-                ImageLoader.load_image(images.HOME_CONTROL_PANEL, (300, 200)),
-                ui_labels.HOME_HELP_CONTROL_PANEL,
-                {
-                    "text": ui_labels.FREQUENCY,
-                    "font": font,
-                },
-                ui_labels.HOME_HELP_FREQUENCY,
-                {
-                    "text": ui_labels.GAIN,
-                    "font": font,
-                },
-                ui_labels.HOME_HELP_GAIN,
-                {
-                    "text": ui_labels.CATCH_MODE_LABEL,
-                    "font": font,
-                },
-                ui_labels.HOME_HELP_CATCH,
-                {
-                    "text": ui_labels.WIPE_MODE_LABEL,
-                    "font": font,
-                },
-                ui_labels.HOME_HELP_WIPE,
-                ui_labels.HOME_HELP_SET_VALUES,
-                ui_labels.HOME_HELP_OUTPUT,
-                ImageLoader.load_image(images.HOME_SIGNAL_CONTROL_PANEL, (400, 35)),
-                ui_labels.HOME_HELP_SIGNAL_CONTROL_PANEL,
-                {
-                    "text": ui_labels.SIGNAL_ON,
-                    "font": font,
-                },
-                ui_labels.HOME_HELP_ON,
-                {
-                    "text": ui_labels.SIGNAL_OFF,
-                    "font": font,
-                },
-                ui_labels.HOME_HELP_OFF,
-                {
-                    "text": ui_labels.AUTO_LABEL,
-                    "font": font,
-                },
-                ui_labels.HOME_HELP_AUTO,
-            ],
+            content=self._content
         )
 
         self._footer_frame: ttk.Frame = ttk.Frame(self._main_frame)
@@ -194,7 +130,8 @@ class InfoView(TabView):
         self._scroll_frame.columnconfigure(0, weight=sizes.EXPAND)
         self._scroll_frame.rowconfigure(0, weight=sizes.EXPAND)
         self._body_frame.grid(row=0, column=0, sticky=ttk.NS)
-        self._home_help_frame.grid(row=0, column=0, sticky=ttk.NSEW)
+        self._home_help_heading.grid(row=0, column=0, sticky=ttk.W)
+        self._home_help_frame.view.grid(row=1, column=0, sticky=ttk.NSEW)
 
         self._footer_frame.columnconfigure(0, weight=sizes.EXPAND)
         self._footer_frame.columnconfigure(1, weight=sizes.EXPAND)
