@@ -75,10 +75,8 @@ website is available [here](https://mypy-lang.org/). There is also a VSCode exte
 
 ### black formatter
 
-A very handy and simple formatter for python code. It is recommended to install black and activate it in your editor. Specifically, so
-that black runs through your code everytime one is saving. This is also available in the VSCode extension store.
+A very handy and simple formatter for python code. It is recommended to install [black](https://github.com/psf/black) and activate it in your editor. Specifically, so that black runs through your code everytime one is saving. This is also available in the VSCode extension store.
 
 ### Ruff Linter
 
-Ruff is the new "state of the art" python linter written in rust, that is fast and helps to develop clean python code. It is very recommended
-to use it, along or by itself mypy. Ruff is also supported in VSCode.
+[Ruff](https://docs.astral.sh/ruff/) is the new "state of the art" python linter written in rust, that is fast and helps to develop clean python code. It is very recommended to use it, along or by itself mypy. Ruff is also supported in VSCode.
