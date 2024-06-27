@@ -80,3 +80,19 @@ A very handy and simple formatter for python code. It is recommended to install 
 ### Ruff Linter
 
 [Ruff](https://docs.astral.sh/ruff/) is the new "state of the art" python linter written in rust, that is fast and helps to develop clean python code. It is very recommended to use it, along or by itself mypy. Ruff is also supported in VSCode.
+
+## Project structure
+
+The project structure of soniccontrol bases arround folders
+
+- ### ./bin folder
+        The ``bin`` folder is the folder for binaries and executables
+- ### ./docs folder
+        The ``docs`` is where all files regarding documentation should be located at
+- ### ./resources
+        The ``resources`` folder is for assets used by code (like pictures, fonts, etc...)
+- ### ./tests
+        Tests folder is for code, that tests the main code (unit tests, functional tests, etc...)
+- ### ./soniccontrol
+        This is the source folder of the repository. Here lies the inherent code arround soniccontrol
+        The folder structure of soniccontrol is split up into modules
