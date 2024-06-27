@@ -65,7 +65,9 @@ python -m soniccontrol
 ```
 Due to the fact, that soniccontrol was installed as a python module. The user can start the application as a python module.
 
-## Software that helps develop python code
+# Develop soniccontrol
+
+## Developing software
 
 ### mypy
 
@@ -96,6 +98,20 @@ The project structure of soniccontrol bases arround folders
 - ### ./soniccontrol
   This is the source folder of the repository. Her e lies the inherent code arround soniccontrol
   The folder structure of soniccontrol is split up into modules
+
+## Notable files
+
+- ``./pyproject.toml`` is mainly a configuration file that tells python software what to expect
+  - For example software like mypy, flake8, etc are looking into this file for configurations
+- ``./setup.cfg`` is the file specifying the python project
+  - General information like authors, version, etc
+  - build system
+  - library dependencies
+- ``./setup.py`` should be left blank
+- ``./tox.ini`` is a configuration file for ``tox``, a github actions devops python program
+- ``./requirements.txt`` is the old way of dealing with library dependencies
+  - Used to create with ``pip freeze``, look it up online for more information on that topic
+- ``./requirements_dev.txt`` is the library dependencies for developers of soniccontrol
 
 
 ## Code format
@@ -134,3 +150,7 @@ But there is a better wrapper around PyInstaller. [Auto-py-to-exe](https://pypi.
 [Inno setup](https://jrsoftware.org/isinfo.php) is used to wrap an application with a main ``.exe`` entry point around the windows operating system. The result is a single ``setup.exe`` that installs the applications contents in the windows programs folder and adding the main binary to the path, using the usual windows setup wizard client.
 
 There are a ton of tutorials and guides online to use Inno Setup
+- a [youtube tutorial](https://www.youtube.com/watch?v=jPnl5-bQGHI)
+- an [article](https://python101.pythonlibrary.org/chapter44_creating_an_installer.html)
+
+Of course there are many ways to convert python code into a binary application. Feel free to use your own way, just make sure that the application can start from every place (current working directory) and that everything runs as expected.
