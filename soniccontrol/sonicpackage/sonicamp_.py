@@ -6,8 +6,7 @@ from typing import *
 import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.amp_data import Info, Modules, Status
-from soniccontrol.sonicpackage.commands import (Command, Commands,
-                                                CommandValidator)
+from soniccontrol.sonicpackage.commands import Command, Commands, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.script_procedures import Ramper
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
@@ -56,6 +55,20 @@ class SonicAmp(Scriptable):
         validators: Optional[CommandValitors] = None,
         **kwargs,
     ) -> None:
+        """
+        Adds a command to the SonicAmp object.
+
+        Args:
+            message (Union[str, Command]): The command message to add. It can be either a string or a Command object.
+            validators (Optional[CommandValitors], optional): The validators to apply to the command. Defaults to None.
+            **kwargs: Additional keyword arguments to pass to the Command constructor.
+
+        Raises:
+            ValueError: If the message argument is not a string or a Command object.
+
+        Returns:
+            None
+        """
         if isinstance(message, Command):
             if validators is not None:
                 message.add_validators(validators)
@@ -96,6 +109,30 @@ class SonicAmp(Scriptable):
         argument: Any = "",
         **status_kwargs_if_valid_command,
     ) -> str:
+        """
+        Executes a command by sending a message to the SonicAmp device and updating the status accordingly.
+
+        Args:
+            message (Union[str, Command]): The command message to execute. It can be either a string or a Command object.
+            argument (Any, optional): The argument to pass to the command. Defaults to an empty string.
+            **status_kwargs_if_valid_command: Additional keyword arguments to update the status if the command is valid.
+
+        Returns:
+            str: The string representation of the command's answer.
+
+        Raises:
+            Exception: If an error occurs during command execution or device disconnection.
+
+        Note:
+            - If the command is not found in the SonicAmp device's commands, it will be executed as a new command.
+            - The status of the device will be updated with the command's status result and any additional status keyword arguments.
+            - The command's answer will be returned as a string.
+
+        Example:
+            >>> sonicamp = SonicAmp()
+            >>> await sonicamp.execute_command("power_on")
+            "Device powered on."
+        """
         try:
             message = message if isinstance(message, str) else message.message
             if not message in self._commands.keys():
@@ -207,7 +244,7 @@ class SonicAmp(Scriptable):
         hold_on_time: float = 100,
         hold_on_unit: Literal["ms", "s"] = "ms",
         hold_off_time: float = 0,
-        hold_off_unit: Literal["ms", "s"] = "ms"
+        hold_off_unit: Literal["ms", "s"] = "ms",
     ) -> None:
         # TODO check first if self._commands contains the necessary commands to run the ramp on the device.
 
@@ -216,7 +253,7 @@ class SonicAmp(Scriptable):
             lambda f: self.execute_command("!f=", f),
             (start, stop, step),
             (hold_on_time, hold_on_unit),
-            (hold_off_time, hold_off_unit)
+            (hold_off_time, hold_off_unit),
         )
 
 

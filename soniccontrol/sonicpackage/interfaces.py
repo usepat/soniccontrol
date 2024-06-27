@@ -46,7 +46,7 @@ class Scriptable(abc.ABC):
     #     ...
 
     @abc.abstractmethod
-    def execute_command(*args, **kwargs) -> None: ...
+    async def execute_command(*args, **kwargs) -> None: ...
 
     @abc.abstractmethod
     def set_signal_on() -> None: ...
@@ -57,3 +57,11 @@ class Scriptable(abc.ABC):
     # @abc.abstractmethod
     # def hold(self) -> None:
     #     ...
+
+
+class FirmwareFlasher:
+    def __init__(self) -> None:
+        super().__init__()
+
+    @abc.abstractmethod
+    async def flash_firmware(self) -> None: ...
