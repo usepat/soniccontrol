@@ -86,13 +86,30 @@ A very handy and simple formatter for python code. It is recommended to install 
 The project structure of soniccontrol bases arround folders
 
 - ### ./bin folder
-        The ``bin`` folder is the folder for binaries and executables
+  The ``bin`` folder is the folder for binaries and executables
 - ### ./docs folder
-        The ``docs`` is where all files regarding documentation should be located at
+  The ``docs`` is where all files regarding documentation should be located at
 - ### ./resources
-        The ``resources`` folder is for assets used by code (like pictures, fonts, etc...)
+  The ``resources`` folder is for assets used by code (like pictures, fonts, etc...)
 - ### ./tests
-        Tests folder is for code, that tests the main code (unit tests, functional tests, etc...)
+  Tests folder is for code, that tests the main code (unit tests, functional tests, etc...)
 - ### ./soniccontrol
-        This is the source folder of the repository. Here lies the inherent code arround soniccontrol
-        The folder structure of soniccontrol is split up into modules
+  This is the source folder of the repository. Her e lies the inherent code arround soniccontrol
+  The folder structure of soniccontrol is split up into modules
+
+
+## Code format
+
+The code format and style guide is determined by the official [PEP](https://peps.python.org/pep-0008/) style guide. This style guide is automatically partially applied with python code formatters like [black](https://github.com/psf/black).
+
+## Useful documentations
+
+- [ttkbootstrap](https://ttkbootstrap.readthedocs.io/en/latest/)
+- [attrs](https://www.attrs.org/en/stable/)
+- [tkinter](https://tkdocs.com/shipman/index.html)
+- [pyserial](https://pyserial.readthedocs.io/en/latest/pyserial.html)
+- [Code refactoring](https://refactoring.guru/)
+- [Linting guide for VSCode](https://code.visualstudio.com/docs/python/linting)
+- [Formatting](https://code.visualstudio.com/docs/python/formatting)
+- [Github automatic testing and deployment (github actions)](https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python)
+- [pytest](https://docs.pytest.org/en/stable/contents.html)
