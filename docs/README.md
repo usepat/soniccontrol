@@ -113,3 +113,24 @@ The code format and style guide is determined by the official [PEP](https://peps
 - [Formatting](https://code.visualstudio.com/docs/python/formatting)
 - [Github automatic testing and deployment (github actions)](https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python)
 - [pytest](https://docs.pytest.org/en/stable/contents.html)
+
+# Building soniccontrol
+
+## PyInstaller and AutoPy2Exe
+
+This is quite the topic. Python has libraries, that transform python code into an executable binary for windows, macOS and linux. Most notably [PyInstaller](https://pyinstaller.org/en/stable/). It is a commandline application that builds an application based on a configuration. 
+
+But there is a better wrapper around PyInstaller. [Auto-py-to-exe](https://pypi.org/project/auto-py-to-exe/) is a GUI wrapper for PyInstaller that can save configurations and reproduce the building process easily. Here are a few steps and tips for using that application.
+- Script location, should be the main entry of soniccontrol. Usually it is the ``__main__.py`` file.
+  - Keep in mind that this file is the only file that is being converted into a binary. Everything else is just a local python interpreter running code
+- Use one-directory option, due to not having support for one-file with such a big project
+- Do not forget to tick "Window based", if the application is shipped to production and clients
+- Use "Additional files" to specify all other sources and files for the ``__main__.py`` file
+- The ``--name`` option should be "SonicControl"
+- Contents directory should be "." for specifying the root directory. This is an old-fashioned way to deal with things. Feel free to discover the new ways of specifying the contents directory
+
+## Inno Setup
+
+[Inno setup](https://jrsoftware.org/isinfo.php) is used to wrap an application with a main ``.exe`` entry point around the windows operating system. The result is a single ``setup.exe`` that installs the applications contents in the windows programs folder and adding the main binary to the path, using the usual windows setup wizard client.
+
+There are a ton of tutorials and guides online to use Inno Setup
