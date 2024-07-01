@@ -166,38 +166,23 @@ class SonicAmp(Scriptable):
     async def set_relay_mode_khz(self) -> str:
         return await self.execute_command("!KHZ")
 
-    async def set_atf1(self, frequency: int) -> str:
-        return await self.execute_command("!atf1=", frequency)
+    async def set_atf(self, index: int, frequency: int) -> str:
+        return await self.execute_command(f"!atf{index}=", frequency)
 
-    async def set_atk1(self, coefficient: float) -> str:
-        return await self.execute_command("!atk1=", coefficient)
+    async def get_atf(self, index: int) -> str:
+        return await self.execute_command(f"?atf{index}")
 
-    async def get_atf1(self) -> str:
-        return await self.execute_command("?atf1")
+    async def set_atk(self, index: int, coefficient: float) -> str:
+        return await self.execute_command(f"!atk{index}=", coefficient)
 
-    async def set_att1(self, temperature: float) -> str:
-        return await self.execute_command("!att1=", temperature)
+    async def set_att(self, index: int, temperature: float) -> str:
+        return await self.execute_command(f"!att{index}=", temperature)
 
-    async def get_att1(self) -> str:
-        return await self.execute_command("?att1")
+    async def get_att(self, index: int) -> str:
+        return await self.execute_command(f"?att{index}")
 
-    async def set_atf2(self, frequency: int) -> str:
-        return await self.execute_command("!atf2=", frequency)
-
-    async def set_atk2(self, coefficient: float) -> str:
-        return await self.execute_command("!atk2=", coefficient)
-
-    async def get_atf2(self) -> str:
-        return await self.execute_command("?atf2")
-
-    async def set_atf3(self, frequency: int) -> str:
-        return await self.execute_command("!atf3=", frequency)
-
-    async def set_atk3(self, coefficient: float) -> str:
-        return await self.execute_command("!atk3=", coefficient)
-
-    async def get_atf3(self) -> str:
-        return await self.execute_command("?atf3")
+    async def set_aton(self, index: int, time_ms: int) -> str:
+        return await self.execute_command(f"!aton{index}=", time_ms)
 
     async def ramp_freq(
         self,
