@@ -46,6 +46,7 @@ Thumbs.db
 
 # Applications
 *.app
+*.exe
 *.war
 
 # Exclusion regarding AVRDUDE
