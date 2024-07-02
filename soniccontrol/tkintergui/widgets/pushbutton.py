@@ -8,7 +8,11 @@ class ButtonStyle(Enum):
     SUCCESS = "success.TButton"
     DANGER = "danger.TButton"
 
-
+"""
+    PushButtonView is only used, so that the presenter can directly change the style of the view,
+    without touching the underlying gui framework (tkinter) directly. 
+    So it is just a layer of abstraction. Will later come into a AbstractGuiFactory.
+"""
 class PushButtonView:
     def __init__(self, master: any, *args, **kwargs):
         self._button = ttk.Button(master, *args, **kwargs)

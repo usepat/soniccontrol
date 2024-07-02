@@ -1,10 +1,9 @@
 import pathlib
 import asyncio
 import subprocess
-import sys
 from soniccontrol.sonicpackage import logger
 from soniccontrol.sonicpackage.interfaces import FirmwareFlasher
-from soniccontrol.utils.system import PLATFORM, System
+from soniccontrol.utils.system import PLATFORM
 from soniccontrol.utils.files import files
 
 

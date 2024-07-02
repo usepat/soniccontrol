@@ -1,12 +1,17 @@
 
-from typing import Callable, List, Iterable, Dict, Optional
+from pathlib import Path
+from typing import Callable, Final, List, Iterable, Optional
 import attrs
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
+from ttkbootstrap.scrolled import ScrolledFrame
 import json
 from soniccontrol.interfaces.ui_component import UIComponent
-from soniccontrol.interfaces.view import TabView
+from soniccontrol.interfaces.view import TabView, View
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.tkintergui.utils.constants import sizes, ui_labels, images
+from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonView
 from soniccontrol.utils import files
 from async_tkinter_loop import async_handler
 
@@ -18,25 +23,122 @@ class ATConfig:
     att: int = attrs.field(default=0)
     aton: int = attrs.field(default=0)
 
-
 @attrs.define()
 class TransducerConfig():
     name: str = attrs.field()
     ats: List[ATConfig] = attrs.field()
-
+    init_script_path: Optional[Path] = attrs.field(default=None)
 
 @attrs.define()
 class Config:
     transducers: List[TransducerConfig] = attrs.field()
-    hexmode: bool = attrs.field()
-    devmode: bool = attrs.field()
 
+class ATConfigFrame(UIComponent):
+    def __init__(self, parent: UIComponent, view_parent: View, index: int):
+        self._index = index
+        self._view = ATConfigFrameView(view_parent, index)
+        super().__init__(parent, self._view)
+
+    @property
+    def value(self) -> ATConfig:
+        return ATConfig(
+            atk = self._view.atk,
+            atf = self._view.atf,
+            att = self._view.att,
+            aton = self._view.aton
+        )
+    
+    @value.setter
+    def value(self, config: ATConfig) -> None:
+        self._view.atf = config.atf
+        self._view.atk = config.atk
+        self._view.att = config.att
+        self._view.aton = config.aton
+
+
+class ATConfigFrameView(View):
+    def __init__(self, master: ttk.Frame, index: int, *args, **kwargs):
+        self._index = index
+        super().__init__(master, *args, **kwargs)
+
+    def _initialize_children(self) -> None:
+        self._atf_var = ttk.StringVar()
+        self._atk_var = ttk.StringVar()
+        self._att_var = ttk.StringVar()
+        self._aton_var = ttk.StringVar()
+    
+        self._atf_label = ttk.Label(self, text=f"ATF {self._index}")
+        self._atk_label = ttk.Label(self, text=f"ATK {self._index}")
+        self._att_label = ttk.Label(self, text=f"ATT {self._index}")
+        self._aton_label = ttk.Label(self, text=f"ATON {self._index}")
+
+        self._atf_spinbox = ttk.Spinbox(self, textvariable=self._atf_var)
+        self._atk_spinbox = ttk.Spinbox(self, textvariable=self._atk_var)
+        self._att_spinbox = ttk.Spinbox(self, textvariable=self._att_var)
+        self._aton_spinbox = ttk.Spinbox(self, textvariable=self._aton_var)
+
+    def _initialize_publish(self) -> None:
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+
+        self._atf_label.grid(row=0, column=0, padx=10, pady=10, sticky=ttk.E)
+        self._atf_spinbox.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.W)
+
+        self._atk_label.grid(row=1, column=0, padx=10, pady=10, sticky=ttk.E)
+        self._atk_spinbox.grid(row=1, column=1, padx=10, pady=10, sticky=ttk.W)
+
+        self._att_label.grid(row=2, column=0, padx=10, pady=10, sticky=ttk.E)
+        self._att_spinbox.grid(row=2, column=1, padx=10, pady=10, sticky=ttk.W)
+
+        self._aton_label.grid(row=3, column=0, padx=10, pady=10, sticky=ttk.E)
+        self._aton_spinbox.grid(row=3, column=1, padx=10, pady=10, sticky=ttk.W)
+
+    # Properties for atf
+    @property
+    def atf(self):
+        return self._atf_var.get()
+
+    @atf.setter
+    def atf(self, value):
+        self._atf_var.set(value)
+
+    # Properties for atk
+    @property
+    def atk(self):
+        return self._atk_var.get()
+
+    @atk.setter
+    def atk(self, value):
+        self._atk_var.set(value)
+
+    # Properties for att
+    @property
+    def att(self):
+        return self._att_var.get()
+
+    @att.setter
+    def att(self, value):
+        self._att_var.set(value)
+
+    # Properties for aton
+    @property
+    def aton(self):
+        return self._aton_var.get()
+
+    @aton.setter
+    def aton(self, value):
+        self._aton_var.set(value)
+    
 
 class Configuration(UIComponent):
     def __init__(self, parent: UIComponent, device: SonicAmp):
         self._count_atk_atf = 4
         self._config = Config()
-        self._view = ConfigurationView(parent.view, self._count_atk_atf)
+        self._view = ConfigurationView(parent.view, self, self._count_atk_atf)
         self._current_transducer_config: Optional[int] = None
         self._device = device
         super().__init__(parent, self._view)
@@ -55,16 +157,16 @@ class Configuration(UIComponent):
         with open(files.CONFIG_JSON, "r") as file:
             self._config = json.load(file)
 
-        self.view.devmode = self._config.devmode
-        self.view.hexmode = self._config.hexmode
         self.view.set_transducer_config_menu_items(map(lambda config: config.name, self._config.transducers))
         self.current_transducer_config = 0 if len(self._config.transducers) > 0 else None
 
     def _save_config(self):
-        self._config.devmode = self.view.devmode
-        self._config.hexmode = self.view.hexmode
-    
-        transducer_config = TransducerConfig(name=self.view.transducer_config_name, atconfigs=self.view.atconfigs)
+        init_script_path: str = self.view.init_script_path # TODO rework this shit, so that a browse files component is used instead
+        transducer_config = TransducerConfig(
+            name=self.view.transducer_config_name, 
+            atconfigs=self.view.atconfigs, 
+            init_script_path= None if init_script_path.isspace() or len(init_script_path) == 0 else Path(init_script_path)
+        )
         if not self._validate_transducer_config_data(transducer_config):
             return
 
@@ -82,6 +184,9 @@ class Configuration(UIComponent):
         if self.current_transducer_config is not None and any(lambda tconfig: tconfig.name == transducer_config.name, self._config.transducers):
             Messagebox.show_error("config with the same name already exists")
             return False
+        if transducer_config.init_script_path is not None and not transducer_config.init_script_path.exists():
+            Messagebox.show_error("there exists no init script with the specified path")
+            return False
         return True
 
     def _on_transducer_config_changed(self):
@@ -92,10 +197,12 @@ class Configuration(UIComponent):
             self.view.selected_transducer_config = current_config.name
             self.view.transducer_config_name = current_config.name
             self.view.atconfigs = current_config.ats
+            self.view.init_script_path = "" if current_config.init_script_path is None else current_config.init_script_path.as_posix()
 
     def _add_transducer_config_template(self):
         self.view.atconfigs = [ATConfig()] * self._count_atk_atf
         self.view.transducer_config_name = "no name"
+        self.view.init_script_path = ""
         self.current_transducer_config = None
 
     def _delete_transducer_config(self):
@@ -117,14 +224,167 @@ class Configuration(UIComponent):
             await self._device.set_att(i, atconfig.att)
             await self._device.set_aton(i, atconfig.aton)
 
+        # TODO execute init file
+
     def _flash(self):
         pass #TODO
 
 
 class ConfigurationView(TabView):
-    def __init__(self, master: ttk.Frame, count_atk_atf: int, *args, **kwargs):
+    def __init__(self, master: ttk.Frame, presenter: UIComponent, count_atk_atf: int, *args, **kwargs):
+        self._presenter = presenter
         self._count_atk_atf = count_atk_atf
-        super().__init__(*args, **kwargs)
+        super().__init__(master, *args, **kwargs)
+
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return ImageLoader.load_image(images.SETTINGS_ICON_BLACK, sizes.TAB_ICON_SIZE)
+
+    @property
+    def tab_title(self) -> str:
+        return ui_labels.SETTINGS_LABEL
+
+    def _initialize_children(self) -> None:
+        self._main_frame: ttk.Frame = ttk.Frame(self)
+        self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
+
+        FLASH_PADDING: Final[tuple[int, int, int, int]] = (5, 0, 5, 5)
+        self._flash_settings_frame: ttk.Frame = ttk.Frame(self._main_frame)
+        self._flash_frame: ttk.Labelframe = ttk.Labelframe(
+            self._flash_settings_frame, padding=FLASH_PADDING
+        )
+        self._browse_flash_file_button: FileBrowseButtonView = FileBrowseButtonView(
+            self._flash_frame, text=ui_labels.SPECIFY_PATH_LABEL, style=ttk.DARK
+        )
+        self._submit_button: ttk.Button = ttk.Button(
+            self._flash_frame, text=ui_labels.SUBMIT_LABEL, style=ttk.DARK
+        )
+
+        self._config_frame: ttk.Frame = ttk.Frame(self._main_frame)
+        self._new_config_button: ttk.Button = ttk.Button(
+            self._config_frame,
+            text=ui_labels.NEW_LABEL,
+            style=ttk.DARK,
+            # image=utils.ImageLoader.load_image(
+            #     images.PLUS_ICON_WHITE, sizes.BUTTON_ICON_SIZE
+            # ),
+        )
+        self._config_entry: ttk.Combobox = ttk.Combobox(
+            self._config_frame, style=ttk.DARK
+        )
+        self._save_config_button: ttk.Button = ttk.Button(
+            self._config_frame, text=ui_labels.SAVE_LABEL, style=ttk.DARK
+        )
+        self._send_config_button: ttk.Button = ttk.Button(
+            self._config_frame, text=ui_labels.SEND_LABEL, style=ttk.SUCCESS
+        )
+
+        self._transducer_config_frame: ttk.Frame = ttk.Frame(
+            self._config_frame
+        )
+        self._config_name: ttk.StringVar = ttk.StringVar()
+        self._config_name_textbox: ttk.Entry = ttk.Entry(
+            self._transducer_config_frame, textvariable=self._config_name
+        )
+        self._atconfigs_frame: ScrolledFrame = ScrolledFrame(self._transducer_config_frame)
+        self._atconfig_views = []
+        for i in range(0, self._count_atk_atf):
+            self._atconfig_views.append(ATConfigFrame(self._presenter, self._atconfigs_frame, i))
+        self._browse_script_init_button: FileBrowseButtonView = FileBrowseButtonView(
+            self._transducer_config_frame, text=ui_labels.SPECIFY_PATH_LABEL, style=ttk.DARK
+        )
+
+    def _initialize_publish(self) -> None:
+        self._main_frame.pack(expand=True, fill=ttk.BOTH)
+        self._notebook.pack(expand=True, fill=ttk.BOTH)
+        self._notebook.add(
+            self._flash_settings_frame, text=ui_labels.FLASH_SETTINGS_LABEL
+        )
+        self._notebook.add(
+            self._config_frame, text=ui_labels.SONICAMP_SETTINGS_LABEL
+        )
+
+        self._flash_settings_frame.pack(expand=True, fill=ttk.BOTH)
+        self._flash_frame.pack(expand=True, fill=ttk.BOTH)
+        self._flash_frame.columnconfigure(0, weight=sizes.EXPAND)
+        self._flash_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
+        self._flash_frame.rowconfigure(1, weight=sizes.DONT_EXPAND)
+        self._browse_flash_file_button.grid(
+            row=0,
+            column=0,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+        )
+        self._submit_button.grid(
+            row=1,
+            column=0,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+            sticky=ttk.EW,
+        )
+
+        self._config_frame.pack(expand=True, fill=ttk.BOTH)
+        self._config_frame.columnconfigure(0, weight=sizes.DONT_EXPAND)
+        self._config_frame.columnconfigure(1, weight=sizes.EXPAND)
+        self._config_frame.columnconfigure(2, weight=sizes.DONT_EXPAND)
+        self._config_frame.columnconfigure(3, weight=sizes.DONT_EXPAND)
+        self._config_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
+        self._config_frame.rowconfigure(1, weight=sizes.EXPAND)
+        self._new_config_button.grid(
+            row=0,
+            column=0,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+        )
+        self._config_entry.grid(
+            row=0,
+            column=1,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+            sticky=ttk.EW,
+        )
+        self._save_config_button.grid(
+            row=0,
+            column=2,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+        )
+        self._send_config_button.grid(
+            row=0,
+            column=3,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+        )
+
+        self._transducer_config_frame.grid(row=1, column=0, columnspan=4)
+        self._transducer_config_frame.columnconfigure(0, weight=sizes.EXPAND)
+        self._transducer_config_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
+        self._transducer_config_frame.rowconfigure(1, weight=sizes.EXPAND)
+        self._transducer_config_frame.rowconfigure(2, weight=sizes.DONT_EXPAND)
+        self._config_name_textbox.grid(
+            row=0,
+            column=0,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+            sticky=ttk.EW,
+        )
+        self._atconfigs_frame.grid(
+            row=1,
+            column=0,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+            sticky=ttk.NSEW,
+        )
+        for i, atconfig_view in enumerate(self._atconfig_views):
+            atconfig_view.grid(row=i, column=0, padx=sizes.MEDIUM_PADDING, pady=sizes.MEDIUM_PADDING, sticky=ttk.EW)
+
+        self._browse_script_init_button.grid(
+            row=2,
+            column=0,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+            sticky=ttk.EW,
+        )
 
     def set_save_config_command(self, command: Callable[[None], None]) -> None:
         pass
@@ -153,19 +413,11 @@ class ConfigurationView(TabView):
         pass
 
     @property
-    def hexmode(self) -> bool:
+    def init_script_path(self) -> Path:
         pass
 
-    @hexmode.setter
-    def hexmode(self, value: bool) -> None:
-        pass
-
-    @property
-    def devmode(self) -> bool:
-        pass
-
-    @devmode.setter
-    def devmode(self, value: bool) -> None:
+    @init_script_path.setter
+    def init_script_path(self, value: Path) -> None:
         pass
 
     @property
