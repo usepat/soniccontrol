@@ -6,7 +6,8 @@ from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 
 import ttkbootstrap as ttk
 
-from soniccontrol.tkintergui.utils.constants import sizes, images, ui_labels
+from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonView
 
@@ -14,6 +15,8 @@ from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonV
 class Flashing(UIComponent):
     def __init__(self, parent: UIComponent, device: SonicAmp):
         self._device = device
+        self._view = FlashingView(parent.view)
+        super().__init__(self, self._view)
 
     def _flash(self) -> None:
         pass
@@ -36,7 +39,7 @@ class FlashingView(TabView):
             self, padding=FLASH_PADDING
         )
         self._browse_flash_file_button: FileBrowseButtonView = FileBrowseButtonView(
-            self._flash_frame, text=ui_labels.SPECIFY_PATH_LABEL, style=ttk.DARK
+            self._flash_frame, text=ui_labels.SPECIFY_PATH_LABEL
         )
         self._submit_button: ttk.Button = ttk.Button(
             self._flash_frame, text=ui_labels.SUBMIT_LABEL, style=ttk.DARK

@@ -12,7 +12,8 @@ from soniccontrol.interfaces.view import TabView, View
 from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
 from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.tkintergui.utils.constants import sizes, ui_labels, images
+from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonView
 from soniccontrol.utils import files
@@ -34,7 +35,7 @@ class TransducerConfig():
 
 @attrs.define()
 class Config:
-    transducers: List[TransducerConfig] = attrs.field()
+    transducers: List[TransducerConfig] = attrs.field(default=[])
 
 class ATConfigFrame(UIComponent):
     def __init__(self, parent: UIComponent, view_parent: View, index: int):
@@ -294,9 +295,9 @@ class ConfigurationView(TabView):
             self._transducer_config_frame, textvariable=self._config_name
         )
         self._atconfigs_frame: ScrolledFrame = ScrolledFrame(self._transducer_config_frame)
-        self._atconfig_views = []
+        self._atconfig_frames: List[ATConfigFrame] = []
         for i in range(0, self._count_atk_atf):
-            self._atconfig_views.append(ATConfigFrame(self._presenter, self._atconfigs_frame, i))
+            self._atconfig_frames.append(ATConfigFrame(self._presenter, self._atconfigs_frame, i))
         self._browse_script_init_button: FileBrowseButtonView = FileBrowseButtonView(
             self._transducer_config_frame, text=ui_labels.SPECIFY_PATH_LABEL, style=ttk.DARK
         )
@@ -335,7 +336,7 @@ class ConfigurationView(TabView):
             pady=sizes.MEDIUM_PADDING,
         )
 
-        self._transducer_config_frame.grid(row=1, column=0, columnspan=4)
+        self._transducer_config_frame.grid(row=1, column=0, columnspan=4, sticky=ttk.NSEW)
         self._transducer_config_frame.columnconfigure(0, weight=sizes.EXPAND)
         self._transducer_config_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
         self._transducer_config_frame.rowconfigure(1, weight=sizes.EXPAND)
@@ -354,8 +355,8 @@ class ConfigurationView(TabView):
             pady=sizes.MEDIUM_PADDING,
             sticky=ttk.NSEW,
         )
-        for i, atconfig_view in enumerate(self._atconfig_views):
-            atconfig_view.grid(row=i, column=0, padx=sizes.MEDIUM_PADDING, pady=sizes.MEDIUM_PADDING, sticky=ttk.EW)
+        for i, atconfig_frame in enumerate(self._atconfig_frames):
+            atconfig_frame.view.grid(row=i, column=0, padx=sizes.MEDIUM_PADDING, pady=sizes.MEDIUM_PADDING, sticky=ttk.EW)
 
         self._browse_script_init_button.grid(
             row=2,
@@ -379,12 +380,12 @@ class ConfigurationView(TabView):
 
     @property 
     def atconfigs(self) -> List[ATConfig]:
-        return list(map(lambda x: x.value, self._atconfig_views))
+        return list(map(lambda x: x.value, self._atconfig_frames))
 
     @atconfigs.setter
     def atconfigs(self, values: Iterable[ATConfig]) -> None:
         for i, atconfig in enumerate(values):
-            self._atconfig_views[i].value = atconfig
+            self._atconfig_frames[i].value = atconfig
 
     @property
     def init_script_path(self) -> Optional[Path]:

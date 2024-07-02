@@ -8,6 +8,8 @@ from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import Logger
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.tkintergui.views.configuration import Configuration
+from soniccontrol.tkintergui.views.flashing import Flashing
 from soniccontrol.tkintergui.views.info import Info
 from soniccontrol.tkintergui.views.logging import Logging
 from soniccontrol.tkintergui.views.editor import Editor
@@ -32,13 +34,17 @@ class DeviceWindow(UIComponent):
         self._editor = Editor(self, root, self._device)
         self._status_bar = StatusBar(self, self._view.status_bar_slot)
         self._info = Info(self)
+        self._configuration = Configuration(self, self._device)
+        self._flashing = Flashing(self, self._device)
 
         self._view.add_tab_views([
             self._sonicmeasure.view, 
             self._serialmonitor.view, 
             self._logging.view, 
             self._editor.view, 
-            self._info.view
+            self._info.view,
+            self._configuration.view, 
+            self._flashing.view
         ])
         self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
         self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))

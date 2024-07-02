@@ -14,6 +14,7 @@ class FileBrowseButtonView(View):
         self._filetypes = kwargs.pop("filetypes", None)
         super().__init__(master, *args, **kwargs)
         
+    def _initialize_children(self) -> None:
         self._path_str = ttk.StringVar(self, value="")
         self._frame = ttk.Frame(self)
         self._prefix_text = ttk.Label(self._frame, text=self._text)
@@ -21,15 +22,15 @@ class FileBrowseButtonView(View):
         self._button = ttk.Button(self._frame, text="Browse Files", command=self._browse_files)
 
     def _initialize_publish(self) -> None:
-        self._frame.grid(row=0, column=0, sticky=ttk.NESW)
+        self._frame.pack(expand = True, fill=ttk.BOTH)
 
         self._frame.columnconfigure(0, weight=0) 
         self._frame.columnconfigure(1, weight=1)
         self._frame.columnconfigure(2, weight=0)
 
         self._prefix_text.grid(row=0, column=0, padx=(0, 10), pady=10, sticky=ttk.W)
-        self._path_entry.grid(row=0, column=0, padx=(0, 10), pady=10, sticky=ttk.EW)
-        self._button.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.E)
+        self._path_entry.grid(row=0, column=1, padx=(0, 10), pady=10, sticky=ttk.EW)
+        self._button.grid(row=0, column=2, padx=10, pady=10, sticky=ttk.E)
 
     @property 
     def path(self) -> Optional[Path]:
