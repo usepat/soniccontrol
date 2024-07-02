@@ -1,6 +1,6 @@
 from pathlib import Path
 from tkinter import filedialog
-from typing import Optional
+from typing import Any, Optional
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
@@ -8,7 +8,7 @@ from soniccontrol.interfaces.view import View
 
 
 class FileBrowseButtonView(View):
-    def __init__(self, master: any, *args, **kwargs):
+    def __init__(self, master: Any, *args, **kwargs):
         self._text = kwargs.pop("text", "")
         self._default_extension = kwargs.pop("default_extension", None)
         self._filetypes = kwargs.pop("filetypes", None)

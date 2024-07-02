@@ -1,7 +1,8 @@
 import asyncio
+from enum import Enum
 import pathlib
 from tkinter import filedialog
-from typing import Callable, Final, Iterable, List, Optional, Tuple
+from typing import AsyncIterable, AsyncIterator, Callable, Final, List, Optional, Tuple
 
 import attrs
 import ttkbootstrap as ttk
@@ -13,7 +14,7 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
-from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
+from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
 from soniccontrol.tkintergui.utils.constants import (sizes, scripting_cards_data,
                                                      ui_labels)
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
@@ -42,7 +43,7 @@ class ScriptFile:
             f.write(self.text)
         
 
-class InterpreterState:
+class InterpreterState(Enum):
     READY = 0
     PAUSED = 1
     RUNNING = 2
@@ -55,7 +56,10 @@ class Editor(UIComponent):
         self._scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
         self._interpreter_worker = None
         self._script: ScriptFile = ScriptFile()
-        self._interpreter: Iterable = iter([])
+        async def empty_async_iterator() -> AsyncIterator[None]:
+            if False:
+                yield
+        self._interpreter: Optional[Script] = None
         self._interpreter_state = InterpreterState.READY
 
         super().__init__(parent, EditorView(parent.view))
@@ -191,6 +195,8 @@ class Editor(UIComponent):
         self._set_interpreter_state(InterpreterState.PAUSED)
 
     async def _interpreter_engine(self, single_instruction: bool = False):
+        if self._interpreter is None:
+            return
         try:
             async for line_index, task in self._interpreter:
                 self.view.highlight_line(line_index)
@@ -331,23 +337,23 @@ class EditorView(TabView):
         self._current_task_label.grid(row=0, column=0, columnspan=2, sticky=ttk.EW)
 
     def add_menu_command(self, label: str, command: Callable[[None], None]) -> None:
-        self._menue.add_command(label=label, command=command)
+        self._menue.add_command(label=label, command=command) # type:ignore
 
     @property 
-    def editor_text_view(self) -> ttk.ScrolledText:
+    def editor_text_view(self) -> ttk.Frame:
         return self._editor_text
     
     def set_scripting_guide_button_command(self, command: Callable[[None], None]) -> None:
-        self._scripting_guide_button.configure(command=command)
+        self._scripting_guide_button.configure(command=command) # type:ignore
 
     @property
     def editor_text(self) -> str:
-        return self._editor_text.get(1.0, ttk.END)
+        return self._editor_text.get(1.0, ttk.END) # type: ignore
     
     @editor_text.setter
     def editor_text(self, value: str) -> None:
-        self._editor_text.delete(1.0, ttk.END)
-        self._editor_text.insert(ttk.INSERT, value)
+        self._editor_text.delete(1.0, ttk.END) # type: ignore
+        self._editor_text.insert(ttk.INSERT, value) # type: ignore
 
     @property
     def current_task(self) -> str:
@@ -379,11 +385,11 @@ class EditorView(TabView):
 
     def highlight_line(self, line_idx: Optional[int]) -> None:
         current_line_tag = "currentLine"
-        self._editor_text.tag_remove(current_line_tag, 1.0, "end")
+        self._editor_text.tag_remove(current_line_tag, 1.0, "end") # type: ignore
 
         if line_idx:
             line_idx += 1
-            self._editor_text.tag_add(current_line_tag, f"{line_idx}.0", f"{line_idx}.end")
-            self._editor_text.tag_configure(
+            self._editor_text.tag_add(current_line_tag, f"{line_idx}.0", f"{line_idx}.end") # type: ignore
+            self._editor_text.tag_configure( # type: ignore
                 current_line_tag, background="#3e3f3a", foreground="#dfd7ca"
             )

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List, Tuple, Union
 
 import ttkbootstrap as ttk
 
@@ -33,7 +33,7 @@ class Notebook(ttk.Notebook):
 
     def add_tabs(
         self,
-        tabs: list[TabView | tuple[int, TabView]],
+        tabs: List[Union[TabView, Tuple[int, TabView]]],
         keep_tabs: bool = False,
         show_titles: bool = True,
         show_images: bool = False,
