@@ -17,7 +17,6 @@ from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.tkintergui.utils.constants import (sizes, scripting_cards_data,
                                                      ui_labels)
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
-from soniccontrol.tkintergui.utils.types import ScriptingGuideCardDataDict
 from soniccontrol.tkintergui.widgets.pushbutton import PushButtonView
 from soniccontrol.tkintergui.views.scriptingguide import ScriptingGuide
 from soniccontrol.utils.files import images

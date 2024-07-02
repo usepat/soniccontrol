@@ -1,6 +1,7 @@
 
+import asyncio
 from pathlib import Path
-from typing import Callable, Final, List, Iterable, Optional
+from typing import Callable, List, Iterable, Optional
 import attrs
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
@@ -8,6 +9,8 @@ from ttkbootstrap.scrolled import ScrolledFrame
 import json
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView, View
+from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
+from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels, images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
@@ -218,16 +221,33 @@ class Configuration(UIComponent):
 
     @async_handler
     async def _submit_transducer_config(self):
+        # TODO: start load animation
+
         for i, atconfig in enumerate(self.view.atconfigs):
             await self._device.set_atf(i, atconfig.atf)
             await self._device.set_atk(i, atconfig.atk)
             await self._device.set_att(i, atconfig.att)
             await self._device.set_aton(i, atconfig.aton)
 
-        # TODO execute init file
+        asyncio.create_task(self._interpreter_engine())
 
-    def _flash(self):
-        pass #TODO
+    async def _interpreter_engine(self):
+        script_file_path = self._config.transducers[self._current_transducer_config].init_script_path
+        with open(script_file_path, "r") as f:
+            script = f.read()
+        scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
+        interpreter = scripting.parse_script(script)
+
+        try:
+            while next(interpreter, None):
+                pass
+        except asyncio.CancelledError:
+            return
+        except Exception as e:
+            Messagebox.show_error(e)
+            return
+        finally:
+            pass # TODO: end load animation
 
 
 class ConfigurationView(TabView):
@@ -245,23 +265,8 @@ class ConfigurationView(TabView):
         return ui_labels.SETTINGS_LABEL
 
     def _initialize_children(self) -> None:
-        self._main_frame: ttk.Frame = ttk.Frame(self)
-        self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
-
-        FLASH_PADDING: Final[tuple[int, int, int, int]] = (5, 0, 5, 5)
-        self._flash_settings_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        self._flash_frame: ttk.Labelframe = ttk.Labelframe(
-            self._flash_settings_frame, padding=FLASH_PADDING
-        )
-        self._browse_flash_file_button: FileBrowseButtonView = FileBrowseButtonView(
-            self._flash_frame, text=ui_labels.SPECIFY_PATH_LABEL, style=ttk.DARK
-        )
-        self._submit_button: ttk.Button = ttk.Button(
-            self._flash_frame, text=ui_labels.SUBMIT_LABEL, style=ttk.DARK
-        )
-
-        self._config_frame: ttk.Frame = ttk.Frame(self._main_frame)
-        self._new_config_button: ttk.Button = ttk.Button(
+        self._config_frame: ttk.Frame = ttk.Frame(self)
+        self._add_config_button: ttk.Button = ttk.Button(
             self._config_frame,
             text=ui_labels.NEW_LABEL,
             style=ttk.DARK,
@@ -269,13 +274,15 @@ class ConfigurationView(TabView):
             #     images.PLUS_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             # ),
         )
+        self._selected_config: ttk.StringVar = ttk.StringVar()
         self._config_entry: ttk.Combobox = ttk.Combobox(
-            self._config_frame, style=ttk.DARK
+            self._config_frame, textvariable=self._selected_config, style=ttk.DARK
         )
+        self._config_entry["state"] = "readonly" # prevent typing a value
         self._save_config_button: ttk.Button = ttk.Button(
             self._config_frame, text=ui_labels.SAVE_LABEL, style=ttk.DARK
         )
-        self._send_config_button: ttk.Button = ttk.Button(
+        self._submit_config_button: ttk.Button = ttk.Button(
             self._config_frame, text=ui_labels.SEND_LABEL, style=ttk.SUCCESS
         )
 
@@ -295,34 +302,6 @@ class ConfigurationView(TabView):
         )
 
     def _initialize_publish(self) -> None:
-        self._main_frame.pack(expand=True, fill=ttk.BOTH)
-        self._notebook.pack(expand=True, fill=ttk.BOTH)
-        self._notebook.add(
-            self._flash_settings_frame, text=ui_labels.FLASH_SETTINGS_LABEL
-        )
-        self._notebook.add(
-            self._config_frame, text=ui_labels.SONICAMP_SETTINGS_LABEL
-        )
-
-        self._flash_settings_frame.pack(expand=True, fill=ttk.BOTH)
-        self._flash_frame.pack(expand=True, fill=ttk.BOTH)
-        self._flash_frame.columnconfigure(0, weight=sizes.EXPAND)
-        self._flash_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
-        self._flash_frame.rowconfigure(1, weight=sizes.DONT_EXPAND)
-        self._browse_flash_file_button.grid(
-            row=0,
-            column=0,
-            padx=sizes.MEDIUM_PADDING,
-            pady=sizes.MEDIUM_PADDING,
-        )
-        self._submit_button.grid(
-            row=1,
-            column=0,
-            padx=sizes.MEDIUM_PADDING,
-            pady=sizes.MEDIUM_PADDING,
-            sticky=ttk.EW,
-        )
-
         self._config_frame.pack(expand=True, fill=ttk.BOTH)
         self._config_frame.columnconfigure(0, weight=sizes.DONT_EXPAND)
         self._config_frame.columnconfigure(1, weight=sizes.EXPAND)
@@ -330,7 +309,7 @@ class ConfigurationView(TabView):
         self._config_frame.columnconfigure(3, weight=sizes.DONT_EXPAND)
         self._config_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
         self._config_frame.rowconfigure(1, weight=sizes.EXPAND)
-        self._new_config_button.grid(
+        self._add_config_button.grid(
             row=0,
             column=0,
             padx=sizes.MEDIUM_PADDING,
@@ -349,7 +328,7 @@ class ConfigurationView(TabView):
             padx=sizes.MEDIUM_PADDING,
             pady=sizes.MEDIUM_PADDING,
         )
-        self._send_config_button.grid(
+        self._submit_config_button.grid(
             row=0,
             column=3,
             padx=sizes.MEDIUM_PADDING,
@@ -387,54 +366,49 @@ class ConfigurationView(TabView):
         )
 
     def set_save_config_command(self, command: Callable[[None], None]) -> None:
-        pass
-
-    def set_load_config_command(self, command: Callable[[None], None]) -> None:
-        pass
+        self._save_config_button.configure(command=command)
 
     def set_transducer_config_changed_command(self, command: Callable[[None], None]) -> None:
-        pass
+        self._config_entry.bind("<<ComboboxSelected>>", lambda _: command())
 
     def set_add_transducer_config_command(self, command: Callable[[None], None]) -> None:
-        pass
+        self._add_config_button.configure(command=command)
 
     def set_submit_transducer_config_command(self, command: Callable[[None], None]) -> None:
-        pass
-
-    def set_flash_command(self, command: Callable[[None], None]) -> None:
-        pass
+        self._submit_config_button.configure(command=command)
 
     @property 
     def atconfigs(self) -> List[ATConfig]:
-        pass
+        return list(map(lambda x: x.value, self._atconfig_views))
 
     @atconfigs.setter
     def atconfigs(self, values: Iterable[ATConfig]) -> None:
-        pass
+        for i, atconfig in enumerate(values):
+            self._atconfig_views[i].value = atconfig
 
     @property
-    def init_script_path(self) -> Path:
-        pass
+    def init_script_path(self) -> Optional[Path]:
+        return self._browse_script_init_button.path
 
     @init_script_path.setter
-    def init_script_path(self, value: Path) -> None:
-        pass
+    def init_script_path(self, value: Optional[Path]) -> None:
+        self._browse_script_init_button.path = value
 
     @property
     def selected_transducer_config(self) -> str:
-        pass
+        return self._selected_config.get()
 
     @selected_transducer_config.setter
     def selected_transducer_config(self, value: str) -> None:
-        pass
+        self._selected_config.set(value)
 
     def set_transducer_config_menu_items(self, items: Iterable[str]) -> None:
-        pass
+        self._config_entry["values"] = items
     
     @property
     def transducer_config_name(self) -> str:
-        pass
+        return self._config_name.get()
 
     @transducer_config_name.setter
     def transducer_config_name(self, value: str) -> None:
-        pass
+        self._config_name.set(value)
