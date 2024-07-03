@@ -8,164 +8,17 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from ttkbootstrap.scrolled import ScrolledFrame
 import json
 from soniccontrol.interfaces.ui_component import UIComponent
-from soniccontrol.interfaces.view import TabView, View
+from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
 from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.tkintergui.views.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
 from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonView
 from soniccontrol.utils.files import files
 from async_tkinter_loop import async_handler
-import marshmallow as marsh
-from marshmallow_annotations.ext.attrs import AttrsSchema
-
-
-@attrs.define(auto_attribs=True)
-class ATConfig:
-    atk: int = attrs.field(default=0)
-    atf: int = attrs.field(default=0)
-    att: int = attrs.field(default=0)
-    aton: int = attrs.field(default=0)
-
-@attrs.define(auto_attribs=True)
-class TransducerConfig():
-    name: str = attrs.field()
-    atconfigs: List[ATConfig] = attrs.field()
-    init_script_path: Optional[Path] = attrs.field(default=None)
-
-@attrs.define(auto_attribs=True)
-class Config:
-    transducers: List[TransducerConfig] = attrs.field(default=[])
-
-
-# schemas used for serialization deserialization
-class ATConfigSchema(AttrsSchema):
-    class Meta:
-        target = ATConfig
-        register_as_scheme = True
-
-class TransducerConfigSchema(AttrsSchema):
-    class Meta:
-        target = TransducerConfig
-        register_as_scheme = True
-
-    init_script_path = marsh.fields.Method(
-        serialize="serialize_path", deserialize="deserialize_path", allow_none=True
-    )
-
-    def serialize_path(self, obj) -> str | None:
-        return obj.init_script_path.as_posix() if obj.init_script_path else None
-
-    def deserialize_path(self, value):
-        return Path(value) if value else None
-    
-class ConfigSchema(AttrsSchema):
-    class Meta:
-        target = Config
-        register_as_scheme = True
-
-
-class ATConfigFrame(UIComponent):
-    def __init__(self, parent: UIComponent, view_parent: View | ttk.Frame, index: int):
-        self._index = index
-        self._view = ATConfigFrameView(view_parent, index)
-        super().__init__(parent, self._view)
-
-    @property
-    def value(self) -> ATConfig:
-        return ATConfig(
-            atk = int(self._view.atk),
-            atf = int(self._view.atf),
-            att = int(self._view.att),
-            aton = int(self._view.aton)
-        )
-    
-    @value.setter
-    def value(self, config: ATConfig) -> None:
-        self._view.atf = config.atf
-        self._view.atk = config.atk
-        self._view.att = config.att
-        self._view.aton = config.aton
-
-
-class ATConfigFrameView(View):
-    def __init__(self, master: ttk.Frame, index: int, *args, **kwargs):
-        self._index = index
-        super().__init__(master, *args, **kwargs)
-
-    def _initialize_children(self) -> None:
-        self._atf_var = ttk.StringVar()
-        self._atk_var = ttk.StringVar()
-        self._att_var = ttk.StringVar()
-        self._aton_var = ttk.StringVar()
-    
-        self._atf_label = ttk.Label(self, text=f"ATF {self._index}")
-        self._atk_label = ttk.Label(self, text=f"ATK {self._index}")
-        self._att_label = ttk.Label(self, text=f"ATT {self._index}")
-        self._aton_label = ttk.Label(self, text=f"ATON {self._index}")
-
-        self._atf_spinbox = ttk.Spinbox(self, textvariable=self._atf_var)
-        self._atk_spinbox = ttk.Spinbox(self, textvariable=self._atk_var)
-        self._att_spinbox = ttk.Spinbox(self, textvariable=self._att_var)
-        self._aton_spinbox = ttk.Spinbox(self, textvariable=self._aton_var)
-
-    def _initialize_publish(self) -> None:
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=1)
-        self.rowconfigure(3, weight=1)
-
-        self._atf_label.grid(row=0, column=0, padx=10, pady=10, sticky=ttk.E)
-        self._atf_spinbox.grid(row=0, column=1, padx=10, pady=10, sticky=ttk.W)
-
-        self._atk_label.grid(row=1, column=0, padx=10, pady=10, sticky=ttk.E)
-        self._atk_spinbox.grid(row=1, column=1, padx=10, pady=10, sticky=ttk.W)
-
-        self._att_label.grid(row=2, column=0, padx=10, pady=10, sticky=ttk.E)
-        self._att_spinbox.grid(row=2, column=1, padx=10, pady=10, sticky=ttk.W)
-
-        self._aton_label.grid(row=3, column=0, padx=10, pady=10, sticky=ttk.E)
-        self._aton_spinbox.grid(row=3, column=1, padx=10, pady=10, sticky=ttk.W)
-
-    # Properties for atf
-    @property
-    def atf(self):
-        return self._atf_var.get()
-
-    @atf.setter
-    def atf(self, value):
-        self._atf_var.set(value)
-
-    # Properties for atk
-    @property
-    def atk(self):
-        return self._atk_var.get()
-
-    @atk.setter
-    def atk(self, value):
-        self._atk_var.set(value)
-
-    # Properties for att
-    @property
-    def att(self):
-        return self._att_var.get()
-
-    @att.setter
-    def att(self, value):
-        self._att_var.set(value)
-
-    # Properties for aton
-    @property
-    def aton(self):
-        return self._aton_var.get()
-
-    @aton.setter
-    def aton(self, value):
-        self._aton_var.set(value)
     
 
 class Configuration(UIComponent):
@@ -181,6 +34,7 @@ class Configuration(UIComponent):
         self._view.set_transducer_config_selected_command(self._on_transducer_config_selected)
         self._view.set_add_transducer_config_command(self._add_transducer_config_template)
         self._view.set_submit_transducer_config_command(self._submit_transducer_config)
+        self._view.set_delete_transducer_config_command(self._delete_transducer_config)
         self._load_config()
 
     @property
@@ -212,8 +66,8 @@ class Configuration(UIComponent):
 
         if self.current_transducer_config is None:
             self._config.transducers.append(transducer_config)
-            self._current_transducer_config = len(self._config.transducers) - 1
             self._view.set_transducer_config_menu_items(map(lambda config: config.name, self._config.transducers))
+            self.current_transducer_config = len(self._config.transducers) - 1
         else:
             self._config.transducers[self.current_transducer_config] = transducer_config
 
@@ -232,6 +86,7 @@ class Configuration(UIComponent):
 
     def _change_transducer_config(self):
         if self.current_transducer_config is None:
+            self._view.selected_transducer_config = "none selected"
             self._add_transducer_config_template()
         else:
             current_config = self._config.transducers[self.current_transducer_config]
@@ -335,6 +190,9 @@ class ConfigurationView(TabView):
         self._submit_config_button: ttk.Button = ttk.Button(
             self._config_frame, text=ui_labels.SEND_LABEL, style=ttk.SUCCESS
         )
+        self._delete_config_button: ttk.Button = ttk.Button(
+            self._config_frame, text=ui_labels.DELETE_LABEL, style=ttk.SUCCESS
+        )
 
         self._transducer_config_frame: ttk.Frame = ttk.Frame(
             self._config_frame
@@ -348,7 +206,9 @@ class ConfigurationView(TabView):
         for i in range(0, self._count_atk_atf):
             self._atconfig_frames.append(ATConfigFrame(self._presenter, self._atconfigs_frame, i))
         self._browse_script_init_button: FileBrowseButtonView = FileBrowseButtonView(
-            self._transducer_config_frame, text=ui_labels.SPECIFY_PATH_LABEL, style=ttk.DARK
+            self._transducer_config_frame, 
+            text=ui_labels.SPECIFY_PATH_LABEL, 
+            style=ttk.DARK,
         )
 
     def _initialize_publish(self) -> None:
@@ -357,6 +217,7 @@ class ConfigurationView(TabView):
         self._config_frame.columnconfigure(1, weight=sizes.EXPAND)
         self._config_frame.columnconfigure(2, weight=sizes.DONT_EXPAND)
         self._config_frame.columnconfigure(3, weight=sizes.DONT_EXPAND)
+        self._config_frame.columnconfigure(4, weight=sizes.DONT_EXPAND)
         self._config_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
         self._config_frame.rowconfigure(1, weight=sizes.EXPAND)
         self._add_config_button.grid(
@@ -384,8 +245,14 @@ class ConfigurationView(TabView):
             padx=sizes.MEDIUM_PADDING,
             pady=sizes.MEDIUM_PADDING,
         )
+        self._delete_config_button.grid(
+            row=0,
+            column=4,
+            padx=sizes.MEDIUM_PADDING,
+            pady=sizes.MEDIUM_PADDING,
+        )
 
-        self._transducer_config_frame.grid(row=1, column=0, columnspan=4, sticky=ttk.NSEW)
+        self._transducer_config_frame.grid(row=1, column=0, columnspan=5, sticky=ttk.NSEW)
         self._transducer_config_frame.columnconfigure(0, weight=sizes.EXPAND)
         self._transducer_config_frame.rowconfigure(0, weight=sizes.DONT_EXPAND)
         self._transducer_config_frame.rowconfigure(1, weight=sizes.EXPAND)
@@ -427,6 +294,10 @@ class ConfigurationView(TabView):
     def set_submit_transducer_config_command(self, command: Callable[[], None]) -> None:
         self._submit_config_button.configure(command=command)
 
+    def set_delete_transducer_config_command(self, command: Callable[[], None]) -> None:
+        self._delete_config_button.configure(command=command)
+
+    # TODO: maybe just expose the configframes and handle this in the presenter
     @property 
     def atconfigs(self) -> List[ATConfig]:
         return list(map(lambda x: x.value, self._atconfig_frames))

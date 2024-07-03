@@ -2,7 +2,6 @@ from pathlib import Path
 from tkinter import filedialog
 from typing import Any, Optional
 import ttkbootstrap as ttk
-from ttkbootstrap.dialogs.dialogs import Messagebox
 
 from soniccontrol.interfaces.view import View
 
@@ -34,20 +33,25 @@ class FileBrowseButtonView(View):
 
     @property 
     def path(self) -> Optional[Path]:
-        path = Path(self._path_str.get())
-        return path if path.exists() and path.is_file() else None
+        path = self._path_str.get()
+        return Path(path) if path != "" else None
 
     @path.setter
     def path(self, value: Optional[Path]) -> None:
         self._path_str.set("" if value is None else value.as_posix())
 
     def _browse_files(self) -> None:
-        filename: str = filedialog.askopenfilename(
-            defaultextension=self._default_extension, 
-            filetypes=self._filetypes
-        )
+        # I do not know why I have to do it this way and cant just pass None for the single keyword args.
+        # Danke Merkel.. Sorry, I meant Tkinter
+        kwargs = {} 
+        if self._default_extension is not None:
+            kwargs["defaultextension"] = self._default_extension
+        if self._filetypes is not None:
+            kwargs["filetypes"] = self._filetypes
+        filename: str = filedialog.askopenfilename(**kwargs)
+
+        if filename == "." or filename == "" or isinstance(filename, (tuple)):
+            return
+
         path = Path(filename)
-        if path.exists():
-            self._path_str.set(path.as_posix())
-        else:
-            Messagebox.show_error("The path does not exist")
+        self._path_str.set(path.as_posix())

@@ -123,6 +123,7 @@ class _UIStringsEN:
     SCRIPT_EDITOR_LABEL: Final[str] = "Script Editor"
     LOAD_LABEL: Final[str] = "Load File"
     SEND_LABEL: Final[str] = "Send"
+    DELETE_LABEL: Final[str] = "Delete"
     THEME: Final[str] = "sandstone"
     IDLE_TITLE: Final[str] = "Sonic Control"
     AUTO_READ_LABEL: Final[str] = "Auto Read"
