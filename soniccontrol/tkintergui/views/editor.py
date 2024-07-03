@@ -336,15 +336,15 @@ class EditorView(TabView):
         self._script_status_frame.columnconfigure(1, weight=sizes.EXPAND)
         self._current_task_label.grid(row=0, column=0, columnspan=2, sticky=ttk.EW)
 
-    def add_menu_command(self, label: str, command: Callable[[None], None]) -> None:
-        self._menue.add_command(label=label, command=command) # type:ignore
+    def add_menu_command(self, label: str, command: Callable[[], None]) -> None:
+        self._menue.add_command(label=label, command=command)
 
     @property 
     def editor_text_view(self) -> ttk.Frame:
         return self._editor_text
     
-    def set_scripting_guide_button_command(self, command: Callable[[None], None]) -> None:
-        self._scripting_guide_button.configure(command=command) # type:ignore
+    def set_scripting_guide_button_command(self, command: Callable[[], None]) -> None:
+        self._scripting_guide_button.configure(command=command)
 
     @property
     def editor_text(self) -> str:
