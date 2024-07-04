@@ -5,11 +5,11 @@ from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
 
 
-class Commands:
+class CommandSet:
 
     @classmethod
-    def with_new_commands(cls, serial: Communicator) -> Commands:
-        obj: Commands = cls()
+    def with_new_commands(cls, serial: Communicator) -> CommandSet:
+        obj: CommandSet = cls()
 
         # TODO: Ask about ?error, how do we validate errors, if there is not a known number of errors
         type_validator: CommandValidator = CommandValidator(
@@ -394,8 +394,8 @@ class Commands:
         return obj
 
     @classmethod
-    def with_legacy_commands(cls, serial: Communicator) -> Commands:
-        obj: Commands = cls()
+    def with_legacy_commands(cls, serial: Communicator) -> CommandSet:
+        obj: CommandSet = cls()
 
         obj.get_overview: Command = Command(
             message="?",

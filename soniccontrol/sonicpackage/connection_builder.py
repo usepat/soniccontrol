@@ -2,7 +2,7 @@ import asyncio
 from typing import Callable, Any
 from serial_asyncio import open_serial_connection
 
-from soniccontrol.sonicpackage.commands import Commands
+from soniccontrol.sonicpackage.commands import CommandSet
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.serial_communicator import (
     LegacySerialCommunicator,
@@ -16,7 +16,7 @@ class ConnectionBuilder:
     @staticmethod
     async def build(
         reader: asyncio.StreamReader, writer: asyncio.StreamWriter, **kwargs
-    ) -> tuple[Communicator, Commands]:
+    ) -> tuple[Communicator, CommandSet]:
         """
         Builds a connection using the provided `reader` and `writer` objects.
 
@@ -36,7 +36,7 @@ class ConnectionBuilder:
 
         serial: Communicator = LegacySerialCommunicator()
         await serial.connect(reader, writer)
-        commands: Commands = Commands().with_legacy_commands(serial)
+        commands: CommandSet = CommandSet().with_legacy_commands(serial)
         await commands.get_info.execute()
         if commands.get_info.answer.valid:
             logger.info("Connected with legacy protocol")
@@ -44,7 +44,7 @@ class ConnectionBuilder:
 
         serial = SerialCommunicator(**kwargs)
         await serial.connect(reader, writer)
-        commands = Commands().with_new_commands(serial)
+        commands = CommandSet().with_new_commands(serial)
         await commands.get_info.execute()
 
         # if commands.get_info.answer.valid:

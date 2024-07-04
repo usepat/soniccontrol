@@ -7,7 +7,7 @@ from soniccontrol.sonicpackage.command import Answer
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.sonicamp_ import (
     Command,
-    Commands,
+    CommandSet,
     Info,
     Modules,
     SerialCommunicator,
@@ -19,7 +19,7 @@ from soniccontrol.sonicpackage.sonicamp_ import (
 @attrs.define
 class AmpBuilder:
     def _add_commands_from_list_command_answer(
-        self, commands: Commands, sonicAmp: SonicAmp, answer: Answer
+        self, commands: CommandSet, sonicAmp: SonicAmp, answer: Answer
     ) -> None:
         command_names = answer.string.split("#")
         for command_name in command_names:
@@ -34,7 +34,7 @@ class AmpBuilder:
             if command:
                 sonicAmp.add_command(command)
 
-    async def build_amp(self, ser: Communicator, commands: Commands) -> SonicAmp:
+    async def build_amp(self, ser: Communicator, commands: CommandSet) -> SonicAmp:
         await ser.connection_opened.wait()
 
         result_dict: Dict[str, Any] = ser.init_command.status_result

@@ -1,12 +1,11 @@
-import asyncio
 import json
 import logging
-from typing import *
+from typing import Any, Literal, Optional, Union, Iterable, Dict
 
 import attrs
 from icecream import ic
-from soniccontrol.sonicpackage.amp_data import Info, Modules, Status
-from soniccontrol.sonicpackage.commands import Command, Commands, CommandValidator
+from soniccontrol.sonicpackage.amp_data import Info, Status
+from soniccontrol.sonicpackage.commands import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.script_procedures import Ramper
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
@@ -46,7 +45,6 @@ class SonicAmp(Scriptable):
 
     async def disconnect(self) -> None:
         await self.serial.disconnect()
-        Command.set_serial_communication(None)
         del self
 
     def add_command(
@@ -88,14 +86,13 @@ class SonicAmp(Scriptable):
         return (
             self.commands.get(
                 command.message if isinstance(command, Command) else command
-            )
-            != None
+            ) is not None
         )
 
     async def send_message(self, message: str = "", argument: Any = "") -> str:
         return (
             await Command(
-                serial_communication=self._serial,
+                _serial_communication=self._serial,
                 message=message,
                 argument=argument,
                 estimated_response_time=0.4,
@@ -135,14 +132,14 @@ class SonicAmp(Scriptable):
         """
         try:
             message = message if isinstance(message, str) else message.message
-            if not message in self._commands.keys():
+            if message not in self._commands.keys():
                 ic("Command not found in commands of sonicamp", message, self)
                 ic("Executing message as a new Command...")
                 return await self.send_message(message=message, argument=argument)
             command: Command = self._commands[message]
             await command.execute(argument=argument, connection=self._serial)
 
-        except Exception as e:
+        except Exception:
             await self.disconnect()
 
         await self._status.update(
@@ -151,7 +148,7 @@ class SonicAmp(Scriptable):
 
         try:
             parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
-        except Exception as e:
+        except Exception:
             pass
 
         # ic(command.byte_message, command.answer, command.status_result, self._status)
@@ -242,72 +239,3 @@ class SonicAmp(Scriptable):
         )
 
 
-import serial.tools.list_ports as list_ports
-
-
-async def main():
-    ic([port.device for port in list_ports.comports()])
-    ser = SerialCommunicator("/dev/cu.usbserial-AB0M45SW")
-    await ser.connect()
-    await ser.connection_opened.wait()
-
-    sonicamp = SonicAmp(
-        serial=ser,
-        info=Info(),
-        status=Status(),
-    )
-
-    commands = Commands(serial=ser)
-    sonicamp.add_command(commands.signal_on)
-    sonicamp.add_command(commands.signal_off)
-    sonicamp.add_command(commands.get_atf1)
-    sonicamp.add_command(commands.get_atf2)
-    sonicamp.add_command(commands.get_atf3)
-    sonicamp.add_command(commands.get_att1)
-    sonicamp.add_command(
-        message="?sens",
-        estimated_response_time=0.35,
-        validators=CommandValidator(
-            pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
-            frequency=int,
-            urms=attrs.converters.pipe(float, lambda urms: urms / 1000),
-            irms=attrs.converters.pipe(float, lambda irms: irms / 1000),
-            phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
-        ),
-    )
-    sonicamp.add_command(commands.get_status)
-    sonicamp.add_command(commands.get_overview)
-
-    # await sonicamp.set_serial_mode()
-    # await sonicamp.set_relay_mode_khz()
-    # await sonicamp.get_overview()
-    # await sonicamp.get_info()
-
-    await sonicamp.set_signal_on()
-    await sonicamp.hold(5, "s")
-    await sonicamp.get_atf1()
-    await sonicamp.get_atf2()
-    await sonicamp.get_atf3()
-    await sonicamp.get_att1()
-    # await sonicamp.ramp_freq(1000000, 2000000, 10000)
-    # await sonicamp.set_relay_mode_mhz()
-    # await sonicamp.set_frequency(1000000)
-    # await sonicamp.get_status()
-    # await sonicamp.get_status()
-    await sonicamp.set_signal_off()
-    await sonicamp.sequence(
-        """on
-frequency 1000000
-hold 5s
-gain 150
-hold 10s
-startloop 5
-ramp_freq 1500000 1600000 10000 100ms
-endloop
-off"""
-    )
-    # await sonicamp.get_status()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

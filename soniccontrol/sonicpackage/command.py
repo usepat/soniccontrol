@@ -305,7 +305,7 @@ class Answer:
         """
         self._received_timestamp = time.time()
         if isinstance(answer, Iterable) and not isinstance(answer, str):
-            self._lines = answer
+            self._lines = list(answer)
             self._string = "\n".join(answer)
         elif isinstance(answer, str):
             self._lines = answer.splitlines()
@@ -407,7 +407,7 @@ class Command(Sendable):
         This method resets the answer, sets the argument if provided, and sends the command asynchronously using the specified connection.
         It then validates the answer and updates the status result with the received timestamp. Finally, it returns a tuple containing the answer and the status result.
         """
-        if not (self._serial_communication or connection):
+        if self._serial_communication is None or not connection:
             raise ValueError(
                 f"The serial communication reference is not viable. {self._serial_communication = } {type(self._serial_communication) = }"
             )
