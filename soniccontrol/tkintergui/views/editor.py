@@ -2,7 +2,7 @@ import asyncio
 from enum import Enum
 import pathlib
 from tkinter import filedialog
-from typing import AsyncIterable, AsyncIterator, Callable, Final, List, Optional, Tuple
+from typing import AsyncIterator, Callable, Final, List, Optional, Tuple
 
 import attrs
 import ttkbootstrap as ttk

@@ -319,7 +319,7 @@ class StatusBarExpandedView(View):
             image=ImageLoader.load_image(image_path, sizing)
         )
 
-    def update_stats(self, freq: int, gain: int, temp: float, urms: str, irms: str, phase: str, signal: str):
+    def update_stats(self, freq: float, gain: float, temp: float, urms: str, irms: str, phase: str, signal: str):
         self._freq_meter.configure(amountused=freq)
         self._gain_meter.configure(amountused=gain)
         self._temp_meter.configure(amountused=temp)

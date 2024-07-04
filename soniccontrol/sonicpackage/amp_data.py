@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import fields
 import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, Generic, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Literal, Optional, TypeVar, Union
 
 import attrs
 from icecream import ic
@@ -97,7 +97,7 @@ class Status:
         converter=default_if_none(0, int),
         validator=attrs.validators.instance_of(int),
     )
-    protocol: int = attrs.field(
+    procedure: int = attrs.field(
         default=0,
         converter=default_if_none(0, int),
         validator=attrs.validators.instance_of(int),
@@ -181,6 +181,7 @@ class Status:
     _changed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _changed_data: Dict[str, Any] = attrs.field(init=False, factory=dict)
     _version: int = attrs.field(init=False, default=0)
+    _remote_proc_finished_running: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
 
     @property
     def changed(self) -> asyncio.Event:
@@ -193,6 +194,10 @@ class Status:
     @property
     def version(self) -> int:
         return self._version
+    
+    @property 
+    def remote_proc_finished_running(self) -> asyncio.Event:
+        return self._remote_proc_finished_running
     
     def get_dict(self) -> dict:
         result = {}
@@ -210,6 +215,7 @@ class Status:
             if not kwargs.get("timestamp")
             else datetime.datetime.fromtimestamp(kwargs.get("timestamp"))
         )
+        procedure = self.procedure
         changed: bool = False
         for key, value in kwargs.items():
             if hasattr(self, key) and getattr(self, key) != value:
@@ -220,6 +226,12 @@ class Status:
                 except AttributeError:
                     continue
         if changed:
+            #  check if the procedure was changed or finished
+            if procedure != 0 and self.procedure != procedure:
+                self._remote_proc_finished_running.set()
+                await asyncio.sleep(0.1)
+                self._remote_proc_finished_running.clear()
+            
             self._changed.set()
             await asyncio.sleep(0.1)
             self._changed.clear()

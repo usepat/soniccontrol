@@ -22,5 +22,4 @@ The communication could become a bottleneck.
 ## Implementation
 
 On construction of the sonic amp in the sonic amp builder, we look if we get back with `?list_commands` a list that contains our procedure. Like that we can check, if the device has the procedure.  
-At the end of the building process we inject commands for missing procedures, that are pointing to methods, that call internally a procedure controller and procedure classes.  
-The procedure controller is an eventemitter and emits changes to the control panel widget, so that will be always up to date.
+We make a procedure instantiator, that checks on the sonic amp if it has the procedure. Internally the procedure instantiator gives back than either a remote or local procedure. Both have the same interface so they can be interchanged easely.  

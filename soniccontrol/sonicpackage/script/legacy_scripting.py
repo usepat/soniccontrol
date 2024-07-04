@@ -4,7 +4,7 @@ import asyncio
 import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Scriptable
-from soniccontrol.sonicpackage.procedures.script_procedures import Holder
+from soniccontrol.sonicpackage.procedures.holder import Holder
 from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
 
 

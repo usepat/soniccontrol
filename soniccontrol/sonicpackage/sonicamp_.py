@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from typing import Any, Literal, Optional, Union, Iterable, Dict
@@ -7,7 +8,7 @@ from icecream import ic
 from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.commands import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Scriptable
-from soniccontrol.sonicpackage.procedures.script_procedures import Ramper
+from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
@@ -22,6 +23,7 @@ class SonicAmp(Scriptable):
 
     _status: Status = attrs.field()
     _info: Info = attrs.field()
+    _ramp: Optional[Ramper] = attrs.field(init=False, default=None)
 
     @property
     def serial(self) -> SerialCommunicator:
@@ -42,6 +44,9 @@ class SonicAmp(Scriptable):
     @property
     def info(self) -> Info:
         return self._info
+
+    def get_remote_proc_finished_event(self) -> asyncio.Event:
+        return self._status.remote_proc_finished_running
 
     async def disconnect(self) -> None:
         await self.serial.disconnect()
@@ -217,25 +222,4 @@ class SonicAmp(Scriptable):
 
     async def set_aton(self, index: int, time_ms: int) -> str:
         return await self.execute_command(f"!aton{index}=", time_ms)
-
-    async def ramp_freq(
-        self,
-        start: int,
-        stop: int,
-        step: int,
-        hold_on_time: float = 100,
-        hold_on_unit: Literal["ms", "s"] = "ms",
-        hold_off_time: float = 0,
-        hold_off_unit: Literal["ms", "s"] = "ms",
-    ) -> None:
-        # TODO check first if self._commands contains the necessary commands to run the ramp on the device.
-
-        return await Ramper.execute(
-            self,
-            lambda f: self.execute_command("!f=", f),
-            (start, stop, step),
-            (hold_on_time, hold_on_unit),
-            (hold_off_time, hold_off_unit),
-        )
-
 

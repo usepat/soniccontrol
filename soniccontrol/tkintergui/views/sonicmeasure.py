@@ -24,7 +24,7 @@ from soniccontrol.utils.plotlib.plot_builder import PlotBuilder
 
 
 class SonicMeasure(UIComponent):
-    def __init__(self, parent: Optional[UIComponent]):
+    def __init__(self, parent: UIComponent):
         self._capture = Capture()
         super().__init__(parent, SonicMeasureView(parent.view))
 
