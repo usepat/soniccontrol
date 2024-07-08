@@ -10,10 +10,11 @@ Install the right python version locally, so that you can run Soniccontrol. The 
 
 ## Virtual environemt
 
-Open the root folder of soniccontrol with your terminal of choice and initialize a python virtual environment.
+Open the root folder of soniccontrol with your terminal of choice and initialize a python virtual environment.  
+Note that the enviroment will have the same python version as the python interpreter you created it with. So choose a python interpreter with a version >= 3.10
 
 ```
-python -m venv .venv
+python3.10 -m venv .venv
 ```
 
 The -m flag tells, that one is using a *module* of python, ``venv`` on the other hand is the official python virtual environment module. The last ``.venv`` is the name of the created virutal environment. Keep in mind that ``python`` is the python interpreter with the correct version for soniccontrol.
@@ -38,6 +39,14 @@ or
 
 After running the corresponding command, the user should see the terminal reacting somehow and telling that the virtual environment is activated.
 
+In vscode you can also create a .env file with 
+```
+PYTHONPATH=./.venv/bin/python
+```
+This will set the path correctly
+
+For deactivating the venv use `deactivate`
+
 ## Installing Soniccontrol
 
 In the created and activated virutal environment, the follwing command should be executed next.
@@ -52,10 +61,13 @@ pip install -e .
 
 To install development libraries, one should run the following command.
 ```
+pip install -r requirements.txt
 pip install -r requirements_dev.txt
 ```
 
-This command installs all libraries listed in the file ``requirements_dev.txt``, which include libraries for testing and DevOps.
+This command installs all libraries listed in the file ``requirements_dev.txt``, which include libraries for testing and DevOps. The `requirements.txt` is for the necessary dependencies for the release to run.  
+
+You can create a `requirements.txt` with `pip freeze > requirements.txt`
 
 ## Running Soniccontrol
 

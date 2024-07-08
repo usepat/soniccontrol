@@ -1,4 +1,3 @@
-import asyncio
 from typing import Callable, Dict, List
 from async_tkinter_loop import async_handler
 from serial_asyncio import open_serial_connection

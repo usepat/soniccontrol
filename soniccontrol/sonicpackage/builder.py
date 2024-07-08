@@ -1,16 +1,13 @@
-import asyncio
-from typing import *
+from typing import Any, Dict, Tuple
 
 import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.command import Answer
+from soniccontrol.sonicpackage.commands import CommandSet
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.sonicamp_ import (
     Command,
-    CommandSet,
     Info,
-    Modules,
-    SerialCommunicator,
     SonicAmp,
     Status,
 )
