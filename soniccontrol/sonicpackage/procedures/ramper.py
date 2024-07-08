@@ -13,7 +13,7 @@ HoldTuple = Tuple[Union[int, float], Literal["ms", "s"]]
 RampTuple = Tuple[Union[int, float], Union[int, float], Union[float, int]]
 
 
-@attrs.define
+@attrs.define(auto_attribs=True)
 class RamperArgs:
     freq_center: float | int = attrs.field()
     half_range: float | int = attrs.field()

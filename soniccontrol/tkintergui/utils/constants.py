@@ -229,7 +229,6 @@ class _Events:
     SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
     PROPERTY_CHANGE_EVENT: Literal["<<PropertyChange>>"] = "<<PropertyChange>>"
 
-
 events: Final[_Events] = _Events()
 
 
