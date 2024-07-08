@@ -5,6 +5,7 @@ import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.holder import Holder
+from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
 
 
@@ -14,6 +15,7 @@ class SonicParser:
     SUPPORTED_TOKENS: List[str] = [
         "frequency",
         "gain",
+        "ramp_freq_range",
         "ramp_freq",
         # "ramp_gain",
         "on",
@@ -142,21 +144,22 @@ class SonicParser:
 @attrs.define
 class LegacySequencer(Script):
     _sonicamp: Scriptable = attrs.field(repr=False)
+    _proc_controller: ProcedureController = attrs.field()
     _commands: List[Any] = attrs.field(factory=list)
     _original_commands: List[Any] = attrs.field(factory=list)
     _current_line: int = attrs.field(default=0)
-
 
     _current_command: str = attrs.field(init=False, default="")
 
     def __init__(
         self,
         sonicamp: Scriptable,
+        proc_controller: ProcedureController,
         commands: List[Any],
         original_commands: List[Any]
     ) -> None:
         super().__init__()
-        self.__attrs_init__(sonicamp, commands, original_commands)
+        self.__attrs_init__(sonicamp, proc_controller, commands, original_commands)
 
     @property
     def current_line(self) -> int:
@@ -226,8 +229,11 @@ class LegacySequencer(Script):
             case "gain":
                 await self._sonicamp.set_gain(command["argument"])
             case "ramp_freq":
-                self._current_command = str(self._sonicamp.frequency_ramper)
-                await self._sonicamp.ramp_freq(*command["argument"])
+                self._current_command = "ramp_freq"
+                await self._proc_controller.ramp_freq(*command["argument"])
+            case "ramp_freq_range":
+                self._current_command = "ramp_freq"
+                await self._proc_controller.ramp_freq_range(*command["argument"])
             # case "ramp_gain":
             #     self._current_command = self._sonicamp.ramper
             #     await self._sonicamp.ramp_gain(*command["argument"], event=self.running)
@@ -247,6 +253,7 @@ class LegacySequencer(Script):
 class LegacyScriptingFacade(ScriptingFacade):
     def __init__(self, device: Scriptable):
         self._device = device
+        self._proc_controller = ProcedureController(self._device)
         self._parser = SonicParser()
 
     def parse_script(self, text: str) -> LegacySequencer:
@@ -261,7 +268,7 @@ class LegacyScriptingFacade(ScriptingFacade):
         )
         original_commands = copy.deepcopy(commands)
         
-        interpreter = LegacySequencer(self._device, commands=commands, original_commands=original_commands)     
+        interpreter = LegacySequencer(self._device, self._proc_controller, commands=commands, original_commands=original_commands)     
         return interpreter
 
     def lint_text(self, text: str) -> str: ...

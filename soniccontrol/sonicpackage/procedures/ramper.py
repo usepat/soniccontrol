@@ -15,8 +15,8 @@ RampTuple = Tuple[Union[int, float], Union[int, float], Union[float, int]]
 
 @attrs.define
 class RamperArgs:
-    start: float | int = attrs.field()
-    stop: float | int = attrs.field()
+    freq_center: float | int = attrs.field()
+    half_range: float | int = attrs.field()
     step: float | int = attrs.field()
     hold_on: HoldTuple = attrs.field(default=(100, "ms"))
     hold_off: HoldTuple = attrs.field(default=(0, "ms"))
@@ -41,10 +41,9 @@ class RamperLocal(Ramper):
         device: Scriptable,
         args: RamperArgs
     ) -> None:
-        
-        args.step = args.step if args.start < args.stop else - args.step
-        args.stop = args.stop + args.step
-        values = [ args.start + i * args.step for i in range(int((args.stop - args.start) / args.step)) ]
+        start = args.freq_center - args.half_range
+        stop = args.freq_center + args.half_range + args.step # add a step to stop so that stop is inclusive
+        values = [start + i * args.step for i in range(int((stop - start) / args.step)) ]
 
         await device.get_overview()
         await device.execute_command(f"!freq={args.start}")
@@ -84,17 +83,14 @@ class RamperRemote(Ramper):
         device: Scriptable,
         args: RamperArgs
     ) -> None:
-        freq_half_range = (args.stop - args.start) / 2
-        assert(freq_half_range > 0)
-        freq_center = args.start + freq_half_range
         hold_on_ms = args.hold_on[0] if args.hold_on[1] == 'ms' else args.hold_on[0] * 1000
         hold_off_ms = args.hold_off[0] if args.hold_off[1] == 'ms' else args.hold_off[0] * 1000
 
-        await device.execute_command(f"!ramp_range={freq_half_range}")
+        await device.execute_command(f"!ramp_range={args.half_range}")
         await device.execute_command(f"!ramp_step={args.step}")
         await device.execute_command(f"!ramp_ton={hold_on_ms}")
         await device.execute_command(f"!ramp_toff={hold_off_ms}")
         # TODO t_pause is missing
-        await device.execute_command(f"!freq={freq_center}")
+        await device.execute_command(f"!freq={args.freq_center}")
         await device.get_remote_proc_finished_event().wait()
         
