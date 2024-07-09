@@ -228,6 +228,7 @@ class _Events:
     SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
     SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
     PROPERTY_CHANGE_EVENT: Literal["<<PropertyChange>>"] = "<<PropertyChange>>"
+    PROCEDURE_STOPPED: Literal["<<ProcedureStopped>>"] = "<<ProcedureStopped>>"
 
 events: Final[_Events] = _Events()
 

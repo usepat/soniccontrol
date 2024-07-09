@@ -1,12 +1,13 @@
 import abc
 import time
-from typing import List, Literal, Tuple, Union
+from typing import List, Literal, Tuple, Type, Union
 import asyncio
 
 import attrs
 
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.holder import Holder
+from soniccontrol.sonicpackage.procedures.procedure import Procedure
 
 
 HoldTuple = Tuple[Union[int, float], Literal["ms", "s"]]
@@ -21,16 +22,14 @@ class RamperArgs:
     hold_on: HoldTuple = attrs.field(default=(100, "ms"))
     hold_off: HoldTuple = attrs.field(default=(0, "ms"))
 
-class Ramper(abc.ABC):
+class Ramper(Procedure):
     def __init__(self) -> None:
         super().__init__()
 
-    @abc.abstractmethod
-    async def execute(
-        self,
-        device: Scriptable,
-        args: RamperArgs
-    ) -> None: ...
+    @classmethod
+    def get_args_class(cls) -> Type:
+        return RamperArgs
+
 
 class RamperLocal(Ramper):
     def __init__(self) -> None:
@@ -45,11 +44,13 @@ class RamperLocal(Ramper):
         stop = args.freq_center + args.half_range + args.step # add a step to stop so that stop is inclusive
         values = [start + i * args.step for i in range(int((stop - start) / args.step)) ]
 
-        await device.get_overview()
-        await device.execute_command(f"!freq={args.start}")
-        await device.set_signal_on()
-        await self._ramp(device, list(values), args.hold_on, args.hold_off)
-        await device.set_signal_off()
+        try:
+            await device.get_overview()
+            await device.execute_command(f"!freq={args.start}")
+            await device.set_signal_on()
+            await self._ramp(device, list(values), args.hold_on, args.hold_off)
+        finally:
+            await device.set_signal_off()
 
     async def _ramp(
         self,
@@ -83,14 +84,19 @@ class RamperRemote(Ramper):
         device: Scriptable,
         args: RamperArgs
     ) -> None:
-        hold_on_ms = args.hold_on[0] if args.hold_on[1] == 'ms' else args.hold_on[0] * 1000
-        hold_off_ms = args.hold_off[0] if args.hold_off[1] == 'ms' else args.hold_off[0] * 1000
+        try:
+            hold_on_ms = args.hold_on[0] if args.hold_on[1] == 'ms' else args.hold_on[0] * 1000
+            hold_off_ms = args.hold_off[0] if args.hold_off[1] == 'ms' else args.hold_off[0] * 1000
 
-        await device.execute_command(f"!ramp_range={args.half_range}")
-        await device.execute_command(f"!ramp_step={args.step}")
-        await device.execute_command(f"!ramp_ton={hold_on_ms}")
-        await device.execute_command(f"!ramp_toff={hold_off_ms}")
-        # TODO t_pause is missing
-        await device.execute_command(f"!freq={args.freq_center}")
-        await device.get_remote_proc_finished_event().wait()
+            await device.execute_command(f"!ramp_range={args.half_range}")
+            await device.execute_command(f"!ramp_step={args.step}")
+            await device.execute_command(f"!ramp_ton={hold_on_ms}")
+            await device.execute_command(f"!ramp_toff={hold_off_ms}")
+            # TODO t_pause is missing
+            await device.execute_command(f"!freq={args.freq_center}")
+        except asyncio.CancelledError:
+            await device.execute_command("!stop")
+        finally:
+            await device.get_remote_proc_finished_event().wait()
+
         
