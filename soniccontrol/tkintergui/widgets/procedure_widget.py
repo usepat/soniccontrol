@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Type, Union
 
 import attrs
 from soniccontrol.interfaces.ui_component import UIComponent
@@ -83,7 +83,7 @@ This class holds only information about the procedure args.
 It cannot start or stop procedures. This is done by the ProcedureController class
 """
 class ProcedureWidget(UIComponent):
-    def __init__(self, parent: UIComponent, parent_view: View, procedure_name: str, proc_args_class: any):
+    def __init__(self, parent: UIComponent, parent_view: View, procedure_name: str, proc_args_class: Type):
         self._proc_args_class = proc_args_class
         self._fields: List[Union[TimeFieldView, FloatFieldView]] = []
         self._procedure_name = procedure_name
@@ -102,11 +102,11 @@ class ProcedureWidget(UIComponent):
                 raise TypeError(f"The field with name {field_name} has the type {field.type}, which is not supported")
         self._view._initialize_publish()
 
-    def _get_args(self) -> Dict[str, Any]:
+    def get_args(self) -> Any:
         dict_args: Dict[str, Any] = {}
         for field in self._fields:
             dict_args[field.field_name] = field.value
-        return dict_args
+        return self._proc_args_class(**dict_args)
         
 class ProcedureWidgetView(View):
     def __init__(self, master: ttk.Frame | View, *args, **kwargs):

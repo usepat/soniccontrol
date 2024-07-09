@@ -200,7 +200,8 @@ class _UIStringsEN:
     HOME_HELP_OFF: Final[str] = "Here should be a description of the off entry."
     START_CAPTURE: Final[str] = "Start Capture"
     END_CAPTURE: Final[str] = "End Capture"
-
+    PROC_RUNNING: Final[str] = "Procedure [{}] is running..."
+    PROC_NOT_RUNNING: Final[str] = "No Procedure running"
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 
@@ -228,6 +229,7 @@ class _Events:
     SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
     SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
     PROPERTY_CHANGE_EVENT: Literal["<<PropertyChange>>"] = "<<PropertyChange>>"
+    PROCEDURE_RUNNING: Literal["<<ProcedureRunning>>"] = "<<ProcedureRunning>>"
     PROCEDURE_STOPPED: Literal["<<ProcedureStopped>>"] = "<<ProcedureStopped>>"
 
 events: Final[_Events] = _Events()

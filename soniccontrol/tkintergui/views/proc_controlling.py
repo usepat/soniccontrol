@@ -1,11 +1,14 @@
 from typing import Callable, Dict, List
+
+from async_tkinter_loop import async_handler
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import View
-from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
+from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
 
 import ttkbootstrap as ttk
 
-from soniccontrol.tkintergui.utils.constants import ui_labels
+from soniccontrol.tkintergui.utils.constants import events, ui_labels
+from soniccontrol.tkintergui.utils.events import Event
 from soniccontrol.tkintergui.widgets.procedure_widget import ProcedureWidget
 
 
@@ -13,24 +16,45 @@ class ProcControlling(UIComponent):
     def __init__(self, parent: UIComponent, proc_controller: ProcedureController):
         self._proc_controller = proc_controller
         self._view = ProcControllingView(parent.view)
-        self._proc_widgets: Dict[str, ProcedureWidget] = []
+        self._proc_widgets: Dict[ProcedureType, ProcedureWidget] = {}
         super().__init__(parent, self._view)
         self._add_proc_widgets()
+        self._view.set_procedure_selected_command(self._on_proc_selected)
+        self._view.set_start_button_command(self._on_run_pressed)
+        self._view.set_stop_button_command(self._on_stop_pressed)
+        self._proc_controller.subscribe(events.PROCEDURE_RUNNING, self.on_procedure_running)
+        self._proc_controller.subscribe(events.PROCEDURE_STOPPED, self.on_procedure_stopped)
 
     def _add_proc_widgets(self):
-        pass
+        for proc_type, args_class in self._proc_controller.proc_args_list.items():
+            proc_widget = ProcedureWidget(self, self._view.procedure_frame, repr(proc_type), args_class)
+            proc_widget.view.hide()
+            self._proc_widgets[proc_type] = proc_widget
 
     def _on_proc_selected(self):
-        pass
+        for proc_widget in self._proc_widgets.values():
+            proc_widget.view.hide()
+        proc_type = ProcedureType(self._view.selected_procedure)
+        self._proc_widgets[proc_type].view.show()
 
     def _on_run_pressed(self):
-        pass
+        proc_type = ProcedureType(self._view.selected_procedure)
+        proc_args = self._proc_widgets[proc_type].get_args()
+        self._proc_controller.execute_proc(proc_type, proc_args)
 
-    def _on_stop_pressed(self):
-        pass
+    @async_handler
+    async def _on_stop_pressed(self):
+        await self._proc_controller.stop_proc()
 
-    def on_procedure_stopped(self):
-        pass
+    def on_procedure_running(self, e: Event):
+        self._view.set_running_proc_label(ui_labels.PROC_RUNNING.format(e.data["proc_type"]))
+        self._view.set_start_button_enabled(False)
+        self._view.set_stop_button_enabled(True)
+
+    def on_procedure_stopped(self, _e: Event):
+        self._view.set_running_proc_label(ui_labels.PROC_NOT_RUNNING)
+        self._view.set_start_button_enabled(True)
+        self._view.set_stop_button_enabled(False)
 
 class ProcControllingView(View):
     def __init__(self, master: ttk.Frame | View, *args, **kwargs):
@@ -57,13 +81,17 @@ class ProcControllingView(View):
         self._stop_button.pack(side=ttk.LEFT, padx=5)
         self._running_proc_label.pack(side=ttk.LEFT, fill=ttk.X, expand=True, padx=5)
 
-    def set_running_proc_label(self, text: str) -> None:
-        self._running_proc_label.configure(text=text)
+    @property
+    def procedure_frame(self) -> ttk.Frame:
+        return self._procedure_widget_frame
 
     @property
     def selected_procedure(self) -> str:
         return self._selected_procedure_var.get()
     
+    def set_running_proc_label(self, text: str) -> None:
+        self._running_proc_label.configure(text=text)
+
     def set_procedure_selected_command(self, command: Callable[[], None]) -> None:
         self._procedure_combobox.bind("<<ComboboxSelected>>", lambda _: command())
 
@@ -72,3 +100,9 @@ class ProcControllingView(View):
 
     def set_stop_button_command(self, command: Callable[[], None]) -> None:
         self._stop_button.configure(command=command)
+
+    def set_start_button_enabled(self, enabled: bool) -> None:
+        self._start_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
+
+    def set_stop_button_enabled(self, enabled: bool) -> None:
+        self._stop_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
