@@ -5,6 +5,7 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import View
 
 import ttkbootstrap as ttk
+from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol.sonicpackage.procedures.ramper import HoldTuple
 from soniccontrol.tkintergui.utils.events import Event
@@ -79,7 +80,7 @@ class TimeFieldView(View):
 
 """
 This class holds only information about the procedure args.
-It cannot 
+It cannot start or stop procedures. This is done by the ProcedureController class
 """
 class ProcedureWidget(UIComponent):
     def __init__(self, parent: UIComponent, parent_view: View, procedure_name: str, proc_args_class: any):
@@ -112,15 +113,29 @@ class ProcedureWidgetView(View):
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
-        pass
+        self.title_frame = ttk.Frame(self.root)
+        self.procedure_title = ttk.StringVar()
+        self.procedure_label = ttk.Label(self.title_frame, textvariable=self.procedure_title, font=("Arial", 16))
+        self.scrolled_frame = ScrolledFrame(self.content_frame)
 
     def _initialize_publish(self) -> None:
-        pass
+        self.title_frame.pack(fill=ttk.X, pady=10)
+        self.procedure_label.pack()
+        self.scrolled_frame.pack(fill=ttk.BOTH, pady=10, expand=True)
+
+        for i, child in enumerate(self.scrolled_frame.children.values()):
+            child.grid(row=i, column=0, padx=5, pady=5, sticky=ttk.EW)
 
     @property
     def field_slot(self) -> ttk.Frame:
-        pass
-    
+        return self.scrolled_content
+
     def set_procedure_name(self, procedure_name: str) -> None:
-        pass
+        self.procedure_title.set(procedure_name)
+
+    def show(self) -> None:
+        self.pack(expand=True, fill=ttk.BOTH)
+
+    def hide(self) -> None:
+        self.pack_forget()
 

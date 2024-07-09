@@ -1,8 +1,12 @@
+from enum import Enum
 from typing import Literal, Optional
 from soniccontrol.sonicpackage.procedures.procedure_instantiator import ProcedureInstantiator
 from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 
+
+class ProcedureType(Enum):
+    RAMP = "Ramp"
 
 class ProcedureController:
     def __init__(self, device: SonicAmp):
@@ -48,13 +52,10 @@ class ProcedureController:
         freq_center = start + half_range
         assert(half_range > 0)
 
-        return await self._ramp.execute(
-            self._device,
-            RamperArgs(
-                freq_center, 
-                half_range, 
-                step,
-                (hold_on_time, hold_on_unit),
-                (hold_off_time, hold_off_unit)
-            )
+        return await self.ramp_freq(
+            freq_center, 
+            half_range, 
+            step,
+            hold_on_time, hold_on_unit,
+            hold_off_time, hold_off_unit
         )
