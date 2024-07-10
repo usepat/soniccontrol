@@ -326,7 +326,7 @@ class Command(Sendable):
     answer: Answer = attrs.field(init=False, factory=Answer)
     _byte_message: bytes = attrs.field(init=False)
     _status_result: Dict[str, Any] = attrs.field(init=False, factory=dict)
-    _serial_communication: Optional[Communicator] = attrs.field()
+    _serial_communication: Optional[Communicator] = attrs.field(default=None)
 
     def __attrs_post_init__(self) -> None:
         if not isinstance(self._validators, (tuple, list, set, Generator)):

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 import attrs
 from soniccontrol.interfaces.ui_component import UIComponent
@@ -7,8 +7,7 @@ from soniccontrol.interfaces.view import View
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 
-from soniccontrol.sonicpackage.procedures.ramper import HoldTuple
-from soniccontrol.tkintergui.utils.events import Event
+from soniccontrol.sonicpackage.procedures.holder import HoldTuple, HolderArgs
 
 class FloatFieldView(View):
     def __init__(self, master: ttk.Frame | View, field_name: str, *args, default_value: float = 0., **kwargs):
@@ -39,10 +38,10 @@ class FloatFieldView(View):
         self._value.set(v)
 
 class TimeFieldView(View):
-    def __init__(self, master: ttk.Frame | View, field_name: str, *args, default_value: HoldTuple = (0., "ms"), **kwargs):
+    def __init__(self, master: ttk.Frame | View, field_name: str, *args, time: float | int = 0., unit = "ms", **kwargs):
         self._field_name = field_name
-        self._time_value: ttk.DoubleVar = ttk.DoubleVar(value=default_value[0])
-        self._unit_value: ttk.StringVar = ttk.StringVar(value=default_value[1])
+        self._time_value: ttk.DoubleVar = ttk.DoubleVar(value=time)
+        self._unit_value: ttk.StringVar = ttk.StringVar(value=unit)
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
@@ -96,42 +95,59 @@ class ProcedureWidget(UIComponent):
         for field_name, field in attrs.fields_dict(self._proc_args_class).items():
             if field.type == int | float:
                 self._fields.append(FloatFieldView(self._view.field_slot, field_name))
-            elif field.type == HoldTuple:
+            elif field.type == HolderArgs:
                 self._fields.append(TimeFieldView(self._view.field_slot, field_name))
             else:
                 raise TypeError(f"The field with name {field_name} has the type {field.type}, which is not supported")
         self._view._initialize_publish()
 
-    def get_args(self) -> Any:
+    def get_args(self) -> Optional[Any]:
         dict_args: Dict[str, Any] = {}
         for field in self._fields:
             dict_args[field.field_name] = field.value
-        return self._proc_args_class(**dict_args)
+        try:
+            args = self._proc_args_class(**dict_args)
+        except ValueError as e:
+            self._view.set_error_message(str(e))
+            return None
+        else:
+            self._view.set_error_message(None)
+            return args
+        
+        
         
 class ProcedureWidgetView(View):
     def __init__(self, master: ttk.Frame | View, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
-        self.title_frame = ttk.Frame(self)
-        self.procedure_title = ttk.StringVar()
-        self.procedure_label = ttk.Label(self.title_frame, textvariable=self.procedure_title, font=("Arial", 16))
-        self.scrolled_frame = ScrolledFrame(self)
+        self._title_frame = ttk.Frame(self)
+        self._procedure_title = ttk.StringVar()
+        self._procedure_label = ttk.Label(self._title_frame, textvariable=self._procedure_title, font=("Arial", 16))
+        self._scrolled_frame = ScrolledFrame(self)
+        self._error_label = ttk.Label(self)
 
     def _initialize_publish(self) -> None:
-        self.title_frame.pack(fill=ttk.X, pady=10)
-        self.procedure_label.pack()
-        self.scrolled_frame.pack(fill=ttk.BOTH, pady=10, expand=True)
+        self._title_frame.pack(fill=ttk.X, pady=10)
+        self._procedure_label.pack()
+        self._scrolled_frame.pack(fill=ttk.BOTH, pady=10, expand=True)
 
-        for i, child in enumerate(self.scrolled_frame.children.values()):
+        for i, child in enumerate(self._scrolled_frame.children.values()):
             child.grid(row=i, column=0, padx=5, pady=5, sticky=ttk.EW)
 
     @property
     def field_slot(self) -> ttk.Frame:
-        return self.scrolled_frame
+        return self._scrolled_frame
 
     def set_procedure_name(self, procedure_name: str) -> None:
-        self.procedure_title.set(procedure_name)
+        self._procedure_title.set(procedure_name)
+
+    def set_error_message(self, error_msg: Optional[str] = None) -> None:
+        if error_msg:
+            self._error_label.pack(fill=ttk.X, pady=10)
+            self._error_label.configure(text=error_msg)
+        else:
+            self._error_label.pack_forget()
 
     def show(self) -> None:
         self.pack(expand=True, fill=ttk.BOTH)

@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any, Dict, Literal, Optional, Type
 import asyncio
 
+from soniccontrol.sonicpackage.procedures.holder import HolderArgs
 from soniccontrol.sonicpackage.procedures.procedure import Procedure
 from soniccontrol.sonicpackage.procedures.procedure_instantiator import ProcedureInstantiator
 from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
@@ -50,7 +51,7 @@ class ProcedureController(EventManager):
             raise Exception(f"There is already a procedure running")
         self._running_proc_type = proc_type
         self._running_proc_task = asyncio.create_task(procedure.execute(self._device, args))
-        self._running_proc_task.add_done_callback(self._on_proc_finished)
+        self._running_proc_task.add_done_callback(lambda _e: self._on_proc_finished())
 
     async def stop_proc(self) -> None:
         if self._running_proc_task: 
@@ -62,6 +63,7 @@ class ProcedureController(EventManager):
         self._running_proc_type = None
         self.emit(Event(events.PROCEDURE_STOPPED))
 
+    # TODO: change this to use RamperArgs
     async def ramp_freq(
         self,
         freq_center: int,
@@ -81,8 +83,8 @@ class ProcedureController(EventManager):
                 freq_center, 
                 half_range,
                 step,
-                (hold_on_time, hold_on_unit),
-                (hold_off_time, hold_off_unit)
+                HolderArgs(hold_on_time, hold_on_unit),
+                HolderArgs(hold_off_time, hold_off_unit)
             )
         )
     

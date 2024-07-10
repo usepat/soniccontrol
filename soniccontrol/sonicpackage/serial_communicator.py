@@ -10,7 +10,7 @@ from icecream import ic
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.package_parser import PackageParser, Package
-from soniccontrol.sonicpackage.sonicprotocol import SonicProtocol
+from soniccontrol.sonicpackage.sonicprotocol import CommunicationProtocol, SonicProtocol
 from soniccontrol.utils.system import PLATFORM
 
 

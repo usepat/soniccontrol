@@ -1,26 +1,40 @@
-import abc
-import time
 from typing import List, Literal, Tuple, Type, Union
 import asyncio
 
 import attrs
+from attrs import validators
 
 from soniccontrol.sonicpackage.interfaces import Scriptable
-from soniccontrol.sonicpackage.procedures.holder import Holder
+from soniccontrol.sonicpackage.procedures.holder import Holder, HolderArgs, convert_to_holder_args
 from soniccontrol.sonicpackage.procedures.procedure import Procedure
-
-
-HoldTuple = Tuple[Union[int, float], Literal["ms", "s"]]
-RampTuple = Tuple[Union[int, float], Union[int, float], Union[float, int]]
 
 
 @attrs.define(auto_attribs=True)
 class RamperArgs:
-    freq_center: float | int = attrs.field()
-    half_range: float | int = attrs.field()
-    step: float | int = attrs.field()
-    hold_on: HoldTuple = attrs.field(default=(100, "ms"))
-    hold_off: HoldTuple = attrs.field(default=(0, "ms"))
+    freq_center: float | int = attrs.field(validator=[
+        validators.instance_of(float | int),
+        validators.ge(0),
+        validators.le(1000000)
+    ])
+    half_range: float | int = attrs.field(validator=[
+        validators.instance_of(float | int),
+        validators.ge(0),
+        validators.le(1000000)
+    ])
+    step: float | int = attrs.field(validator=[
+        validators.instance_of(float | int),
+        validators.ge(10),
+        validators.le(100000)
+    ])
+    hold_on: HolderArgs = attrs.field(
+        default=HolderArgs(100, "ms"), 
+        converter=convert_to_holder_args
+    )
+    hold_off: HolderArgs = attrs.field(
+        default=HolderArgs(0, "ms"),
+        converter=convert_to_holder_args
+    )
+
 
 class Ramper(Procedure):
     def __init__(self) -> None:
@@ -46,8 +60,9 @@ class RamperLocal(Ramper):
 
         try:
             await device.get_overview()
-            await device.execute_command(f"!freq={args.start}")
-            await device.set_signal_on()
+            # Do we need those two lines?
+            # await device.execute_command(f"!freq={start}")
+            # await device.set_signal_on()
             await self._ramp(device, list(values), args.hold_on, args.hold_off)
         finally:
             await device.set_signal_off()
@@ -56,8 +71,8 @@ class RamperLocal(Ramper):
         self,
         device: Scriptable,
         values: List[Union[int, float]],
-        hold_on: HoldTuple,
-        hold_off: HoldTuple,
+        hold_on: HolderArgs,
+        hold_off: HolderArgs,
     ) -> None:
         i: int = 0
         while i < len(values):
@@ -66,11 +81,11 @@ class RamperLocal(Ramper):
             await device.execute_command(f"!freq={value}")
             if hold_off[0]:
                 await device.set_signal_on()
-            await Holder.execute(*hold_on)
+            await Holder.execute(hold_on)
 
             if hold_off[0]:
                 await device.set_signal_off()
-                await Holder.execute(*hold_off)
+                await Holder.execute(hold_off)
 
             i += 1
 
@@ -85,8 +100,8 @@ class RamperRemote(Ramper):
         args: RamperArgs
     ) -> None:
         try:
-            hold_on_ms = args.hold_on[0] if args.hold_on[1] == 'ms' else args.hold_on[0] * 1000
-            hold_off_ms = args.hold_off[0] if args.hold_off[1] == 'ms' else args.hold_off[0] * 1000
+            hold_on_ms = args.hold_on.duration if args.hold_on.unit == 'ms' else args.hold_on.duration * 1000
+            hold_off_ms = args.hold_off.duration if args.hold_off.unit == 'ms' else args.hold_off.duration * 1000
 
             await device.execute_command(f"!ramp_range={args.half_range}")
             await device.execute_command(f"!ramp_step={args.step}")

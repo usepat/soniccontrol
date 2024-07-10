@@ -1,6 +1,7 @@
-from typing import Callable, Dict
+from typing import Callable, Dict, Iterable
 
 from async_tkinter_loop import async_handler
+from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView, View
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
@@ -29,9 +30,11 @@ class ProcControlling(UIComponent):
 
     def _add_proc_widgets(self):
         for proc_type, args_class in self._proc_controller.proc_args_list.items():
-            proc_widget = ProcedureWidget(self, self._view.procedure_frame, repr(proc_type), args_class)
+            proc_widget = ProcedureWidget(self, self._view.procedure_frame, proc_type.value, args_class)
             proc_widget.view.hide()
             self._proc_widgets[proc_type] = proc_widget
+        proc_names = map(lambda proc_type: proc_type.value, self._proc_controller.proc_args_list.keys())
+        self._view.set_procedure_combobox_items(proc_names)
 
     def _on_proc_selected(self):
         for proc_widget in self._proc_widgets.values():
@@ -42,7 +45,11 @@ class ProcControlling(UIComponent):
     def _on_run_pressed(self):
         proc_type = ProcedureType(self._view.selected_procedure)
         proc_args = self._proc_widgets[proc_type].get_args()
-        self._proc_controller.execute_proc(proc_type, proc_args)
+        if proc_args is not None:
+            try:
+                self._proc_controller.execute_proc(proc_type, proc_args)
+            except Exception as e:
+                Messagebox.show_error(str(e))
 
     @async_handler
     async def _on_stop_pressed(self):
@@ -101,6 +108,9 @@ class ProcControllingView(TabView):
     
     def set_running_proc_label(self, text: str) -> None:
         self._running_proc_label.configure(text=text)
+
+    def set_procedure_combobox_items(self, items: Iterable[str]) -> None:
+        self._procedure_combobox["values"] = list(items)
 
     def set_procedure_selected_command(self, command: Callable[[], None]) -> None:
         self._procedure_combobox.bind("<<ComboboxSelected>>", lambda _: command())

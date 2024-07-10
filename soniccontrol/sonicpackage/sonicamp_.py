@@ -97,11 +97,11 @@ class SonicAmp(Scriptable):
     async def send_message(self, message: str = "", argument: Any = "") -> str:
         return (
             await Command(
-                _serial_communication=self._serial,
-                message=message,
-                argument=argument,
+                message=message,  
+                argument=argument,  
                 estimated_response_time=0.4,
                 expects_long_answer=True,
+                serial_communication=self._serial
             ).execute()
         )[0].string
 
