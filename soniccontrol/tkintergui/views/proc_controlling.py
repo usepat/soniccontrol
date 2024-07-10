@@ -1,15 +1,17 @@
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 
 from async_tkinter_loop import async_handler
 from soniccontrol.interfaces.ui_component import UIComponent
-from soniccontrol.interfaces.view import View
+from soniccontrol.interfaces.view import TabView, View
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
 
 import ttkbootstrap as ttk
 
-from soniccontrol.tkintergui.utils.constants import events, ui_labels
+from soniccontrol.tkintergui.utils.constants import events, sizes, ui_labels
 from soniccontrol.tkintergui.utils.events import Event
+from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.procedure_widget import ProcedureWidget
+from soniccontrol.utils.files import images
 
 
 class ProcControlling(UIComponent):
@@ -56,10 +58,18 @@ class ProcControlling(UIComponent):
         self._view.set_start_button_enabled(True)
         self._view.set_stop_button_enabled(False)
 
-class ProcControllingView(View):
+class ProcControllingView(TabView):
     def __init__(self, master: ttk.Frame | View, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
 
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return ImageLoader.load_image(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
+
+    @property
+    def tab_title(self) -> str:
+        return ui_labels.SERIAL_MONITOR_LABEL
+    
     def _initialize_children(self) -> None:
         self._selected_procedure_var = ttk.StringVar()
         self._procedure_combobox = ttk.Combobox(self, textvariable=self._selected_procedure_var)
@@ -69,8 +79,8 @@ class ProcControllingView(View):
 
         # Control buttons
         self._controls_frame = ttk.Frame(self)
-        self._start_button = ttk.Button(self._controls_frame, text=ui_labels.START_LABEL, command=self.start_procedure)
-        self._stop_button = ttk.Button(self._controls_frame, text=ui_labels.STOP_LABEL, command=self.stop_procedure)
+        self._start_button = ttk.Button(self._controls_frame, text=ui_labels.START_LABEL)
+        self._stop_button = ttk.Button(self._controls_frame, text=ui_labels.STOP_LABEL)
         self._running_proc_label = ttk.Label(self._controls_frame, text="Status: Not running")
 
     def _initialize_publish(self) -> None:

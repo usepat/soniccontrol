@@ -1,6 +1,6 @@
 
 
-from collections import abc
+import abc
 from typing import Any, Type
 
 from soniccontrol.sonicpackage.interfaces import Scriptable

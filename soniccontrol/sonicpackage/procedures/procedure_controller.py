@@ -15,6 +15,7 @@ class ProcedureType(Enum):
 
 class ProcedureController(EventManager):
     def __init__(self, device: SonicAmp):
+        super().__init__()
         self._device = device
         proc_instantiator = ProcedureInstantiator()
         self._ramp: Optional[Ramper] = proc_instantiator.instantiate_ramp(self._device)

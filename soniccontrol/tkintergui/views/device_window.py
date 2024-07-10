@@ -4,6 +4,7 @@ import tkinter as tk
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
+from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import Logger
 from soniccontrol.state_updater.updater import Updater
@@ -13,6 +14,7 @@ from soniccontrol.tkintergui.views.flashing import Flashing
 from soniccontrol.tkintergui.views.info import Info
 from soniccontrol.tkintergui.views.logging import Logging
 from soniccontrol.tkintergui.views.editor import Editor
+from soniccontrol.tkintergui.views.proc_controlling import ProcControlling
 from soniccontrol.tkintergui.views.serialmonitor import SerialMonitor
 from soniccontrol.tkintergui.views.sonicmeasure import SonicMeasure
 from soniccontrol.tkintergui.views.status import StatusBar
@@ -27,6 +29,7 @@ class DeviceWindow(UIComponent):
 
         self._updater = Updater(self._device)
         self._logger = logger
+        self._proc_controller = ProcedureController(self._device)
 
         self._sonicmeasure = SonicMeasure(self)
         self._serialmonitor = SerialMonitor(self, self._device)
@@ -36,6 +39,7 @@ class DeviceWindow(UIComponent):
         self._info = Info(self)
         self._configuration = Configuration(self, self._device)
         self._flashing = Flashing(self, self._device)
+        self._proc_controlling = ProcControlling(self, self._proc_controller)
 
         self._view.add_tab_views([
             self._sonicmeasure.view, 
@@ -44,7 +48,8 @@ class DeviceWindow(UIComponent):
             self._editor.view, 
             self._info.view,
             self._configuration.view, 
-            self._flashing.view
+            self._flashing.view,
+            self._proc_controlling.view
         ])
         self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
         self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))

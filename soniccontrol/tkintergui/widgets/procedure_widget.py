@@ -94,9 +94,9 @@ class ProcedureWidget(UIComponent):
 
     def _add_fields_to_widget(self):
         for field_name, field in attrs.fields_dict(self._proc_args_class).items():
-            if field.type is int or field.type is float:
+            if field.type == int | float:
                 self._fields.append(FloatFieldView(self._view.field_slot, field_name))
-            elif field.type is HoldTuple:
+            elif field.type == HoldTuple:
                 self._fields.append(TimeFieldView(self._view.field_slot, field_name))
             else:
                 raise TypeError(f"The field with name {field_name} has the type {field.type}, which is not supported")
@@ -113,10 +113,10 @@ class ProcedureWidgetView(View):
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
-        self.title_frame = ttk.Frame(self.root)
+        self.title_frame = ttk.Frame(self)
         self.procedure_title = ttk.StringVar()
         self.procedure_label = ttk.Label(self.title_frame, textvariable=self.procedure_title, font=("Arial", 16))
-        self.scrolled_frame = ScrolledFrame(self.content_frame)
+        self.scrolled_frame = ScrolledFrame(self)
 
     def _initialize_publish(self) -> None:
         self.title_frame.pack(fill=ttk.X, pady=10)
@@ -128,7 +128,7 @@ class ProcedureWidgetView(View):
 
     @property
     def field_slot(self) -> ttk.Frame:
-        return self.scrolled_content
+        return self.scrolled_frame
 
     def set_procedure_name(self, procedure_name: str) -> None:
         self.procedure_title.set(procedure_name)
