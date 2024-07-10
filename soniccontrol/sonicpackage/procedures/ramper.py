@@ -79,11 +79,11 @@ class RamperLocal(Ramper):
             value = values[i]
 
             await device.execute_command(f"!freq={value}")
-            if hold_off[0]:
+            if hold_off.duration:
                 await device.set_signal_on()
             await Holder.execute(hold_on)
 
-            if hold_off[0]:
+            if hold_off.duration:
                 await device.set_signal_off()
                 await Holder.execute(hold_off)
 

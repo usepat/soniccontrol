@@ -157,7 +157,6 @@ class CommandValidator:
         keyword_iter = iter(keywords)
         try:
             segments = re.split(r"(\(.*?\))", pattern)
-            ic(segments)
             processed = "".join(
                 (
                     f"(?P<{next(keyword_iter)}>{segment[1:-1]})"
@@ -169,7 +168,6 @@ class CommandValidator:
             )
         except StopIteration:
             pass
-        ic(processed)
         return processed
 
     def accepts(self, data: str) -> bool:
@@ -326,7 +324,7 @@ class Command(Sendable):
     answer: Answer = attrs.field(init=False, factory=Answer)
     _byte_message: bytes = attrs.field(init=False)
     _status_result: Dict[str, Any] = attrs.field(init=False, factory=dict)
-    _serial_communication: Optional[Communicator] = attrs.field(default=None)
+    serial_communication: Optional[Communicator] = attrs.field(default=None)
 
     def __attrs_post_init__(self) -> None:
         if not isinstance(self._validators, (tuple, list, set, Generator)):
@@ -407,13 +405,13 @@ class Command(Sendable):
         This method resets the answer, sets the argument if provided, and sends the command asynchronously using the specified connection.
         It then validates the answer and updates the status result with the received timestamp. Finally, it returns a tuple containing the answer and the status result.
         """
-        if self._serial_communication is None:
+        if self.serial_communication is None:
             raise ValueError(
-                f"The serial communication reference is not viable. {self._serial_communication = } {type(self._serial_communication) = }"
+                f"The serial communication reference is not viable. {self.serial_communication = } {type(self.serial_communication) = }"
             )
 
         if not connection:
-            connection = self._serial_communication
+            connection = self.serial_communication
 
         self.answer.reset()
         if argument is not None:

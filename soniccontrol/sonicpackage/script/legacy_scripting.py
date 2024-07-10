@@ -7,6 +7,7 @@ from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.holder import Holder
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
+from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 
 
 
@@ -42,7 +43,6 @@ class SonicParser:
             "loops": loops,
             "comments": comment,
         }
-        ic(return_dict)
         return return_dict
 
     def values_correctly_converted(
@@ -141,9 +141,9 @@ class SonicParser:
             raise ValueError("One or more commands are illegal or written wrong")
 
 
-@attrs.define
+@attrs.define()
 class LegacySequencer(Script):
-    _sonicamp: Scriptable = attrs.field(repr=False)
+    _sonicamp: SonicAmp = attrs.field(repr=False)
     _proc_controller: ProcedureController = attrs.field()
     _commands: List[Any] = attrs.field(factory=list)
     _original_commands: List[Any] = attrs.field(factory=list)
@@ -153,7 +153,7 @@ class LegacySequencer(Script):
 
     def __init__(
         self,
-        sonicamp: Scriptable,
+        sonicamp: SonicAmp,
         proc_controller: ProcedureController,
         commands: List[Any],
         original_commands: List[Any]
@@ -251,7 +251,7 @@ class LegacySequencer(Script):
 
 
 class LegacyScriptingFacade(ScriptingFacade):
-    def __init__(self, device: Scriptable):
+    def __init__(self, device: SonicAmp):
         self._device = device
         self._proc_controller = ProcedureController(self._device)
         self._parser = SonicParser()

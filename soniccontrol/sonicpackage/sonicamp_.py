@@ -138,7 +138,7 @@ class SonicAmp(Scriptable):
         try:
             message = message if isinstance(message, str) else message.message
             if message not in self._commands.keys():
-                ic("Command not found in commands of sonicamp", message, self)
+                ic("Command not found in commands of sonicamp", message)
                 ic("Executing message as a new Command...")
                 return await self.send_message(message=message, argument=argument)
             command: Command = self._commands[message]

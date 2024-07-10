@@ -1,10 +1,12 @@
 
 import asyncio
 import time
-from typing import Any, Literal, Tuple, Union
+from typing import Any, Literal, Tuple, Union, cast
 
 import attrs
 from attrs import validators
+
+TimeUnit = Literal["ms", "s"]
 
 @attrs.define(auto_attribs=True)
 class HolderArgs:
@@ -12,11 +14,12 @@ class HolderArgs:
         validators.instance_of(float | int),
         validators.ge(0)
     ])
-    unit: Literal["ms", "s"] = attrs.field(default="s", validator=[
-        validators.in_(["ms", "s"])
-    ])
+    unit: TimeUnit = cast(
+        TimeUnit, 
+        attrs.field(factory=lambda: str("ms"), validator=[validators.in_(["ms", "s"])])
+    )
 
-HoldTuple = Tuple[Union[int, float], Literal["ms", "s"]]
+HoldTuple = Tuple[Union[int, float], TimeUnit]
 def convert_to_holder_args(obj: Any) -> HolderArgs:
     if isinstance(obj, tuple) and len(obj) == 2:
         return HolderArgs(*obj)
