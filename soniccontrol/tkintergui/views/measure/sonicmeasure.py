@@ -12,14 +12,14 @@ from soniccontrol.sonicpackage.amp_data import Status
 from soniccontrol.state_updater.capture import Capture
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.events import EventManager
-from soniccontrol.tkintergui.views.csv_table import CsvTable
+from soniccontrol.tkintergui.views.measure.csv_table import CsvTable
 matplotlib.use("TkAgg")
 
 from soniccontrol.state_updater.data_provider import DataProvider
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
-from soniccontrol.tkintergui.views.plotting import Plotting
+from soniccontrol.tkintergui.views.measure.plotting import Plotting
 from soniccontrol.utils.plotlib.plot_builder import PlotBuilder
 
 

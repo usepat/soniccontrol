@@ -9,11 +9,11 @@ from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.home import HomeView
 from soniccontrol.tkintergui.views.info import InfoView
-from soniccontrol.tkintergui.views.editor import EditorView
-from soniccontrol.tkintergui.views.serialmonitor import SerialMonitorView
+from soniccontrol.tkintergui.views.control.editor import EditorView
+from soniccontrol.tkintergui.views.control.serialmonitor import SerialMonitorView
 from soniccontrol.tkintergui.views.settings import SettingsView
-from soniccontrol.tkintergui.views.sonicmeasure import SonicMeasureView
-from soniccontrol.tkintergui.views.status import StatusBar
+from soniccontrol.tkintergui.views.measure.sonicmeasure import SonicMeasureView
+from soniccontrol.tkintergui.views.core.status import StatusBar
 from soniccontrol.tkintergui.widgets.notebook import Notebook
 from soniccontrol.tkintergui.utils.events import Event, PropertyChangeEvent
 

@@ -1,5 +1,5 @@
 import matplotlib.figure
-from soniccontrol.tkintergui.views.plotting import PlotView, PlotViewModel
+from soniccontrol.tkintergui.views.measure.plotting import PlotView, PlotViewModel
 from soniccontrol.utils.plotlib.plot import Plot
 from soniccontrol.utils.plotlib.plot_builder import PlotBuilder 
 

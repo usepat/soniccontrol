@@ -15,7 +15,7 @@ from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import Logger
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
-from soniccontrol.tkintergui.views.device_window import DeviceWindow
+from soniccontrol.tkintergui.views.core.device_window import DeviceWindow
 from soniccontrol.utils.files import images
 
 

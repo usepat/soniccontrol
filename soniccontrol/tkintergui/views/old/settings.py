@@ -240,7 +240,7 @@ class SettingsView(TabView):
         )
         for child in self._parameters_frame.winfo_children():
             if hasattr(child, "publish"):
-                child.publish()
+                child.publish() # type: ignore
         self._commandset_labelframe.grid(
             row=7,
             column=0,

@@ -13,7 +13,7 @@ from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFac
 from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
-from soniccontrol.tkintergui.views.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
+from soniccontrol.tkintergui.views.configuration.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
 from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonView

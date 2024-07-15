@@ -19,7 +19,7 @@ from soniccontrol.tkintergui.utils.constants import (sizes, scripting_cards_data
                                                      ui_labels)
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.pushbutton import PushButtonView
-from soniccontrol.tkintergui.views.scriptingguide import ScriptingGuide
+from soniccontrol.tkintergui.views.control.scriptingguide import ScriptingGuide
 from soniccontrol.utils.files import images
 
 

@@ -8,7 +8,7 @@ from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.state_updater.logger import Logger
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
-from soniccontrol.tkintergui.views.connection_window import DeviceWindowManager
+from soniccontrol.tkintergui.views.core.connection_window import DeviceWindowManager
 from async_tkinter_loop import async_handler
 import ttkbootstrap as ttk
 from soniccontrol.utils import files
