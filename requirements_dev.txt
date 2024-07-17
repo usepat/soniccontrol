@@ -1,3 +1,4 @@
+auto-py-to-exe==2.44.1
 contourpy==1.1.0
 cycler==0.11.0
 fonttools==4.42.1

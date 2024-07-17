@@ -1,12 +1,9 @@
-import asyncio
 from soniccontrol.tkintergui.views.core.cli_connection_window import CliConnectionWindow
 from soniccontrol.tkintergui.views.core.connection_window import ConnectionWindow
-from soniccontrol.utils import files
 from soniccontrol.utils.system import PLATFORM, System
 from soniccontrol import soniccontrol_logger as logger
 
 from async_tkinter_loop import async_mainloop
-import tkinter as tks
 from ttkbootstrap.utility import enable_high_dpi_awareness
 
 
@@ -27,4 +24,4 @@ def main_cli():
 
 
 if __name__ == "__main__":
-    main_cli()
+    main_refactored()
