@@ -11,7 +11,7 @@ SolidCompression=yes
 
 ; Include the files from the build directory
 [Files]
-Source: "dist\SonicControl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\SonicControl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Define the icons to create
 [Icons]

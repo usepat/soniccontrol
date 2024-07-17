@@ -33,7 +33,7 @@ jobs:
       run: bash ./scripts/create_exe.sh ${{ github.workspace }}
 
     - name: Debug shit
-      run: Get-ChildItem -Path ${{ github.workspace }}
+      run: Get-ChildItem -Path ${{ github.workspace }}\dist
 
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
