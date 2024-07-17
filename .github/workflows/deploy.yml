@@ -11,21 +11,13 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
-
-    # Cache pip dependencies
-    - name: Cache pip dependencies
-      uses: actions/cache@v2
-      with:
-        path: "%USERPROFILE%\\AppData\\Local\\pip\\Cache"
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
