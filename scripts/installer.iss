@@ -4,14 +4,14 @@ AppName=SonicControl
 AppVersion=1.0
 DefaultDirName={pf}\SonicControl
 DefaultGroupName=SonicControl
-OutputDir=..\dist\SonicControlInstaller
+OutputDir=..\build\SonicControlInstaller
 OutputBaseFilename=SonicControlInstaller
 Compression=lzma
 SolidCompression=yes
 
-; Include the files from the dist directory
+; Include the files from the build directory
 [Files]
-Source: "dist\SonicControl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "build\SonicControl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Define the icons to create
 [Icons]

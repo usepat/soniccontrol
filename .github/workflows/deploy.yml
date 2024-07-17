@@ -23,7 +23,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: "%USERPROFILE%\\AppData\\Local\\pip\\Cache"
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
@@ -45,10 +45,10 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: windows executable
-        path: ./dist/SonicControl/SonicControl.exe
+        path: ./build/SonicControl/SonicControl.exe
 
     - name: Upload installer
       uses: actions/upload-artifact@v2
       with:
         name: windows installer
-        path: ./dist/SonicControlInstaller/SonicControlInstaller.exe
+        path: ./build/SonicControlInstaller/SonicControlInstaller.exe
