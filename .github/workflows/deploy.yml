@@ -18,6 +18,15 @@ jobs:
       with:
         python-version: '3.10'
 
+    # Cache pip dependencies
+    - name: Cache pip dependencies
+      uses: actions/cache@v2
+      with:
+        path: "%USERPROFILE%\\AppData\\Local\\pip\\Cache"
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -25,7 +34,7 @@ jobs:
         pip install -r requirements_dev.txt
   
     - name: Run build script
-      run: bash ./scripts/create_exe.sh
+      run: bash ./scripts/create_exe.sh ${{ github.workspace }}
 
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
