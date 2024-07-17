@@ -23,20 +23,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
-
-    - name: Make build script executable
-      run: chmod +x ./scripts/create_exe.sh
   
     - name: Run build script
-      run: ./scripts/create_exe.sh
+      run: bash ./scripts/create_exe.sh
 
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
       with:
         path: scripts/installer.iss
 
+    - name: Upload windows executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows executable
+        path: ./dist/SonicControl/SonicControl.exe
+
     - name: Upload installer
       uses: actions/upload-artifact@v2
       with:
-        name: installer
-        path: ./dist/SonicControlInstaller.exe
+        name: windows installer
+        path: ./dist/SonicControlInstaller/SonicControlInstaller.exe

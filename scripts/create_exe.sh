@@ -2,6 +2,8 @@
 
 WORKSPACE_DIR=$1
 
+echo "create exe file with pyinstaller"
+
 pyinstaller --noconfirm --onedir --windowed \
 --name "SonicControl" \
 --contents-directory "." \
