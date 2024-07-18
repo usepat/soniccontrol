@@ -204,7 +204,7 @@ class Status:
     def get_dict(self) -> dict:
         result = {}
         for field in attrs.fields(Status):
-            if field.name in ["timestamp", "_changed", "_changed_data"]: # skip not json serializable fields like datetime
+            if field.name in ["timestamp", "_changed", "_changed_data", "_remote_proc_finished_running"]: # skip not json serializable fields like datetime
                 continue
             result[field.name] = getattr(self, field.name)
         return result

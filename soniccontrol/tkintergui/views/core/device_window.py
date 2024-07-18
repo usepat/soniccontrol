@@ -67,6 +67,8 @@ class DeviceWindow(UIComponent):
         self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
         self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._configuration.on_execution_state_changed)
 
+        self._app_state.execution_state = ExecutionState.IDLE
+
     def on_disconnect(self) -> None:
         self._app_state.execution_state = ExecutionState.NOT_RESPONSIVE
         answer: Optional[str] = cast(Optional[str], Messagebox.okcancel(ui_labels.DEVICE_DISCONNECTED_MSG, ui_labels.DEVICE_DISCONNECTED_TITLE))

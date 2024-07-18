@@ -4,7 +4,7 @@ import asyncio
 import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Scriptable
-from soniccontrol.sonicpackage.procedures.holder import Holder
+from soniccontrol.sonicpackage.procedures.holder import Holder, convert_to_holder_args
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
@@ -241,7 +241,8 @@ class LegacySequencer(Script):
                 await self._sonicamp.set_signal_auto()
             case "hold":
                 self._current_command = "Hold"
-                await Holder.execute(*command["argument"])
+                holder_args = convert_to_holder_args(command["argument"])
+                await Holder.execute(holder_args)
             case "on":
                 await self._sonicamp.set_signal_on()
             case "off":

@@ -13,6 +13,7 @@ class AppState(EventManager):
     EXECUTION_STATE_PROP_NAME = "execution_state"
 
     def __init__(self):
+        super().__init__()
         self._execution_state = ExecutionState.NOT_RESPONSIVE
 
     @property

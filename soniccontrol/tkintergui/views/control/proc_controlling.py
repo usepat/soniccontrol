@@ -30,6 +30,8 @@ class ProcControlling(UIComponent):
         self._proc_controller.subscribe(events.PROCEDURE_RUNNING, self.on_procedure_running)
         self._proc_controller.subscribe(events.PROCEDURE_STOPPED, self.on_procedure_stopped)
         self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
+        
+        self.on_procedure_stopped(None) # type: ignore
 
     def _on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
         execution_state: ExecutionState = e.new_value
