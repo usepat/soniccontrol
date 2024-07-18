@@ -9,15 +9,17 @@ from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureC
 import ttkbootstrap as ttk
 
 from soniccontrol.tkintergui.utils.constants import events, sizes, ui_labels
-from soniccontrol.tkintergui.utils.events import Event
+from soniccontrol.tkintergui.utils.events import Event, PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.tkintergui.views.core.app_state import AppState, ExecutionState
 from soniccontrol.tkintergui.widgets.procedure_widget import ProcedureWidget
 from soniccontrol.utils.files import images
 
 
 class ProcControlling(UIComponent):
-    def __init__(self, parent: UIComponent, proc_controller: ProcedureController):
+    def __init__(self, parent: UIComponent, proc_controller: ProcedureController, app_state: AppState):
         self._proc_controller = proc_controller
+        self._app_state = app_state
         self._view = ProcControllingView(parent.view)
         self._proc_widgets: Dict[ProcedureType, ProcedureWidget] = {}
         super().__init__(parent, self._view)
@@ -27,6 +29,18 @@ class ProcControlling(UIComponent):
         self._view.set_stop_button_command(self._on_stop_pressed)
         self._proc_controller.subscribe(events.PROCEDURE_RUNNING, self.on_procedure_running)
         self._proc_controller.subscribe(events.PROCEDURE_STOPPED, self.on_procedure_stopped)
+        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
+
+    def _on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
+        execution_state: ExecutionState = e.new_value
+        if execution_state == ExecutionState.BUSY_EXECUTING_PROCEDURE:
+            return
+        elif execution_state == ExecutionState.IDLE:
+            self._view.set_start_button_enabled(True) 
+        else:
+            # user should not be able to start a procedure 
+            # while flashing, a script running or a disconnect
+            self._view.set_start_button_enabled(False)
 
     def _add_proc_widgets(self):
         for proc_type, args_class in self._proc_controller.proc_args_list.items():
@@ -59,11 +73,13 @@ class ProcControlling(UIComponent):
         self._view.set_running_proc_label(ui_labels.PROC_RUNNING.format(e.data["proc_type"]))
         self._view.set_start_button_enabled(False)
         self._view.set_stop_button_enabled(True)
+        self._app_state.execution_state = ExecutionState.BUSY_EXECUTING_PROCEDURE
 
     def on_procedure_stopped(self, _e: Event):
         self._view.set_running_proc_label(ui_labels.PROC_NOT_RUNNING)
         self._view.set_start_button_enabled(True)
         self._view.set_stop_button_enabled(False)
+        self._app_state.execution_state = ExecutionState.IDLE
 
 class ProcControllingView(TabView):
     def __init__(self, master: ttk.Frame | View, *args, **kwargs):

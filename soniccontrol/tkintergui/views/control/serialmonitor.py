@@ -10,6 +10,7 @@ from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.tkintergui.views.core.app_state import ExecutionState
 from soniccontrol.utils.files import images
 
 
@@ -37,7 +38,8 @@ class SerialMonitor(UIComponent):
             self._command_history_index = 0
         
         if self._is_internal_command(command_str):
-            answer_str = self._handle_internal_command(command_str)  
+            self._handle_internal_command(command_str) 
+            answer_str = command_str 
         else:
             answer_str = await self._sonicamp.execute_command(command_str) 
         self._print_answer(answer_str)
@@ -55,7 +57,7 @@ class SerialMonitor(UIComponent):
         return command_str in ["clear", "help"]
 
 
-    def _handle_internal_command(self, command_str: str) -> str:
+    def _handle_internal_command(self, command_str: str) -> None:
         if command_str == "clear":
             self._view.clear()
         elif command_str == "help":
@@ -69,10 +71,14 @@ class SerialMonitor(UIComponent):
         self._command_history_index += -1 if is_scrolling_up else +1
         self._command_history_index %= len(self._command_history) 
         self._view.command_line_input = self._command_history[self._command_history_index]
-        
+
 
     def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
-        pass
+        execution_state: ExecutionState = e.new_value
+        enabled = execution_state not in [ExecutionState.NOT_RESPONSIVE, ExecutionState.BUSY_FLASHING]
+        self._view.set_send_command_button_enabled(enabled)
+        self._view.set_command_line_input_enabled(enabled)
+
 
 
 class SerialMonitorView(TabView):
@@ -176,8 +182,14 @@ class SerialMonitorView(TabView):
     def publish(self) -> None:
         ...
 
-    def set_send_command_button_command(self, command: Callable[[None], None]):
+    def set_send_command_button_command(self, command: Callable[[], None]):
         self._send_button.configure(command=command)
+
+    def set_send_command_button_enabled(self, enabled: bool) -> None:
+        self._send_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
+
+    def set_command_line_input_enabled(self, enabled: bool) -> None:
+        self._command_line_input_field.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
 
     @property
     def command_line_input(self) -> str:
@@ -187,13 +199,13 @@ class SerialMonitorView(TabView):
     def command_line_input(self, text: str):
         self._command_line_input.set(text)
 
-    def bind_command_line_input_on_down_pressed(self, command: Callable[[None], None]):
-        self._command_line_input_field.bind("<Down>", lambda _: command())
+    def bind_command_line_input_on_down_pressed(self, command: Callable[[], None]):
+        self._command_line_input_field.bind("<Down>", lambda _: command()) 
 
-    def bind_command_line_input_on_up_pressed(self, command: Callable[[None], None]):
+    def bind_command_line_input_on_up_pressed(self, command: Callable[[], None]):
         self._command_line_input_field.bind("<Up>", lambda _: command())
 
-    def bind_command_line_input_on_return_pressed(self, command: Callable[[None], None]):
+    def bind_command_line_input_on_return_pressed(self, command: Callable[[], None]):
         self._command_line_input_field.bind("<Return>", lambda _: command())
 
     def add_text_line(self, text: str):

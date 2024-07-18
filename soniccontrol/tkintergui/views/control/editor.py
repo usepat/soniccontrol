@@ -15,9 +15,12 @@ from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
 from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
+from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import (sizes, scripting_cards_data,
                                                      ui_labels)
+from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
+from soniccontrol.tkintergui.views.core.app_state import AppState, ExecutionState
 from soniccontrol.tkintergui.widgets.pushbutton import PushButtonView
 from soniccontrol.tkintergui.views.control.scriptingguide import ScriptingGuide
 from soniccontrol.utils.files import images
@@ -50,25 +53,36 @@ class InterpreterState(Enum):
 
 
 class Editor(UIComponent):
-    def __init__(self, parent: UIComponent, root, device: Scriptable):
+    def __init__(self, parent: UIComponent, root, device: SonicAmp, app_state: AppState):
         self._root = root
         self._device = device
+        self._app_state = app_state
         self._scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
         self._interpreter_worker = None
         self._script: ScriptFile = ScriptFile()
-        async def empty_async_iterator() -> AsyncIterator[None]:
-            if False:
-                yield
         self._interpreter: Optional[Script] = None
         self._interpreter_state = InterpreterState.READY
+        self._view = EditorView(parent.view)
+        super().__init__(parent, self._view)
 
-        super().__init__(parent, EditorView(parent.view))
-
-        self.view.add_menu_command(ui_labels.LOAD_LABEL, self._on_load_script)
-        self.view.add_menu_command(ui_labels.SAVE_LABEL, self._on_save_script)
-        self.view.add_menu_command(ui_labels.SAVE_AS_LABEL, self._on_save_as_script)
-        self.view.set_scripting_guide_button_command(self._on_open_scriping_guide)
+        self._view.add_menu_command(ui_labels.LOAD_LABEL, self._on_load_script)
+        self._view.add_menu_command(ui_labels.SAVE_LABEL, self._on_save_script)
+        self._view.add_menu_command(ui_labels.SAVE_AS_LABEL, self._on_save_as_script)
+        self._view.set_scripting_guide_button_command(self._on_open_scriping_guide)
         self._set_interpreter_state(self._interpreter_state)
+        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self.on_execution_state_changed)
+
+    def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
+        execution_state: ExecutionState = e.new_value
+        if execution_state == ExecutionState.BUSY_EXECUTING_SCRIPT:
+            return
+        elif execution_state == ExecutionState.IDLE:
+            self._set_interpreter_state(self._interpreter_state)
+        else:
+            self._view.start_pause_continue_button.configure(enabled=False)
+            self._view.single_step_button.configure(enabled=False)
+            self._view.stop_button.configure(enabled=False)
+            self._view.editor_enabled = False
 
     def _set_interpreter_state(self, interpreter_state: InterpreterState):
         self._interpreter_state = interpreter_state
@@ -95,6 +109,7 @@ class Editor(UIComponent):
                 self.view.editor_enabled = True
                 self.view.current_task = "Idle"
                 self.view.highlight_line(None)
+                self._app_state.execution_state = ExecutionState.IDLE
 
             case InterpreterState.RUNNING:
                 self.view.start_pause_continue_button.configure(
@@ -110,6 +125,7 @@ class Editor(UIComponent):
                     enabled=True
                 )
                 self.view.editor_enabled = False
+                self._app_state.execution_state = ExecutionState.BUSY_EXECUTING_SCRIPT
 
             case InterpreterState.PAUSED:
                 self.view.start_pause_continue_button.configure(
@@ -125,6 +141,7 @@ class Editor(UIComponent):
                     enabled=True
                 )
                 self.view.editor_enabled = False
+                self._app_state.execution_state = ExecutionState.IDLE
 
     def _on_load_script(self):
         # TODO: move stuff like filedialog later into an abstract factory for the whole tkinter fronted

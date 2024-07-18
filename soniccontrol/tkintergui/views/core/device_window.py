@@ -42,12 +42,12 @@ class DeviceWindow(UIComponent):
         self._sonicmeasure = SonicMeasure(self)
         self._serialmonitor = SerialMonitor(self, self._device)
         self._logging = Logging(self, self._logger.logs)
-        self._editor = Editor(self, root, self._device)
+        self._editor = Editor(self, root, self._device, self._app_state)
         self._status_bar = StatusBar(self, self._view.status_bar_slot)
         self._info = Info(self)
         self._configuration = Configuration(self, self._device)
-        self._flashing = Flashing(self, self._device)
-        self._proc_controlling = ProcControlling(self, self._proc_controller)
+        self._flashing = Flashing(self, self._device, self._app_state)
+        self._proc_controlling = ProcControlling(self, self._proc_controller, self._app_state)
 
         self._view.add_tab_views([
             self._sonicmeasure.view, 

@@ -7,18 +7,25 @@ from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 import ttkbootstrap as ttk
 
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
+from soniccontrol.tkintergui.views.core.app_state import AppState
 from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonView
 
 
 class Flashing(UIComponent):
-    def __init__(self, parent: UIComponent, device: SonicAmp):
+    def __init__(self, parent: UIComponent, device: SonicAmp, app_state: AppState):
         self._device = device
+        self._app_state = app_state
         self._view = FlashingView(parent.view)
         super().__init__(self, self._view)
+        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
 
     def _flash(self) -> None:
+        pass
+
+    def _on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
         pass
 
 class FlashingView(TabView):

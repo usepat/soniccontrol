@@ -15,6 +15,7 @@ from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.views.configuration.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
+from soniccontrol.tkintergui.views.core.app_state import ExecutionState
 from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.file_browse_button import FileBrowseButtonView
@@ -156,7 +157,10 @@ class Configuration(UIComponent):
             pass # TODO: end load animation
 
     def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
-        pass
+        execution_state: ExecutionState = e.new_value
+        enabled = execution_state not in [ExecutionState.NOT_RESPONSIVE, ExecutionState.BUSY_FLASHING, ExecutionState.BUSY_EXECUTING_PROCEDURE]
+        self._view.set_submit_config_button_enabled(enabled)
+
 
 
 class ConfigurationView(TabView):
@@ -300,6 +304,9 @@ class ConfigurationView(TabView):
 
     def set_delete_transducer_config_command(self, command: Callable[[], None]) -> None:
         self._delete_config_button.configure(command=command)
+
+    def set_submit_config_button_enabled(self, enabled: bool) -> None:
+        self._submit_config_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
 
     # TODO: maybe just expose the configframes and handle this in the presenter
     @property 

@@ -57,5 +57,5 @@ class CliConnectionWindowView(ttk.Window):
         self._main_frame.pack(fill=ttk.BOTH, expand=True)
         self._connect_button.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING)
 
-    def set_connect_button_command(self, command: Callable[[None], None]) -> None:
+    def set_connect_button_command(self, command: Callable[[], None]) -> None:
         self._connect_button.configure(command=command)
