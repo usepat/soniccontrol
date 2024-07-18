@@ -16,7 +16,9 @@ class Sendable(abc.ABC):
     def byte_message(self) -> None: ...
 
 
-class Communicator(abc.ABC):
+class Communicator(abc.ABC, EventManager):
+    DISCONNECTED_EVENT = "Disconnected"
+
     def __init__(self) -> None:
         super().__init__()
 

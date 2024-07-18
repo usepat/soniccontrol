@@ -9,14 +9,14 @@ from soniccontrol.sonicpackage.package_fetcher import PackageFetcher
 from icecream import ic
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
-from soniccontrol.sonicpackage.package_parser import PackageParser, Package
 from soniccontrol.sonicpackage.sonicprotocol import CommunicationProtocol, SonicProtocol
+from soniccontrol.tkintergui.utils.events import Event
 from soniccontrol.utils.system import PLATFORM
 
 
 @attrs.define
 class SerialCommunicator(Communicator):
-    _init_command: Command = attrs.field(init=False, default=None)
+    _init_command: Command = attrs.field(init=False)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _lock: asyncio.Lock = attrs.field(init=False, factory=asyncio.Lock, repr=False)
@@ -56,6 +56,7 @@ class SerialCommunicator(Communicator):
                 ),
             ),
         )
+        super().__init__()
 
     @property
     def connection_opened(self) -> asyncio.Event:
@@ -185,11 +186,12 @@ class SerialCommunicator(Communicator):
         self._connection_closed.set()
         self._reader = None
         self._writer = None
+        self.emit(Event(Communicator.DISCONNECTED_EVENT))
 
 
 @attrs.define
 class LegacySerialCommunicator(Communicator):
-    _init_command: Optional[Command] = attrs.field(init=False, default=None)
+    _init_command: Command = attrs.field(init=False)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _lock: asyncio.Lock = attrs.field(init=False, factory=asyncio.Lock, repr=False)
@@ -227,6 +229,7 @@ class LegacySerialCommunicator(Communicator):
             ),
             serial_communication=self,
         )
+        super().__init__()
 
     @property
     def connection_opened(self) -> asyncio.Event:
@@ -336,3 +339,4 @@ class LegacySerialCommunicator(Communicator):
         self._connection_closed.set()
         self._reader = None
         self._writer = None
+        self.emit(Event(Communicator.DISCONNECTED_EVENT))

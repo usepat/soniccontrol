@@ -29,7 +29,7 @@ class DeviceWindowManager:
         device_window_id = self._id_device_window_counter
         self._opened_device_windows[device_window_id] = device_window
         device_window.subscribe(
-            "close", lambda _: self._opened_device_windows.pop(device_window_id)
+            DeviceWindow.CLOSE_EVENT, lambda _: self._opened_device_windows.pop(device_window_id)
         )
         return device_window
 

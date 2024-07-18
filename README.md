@@ -166,3 +166,9 @@ There are a ton of tutorials and guides online to use Inno Setup
 - an [article](https://python101.pythonlibrary.org/chapter44_creating_an_installer.html)
 
 Of course there are many ways to convert python code into a binary application. Feel free to use your own way, just make sure that the application can start from every place (current working directory) and that everything runs as expected.
+
+## Continious Deployment
+
+On github there is set up a continious deployment that builds an exe and installer for windows. The code is in `.github/workflows/deploy.yml` and in the `scripts` folder.  
+The generated files are uploaded on github as artifacts. You can go to them by going to the actions tab and then clicking on the runned workflow instance.
+ 

@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import fields
 import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, Generic, Literal, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Literal, Optional, TypeVar, cast
 
 import attrs
 from icecream import ic
@@ -168,7 +168,7 @@ class Status:
         converter=attrs.converters.optional(str),
         kw_only=True,
     )
-    communication_mode: Optional[Literal["Serial", "Manual", "Analog", "Disconnected"]] = attrs.field(
+    communication_mode: Optional[Literal["Serial", "Manual", "Analog"]] = attrs.field(
         default="Manual"
     )
     timestamp: datetime.datetime = attrs.field(
@@ -178,10 +178,12 @@ class Status:
             datetime.datetime.fromtimestamp(b) if isinstance(b, float) else b
         ),
     )
+
     _changed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _changed_data: Dict[str, Any] = attrs.field(init=False, factory=dict)
     _version: int = attrs.field(init=False, default=0)
     _remote_proc_finished_running: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
+    
 
     @property
     def changed(self) -> asyncio.Event:

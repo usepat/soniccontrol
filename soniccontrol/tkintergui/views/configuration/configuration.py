@@ -13,6 +13,7 @@ from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFac
 from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.views.configuration.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
 from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
@@ -153,6 +154,9 @@ class Configuration(UIComponent):
             return
         finally:
             pass # TODO: end load animation
+
+    def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
+        pass
 
 
 class ConfigurationView(TabView):

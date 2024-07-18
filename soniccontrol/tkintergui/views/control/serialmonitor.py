@@ -8,6 +8,7 @@ from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.command import Command
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
+from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.utils.files import images
 
@@ -69,6 +70,9 @@ class SerialMonitor(UIComponent):
         self._command_history_index %= len(self._command_history) 
         self._view.command_line_input = self._command_history[self._command_history_index]
         
+
+    def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
+        pass
 
 
 class SerialMonitorView(TabView):

@@ -202,6 +202,8 @@ class _UIStringsEN:
     END_CAPTURE: Final[str] = "End Capture"
     PROC_RUNNING: Final[str] = "Procedure [{}] is running..."
     PROC_NOT_RUNNING: Final[str] = "No Procedure running"
+    DEVICE_DISCONNECTED_TITLE: Final[str] = "Device disconnected"
+    DEVICE_DISCONNECTED_MSG: Final[str] = "The device got disconnected, Do you want to close this window?"
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 

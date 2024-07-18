@@ -1,16 +1,21 @@
-from typing import List
+from typing import Callable, List, Optional, cast
 import ttkbootstrap as ttk
 import tkinter as tk
 
+from ttkbootstrap.dialogs.dialogs import Messagebox
+
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
+from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import Logger
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.tkintergui.utils.events import Event
 from soniccontrol.tkintergui.views.configuration.configuration import Configuration
 from soniccontrol.tkintergui.views.configuration.flashing import Flashing
+from soniccontrol.tkintergui.views.core.app_state import AppState, ExecutionState
 from soniccontrol.tkintergui.views.info import Info
 from soniccontrol.tkintergui.views.control.logging import Logging
 from soniccontrol.tkintergui.views.control.editor import Editor
@@ -22,11 +27,14 @@ from soniccontrol.tkintergui.widgets.notebook import Notebook
 
 
 class DeviceWindow(UIComponent):
+    CLOSE_EVENT = "Close"
+
     def __init__(self, device: SonicAmp, root, logger: Logger):
         self._device = device
         self._view = DeviceWindowView(root)
         super().__init__(None, self._view)
 
+        self._app_state = AppState()
         self._updater = Updater(self._device)
         self._logger = logger
         self._proc_controller = ProcedureController(self._device)
@@ -51,9 +59,25 @@ class DeviceWindow(UIComponent):
             self._flashing.view,
             self._proc_controlling.view
         ])
+        self._view.add_close_callback(self.close)
+        self._device.serial.subscribe_property_listener(Communicator.DISCONNECTED_EVENT, lambda _e: self.on_disconnect())
         self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
         self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))
         self._updater.execute()
+        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
+        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._configuration.on_execution_state_changed)
+
+    def on_disconnect(self) -> None:
+        self._app_state.execution_state = ExecutionState.NOT_RESPONSIVE
+        answer: Optional[str] = cast(Optional[str], Messagebox.okcancel(ui_labels.DEVICE_DISCONNECTED_MSG, ui_labels.DEVICE_DISCONNECTED_TITLE))
+        if answer is None or answer == "Cancel":
+            return
+        else:
+            self.close()
+
+    def close(self) -> None:
+        self.emit(Event(DeviceWindow.CLOSE_EVENT))
+        self._view.close()
 
 
 class DeviceWindowView(tk.Toplevel):
@@ -107,3 +131,9 @@ class DeviceWindowView(tk.Toplevel):
             show_titles=True,
             show_images=True,
         )
+
+    def add_close_callback(self, callback: Callable[[], None]) -> None:
+        self.protocol("WM_DELETE_WINDOW", callback)
+
+    def close(self) -> None:
+        self.destroy()
