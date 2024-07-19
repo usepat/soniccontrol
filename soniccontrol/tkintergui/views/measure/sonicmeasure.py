@@ -31,7 +31,7 @@ class SonicMeasure(UIComponent):
 
         self._spectral_figure = matplotlib.figure.Figure(dpi=100)
         self._spectral_subplot = self._spectral_figure.add_subplot(1, 1, 1)
-        self._spectralplot = PlotBuilder.create_timeplot_fuip(self._spectral_subplot) # TODO: change this to spectral plot
+        self._spectralplot = PlotBuilder.create_spectralplot_uip(self._spectral_subplot)
         self._spectralplottab = Plotting(self, self._spectralplot)
         
         self._csv_table = CsvTable(self)

@@ -46,3 +46,36 @@ class PlotBuilder:
         plot.tight_layout()
 
         return plot
+
+    # creates a spectralplot for urms, irms and phase
+    @staticmethod
+    def create_spectralplot_uip(subplot: matplotlib.axes.Axes) -> Plot:
+        plot = Plot(subplot, "frequency", "Frequency / Hz")
+        
+        plot.add_axis("phase_axis", "Phase / °")
+        plot.add_axis("urms_axis", "U$_{RMS}$ / mV")
+        plot.add_axis("irms_axis", "I$_{RMS}$ / mA")
+        
+        plot.add_line(
+            "phase", 
+            "phase_axis",
+            label="Phase",
+            color="green",
+        )
+        plot.add_line(
+            "urms", 
+            "urms_axis",
+            label="Urms",
+            color="blue",
+        )
+        plot.add_line(
+            "irms", 
+            "irms_axis",
+            label="Irms",
+            color="red",
+        )
+
+        plot.update_plot()
+        plot.tight_layout()
+
+        return plot

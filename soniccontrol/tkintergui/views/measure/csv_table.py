@@ -1,10 +1,9 @@
 
 from soniccontrol.interfaces.ui_component import UIComponent
-from soniccontrol.interfaces.view import TabView, View
+from soniccontrol.interfaces.view import TabView
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 import ttkbootstrap as ttk
 from ttkbootstrap.tableview import Tableview
-from ttkbootstrap.scrolled import ScrolledFrame
 import pandas as pd
 
 
