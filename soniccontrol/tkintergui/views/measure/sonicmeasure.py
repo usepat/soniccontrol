@@ -5,18 +5,14 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView, View
 import tkinter as tk
 import ttkbootstrap as ttk
-from ttkbootstrap.scrolled import ScrolledFrame
 import matplotlib
 
 from soniccontrol.sonicpackage.amp_data import Status
 from soniccontrol.state_updater.capture import Capture
-from soniccontrol.state_updater.updater import Updater
-from soniccontrol.tkintergui.utils.events import EventManager
 from soniccontrol.tkintergui.views.measure.csv_table import CsvTable
 matplotlib.use("TkAgg")
 
-from soniccontrol.state_updater.data_provider import DataProvider
-from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
+from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.utils.files import images
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.measure.plotting import Plotting
@@ -52,7 +48,6 @@ class SonicMeasure(UIComponent):
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._spectralplot.update_data(e.new_value))
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._csv_table.on_update_data(e))
 
-
     def on_status_update(self, status: Status):
         self._capture.on_update(status)
 
@@ -68,7 +63,6 @@ class SonicMeasure(UIComponent):
 class SonicMeasureView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
-
 
     def _initialize_children(self) -> None:
         self._main_frame: ttk.Frame = ttk.Frame(self)
@@ -111,7 +105,7 @@ class SonicMeasureView(TabView):
 
 def main():    
     root = tk.Tk()
-    measureView = SonicMeasureView(root)
+    measureView = SonicMeasureView(root) #type: ignore
     measureView.grid()
     root.mainloop()
 

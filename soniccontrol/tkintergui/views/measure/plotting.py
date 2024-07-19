@@ -23,7 +23,7 @@ class Plotting(UIComponent):
         for (attrName, line) in self._plot.lines.items():
             self.view.add_line(attrName, line.get_label(), self.create_toggle_line_callback(attrName))
         self._view.update_plot()
-    
+            
         self._plot.subscribe_property_listener("plot", lambda _: self._view.update_plot())
 
 
@@ -47,23 +47,23 @@ class PlottingView(View):
             self._figure, self._plot_frame
         )
         self._toolbar = NavigationToolbar2Tk(
-            self._figure_canvas, self._plot_frame, pack_toolbar=False
+            self._figure_canvas, self, pack_toolbar=False
         )
         self._toggle_button_frame: ttk.Frame = ttk.Frame(self)
         self._line_toggle_buttons: Dict[str, ttk.Checkbutton] = {}
         self._line_visibilities: Dict[str, tk.BooleanVar] = {}
         
+        self._plot_frame.bind('<Configure>', lambda _e: self.update_plot())
         self._figure_canvas.draw()
 
 
-    def _initialize_publish(self) -> None:
-        self._main_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
-        self._plot_frame.pack(padx=3, pady=3)
-
-        self._toolbar.pack(side=ttk.BOTTOM, fill=ttk.X)
+    def _initialize_publish(self) -> None:        
+        # packing order is important because of expand attribute
+        self._toolbar.pack(side=ttk.TOP, fill=ttk.X)
+        self._toggle_button_frame.pack(side=ttk.BOTTOM, fill=ttk.NONE)
+        self._main_frame.pack(expand=True, fill=ttk.BOTH, padx=5, pady=5)
+        self._plot_frame.pack(fill=ttk.BOTH, expand=True)
         self._figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
-
-        self._toggle_button_frame.pack(fill=ttk.X, padx=3, pady=3)
 
 
     def update_plot(self):
