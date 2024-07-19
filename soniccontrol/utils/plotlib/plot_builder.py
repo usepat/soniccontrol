@@ -11,30 +11,38 @@ class PlotBuilder:
     def create_timeplot_fuip(subplot: matplotlib.axes.Axes) -> Plot:
         plot = Plot(subplot, "timestamp", "Time")
         plot._plot.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M:%S"))
+        
+        plot.add_axis("frequency_axis", "Frequency / Hz")
+        plot.add_axis("phase_axis", "Phase / °")
+        plot.add_axis("urms_axis", "U$_{RMS}$ / mV")
+        plot.add_axis("irms_axis", "I$_{RMS}$ / mA")
+        
         plot.add_line(
             "frequency", 
-            "Frequency / Hz",
+            "frequency_axis",
             label="Frequency",
             color="black"
         )
         plot.add_line(
             "phase", 
-            "Phase / °",
+            "phase_axis",
             label="Phase",
             color="green",
         )
         plot.add_line(
             "urms", 
-            "U$_{RMS}$ / mV",
+            "urms_axis",
             label="Urms",
             color="blue",
         )
         plot.add_line(
             "irms", 
-            "I$_{RMS}$ / mA",
+            "irms_axis",
             label="Irms",
             color="red",
         )
-        plot.select_axis("frequency")
+
         plot.update_plot()
+        plot.tight_layout()
+
         return plot
