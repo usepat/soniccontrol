@@ -11,18 +11,18 @@ from soniccontrol.sonicpackage.procedures.procedure import Procedure
 
 @attrs.define(auto_attribs=True)
 class RamperArgs:
-    freq_center: float | int = attrs.field(validator=[
-        validators.instance_of(float | int),
+    freq_center: int = attrs.field(validator=[
+        validators.instance_of(int),
         validators.ge(0),
         validators.le(1000000)
     ])
-    half_range: float | int = attrs.field(validator=[
-        validators.instance_of(float | int),
+    half_range: int = attrs.field(validator=[
+        validators.instance_of(int),
         validators.ge(0),
         validators.le(1000000)
     ])
-    step: float | int = attrs.field(validator=[
-        validators.instance_of(float | int),
+    step: int = attrs.field(validator=[
+        validators.instance_of(int),
         validators.ge(10),
         validators.le(100000)
     ])

@@ -64,12 +64,11 @@ class ProcedureController(EventManager):
         self._running_proc_type = None
         self.emit(Event(events.PROCEDURE_STOPPED))
 
-    # TODO: change this to use RamperArgs
     async def ramp_freq(
         self,
-        freq_center: int | float,
-        half_range: int | float,
-        step: int | float,
+        freq_center: int,
+        half_range: int,
+        step: int,
         hold_on_time: float = 100,
         hold_on_unit: Literal["ms", "s"] = "ms",
         hold_off_time: float = 0,
@@ -91,9 +90,9 @@ class ProcedureController(EventManager):
     
     async def ramp_freq_range(
         self,
-        start: int | float,
-        stop: int | float,
-        step: int | float,
+        start: int,
+        stop: int,
+        step: int,
         hold_on_time: float = 100,
         hold_on_unit: Literal["ms", "s"] = "ms",
         hold_off_time: float = 0,

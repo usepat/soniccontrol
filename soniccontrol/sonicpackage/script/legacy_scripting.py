@@ -234,9 +234,6 @@ class LegacySequencer(Script):
             case "ramp_freq_range":
                 self._current_command = "ramp_freq"
                 await self._proc_controller.ramp_freq_range(*command["argument"])
-            # case "ramp_gain":
-            #     self._current_command = self._sonicamp.ramper
-            #     await self._sonicamp.ramp_gain(*command["argument"], event=self.running)
             case "!AUTO" | "AUTO" | "auto":
                 await self._sonicamp.set_signal_auto()
             case "hold":
