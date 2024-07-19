@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import time
-from typing import Callable, Final, Optional, List
+from typing import Any, Callable, Dict, Final, Optional, List
 
 import attrs
 import serial
@@ -37,25 +37,6 @@ class SerialCommunicator(Communicator):
     def __attrs_post_init__(self) -> None:
         self._task = None
         self._protocol: CommunicationProtocol = SonicProtocol(lambda _: None)
-        self._init_command = Command(
-            serial_communication=self,
-            estimated_response_time=0.5,
-            validators=(
-                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
-                CommandValidator(
-                    pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
-                ),
-                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
-                CommandValidator(
-                    pattern=r".*signal.*(on|off).*",
-                    signal=lambda b: b.lower() == "on",
-                ),
-                CommandValidator(
-                    pattern=r".*(serial|manual).*",
-                    communication_mode=str,
-                ),
-            ),
-        )
         super().__init__()
 
     @property
@@ -65,28 +46,21 @@ class SerialCommunicator(Communicator):
     @property
     def connection_closed(self) -> asyncio.Event:
         return self._connection_closed
-
+    
     @property
-    def init_command(self) -> Optional[Command]:
-        return self._init_command
+    def handshake_result(self) -> Dict[str, Any]:
+        # Todo: define with Thomas how we make a handshake
+        return {}
 
     async def connect(
         self,
         reader: asyncio.StreamReader,
         writer: asyncio.StreamWriter,
     ) -> None:
-        async def get_first_message() -> None:
-            self._init_command.answer.receive_answer(
-                await self.read_long_message(reading_time=6)
-            )
-            self._init_command.validate()
-            ic(f"Init Command: {self._init_command}")
-
         self._reader = reader
         self._writer = writer
         self._protocol = SonicProtocol(lambda _: None)
         self._package_fetcher = PackageFetcher(self._reader, self._protocol)
-        await get_first_message()
         self._connection_opened.set()
 
         self._task = asyncio.create_task(self._worker())
@@ -97,6 +71,8 @@ class SerialCommunicator(Communicator):
         message_id_max_client: Final[int] = 2 ** 16 - 1 # 65535 is the max for uint16. so we cannot go higher than that.
 
         async def send_and_get(command: Command) -> None:
+            assert (self._writer is not None)
+
             nonlocal message_counter
             message_counter = (message_counter + 1) % message_id_max_client
 
@@ -112,9 +88,6 @@ class SerialCommunicator(Communicator):
                 answer = await self._package_fetcher.get_answer_of_package(
                     message_counter
                 )
-                # answer = await asyncio.wait_for(
-                #     self._package_fetcher.get_answer_of_package(package_counter), timeout=command.estimated_response_time
-                # )
             except Exception as e:
                 ic(f"Exception while reading {sys.exc_info()}")
 
@@ -145,29 +118,6 @@ class SerialCommunicator(Communicator):
     async def send_and_wait_for_answer(self, command: Command) -> None:
         await self._command_queue.put(command)
         await command.answer.received.wait()
-
-    async def read_long_message(  # TODO: delete this method
-        self, response_time: float = 0.3, reading_time: float = 0.2
-    ) -> List[str]:
-        if self._reader is None:
-            return []
-
-        target = time.time() + reading_time
-        message: List[str] = []
-        while time.time() < target:
-            try:
-                response = await asyncio.wait_for(
-                    self._reader.readline(), timeout=response_time
-                )
-                line = response.decode(PLATFORM.encoding).strip()
-                message.append(line)
-            except asyncio.TimeoutError:
-                continue
-            except Exception as e:
-                ic(f"Exception while reading {sys.exc_info()}")
-                break
-
-        return message
 
     async def stop(self) -> None:
         if self._task is not None:
@@ -240,8 +190,8 @@ class LegacySerialCommunicator(Communicator):
         return self._connection_closed
 
     @property
-    def init_command(self) -> Optional[Command]:
-        return self._init_command
+    def handshake_result(self) -> Dict[str, Any]:
+        return self._init_command.status_result
 
     async def connect(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -266,6 +216,8 @@ class LegacySerialCommunicator(Communicator):
 
     async def _worker(self) -> None:
         async def send_and_get(command: Command) -> None:
+            assert (self._writer is not None)
+
             self._writer.write(command.byte_message)
             await self._writer.drain()
             response = await (

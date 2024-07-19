@@ -34,7 +34,7 @@ class AmpBuilder:
     async def build_amp(self, ser: Communicator, commands: CommandSet) -> SonicAmp:
         await ser.connection_opened.wait()
 
-        result_dict: Dict[str, Any] = ser.init_command.status_result
+        result_dict: Dict[str, Any] = ser.handshake_result
 
         if hasattr(commands, "get_type"):
             await commands.get_type.execute()

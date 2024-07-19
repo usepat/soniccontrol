@@ -34,6 +34,10 @@ class Communicator(abc.ABC, EventManager):
     @abc.abstractmethod
     def disconnect(self) -> None: ...
 
+    @property
+    @abc.abstractmethod
+    def handshake_result(self) -> Dict[str, Any]: ...
+
     @abc.abstractmethod
     async def send_and_wait_for_answer(self, message: Sendable) -> None: ...
 

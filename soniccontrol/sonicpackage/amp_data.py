@@ -1,68 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import fields
 import datetime
-from enum import Enum, auto
-from typing import Any, Callable, Dict, Generic, Literal, Optional, TypeVar, cast
+from typing import Any, Callable, Dict, Literal, Optional
 
 import attrs
 from icecream import ic
-
-from soniccontrol.sonicpackage.command import Command
-
-T = TypeVar("T")
-
-
-class ObserverAction(Enum):
-    READ = auto()
-    WRITE = auto()
-
-# TODO: ask Ilja, why those enums were not defined?
-class ErrorType(Enum):
-    NO_ERROR = auto()
-
-class ProcedureType(Enum):
-    NONE = auto()
-
-
-class ObservableVar(Generic[T]):
-    def __init__(self, value: T) -> None:
-        self._value: T = value
-        self._callbacks: dict[ObserverAction, list[Callable[[T], Any]]] = {
-            ObserverAction.READ: [],
-            ObserverAction.WRITE: [],
-        }
-
-    def __repr__(self) -> str:
-        return f"ObservableVar(value={self._value})"
-
-    def set(self, value: T) -> None:
-        self._value = value
-        self._invoke_callbacks(ObserverAction.WRITE)
-
-    def get(self) -> T:
-        self._invoke_callbacks(ObserverAction.READ)
-        return self._value
-
-    def _invoke_callbacks(self, action: ObserverAction) -> None:
-        for callback in self._callbacks.get(action, []):
-            callback(self._value)
-
-    def add_read_callback(self, callback: Callable[[T], Any]) -> None:
-        self._callbacks[ObserverAction.READ].append(callback)
-
-    def add_write_callback(self, callback: Callable[[T], Any]) -> None:
-        self._callbacks[ObserverAction.WRITE].append(callback)
-
-
-class Status1:
-    error: ObservableVar[ErrorType] = ObservableVar(ErrorType.NO_ERROR)
-    frequency: ObservableVar[int] = ObservableVar(0)
-    gain: ObservableVar[int] = ObservableVar(0)
-    procedureType: ObservableVar[ProcedureType] = ObservableVar(ProcedureType.NONE)
-    wipe_mode: ObservableVar[bool] = ObservableVar(False)
-    temperature: ObservableVar[Optional[float]] = ObservableVar(None)
 
 
 def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
@@ -266,12 +209,12 @@ class Modules:
 
     @classmethod
     def from_string(cls, module_string: str) -> Modules:
-        return cls(*module_string.split("="))
+        return cls(*map(bool, module_string.split("=")))
 
 
 @attrs.define
 class Info:
-    device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="")
+    device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="")
     version: float = attrs.field(default=0.2)
     modules: Modules = attrs.field(factory=Modules)
@@ -281,92 +224,3 @@ class Info:
             if hasattr(self, key):
                 setattr(self, key, value)
         return self
-
-
-from enum import Enum, auto
-from typing import Any, Generic, TypeVar
-
-T = TypeVar("T")
-
-
-class ObserverAction(Enum):
-    READ = auto()
-    WRITE = auto()
-
-
-class ObservableVar(Generic[T]):
-    def __init__(self, value: T) -> None:
-        self._value: T = value
-        self._callbacks: dict[ObserverAction, list[Callable[[T], Any]]] = {
-            ObserverAction.READ: [],
-            ObserverAction.WRITE: [],
-        }
-
-    def set(self, value: T) -> None:
-        print("test")
-        self._value = value
-        self._invoke_callbacks(ObserverAction.WRITE)
-
-    def get(self) -> T:
-        print("test read")
-        self._invoke_callbacks(ObserverAction.READ)
-        return self._value
-
-    def _invoke_callbacks(self, action: ObserverAction) -> None:
-        for callback in self._callbacks.get(action, []):
-            callback(self._value)
-
-    def add_read_callback(self, callback: Callable[[T], Any]) -> None:
-        self._callbacks.get(ObserverAction.READ).append(callback)
-
-    def add_write_callback(self, callback: Callable[[T], Any]) -> None:
-        self._callbacks.get(ObserverAction.WRITE).append(callback)
-
-
-class ObservableModel:
-    _observers: dict[str, list[Callable[[Any], Any]]] = dict()
-
-    def __setattr__(self, __name: str, __value: Any) -> None:
-        if __name.startswith("_"):
-            return
-        if __name not in self._observers:
-            self._observers[__name] = []
-        self._notify(__name, __value)
-        super().__setattr__(__name, __value)
-
-    def _notify(self, name: str, value: Any = None) -> None:
-        if not self._observers[name]:
-            return
-        for callback in self._observers[name]:
-            callback(value)
-
-    def add_obverser(self, name: str, callback: Callable[[Any], Any]) -> None:
-        if name not in self._observers:
-            self._observers[name] = []
-        self._observers[name].append(callback)
-
-
-class Model:
-    lol: ObservableVar[int] = ObservableVar(10)
-
-
-@attrs.define
-class LolModel(ObservableModel):
-    lol: int = attrs.field(default=10)
-
-
-if __name__ == "__main__":
-    # print("starting")
-    # obj = Model()
-    # obj.lol.add_read_callback(lambda x: print(f"get {x}"))
-    # obj.lol.add_write_callback(lambda x: print(f"set {x}"))
-    # obj.lol.get()
-    # obj.lol.set(11)
-
-    # print(obj.lol)
-
-    model: LolModel = LolModel()
-    model.add_obverser("lol", lambda x: print(f"set {x}"))
-    model.add_obverser("lol", lambda x: print(f"set 2 {x}"))
-    model.lol = 10
-    print(model.lol)
