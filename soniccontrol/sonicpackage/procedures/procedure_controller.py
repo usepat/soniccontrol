@@ -98,7 +98,7 @@ class ProcedureController(EventManager):
         hold_off_time: float = 0,
         hold_off_unit: Literal["ms", "s"] = "ms",
     ) -> None:
-        half_range = (stop - start) / 2
+        half_range = (stop - start) // 2
         freq_center = start + half_range
         assert(half_range > 0)
 
