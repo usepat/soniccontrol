@@ -5,50 +5,31 @@ from soniccontrol.interfaces.view import View
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from typing import Callable, Dict
 
-from soniccontrol.tkintergui.utils.constants import _Style, _UIStringsEN, sizes, ui_labels
-from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
+from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.utils.plotlib.plot import Plot
-
-
-
-class SavePlotCommand(MvcCommand):
-    def __init__(self, target, source = None):
-        super().__init__(target, source)
-
-    def can_execute(self) -> bool:
-        return isinstance(self.target,  Figure)
-
-    async def execute(self) -> None:
-        filetypes = [("PNG File", "*.png")]
-        fileHandle = tk.filedialog.asksaveasfilename(
-            defaultextension=".png", filetypes=filetypes
-        )
-        if fileHandle:
-            self.target.savefig(fileHandle)
 
 
 class Plotting(UIComponent):
     def __init__(self, parent: UIComponent, plot: Plot):
         self._plot = plot
         self._figure: Figure = plot.plot.get_figure()
-        self._saveCommand = SavePlotCommand(self._figure)
-        super().__init__(parent, PlottingView(parent.view, self._figure))
+        self._view = PlottingView(parent.view, self._figure)
+        super().__init__(parent, self._view)
 
         for (attrName, line) in self._plot.lines.items():
             self.view.add_line(attrName, line.get_label(), self.create_toggle_line_callback(attrName))
-        self.view.on_plot_changed()
-        
-        self.view.set_save_button_command(self._saveCommand)
+        self._view.update_plot()
+    
+        self._plot.subscribe_property_listener("plot", lambda _: self._view.update_plot())
 
-        self._plot.subscribe_property_listener("plot", lambda _: self.view.on_plot_changed())
 
     def create_toggle_line_callback(self, attrName: str):
             def toggle_line():
-                is_visible = self.view.get_line_visibility(attrName)
+                is_visible = self._view.get_line_visibility(attrName)
                 self._plot.toggle_line(attrName, is_visible)
             return toggle_line
 
@@ -65,13 +46,12 @@ class PlottingView(View):
         self._figure_canvas: FigureCanvasTkAgg = FigureCanvasTkAgg(
             self._figure, self._plot_frame
         )
-        self._toggle_button_frame: ttk.Frame = ttk.Frame(self)
-        self._line_toggle_buttons: Dict[str, ttk.Button] = {}
-        self._line_visibilities: Dict[str, tk.BooleanVar] = {}
-        self._save_button: ttk.Button = ttk.Button(
-            self._toggle_button_frame, 
-            text=ui_labels.SAVE_PLOT_LABEL, 
+        self._toolbar = NavigationToolbar2Tk(
+            self._figure_canvas, self._plot_frame, pack_toolbar=False
         )
+        self._toggle_button_frame: ttk.Frame = ttk.Frame(self)
+        self._line_toggle_buttons: Dict[str, ttk.Checkbutton] = {}
+        self._line_visibilities: Dict[str, tk.BooleanVar] = {}
         
         self._figure_canvas.draw()
 
@@ -79,20 +59,21 @@ class PlottingView(View):
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH, padx=3, pady=3)
         self._plot_frame.pack(padx=3, pady=3)
+
+        self._toolbar.pack(side=ttk.BOTTOM, fill=ttk.X)
         self._figure_canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
 
         self._toggle_button_frame.pack(fill=ttk.X, padx=3, pady=3)
-        self._save_button.grid(row=0, column=len(self._line_toggle_buttons), padx=sizes.SMALL_PADDING)
 
 
-    def on_plot_changed(self):
+    def update_plot(self):
         self._figure_canvas.draw()
         self._figure_canvas.flush_events()
 
     def get_line_visibility(self, attrName: str) -> bool:
         return self._line_visibilities[attrName].get()
 
-    def add_line(self, attrName: str, line_label: str, toggle_command: Callable[[None], None]) -> None:
+    def add_line(self, attrName: str, line_label: str, toggle_command: Callable[[], None]) -> None:
         self._line_visibilities[attrName] = tk.BooleanVar(value=True)
         toggle_button = ttk.Checkbutton(
             self._toggle_button_frame, 
@@ -102,8 +83,3 @@ class PlottingView(View):
         )
         toggle_button.grid(row=0, column=len(self._line_toggle_buttons), padx=sizes.SMALL_PADDING)
         self._line_toggle_buttons[attrName] = toggle_button
-
-        self._save_button.grid(row=0, column=len(self._line_toggle_buttons), padx=sizes.SMALL_PADDING)
-
-    def set_save_button_command(self, command: Callable[[None], None]) -> None:
-        self._save_button.configure(command=command)
