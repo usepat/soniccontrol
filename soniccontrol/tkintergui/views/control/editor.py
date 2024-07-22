@@ -144,7 +144,6 @@ class Editor(UIComponent):
                 self._app_state.execution_state = ExecutionState.IDLE
 
     def _on_load_script(self):
-        # TODO: move stuff like filedialog later into an abstract factory for the whole tkinter fronted
         filename: str = filedialog.askopenfilename(
             defaultextension=self._script.default_extension, 
             filetypes=self._script.filetypes

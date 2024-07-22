@@ -50,7 +50,7 @@ class ConnectionWindow(UIComponent):
     @async_handler
     async def _attempt_connection(self):
         logger = Logger()
-        baudrate = 115200  # TODO: change baudrate to a dropdown menue
+        baudrate = 9600
 
         reader, writer = await open_serial_connection(
             url=self._view.get_url(), baudrate=baudrate

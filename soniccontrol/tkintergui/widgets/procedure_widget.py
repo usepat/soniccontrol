@@ -109,7 +109,6 @@ class TimeFieldView(View):
 This class holds only information about the procedure args.
 It cannot start or stop procedures. This is done by the ProcedureController class
 """
-# TODO: we could extend this class to a formular component
 class ProcedureWidget(UIComponent):
     def __init__(self, parent: UIComponent, parent_view: View, procedure_name: str, proc_args_class: Type):
         self._proc_args_class = proc_args_class

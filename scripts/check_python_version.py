@@ -1,4 +1,6 @@
-# utility program for displaying the max and min supported python version of the packages
+"""
+utility program for displaying the max and min supported python version of the packages
+"""
 
 import requests
 
@@ -23,7 +25,7 @@ def get_max_supported_python_version(package):
         return None
 
 # List of packages and their versions
-with open("requirements.txt", "r") as f:
+with open("../requirements.txt", "r") as f:
     packages = list(map(lambda line: line.strip(), f.readlines()))
 
 for package in packages:
