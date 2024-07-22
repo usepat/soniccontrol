@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import Any, Callable, Dict, Literal, Optional
+from typing import Any, Callable, Dict, Literal, Optional, Tuple
 
 import attrs
 from icecream import ic
@@ -211,12 +211,14 @@ class Modules:
     def from_string(cls, module_string: str) -> Modules:
         return cls(*map(bool, module_string.split("=")))
 
+Version = Tuple[int, int, int]
 
 @attrs.define
 class Info:
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="")
-    version: float = attrs.field(default=0.2)
+    firmware_version: float = attrs.field(default=0.2) # TODO: change this to a Version class
+    firmware_version_new: Version = attrs.field(default=(0, 0, 0)) # TODO: delete this. Is just there, so I can implement in the meantime the home tab
     modules: Modules = attrs.field(factory=Modules)
 
     def update(self, **kwargs) -> Info:

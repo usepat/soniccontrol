@@ -204,6 +204,9 @@ class _UIStringsEN:
     PROC_NOT_RUNNING: Final[str] = "No Procedure running"
     DEVICE_DISCONNECTED_TITLE: Final[str] = "Device disconnected"
     DEVICE_DISCONNECTED_MSG: Final[str] = "The device got disconnected, Do you want to close this window?"
+    FIRMWARE_VERSION_LABEL: Final[str] = "Firmware Version: {}"
+    PROTOCOL_VERSION_LABEL: Final[str] = "Protocol Version: {}"
+    DEVICE_TYPE_LABEL: Final[str] = "Device Type: {}"
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 
