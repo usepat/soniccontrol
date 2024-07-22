@@ -4,6 +4,7 @@ from typing import *
 
 import attrs
 
+from soniccontrol.sonicpackage.sonicprotocol import CommunicationProtocol
 from soniccontrol.tkintergui.utils.events import EventManager
 
 
@@ -21,6 +22,10 @@ class Communicator(abc.ABC, EventManager):
 
     def __init__(self) -> None:
         super().__init__()
+
+    @property
+    @abc.abstractmethod
+    def protocol(self) -> CommunicationProtocol: ...
 
     @property
     @abc.abstractmethod

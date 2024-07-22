@@ -9,7 +9,7 @@ from soniccontrol.sonicpackage.package_fetcher import PackageFetcher
 from icecream import ic
 from soniccontrol.sonicpackage.command import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Communicator
-from soniccontrol.sonicpackage.sonicprotocol import CommunicationProtocol, SonicProtocol
+from soniccontrol.sonicpackage.sonicprotocol import CommunicationProtocol, LegacySonicProtocol, SonicProtocol
 from soniccontrol.tkintergui.utils.events import Event
 from soniccontrol.utils.system import PLATFORM
 
@@ -36,8 +36,12 @@ class SerialCommunicator(Communicator):
 
     def __attrs_post_init__(self) -> None:
         self._task = None
-        self._protocol: CommunicationProtocol = SonicProtocol(lambda _: None)
+        self._protocol: CommunicationProtocol = SonicProtocol(self._log_callback)
         super().__init__()
+
+    @property
+    def protocol(self) -> CommunicationProtocol: 
+        return self._protocol
 
     @property
     def connection_opened(self) -> asyncio.Event:
@@ -179,7 +183,12 @@ class LegacySerialCommunicator(Communicator):
             ),
             serial_communication=self,
         )
+        self._protocol: CommunicationProtocol = LegacySonicProtocol()
         super().__init__()
+
+    @property
+    def protocol(self) -> CommunicationProtocol: 
+        return self._protocol
 
     @property
     def connection_opened(self) -> asyncio.Event:

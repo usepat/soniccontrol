@@ -308,7 +308,6 @@ class ConfigurationView(TabView):
     def set_submit_config_button_enabled(self, enabled: bool) -> None:
         self._submit_config_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
 
-    # TODO: maybe just expose the configframes and handle this in the presenter
     @property 
     def atconfigs(self) -> List[ATConfig]:
         return list(map(lambda x: x.value, self._atconfig_frames))

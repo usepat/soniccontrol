@@ -11,7 +11,7 @@ class Event:
     _data: dict[str, Any] = attrs.field()
 
     def __init__(self, event_type: str, **kwargs) -> None:
-        self.__attrs_init__(event_type, dict(**kwargs))
+        self.__attrs_init__(event_type, dict(**kwargs)) #type: ignore
 
     @property
     def type_(self) -> str:
@@ -21,15 +21,15 @@ class Event:
     def data(self) -> dict[str, Any]:
         return self._data
 
-# TODO add sender
 @attrs.define
 class PropertyChangeEvent(Event):
     _property_name: str = attrs.field()
     _old_value: Any = attrs.field()
     _new_value: Any = attrs.field()
+    _sender: Any = attrs.field()
 
-    def __init__(self, property_name: str, old_value: Any, new_value: Any, **kwargs) -> None:
-        self.__attrs_init__(events.PROPERTY_CHANGE_EVENT, dict(**kwargs), property_name, old_value, new_value)
+    def __init__(self, property_name: str, old_value: Any, new_value: Any, sender: Any = None, **kwargs) -> None:
+        self.__attrs_init__(events.PROPERTY_CHANGE_EVENT, dict(**kwargs), property_name, old_value, new_value, sender) #type: ignore
 
     @property
     def property_name(self) -> str:
@@ -42,6 +42,10 @@ class PropertyChangeEvent(Event):
     @property
     def new_value(self) -> Any:
         return self._new_value
+    
+    @property
+    def sender(self) -> Any:
+        return self._sender
 
 
 class EventManager:

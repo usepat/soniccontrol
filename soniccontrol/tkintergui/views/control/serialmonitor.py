@@ -5,28 +5,25 @@ from async_tkinter_loop import async_handler
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
-from soniccontrol.sonicpackage.command import Command
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.app_state import ExecutionState
-from soniccontrol.utils.files import images
+from soniccontrol.utils.files import images, files
 
 
 
 class SerialMonitor(UIComponent):
     def __init__(self, parent: UIComponent, sonicamp: SonicAmp):
         super().__init__(parent, SerialMonitorView(parent.view))
-        self._sonicamp = sonicamp
+        self._device = sonicamp
         self._command_history: List[str] = []
         self._command_history_index: int = 0
         self.view.set_send_command_button_command(lambda: self._send_command())
         self.view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
         self.view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
         self.view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
-        self._HELPTEXT = "Help me step bro, I am stuck" # TODO: add help message
-
 
     @async_handler
     async def _send_command(self): 
@@ -38,11 +35,10 @@ class SerialMonitor(UIComponent):
             self._command_history_index = 0
         
         if self._is_internal_command(command_str):
-            self._handle_internal_command(command_str) 
-            answer_str = command_str 
+            await self._handle_internal_command(command_str) 
         else:
-            answer_str = await self._sonicamp.execute_command(command_str) 
-        self._print_answer(answer_str)
+            answer_str = await self._device.execute_command(command_str) 
+            self._print_answer(answer_str)
 
 
     def _print_answer(self, answer_str: str):
@@ -57,12 +53,22 @@ class SerialMonitor(UIComponent):
         return command_str in ["clear", "help"]
 
 
-    def _handle_internal_command(self, command_str: str) -> None:
+    async def _handle_internal_command(self, command_str: str) -> None:
         if command_str == "clear":
             self._view.clear()
         elif command_str == "help":
-            self._view.add_text_line(self._HELPTEXT)
-
+            help_text = ""
+            if self._device.serial.protocol.major_version == 1:
+                with open(files.HELPTEXT_SONIC_V1, "r") as file:
+                    help_text = file.read()
+            else:
+                help_text = await self._device.get_help()
+            
+            help_text += "\n"
+            with open(files.HELPTEXT_INTERNAL_COMMANDS, "r") as file:
+                help_text += file.read()
+            self._view.add_text_line(help_text)
+            
 
     def _scroll_command_history(self, is_scrolling_up: bool):
         if len(self._command_history) == 0:
@@ -172,15 +178,6 @@ class SerialMonitorView(TabView):
             padx=sizes.MEDIUM_PADDING,
             pady=sizes.MEDIUM_PADDING,
         )
-
-    def set_small_width_layout(self) -> None:
-        ...
-
-    def set_large_width_layout(self) -> None:
-        ...
-
-    def publish(self) -> None:
-        ...
 
     def set_send_command_button_command(self, command: Callable[[], None]):
         self._send_button.configure(command=command)

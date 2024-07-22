@@ -19,6 +19,9 @@ class _Files:
     SONICCONTROL_LOG: Final[Path] = LOG_DIR / "soniccontrol.log"
     CLI_MVC_MOCK: Final[Path] = BIN_DIR / "cli_simulation_mvp"
     AVRDUDE: Final[Path] = BIN_DIR / "avrdude"
+    TEXT_DIR: Final[Path] = RESOURCES_DIR / "texts"
+    HELPTEXT_SONIC_V1: Final[Path] = TEXT_DIR / "helpttext_sonic_v1.md"
+    HELPTEXT_INTERNAL_COMMANDS: Final[Path] = TEXT_DIR /  "helptext_internal_commands.md"
 
 
 files: _Files = _Files()

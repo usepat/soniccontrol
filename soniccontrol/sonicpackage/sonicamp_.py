@@ -160,6 +160,9 @@ class SonicAmp(Scriptable):
 
         return command.answer.string
 
+    async def get_help(self) -> str:
+        return await self.execute_command("?help")
+
     async def set_signal_off(self) -> str:
         return await self.execute_command("!OFF", urms=0.0, irms=0.0, phase=0.0)
 
