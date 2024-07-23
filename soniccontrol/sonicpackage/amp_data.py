@@ -213,12 +213,23 @@ class Modules:
 
 Version = Tuple[int, int, int]
 
+def to_version(x: Any) -> Version:
+    if isinstance(x, str):
+        version = tuple(map(int, x.split(".")))
+        if len(version) != 3:
+            raise ValueError("The Version needs to have exactly two separators '.'")
+        return version
+    elif type(x) is Version:
+        return x
+    else:
+        raise TypeError("The type cannot be converted into a version")
+    
+
 @attrs.define
 class Info:
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="")
-    firmware_version: float = attrs.field(default=0.2) # TODO: change this to a Version class
-    firmware_version_new: Version = attrs.field(default=(0, 0, 0)) # TODO: delete this. Is just there, so I can implement in the meantime the home tab
+    firmware_version: Version = attrs.field(default=(0, 0, 0), converter=to_version) # TODO: delete this. Is just there, so I can implement in the meantime the home tab
     modules: Modules = attrs.field(factory=Modules)
 
     def update(self, **kwargs) -> Info:

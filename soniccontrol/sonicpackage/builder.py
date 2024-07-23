@@ -105,19 +105,19 @@ class AmpBuilder:
         )
 
         sonicamp.add_commands(basic_commands)
-        if sonicamp.info.firmware_version >= 0.3:
+        if sonicamp.info.firmware_version >= (0, 3, 0):
             sonicamp.add_commands((commands.get_status, commands.get_type))
 
         if sonicamp.info.device_type == "catch":
             sonicamp.add_commands(basic_catch_commands)
-            if sonicamp.info.firmware_version == 0.3:
+            if sonicamp.info.firmware_version[:2] == (0, 3):
                 sonicamp.add_command(commands.get_sens)
-            elif sonicamp.info.firmware_version == 0.4:
+            elif sonicamp.info.firmware_version[:2] == (0, 4):
                 sonicamp.add_command(commands.get_sens_factorised)
-            elif sonicamp.info.firmware_version == 0.5:
+            elif sonicamp.info.firmware_version[:2] == (0, 5):
                 sonicamp.add_command(commands.get_sens_fullscale_values)
 
-            if sonicamp.info.firmware_version >= 0.4:
+            if sonicamp.info.firmware_version >= (0, 4, 0):
                 sonicamp.add_commands(atf_commands)
                 for command in atf_commands:
                     await sonicamp.execute_command(command)

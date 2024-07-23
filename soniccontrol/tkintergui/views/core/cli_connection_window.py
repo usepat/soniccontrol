@@ -1,10 +1,8 @@
 import asyncio
 from typing import Callable
 from soniccontrol.interfaces.ui_component import UIComponent
-from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
-from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 from soniccontrol.state_updater.logger import Logger
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader

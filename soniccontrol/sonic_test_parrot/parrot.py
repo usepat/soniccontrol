@@ -5,9 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Literal, Optional, Union, ClassVar
 
-from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.builder import AmpBuilder
-from soniccontrol.sonicpackage.command import Command
 from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
 
 

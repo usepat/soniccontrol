@@ -7,7 +7,6 @@ import typing
 import shutil
 from serial_asyncio import open_serial_connection
 
-from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 import soniccontrol.utils.files as files
 from soniccontrol.sonicpackage.builder import AmpBuilder

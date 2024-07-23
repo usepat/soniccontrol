@@ -30,7 +30,7 @@ class Home(UIComponent):
             return "v" + ".".join(map(str, version))
 
         device_type = self._device.info.device_type
-        firmware_version = version_to_str(self._device.info.firmware_version_new)
+        firmware_version = version_to_str(self._device.info.firmware_version)
         protocol_version = "v" + str(self._device.serial.protocol.major_version)
         self._view.set_device_type(device_type)
         self._view.set_firmware_version(firmware_version)

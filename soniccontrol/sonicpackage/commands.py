@@ -15,8 +15,8 @@ class CommandSet:
         type_validator: CommandValidator = CommandValidator(
             pattern=r"sonic(catch|wipe|descale)", type_=str
         )
-        version_validator: CommandValidator = CommandValidator(
-            pattern=r".*([\d]\.[\d]\.[\d]).*", version=str
+        firmware_version_validator: CommandValidator = CommandValidator(
+            pattern=r".*([\d]\.[\d]\.[\d]).*", firmware_version=str
         )
         update_date_validator: CommandValidator = CommandValidator(
             pattern=r".*(\d{2}.\d{2}.\d{4}).*",
@@ -177,7 +177,7 @@ class CommandSet:
             expects_long_answer=True,
             validators=(
                 type_validator,
-                version_validator,
+                firmware_version_validator,
                 # TODO: Here should be a HARDWARE ID validator
                 update_date_validator,
             ),
@@ -429,7 +429,10 @@ class CommandSet:
             estimated_response_time=0.5,
             expects_long_answer=True,
             validators=(
-                CommandValidator(pattern=r".*ver.*([\d]+[.][\d]+).*", version=float),
+                CommandValidator(
+                    pattern=r".*ver.*([\d]+[.][\d]+).*", 
+                    firmware_version=attrs.converters.pipe(str, lambda v: v + ".0") # add a third version number, so that it is in line with the newer firmware version format
+                ),
                 CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
             ),
             serial_communication=serial,
