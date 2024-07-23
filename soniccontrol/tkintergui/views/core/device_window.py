@@ -16,6 +16,7 @@ from soniccontrol.tkintergui.utils.events import Event
 from soniccontrol.tkintergui.views.configuration.configuration import Configuration
 from soniccontrol.tkintergui.views.configuration.flashing import Flashing
 from soniccontrol.tkintergui.views.core.app_state import AppState, ExecutionState
+from soniccontrol.tkintergui.views.home import Home
 from soniccontrol.tkintergui.views.info import Info
 from soniccontrol.tkintergui.views.control.logging import Logging
 from soniccontrol.tkintergui.views.control.editor import Editor
@@ -39,6 +40,7 @@ class DeviceWindow(UIComponent):
         self._logger = logger
         self._proc_controller = ProcedureController(self._device)
 
+        self._home = Home(self, self._device)
         self._sonicmeasure = SonicMeasure(self)
         self._serialmonitor = SerialMonitor(self, self._device)
         self._logging = Logging(self, self._logger.logs)
@@ -50,6 +52,7 @@ class DeviceWindow(UIComponent):
         self._proc_controlling = ProcControlling(self, self._proc_controller, self._app_state)
 
         self._view.add_tab_views([
+            self._home.view,
             self._sonicmeasure.view, 
             self._serialmonitor.view, 
             self._logging.view, 
@@ -60,12 +63,13 @@ class DeviceWindow(UIComponent):
             self._proc_controlling.view
         ])
         self._view.add_close_callback(self.close)
-        self._device.serial.subscribe_property_listener(Communicator.DISCONNECTED_EVENT, lambda _e: self.on_disconnect())
+        self._device.serial.subscribe(Communicator.DISCONNECTED_EVENT, lambda _e: self.on_disconnect())
         self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
         self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))
         self._updater.execute()
         self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
         self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._configuration.on_execution_state_changed)
+        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._home.on_execution_state_changed)
 
         self._app_state.execution_state = ExecutionState.IDLE
 
