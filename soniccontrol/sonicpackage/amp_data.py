@@ -219,7 +219,7 @@ def to_version(x: Any) -> Version:
         if len(version) != 3:
             raise ValueError("The Version needs to have exactly two separators '.'")
         return version
-    elif type(x) is Version:
+    elif isinstance(x, tuple):
         return x
     else:
         raise TypeError("The type cannot be converted into a version")
