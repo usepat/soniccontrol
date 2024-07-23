@@ -3,6 +3,7 @@ from async_tkinter_loop import async_handler
 from ttkbootstrap.scrolled import ScrolledFrame
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView, View
+from soniccontrol.sonicpackage.amp_data import Info, Version
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 
 import ttkbootstrap as ttk
@@ -22,6 +23,18 @@ class Home(UIComponent):
         super().__init__(parent, self._view)
         self._view.set_disconnect_button_command(self._on_disconnect_pressed)
         self._view.set_send_button_command(self._on_send_pressed)
+        self._initialize_info()
+
+    def _initialize_info(self) -> None:
+        def version_to_str(version: Version) -> str:
+            return "v" + ".".join(map(str, version))
+
+        device_type = self._device.info.device_type
+        firmware_version = version_to_str(self._device.info.firmware_version_new)
+        protocol_version = "v" + str(self._device.serial.protocol.major_version)
+        self._view.set_device_type(device_type)
+        self._view.set_firmware_version(firmware_version)
+        self._view.set_protocol_version(protocol_version)
 
     @async_handler
     async def _on_disconnect_pressed(self) -> None:
@@ -250,6 +263,15 @@ class HomeView(TabView):
     def signal(self) -> bool:
         return self._signal.get()
     
+    def set_device_type(self, text: str) -> None:
+        self._device_type_label.configure(text=ui_labels.DEVICE_TYPE_LABEL.format(text)) 
+
+    def set_firmware_version(self, text: str) -> None:
+        self._firmware_version_label.configure(text=ui_labels.FIRMWARE_VERSION_LABEL.format(text)) 
+
+    def set_protocol_version(self, text: str) -> None:
+        self._protocol_version_label.configure(text=ui_labels.PROTOCOL_VERSION_LABEL.format(text)) 
+
     def set_disconnect_button_command(self, command: Callable[[], None]) -> None:
         self._disconnect_button.configure(command=command)
 

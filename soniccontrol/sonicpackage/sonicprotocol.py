@@ -30,6 +30,7 @@ class CommunicationProtocol:
     @abc.abstractmethod
     def prot_type(self) -> ProtocolType: ...
 
+    @property
     @abc.abstractmethod
     def major_version(self) -> int: ...
 
@@ -60,6 +61,7 @@ class LegacySonicProtocol(CommunicationProtocol):
     def prot_type(self) -> ProtocolType:
         return ProtocolType.SONIC_PROTOCOL
 
+    @property
     @abc.abstractmethod
     def major_version(self) -> int:
         return 1
@@ -109,6 +111,7 @@ class SonicProtocol(CommunicationProtocol):
     def prot_type(self) -> ProtocolType:
         return ProtocolType.SONIC_PROTOCOL
 
+    @property
     @abc.abstractmethod
     def major_version(self) -> int:
         return 2
