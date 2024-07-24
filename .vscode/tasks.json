@@ -1,0 +1,24 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build SonicControl with PyInstaller",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/create_exe.sh",
+            "args": [
+                "${workspaceFolder}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
