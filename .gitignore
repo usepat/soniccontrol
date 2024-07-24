@@ -71,13 +71,8 @@ Status_Logs/
 venv/
 __pycache__/
 
-# We do not want user specific stuff
-.vscode/
-# But we want configurations for debugging and tasks
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/tasks.json
-!.vscode/launch.json
+# .vscode/ 
+# Instead of excluding the whole vscode folder only exclude the files you do not want
 
 *.tmp
 *.csv
