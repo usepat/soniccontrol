@@ -100,39 +100,27 @@ class DeviceWindowView(tk.Toplevel):
         self._default_font.configure(family="OpenSans", size=10)
 
         # tkinter components
-        self._main_frame: ttk.Panedwindow = ttk.Panedwindow(
-            self, orient=ttk.HORIZONTAL, style=ttk.SECONDARY
-        )
-        self._left_frame: ttk.Frame = ttk.Frame(self)
-        self._left_notebook: Notebook = Notebook(self._left_frame)
-        self._right_notebook: Notebook = Notebook(self)
-        self._status_bar_slot: ttk.Frame = ttk.Frame(self._left_frame)
+        self._frame: ttk.Frame = ttk.Frame(self)
+        self._notebook: Notebook = Notebook(self._frame)
+        self._status_bar_slot: ttk.Frame = ttk.Frame(self._frame)
 
-        self.columnconfigure(0, weight=sizes.EXPAND)
-        self.rowconfigure(0, weight=sizes.EXPAND)
-        self.rowconfigure(1, weight=sizes.DONT_EXPAND)
-        self.grid_rowconfigure(1, minsize=16)
-        self._main_frame.grid(row=0, column=0, sticky=ttk.NSEW)
+        self._frame.pack(fill=ttk.BOTH, expand=True)
+        self._status_bar_slot.pack(side=ttk.BOTTOM, fill=ttk.X)
+        self._notebook.pack(side=ttk.TOP, fill=ttk.BOTH, expand=True)
 
-        self._left_frame.columnconfigure(0, weight=sizes.EXPAND)
-        self._left_frame.rowconfigure(0, weight=3)
-        self._left_frame.rowconfigure(1, weight=1, minsize=30)
-        self._left_notebook.grid(row=0, column=0, sticky=ttk.NSEW)
-        self._status_bar_slot.grid(row=1, column=0, sticky=ttk.NSEW)
-
-        self._main_frame.add(self._left_frame, weight=sizes.DONT_EXPAND)
-        self._left_notebook.add_tabs(
+        self._notebook.add_tabs(
             [],
             show_titles=True,
             show_images=True,
         )
+
 
     @property
     def status_bar_slot(self) -> ttk.Frame:
         return self._status_bar_slot
 
     def add_tab_views(self, tab_views: List[TabView]):
-        self._left_notebook.add_tabs(
+        self._notebook.add_tabs(
             tab_views,
             show_titles=True,
             show_images=True,

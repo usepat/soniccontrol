@@ -213,6 +213,7 @@ ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 
 @attrs.frozen
 class _Events:
+    CLICKED_EVENT: Literal["<Button-1>"] = "<Button-1>"
     RESIZING_EVENT: Literal["<Configure>"] = "<Configure>"
     CONNECTION_ATTEMPT_EVENT: Literal["<<ConnectionAttempt>>"] = "<<ConnectionAttempt>>"
     CONNECTED_EVENT: Literal["<<Connected>>"] = "<<Connected>>"
