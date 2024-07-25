@@ -11,7 +11,9 @@ Install the right python version locally, so that you can run Soniccontrol. The 
 ## Virtual environemt
 
 Open the root folder of soniccontrol with your terminal of choice and initialize a python virtual environment.  
-Note that the enviroment will have the same python version as the python interpreter you created it with. So choose a python interpreter with a version >= 3.10
+Note that the enviroment will have the same python version as the python interpreter you created it with. So choose a python interpreter with a version >= 3.10. 
+
+> Note: python 3.12 has issues with ttkbootstrap, but 3.11 works fine
 
 ```
 python3.10 -m venv .venv

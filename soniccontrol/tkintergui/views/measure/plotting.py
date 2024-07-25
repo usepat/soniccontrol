@@ -21,17 +21,17 @@ class Plotting(UIComponent):
         super().__init__(parent, self._view)
 
         for (attrName, line) in self._plot.lines.items():
-            self.view.add_line(attrName, line.get_label(), self.create_toggle_line_callback(attrName))
+            self._view.add_line(attrName, line.get_label(), self.create_toggle_line_callback(attrName))
         self._view.update_plot()
             
         self._plot.subscribe_property_listener("plot", lambda _: self._view.update_plot())
 
 
     def create_toggle_line_callback(self, attrName: str):
-            def toggle_line():
-                is_visible = self._view.get_line_visibility(attrName)
-                self._plot.toggle_line(attrName, is_visible)
-            return toggle_line
+        def toggle_line():
+            is_visible = self._view.get_line_visibility(attrName)
+            self._plot.toggle_line(attrName, is_visible)
+        return toggle_line
 
 
 class PlottingView(View):
