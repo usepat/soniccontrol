@@ -9,7 +9,7 @@ from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.commands import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
-from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.sonicpackage.serial_communicator import Communicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
@@ -18,7 +18,7 @@ parrot_feeder = logging.getLogger("parrot_feeder")
 
 @attrs.define(kw_only=True)
 class SonicAmp(Scriptable):
-    _serial: SerialCommunicator = attrs.field()
+    _serial: Communicator = attrs.field()
     _commands: Dict[str, Command] = attrs.field(factory=dict, converter=dict)
 
     _status: Status = attrs.field()
@@ -26,11 +26,11 @@ class SonicAmp(Scriptable):
     _ramp: Optional[Ramper] = attrs.field(init=False, default=None)
 
     @property
-    def serial(self) -> SerialCommunicator:
+    def serial(self) -> Communicator:
         return self._serial
 
     @serial.setter
-    def serial(self, serial: SerialCommunicator) -> None:
+    def serial(self, serial: Communicator) -> None:
         self._serial = serial
 
     @property
