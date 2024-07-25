@@ -41,6 +41,8 @@ class ConnectionBuilder:
         if commands.get_info.answer.valid:
             logger.info("Connected with legacy protocol")
             return (serial, commands)
+        else:
+            serial.disconnect()
 
         serial = SerialCommunicator(**kwargs)
         await serial.connect(reader, writer)

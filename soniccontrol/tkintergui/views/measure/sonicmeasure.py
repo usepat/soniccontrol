@@ -22,7 +22,8 @@ from soniccontrol.utils.plotlib.plot_builder import PlotBuilder
 class SonicMeasure(UIComponent):
     def __init__(self, parent: UIComponent):
         self._capture = Capture()
-        super().__init__(parent, SonicMeasureView(parent.view))
+        self._view = SonicMeasureView(parent.view)
+        super().__init__(parent, self._view)
 
         self._time_figure = matplotlib.figure.Figure(dpi=100)
         self._time_subplot = self._time_figure.add_subplot(1, 1, 1)

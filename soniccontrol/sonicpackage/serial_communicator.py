@@ -16,7 +16,6 @@ from soniccontrol.utils.system import PLATFORM
 
 @attrs.define
 class SerialCommunicator(Communicator):
-    _init_command: Command = attrs.field(init=False)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _lock: asyncio.Lock = attrs.field(init=False, factory=asyncio.Lock, repr=False)
@@ -96,7 +95,7 @@ class SerialCommunicator(Communicator):
                 ic(f"Exception while reading {sys.exc_info()}")
 
             command.answer.receive_answer(answer)
-            await self._answer_queue.put(command)
+            self._answer_queue.put_nowait(command)
 
         if self._writer is None or self._reader is None:
             ic("No connection available")
@@ -295,7 +294,8 @@ class LegacySerialCommunicator(Communicator):
         return message
 
     def disconnect(self) -> None:
-        self._writer.close() if self._writer is not None else None
+        if sys.getrefcount(self._writer) == 1:
+            self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None
