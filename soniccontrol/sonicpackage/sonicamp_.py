@@ -9,7 +9,7 @@ from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.commands import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
-from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.sonicpackage.serial_communicator import Communicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 
@@ -18,7 +18,7 @@ parrot_feeder = logging.getLogger("parrot_feeder")
 
 @attrs.define(kw_only=True)
 class SonicAmp(Scriptable):
-    _serial: SerialCommunicator = attrs.field()
+    _serial: Communicator = attrs.field()
     _commands: Dict[str, Command] = attrs.field(factory=dict, converter=dict)
 
     _status: Status = attrs.field()
@@ -26,11 +26,11 @@ class SonicAmp(Scriptable):
     _ramp: Optional[Ramper] = attrs.field(init=False, default=None)
 
     @property
-    def serial(self) -> SerialCommunicator:
+    def serial(self) -> Communicator:
         return self._serial
 
     @serial.setter
-    def serial(self, serial: SerialCommunicator) -> None:
+    def serial(self, serial: Communicator) -> None:
         self._serial = serial
 
     @property
@@ -49,7 +49,7 @@ class SonicAmp(Scriptable):
         return self._status.remote_proc_finished_running
 
     async def disconnect(self) -> None:
-        await self.serial.disconnect()
+        await self.serial.close_communication()
         del self
 
     def add_command(
@@ -141,9 +141,11 @@ class SonicAmp(Scriptable):
                 ic("Command not found in commands of sonicamp", message)
                 ic("Executing message as a new Command...")
                 return await self.send_message(message=message, argument=argument)
+            
             command: Command = self._commands[message]
             await command.execute(argument=argument, connection=self._serial)
-
+        except ConnectionError:
+            await self.disconnect()
         except Exception:
             await self.disconnect()
 

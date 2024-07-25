@@ -1,4 +1,3 @@
-from typing import List
 import asyncio
 
 from soniccontrol.tkintergui.utils.observable_list import ObservableList
@@ -17,6 +16,8 @@ class Logger:
         while True:
             item = await self._queue.get()
             self._logs.append(item)
+
+            # Maybe add a constraint to logs, that not too many are saved
     
     @property
     def logs(self) -> ObservableList:

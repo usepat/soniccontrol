@@ -55,7 +55,7 @@ class SerialCommunicator(Communicator):
         # Todo: define with Thomas how we make a handshake
         return {}
 
-    async def connect(
+    async def open_communication(
         self,
         reader: asyncio.StreamReader,
         writer: asyncio.StreamWriter,
@@ -108,21 +108,24 @@ class SerialCommunicator(Communicator):
                     try:
                         await send_and_get(command)
                     except serial.SerialException:
-                        await self.disconnect()
+                        await self._close_communication()
                         return
                     except Exception as e:
                         ic(sys.exc_info())
                         break
         except asyncio.CancelledError:
-            await self.disconnect()
+            await self._close_communication()
             return
-        await self.disconnect()
+        await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
+        TIMEOUT = 10 # 10s
         await self._command_queue.put(command)
-        await command.answer.received.wait()
+        received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+        if not received:
+            raise ConnectionError("Device is not responding")
 
-    async def stop(self) -> None:
+    async def close_communication(self) -> None:
         if self._task is not None:
             self._task.cancel()
             try:
@@ -131,10 +134,11 @@ class SerialCommunicator(Communicator):
                 pass
             self._task = None
 
-    async def disconnect(self) -> None:
+    async def _close_communication(self) -> None:
         if self._task is not None:
             await self._package_fetcher.stop()
-        self._writer.close() if self._writer is not None else None
+        if sys.getrefcount(self._writer) == 1:
+            self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None
@@ -163,6 +167,7 @@ class LegacySerialCommunicator(Communicator):
     )
 
     def __attrs_post_init__(self) -> None:
+        self._task: Optional[asyncio.Task[None]] = None
         self._init_command = Command(
             estimated_response_time=0.5,
             validators=(
@@ -201,7 +206,7 @@ class LegacySerialCommunicator(Communicator):
     def handshake_result(self) -> Dict[str, Any]:
         return self._init_command.status_result
 
-    async def connect(
+    async def open_communication(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
         async def get_first_message() -> None:
@@ -220,7 +225,7 @@ class LegacySerialCommunicator(Communicator):
         else:
             await get_first_message()
             self._connection_opened.set()
-            asyncio.create_task(self._worker())
+            self._task = asyncio.create_task(self._worker())
 
     async def _worker(self) -> None:
         async def send_and_get(command: Command) -> None:
@@ -245,16 +250,19 @@ class LegacySerialCommunicator(Communicator):
                 try:
                     await send_and_get(command)
                 except serial.SerialException:
-                    self.disconnect()
+                    self._close_communication()
                     return
                 except Exception as e:
                     ic(sys.exc_info())
                     break
-        self.disconnect()
+        self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
+        TIMEOUT = 10 # 10s
         await self._command_queue.put(command)
-        await command.answer.received.wait()
+        received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+        if not received:
+            raise ConnectionError("Device is not responding")
 
     async def read_message(self, response_time: float = 0.3) -> str:
         message: str = ""
@@ -293,7 +301,16 @@ class LegacySerialCommunicator(Communicator):
 
         return message
 
-    def disconnect(self) -> None:
+    async def close_communication(self) -> None:
+        if self._task is not None:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
+
+    def _close_communication(self) -> None:
         if sys.getrefcount(self._writer) == 1:
             self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()

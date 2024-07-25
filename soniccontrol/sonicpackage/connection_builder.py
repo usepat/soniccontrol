@@ -1,8 +1,7 @@
 import asyncio
-from typing import Callable, Any
-from serial_asyncio import open_serial_connection
+from typing import Union
 
-from soniccontrol.sonicpackage.commands import CommandSet
+from soniccontrol.sonicpackage.commands import CommandSet, CommandSetLegacy
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.serial_communicator import (
     LegacySerialCommunicator,
@@ -16,7 +15,7 @@ class ConnectionBuilder:
     @staticmethod
     async def build(
         reader: asyncio.StreamReader, writer: asyncio.StreamWriter, **kwargs
-    ) -> tuple[Communicator, CommandSet]:
+    ) -> tuple[Communicator, Union[CommandSet, CommandSetLegacy]]:
         """
         Builds a connection using the provided `reader` and `writer` objects.
 
@@ -35,36 +34,29 @@ class ConnectionBuilder:
         """
 
         serial: Communicator = LegacySerialCommunicator()
-        await serial.connect(reader, writer)
-        commands: CommandSet = CommandSet().with_legacy_commands(serial)
+
+        await serial.open_communication(reader, writer)
+        commands: Union[CommandSet, CommandSetLegacy] = CommandSetLegacy(serial)
         await commands.get_info.execute()
         if commands.get_info.answer.valid:
             logger.info("Connected with legacy protocol")
             return (serial, commands)
         else:
-            serial.disconnect()
+            await serial.close_communication()
 
         serial = SerialCommunicator(**kwargs)
-        await serial.connect(reader, writer)
-        commands = CommandSet().with_new_commands(serial)
+        await serial.open_communication(reader, writer)
+        commands = CommandSet(serial)
         await commands.get_info.execute()
+
+        # TODO: fix this. Define with Thomas an interface for ?info and implement it.
 
         # if commands.get_info.answer.valid:
         #     logger.info("Connected with sonic protocol")
         #     return (serial, commands)
 
-        # raise ConnectionError("Failed to connect due to incompatibility")
-
-        # TODO: fix this. Define with Thomas an interface for ?info and implement it.
-
         logger.info("Connected with sonic protocol")
         return (serial, commands)
+    
+        # raise ConnectionError("Failed to connect due to incompatibility")
 
-
-async def main():
-    cb = ConnectionBuilder("COM7", 115200)
-    serial = await cb.build()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

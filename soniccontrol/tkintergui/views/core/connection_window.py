@@ -4,6 +4,7 @@ from serial_asyncio import open_serial_connection
 import serial.tools.list_ports as list_ports
 import ttkbootstrap as ttk
 import tkinter as tk
+from ttkbootstrap.dialogs.dialogs import Messagebox
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
@@ -39,8 +40,8 @@ class ConnectionWindow(UIComponent):
         self._view: ConnectionWindowView = ConnectionWindowView()
         super().__init__(None, self._view)
         self._device_window_manager = DeviceWindowManager(self._view)
-        self._view.set_connect_button_command(lambda: self._attempt_connection())
-        self._view.set_refresh_button_command(lambda: self._refresh_ports())
+        self._view.set_connect_button_command(self._attempt_connection)
+        self._view.set_refresh_button_command(self._refresh_ports)
         self._refresh_ports()
 
     def _refresh_ports(self):
@@ -55,14 +56,19 @@ class ConnectionWindow(UIComponent):
         reader, writer = await open_serial_connection(
             url=self._view.get_url(), baudrate=baudrate
         )
-        serial, commands = await ConnectionBuilder.build(
-            reader=reader,
-            writer=writer,
-            log_callback=lambda log: logger.insert_log_to_queue(log),
-        )
+        try:
+            serial, commands = await ConnectionBuilder.build(
+                reader=reader,
+                writer=writer,
+                log_callback=lambda log: logger.insert_log_to_queue(log),
+            )
 
-        sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands)
-        await sonicamp.serial.connection_opened.wait()
+            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands)
+            await sonicamp.serial.connection_opened.wait()
+        except ConnectionError as e:
+            Messagebox.show_error(e)
+            return
+
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

@@ -1,5 +1,7 @@
 import asyncio
 from typing import Callable
+
+from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
@@ -17,7 +19,7 @@ class CliConnectionWindow(UIComponent):
         self._view = CliConnectionWindowView()
         super().__init__(None, self._view)
         self._device_window_manager = DeviceWindowManager(self._view)
-        self._view.set_connect_button_command(lambda: self._attempt_connection())
+        self._view.set_connect_button_command(self._attempt_connection)
 
     @async_handler
     async def _attempt_connection(self):
@@ -29,14 +31,19 @@ class CliConnectionWindow(UIComponent):
         )
         logger = Logger()
 
-        serial, commands = await ConnectionBuilder.build(
-            reader=process.stdout,
-            writer=process.stdin,
-            log_callback=lambda log: logger.insert_log_to_queue(log),
-        )
+        try:
+            serial, commands = await ConnectionBuilder.build(
+                reader=process.stdout,
+                writer=process.stdin,
+                log_callback=lambda log: logger.insert_log_to_queue(log),
+            )
 
-        sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands)
-        await sonicamp.serial.connection_opened.wait()
+            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands)
+            await sonicamp.serial.connection_opened.wait()
+        except ConnectionError as e:
+            Messagebox.show_error(e)
+            return
+        
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

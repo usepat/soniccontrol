@@ -25,7 +25,7 @@ CommandList = List[List[str]]
 CommandCaller = Callable[[SonicAmp], typing.Coroutine]
 async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, commands: Union[CommandList, CommandCaller], parrot_food_file: Optional[str] = None):
     communicator = SerialCommunicator()
-    await communicator.connect(reader, writer)
+    await communicator.open_communication(reader, writer)
 
     builder = AmpBuilder()
     sonicamp = await builder.build_amp(communicator)
@@ -46,7 +46,7 @@ async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWrite
 
 async def test_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, parrot_food_file: Optional[str] = None):
     communicator = SerialCommunicator()
-    await communicator.connect(reader,writer)
+    await communicator.open_communication(reader,writer)
 
     parrot_feeder = logging.getLogger("parrot_feeder")
     if parrot_food_file is None:
