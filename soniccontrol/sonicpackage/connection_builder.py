@@ -35,6 +35,7 @@ class ConnectionBuilder:
         """
 
         serial: Communicator = LegacySerialCommunicator()
+
         await serial.connect(reader, writer)
         commands: CommandSet = CommandSet().with_legacy_commands(serial)
         await commands.get_info.execute()
@@ -47,16 +48,16 @@ class ConnectionBuilder:
         commands = CommandSet().with_new_commands(serial)
         await commands.get_info.execute()
 
+        # TODO: fix this. Define with Thomas an interface for ?info and implement it.
+
         # if commands.get_info.answer.valid:
         #     logger.info("Connected with sonic protocol")
         #     return (serial, commands)
 
-        # raise ConnectionError("Failed to connect due to incompatibility")
-
-        # TODO: fix this. Define with Thomas an interface for ?info and implement it.
-
         logger.info("Connected with sonic protocol")
         return (serial, commands)
+    
+        # raise ConnectionError("Failed to connect due to incompatibility")
 
 
 async def main():

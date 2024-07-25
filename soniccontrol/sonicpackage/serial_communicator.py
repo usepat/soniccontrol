@@ -120,8 +120,11 @@ class SerialCommunicator(Communicator):
         await self.disconnect()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
+        TIMEOUT = 10 # 10s
         await self._command_queue.put(command)
-        await command.answer.received.wait()
+        received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+        if not received:
+            raise ConnectionError("Device is not responding")
 
     async def stop(self) -> None:
         if self._task is not None:
@@ -254,8 +257,11 @@ class LegacySerialCommunicator(Communicator):
         self.disconnect()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
+        TIMEOUT = 10 # 10s
         await self._command_queue.put(command)
-        await command.answer.received.wait()
+        received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+        if not received:
+            raise ConnectionError("Device is not responding")
 
     async def read_message(self, response_time: float = 0.3) -> str:
         message: str = ""

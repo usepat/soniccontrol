@@ -141,9 +141,11 @@ class SonicAmp(Scriptable):
                 ic("Command not found in commands of sonicamp", message)
                 ic("Executing message as a new Command...")
                 return await self.send_message(message=message, argument=argument)
+            
             command: Command = self._commands[message]
             await command.execute(argument=argument, connection=self._serial)
-
+        except ConnectionError:
+            await self.disconnect()
         except Exception:
             await self.disconnect()
 
