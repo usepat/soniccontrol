@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple
 import ttkbootstrap as ttk
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import View
 from soniccontrol.sonicpackage.amp_data import Status
-from soniccontrol.tkintergui.utils.constants import (color, fonts, sizes,
+from soniccontrol.tkintergui.utils.constants import (color, events, fonts, sizes,
                                                      style, ui_labels)
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.widgets.horizontal_scrolled_frame import HorizontalScrolledFrame
@@ -14,15 +14,20 @@ from soniccontrol.utils.files import images
 
 class StatusBar(UIComponent):
     def __init__(self, parent: UIComponent, parent_slot: View):
-        min_height = 150
-        self._view = AdaptiveFrame(parent_slot, min_height)
-        self._status_bar_view = StatusBarView(self._view.frame_small)
-        self._status_bar_expanded_view = StatusBarExpandedView(self._view.frame_large)
+        self._view = StatusBarView(parent_slot)
+        self._status_panel = StatusPanel(self, self._view.panel_frame)
+        self._status_panel_expanded = False
         super().__init__(parent, self._view)
+        self._view.set_status_clicked_command(self.on_expand_status_panel)
+        self._view.expand_panel_frame(self._status_panel_expanded)
+
+    def on_expand_status_panel(self) -> None:
+        self._status_panel_expanded = not self._status_panel_expanded
+        self._view.expand_panel_frame(self._status_panel_expanded)
 
     def on_update_status(self, status: Status):
         temperature = status.temperature if status.temperature else 0
-        self._status_bar_view.update_labels(
+        self._view.update_labels(
             f"{status.communication_mode}",
             f"Freq.: {status.frequency / 1000} kHz",
             f"Gain: {status.gain} %",
@@ -32,7 +37,18 @@ class StatusBar(UIComponent):
             f"Phase: {status.phase} °",
             f"Signal: {'ON'if status.signal else 'OFF'}"
         )
-        self._status_bar_expanded_view.update_stats(
+        if self._status_panel_expanded:
+            self._status_panel.on_update_status(status)
+
+
+class StatusPanel(UIComponent):
+    def __init__(self, parent: UIComponent, parent_slot: View):
+        self._view = StatusPanelView(parent_slot)
+        super().__init__(parent, self._view)
+
+    def on_update_status(self, status: Status):
+        temperature = status.temperature if status.temperature else 0
+        self._view.update_stats(
             status.frequency / 1000,
             status.gain,
             temperature,
@@ -41,46 +57,10 @@ class StatusBar(UIComponent):
             f"Phase: {status.phase} °",
             ui_labels.SIGNAL_ON if status.signal else ui_labels.SIGNAL_OFF
         )
-        self._status_bar_expanded_view.set_signal_image(
+        self._view.set_signal_image(
             images.LED_ICON_GREEN if status.signal else images.LED_ICON_RED, 
             sizes.LARGE_BUTTON_ICON_SIZE
         )
-
-
-class AdaptiveFrame(View):
-    def __init__(self, master: ttk.Frame, threshold: int, *args, **kwargs) -> None:
-        super().__init__(master, *args, **kwargs)
-        self._threshold = threshold
-        self.bind("<Configure>", self._on_resize)
-    
-    @property
-    def frame_small(self) -> Optional[View]:
-        return self._frame_small
-
-    @property
-    def frame_large(self) -> Optional[View]:
-        return self._frame_large
-
-    def _initialize_children(self) -> None:
-        self._frame_small: ttk.Frame = ttk.Frame(self)
-        self._frame_large: ttk.Frame = ttk.Frame(self)
-
-    def _initialize_publish(self) -> None:
-        self.pack(expand=True, fill=ttk.BOTH)
-        self.columnconfigure(0, weight=sizes.EXPAND)
-        self.rowconfigure(0, weight=sizes.EXPAND)
-        self._frame_small.grid(row=0, column=0, sticky=ttk.NSEW)
-        self._frame_large.grid(row=0, column=0, sticky=ttk.NSEW)
-        self._frame_large.grid_forget()
-
-    def _on_resize(self, event):
-        if event.height < self._threshold:
-            self._frame_large.grid_forget()
-            self._frame_small.grid(row=0, column=0, sticky=ttk.NSEW)
-        else:
-            self._frame_small.grid_forget()
-            self._frame_large.grid(row=0, column=0, sticky=ttk.NSEW)
-
 
 class StatusBarView(View):
     def __init__(
@@ -92,14 +72,16 @@ class StatusBarView(View):
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
-        self._mode_frame: ttk.Frame = ttk.Frame(self)
+        self._panel_frame: ttk.Frame = ttk.Frame(self)
+        self._status_bar_frame: ttk.Frame = ttk.Frame(self)
+        self._mode_frame: ttk.Frame = ttk.Frame(self._status_bar_frame)
         self._mode_label: ttk.Label = ttk.Label(
             self._mode_frame,
             bootstyle=style.INVERSE_SECONDARY
         )
 
         self._scrolled_info: HorizontalScrolledFrame = HorizontalScrolledFrame(
-            self, bootstyle=ttk.SECONDARY, autohide=False
+            self._status_bar_frame, bootstyle=ttk.SECONDARY, autohide=False
         )
         self._scrolled_info.hide_scrollbars()
 
@@ -134,7 +116,7 @@ class StatusBarView(View):
             bootstyle=style.INVERSE_SECONDARY,
         )
 
-        self._signal_frame: ttk.Frame = ttk.Frame(self)
+        self._signal_frame: ttk.Frame = ttk.Frame(self._status_bar_frame)
         ICON_LABEL_PADDING: tuple[int, int, int, int] = (8, 0, 0, 0)
         self._signal_label: ttk.Label = ttk.Label(
             self._signal_frame,
@@ -150,6 +132,8 @@ class StatusBarView(View):
 
     def _initialize_publish(self) -> None:
         self.pack(fill=ttk.BOTH, padx=3, pady=3)
+        self._panel_frame.pack(side=ttk.TOP, fill=ttk.BOTH, expand=True)
+        self._status_bar_frame.pack(side=ttk.BOTTOM, fill=ttk.X)
         self._signal_frame.pack(side=ttk.RIGHT)
         self._scrolled_info.pack(expand=True, fill=ttk.BOTH, side=ttk.RIGHT)
         self._mode_frame.pack(side=ttk.RIGHT)
@@ -163,6 +147,20 @@ class StatusBarView(View):
         self._phase_label.pack(side=ttk.LEFT, padx=5)
         self._signal_label.pack(side=ttk.RIGHT, ipadx=3)
 
+    @property 
+    def panel_frame(self) -> ttk.Frame:
+        return self._panel_frame
+    
+    def expand_panel_frame(self, expand: bool) -> None:
+        if expand:
+            self._panel_frame.pack(side=ttk.TOP, fill=ttk.BOTH, expand=True)
+        else:
+            self._panel_frame.pack_forget()
+
+    def set_status_clicked_command(self, command: Callable[[], None]) -> None:
+        for child in self._scrolled_info.winfo_children():
+            child.bind(events.CLICKED_EVENT, lambda _e: command())
+        self._scrolled_info.bind(events.CLICKED_EVENT, lambda _e: command())
 
     def on_script_start(self) -> None:
         self._mode_frame.configure(bootstyle=ttk.SUCCESS)
@@ -183,7 +181,7 @@ class StatusBarView(View):
         self._signal_label.configure(text=signal)
 
 
-class StatusBarExpandedView(View):
+class StatusPanelView(View):
     def __init__(self, master: ttk.Window | ttk.tk.Widget, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
 
