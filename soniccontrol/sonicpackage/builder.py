@@ -56,7 +56,7 @@ class AmpBuilder:
         info.update(**result_dict)
         info.firmware_info = commands.get_info.answer.string
 
-        sonicamp: SonicAmp = SonicAmp(_serial=ser, _info=info, _status=status)
+        sonicamp: SonicAmp = SonicAmp(serial=ser, info=info, status=status)
 
         if isinstance(commands, CommandSet):
             await commands.get_command_list.execute()

@@ -32,12 +32,12 @@ class Communicator(abc.ABC, EventManager):
     def connection_opened(self) -> asyncio.Event: ...
 
     @abc.abstractmethod
-    async def connect(
+    async def open_communication(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ): ...
 
     @abc.abstractmethod
-    def disconnect(self) -> None: ...
+    async def close_communication(self) -> None: ...
 
     @property
     @abc.abstractmethod

@@ -35,15 +35,17 @@ class ConnectionBuilder:
 
         serial: Communicator = LegacySerialCommunicator()
 
-        await serial.connect(reader, writer)
+        await serial.open_communication(reader, writer)
         commands: Union[CommandSet, CommandSetLegacy] = CommandSetLegacy(serial)
         await commands.get_info.execute()
         if commands.get_info.answer.valid:
             logger.info("Connected with legacy protocol")
             return (serial, commands)
+        else:
+            await serial.close_communication()
 
         serial = SerialCommunicator(**kwargs)
-        await serial.connect(reader, writer)
+        await serial.open_communication(reader, writer)
         commands = CommandSet(serial)
         await commands.get_info.execute()
 

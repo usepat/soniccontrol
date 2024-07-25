@@ -49,7 +49,7 @@ class SonicAmp(Scriptable):
         return self._status.remote_proc_finished_running
 
     async def disconnect(self) -> None:
-        await self.serial.disconnect()
+        await self.serial.close_communication()
         del self
 
     def add_command(
