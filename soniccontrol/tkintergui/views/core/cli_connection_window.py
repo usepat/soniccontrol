@@ -5,7 +5,7 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
-from soniccontrol.state_updater.logger import Logger
+from soniccontrol.state_updater.logger import LogStorage
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.connection_window import DeviceWindowManager
@@ -29,7 +29,7 @@ class CliConnectionWindow(UIComponent):
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
         )
-        logger = Logger()
+        logger = LogStorage()
 
         try:
             serial, commands = await ConnectionBuilder.build(

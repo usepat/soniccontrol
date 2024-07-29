@@ -10,7 +10,7 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.state_updater.logger import Logger
+from soniccontrol.state_updater.logger import LogStorage
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.device_window import DeviceWindow
@@ -23,7 +23,7 @@ class DeviceWindowManager:
         self._id_device_window_counter = 0
         self._opened_device_windows: Dict[int, DeviceWindow] = {}
 
-    def open_device_window(self, sonicamp: SonicAmp, logger: Logger) -> DeviceWindow:
+    def open_device_window(self, sonicamp: SonicAmp, logger: LogStorage) -> DeviceWindow:
         device_window = DeviceWindow(sonicamp, self._root, logger)
         device_window._view.focus_set()  # grab focus and bring window to front
         self._id_device_window_counter += 1
@@ -50,7 +50,7 @@ class ConnectionWindow(UIComponent):
 
     @async_handler
     async def _attempt_connection(self):
-        logger = Logger()
+        logger = LogStorage()
         baudrate = 9600
 
         reader, writer = await open_serial_connection(

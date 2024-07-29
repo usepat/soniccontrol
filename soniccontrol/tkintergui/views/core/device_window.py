@@ -9,7 +9,7 @@ from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.state_updater.logger import Logger
+from soniccontrol.state_updater.logger import LogStorage
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.events import Event
@@ -30,7 +30,7 @@ from soniccontrol.tkintergui.widgets.notebook import Notebook
 class DeviceWindow(UIComponent):
     CLOSE_EVENT = "Close"
 
-    def __init__(self, device: SonicAmp, root, logger: Logger):
+    def __init__(self, device: SonicAmp, root, logger: LogStorage):
         self._device = device
         self._view = DeviceWindowView(root)
         super().__init__(None, self._view)

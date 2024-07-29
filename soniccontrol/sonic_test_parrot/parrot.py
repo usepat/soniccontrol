@@ -41,6 +41,7 @@ ParrotLog = Union[LogCommandCall, LogDeviceState]
 
 
 class LogParser:
+    @staticmethod
     def parse_logs(lines: List[str]) -> List[ParrotLog]:
         result = []
         for line in lines:
@@ -49,6 +50,7 @@ class LogParser:
                 result.append(log)
         return result
     
+    @staticmethod
     def parse_log(line: str) -> Optional[ParrotLog]:
         if LogCommandCall.LOG_STR in line:
             return LogParser._parse_command_call(line)
@@ -57,12 +59,14 @@ class LogParser:
         else:
             return None
 
+    @staticmethod
     def _parse_command_call(line: str) -> LogCommandCall:
         regex = fr".*{LogCommandCall.LOG_STR}\((.+)\).*"
         match = re.match(regex, line)
         data = json.loads(match.group(1))
         return LogCommandCall(**data)
 
+    @staticmethod
     def _parse_device_state(line: str) -> LogDeviceState:
         regex = fr".*{LogDeviceState.LOG_STR}\((.+)\).*"
         match = re.match(regex, line)
