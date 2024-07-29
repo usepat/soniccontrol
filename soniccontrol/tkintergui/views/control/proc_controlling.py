@@ -93,7 +93,7 @@ class ProcControllingView(TabView):
 
     @property
     def tab_title(self) -> str:
-        return ui_labels.SERIAL_MONITOR_LABEL
+        return ui_labels.PROCEDURES_LABEL
     
     def _initialize_children(self) -> None:
         self._selected_procedure_var = ttk.StringVar()

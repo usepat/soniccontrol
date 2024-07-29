@@ -67,7 +67,7 @@ class LoggingView(TabView):
             padx=sizes.MEDIUM_PADDING,
         )
 
-    def add_text_line(self, text: str):
+    def append_text_line(self, text: str):
         ttk.Label(self._scrolled_frame, text=text, font=("Consolas", 10)).pack(
             fill=ttk.X, side=ttk.TOP, anchor=ttk.W
         )
