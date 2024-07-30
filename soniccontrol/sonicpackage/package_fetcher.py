@@ -1,11 +1,10 @@
 import asyncio
 import logging
-from typing import Dict, Callable
+from typing import Dict
 from asyncio import StreamReader
 import sys
 from icecream import ic
 
-from soniccontrol.sonicpackage.package_parser import Package, PackageParser
 from soniccontrol.sonicpackage.sonicprotocol import SonicProtocol
 from soniccontrol.utils.system import PLATFORM
 
@@ -44,6 +43,7 @@ class PackageFetcher:
         while True:
             try:
                 response = await self._read_response()
+                package_id, answer = self._protocol.parse_response(response)
             except asyncio.CancelledError:
                 ic(f"Task was cancelled {sys.exc_info()}")
                 return
@@ -51,10 +51,8 @@ class PackageFetcher:
                 ic(f"Exception while reading/parsing package {sys.exc_info()}")
                 raise
 
-            id, answer = self._protocol.parse_response(response)
-
             if len(answer) > 0:
-                self._answers[id] = answer
+                self._answers[package_id] = answer
                 self._answer_received.set()
 
     async def _read_response(self) -> str:
@@ -75,7 +73,5 @@ class PackageFetcher:
             self._protocol.end_symbol.encode(PLATFORM.encoding)
         )
         message += data.decode(PLATFORM.encoding)
-
-        logger.debug(f"READ_PACKAGE({message})")
 
         return message

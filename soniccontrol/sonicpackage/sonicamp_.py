@@ -8,7 +8,7 @@ from icecream import ic
 from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.commands import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Scriptable
-from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
+from soniccontrol.sonicpackage.procedures.ramper import Ramper
 from soniccontrol.sonicpackage.serial_communicator import Communicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
@@ -20,10 +20,14 @@ parrot_feeder = logging.getLogger("parrot_feeder")
 class SonicAmp(Scriptable):
     _serial: Communicator = attrs.field()
     _commands: Dict[str, Command] = attrs.field(factory=dict, converter=dict)
+    _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
     _status: Status = attrs.field()
     _info: Info = attrs.field()
     _ramp: Optional[Ramper] = attrs.field(init=False, default=None)
+
+    def __attrs_post_init__(self) -> None:
+        self._logger = logging.getLogger(self._logger.name + "." + SonicAmp.__name__)
 
     @property
     def serial(self) -> Communicator:

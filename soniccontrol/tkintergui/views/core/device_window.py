@@ -1,4 +1,5 @@
 from typing import Callable, List, Optional, cast
+import logging
 import ttkbootstrap as ttk
 import tkinter as tk
 
@@ -9,7 +10,7 @@ from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.state_updater.logger import LogStorage
+from soniccontrol.state_updater.logger import DeviceLogFilter, LogStorage
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.events import Event
@@ -30,20 +31,27 @@ from soniccontrol.tkintergui.widgets.notebook import Notebook
 class DeviceWindow(UIComponent):
     CLOSE_EVENT = "Close"
 
-    def __init__(self, device: SonicAmp, root, logger: LogStorage):
+    def __init__(self, device: SonicAmp, root, logger: logging.Logger):
         self._device = device
         self._view = DeviceWindowView(root)
         super().__init__(None, self._view)
 
         self._app_state = AppState()
         self._updater = Updater(self._device)
-        self._logger = logger
+        self._logger: logging.Logger = logging.getLogger(logger.name + ".ui")
         self._proc_controller = ProcedureController(self._device)
+
+        # create log storage for storing logs from the device
+        self._logStorage = LogStorage()
+        log_storage_handler = self._logStorage.create_log_handler()
+        logger.addHandler(log_storage_handler)
+        device_log_filter = DeviceLogFilter()
+        log_storage_handler.addFilter(device_log_filter)
 
         self._home = Home(self, self._device)
         self._sonicmeasure = SonicMeasure(self)
         self._serialmonitor = SerialMonitor(self, self._device)
-        self._logging = Logging(self, self._logger.logs)
+        self._logging = Logging(self, self._logStorage.logs)
         self._editor = Editor(self, root, self._device, self._app_state)
         self._status_bar = StatusBar(self, self._view.status_bar_slot)
         self._info = Info(self)

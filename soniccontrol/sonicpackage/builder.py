@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, Tuple, Union
 
 import attrs
@@ -31,7 +32,9 @@ class AmpBuilder:
             if command:
                 sonicAmp.add_command(command)
 
-    async def build_amp(self, ser: Communicator, commands: Union[CommandSet, CommandSetLegacy]) -> SonicAmp:
+    async def build_amp(self, ser: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger = logging.getLogger()) -> SonicAmp:
+        builder_logger = logging.getLogger(logger.name + "." + AmpBuilder.__name__)
+        
         await ser.connection_opened.wait()
 
         result_dict: Dict[str, Any] = ser.handshake_result
@@ -56,7 +59,7 @@ class AmpBuilder:
         info.update(**result_dict)
         info.firmware_info = commands.get_info.answer.string
 
-        sonicamp: SonicAmp = SonicAmp(serial=ser, info=info, status=status)
+        sonicamp: SonicAmp = SonicAmp(serial=ser, info=info, status=status, logger=logger)
 
         if isinstance(commands, CommandSet):
             await commands.get_command_list.execute()

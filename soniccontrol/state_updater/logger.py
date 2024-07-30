@@ -3,20 +3,26 @@ import logging
 import logging.handlers
 
 from soniccontrol.tkintergui.utils.observable_list import ObservableList
-from utils.files import files
+from soniccontrol.utils.files import files
 
 
 def create_logger_for_connection(connection_name: str) -> logging.Logger:
         logger = logging.getLogger(connection_name)
         logger.setLevel(logging.DEBUG)
-        file_log_callback = logging.handlers.RotatingFileHandler(
+        log_file_handler = logging.handlers.RotatingFileHandler(
             files.LOG_DIR / f"device_on_{connection_name}.log",
             maxBytes=40000,
             backupCount=3
         )
-        logger.addHandler(file_log_callback)
+        detailed_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)s:%(funcName)s - %(message)s - exception: %(exc_info)s")
+        log_file_handler.setFormatter(detailed_formatter)
+        logger.addHandler(log_file_handler)
         return logger
 
+
+class DeviceLogFilter(logging.Filter):
+    def filter(self, record) -> bool:
+        return "device" in record.name
 
 class LogStorage:
     class LogStorageHandler(logging.Handler):
@@ -39,10 +45,7 @@ class LogStorage:
         self._queue: asyncio.Queue = asyncio.Queue()
         self._worker_handle = asyncio.create_task(self._worker())
 
-    def insert_log_to_queue(self, log: str) -> None:
-        self._queue.put_nowait(log)
-
-    def create_log_callback(self) -> LogStorageHandler:
+    def create_log_handler(self) -> LogStorageHandler:
         return LogStorage.LogStorageHandler(self)
 
     async def _worker(self):

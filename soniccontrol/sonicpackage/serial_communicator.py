@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 import time
 from typing import Any, Callable, Dict, Final, Optional, List
@@ -32,11 +33,12 @@ class SerialCommunicator(Communicator):
     _writer: Optional[asyncio.StreamWriter] = attrs.field(
         init=False, default=None, repr=False
     )
-    _log_callback: Callable[[str], None] = attrs.field(default=lambda _: None)
+    _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
     def __attrs_post_init__(self) -> None:
         self._task = None
-        self._protocol: CommunicationProtocol = SonicProtocol(self._log_callback)
+        self._logger = logging.getLogger(self._logger.name + "." + SerialCommunicator.__name__)
+        self._protocol: CommunicationProtocol = SonicProtocol(self._logger)
         super().__init__()
 
     @property
@@ -63,7 +65,7 @@ class SerialCommunicator(Communicator):
     ) -> None:
         self._reader = reader
         self._writer = writer
-        self._protocol = SonicProtocol(lambda _: None)
+        self._protocol = SonicProtocol(self._logger)
         self._package_fetcher = PackageFetcher(self._reader, self._protocol)
         self._connection_opened.set()
 
