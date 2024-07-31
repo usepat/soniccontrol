@@ -32,18 +32,22 @@ class CliConnectionWindow(UIComponent):
 
         logger = create_logger_for_connection("simulation")
 
+        logger.debug("Established serial connection")
         try:
             serial, commands = await ConnectionBuilder.build(
                 reader=process.stdout,
                 writer=process.stdin,
                 logger=logger,
             )
+            logger.debug("Build SonicAmp for device")
             sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
+            logger.error(e)
             Messagebox.show_error(e)
             return
-        
+
+        logger.info("Created device successfully, open device window")
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

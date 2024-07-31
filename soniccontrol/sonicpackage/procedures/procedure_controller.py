@@ -1,4 +1,5 @@
 from enum import Enum
+import logging
 from typing import Any, Dict, Literal, Optional, Type
 import asyncio
 
@@ -7,6 +8,7 @@ from soniccontrol.sonicpackage.procedures.procedure import Procedure
 from soniccontrol.sonicpackage.procedures.procedure_instantiator import ProcedureInstantiator
 from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.state_updater.logger import get_base_logger
 from soniccontrol.tkintergui.utils.constants import events
 from soniccontrol.tkintergui.utils.events import Event, EventManager
 
@@ -17,7 +19,11 @@ class ProcedureType(Enum):
 class ProcedureController(EventManager):
     def __init__(self, device: SonicAmp):
         super().__init__()
+        base_logger = get_base_logger(device._logger)
+        self._logger = logging.getLogger(base_logger.name + "." + ProcedureController.__name__)
         self._device = device
+
+        self._logger.debug("Instantiate procedures")
         proc_instantiator = ProcedureInstantiator()
         self._ramp: Optional[Ramper] = proc_instantiator.instantiate_ramp(self._device)
         self._procedures: Dict[ProcedureType, Optional[Procedure]] = {
@@ -49,11 +55,14 @@ class ProcedureController(EventManager):
             raise Exception(f"The procedure {repr(proc_type)} is not available for the current device")
         if self.is_proc_running:
             raise Exception(f"There is already a procedure running")
+        
+        self._logger.info("Execute procedure %s with args %s", proc_type.name, str(args))
         self._running_proc_type = proc_type
         self._running_proc_task = asyncio.create_task(procedure.execute(self._device, args))
         self._running_proc_task.add_done_callback(lambda _e: self._on_proc_finished())
 
     async def stop_proc(self) -> None:
+        self._logger.info("Stop procedure")
         if self._running_proc_task: 
             self._running_proc_task.cancel()
             await self._running_proc_task

@@ -119,7 +119,7 @@ class HomeView(TabView):
         self._signal_frame: ttk.LabelFrame = ttk.LabelFrame(
             self._control_frame, text=ui_labels.SIGNAL_LABEL
         )
-        self._signal = ttk.BooleanVar = ttk.BooleanVar(value=False)
+        self._signal: ttk.BooleanVar = ttk.BooleanVar(value=False)
         self._signal_button: ttk.Checkbutton = ttk.Checkbutton(
             self._signal_frame,
             bootstyle="round-toggle", #type: ignore

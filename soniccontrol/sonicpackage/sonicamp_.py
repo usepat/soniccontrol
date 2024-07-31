@@ -53,8 +53,10 @@ class SonicAmp(Scriptable):
         return self._status.remote_proc_finished_running
 
     async def disconnect(self) -> None:
-        await self.serial.close_communication()
-        del self
+        if self.serial.connection_opened.is_set():
+            self._logger.info("Disconnect")
+            await self.serial.close_communication()
+            del self
 
     def add_command(
         self,
@@ -141,16 +143,20 @@ class SonicAmp(Scriptable):
         """
         try:
             message = message if isinstance(message, str) else message.message
+            if message != "-":
+                self._logger.debug("Execute command %s with argument %s", message, str(argument))
             if message not in self._commands.keys():
-                ic("Command not found in commands of sonicamp", message)
-                ic("Executing message as a new Command...")
+                self._logger.debug("Command not found in commands of sonicamp %s", message)
+                self._logger.debug("Executing message as a new Command...")
                 return await self.send_message(message=message, argument=argument)
             
             command: Command = self._commands[message]
             await command.execute(argument=argument, connection=self._serial)
-        except ConnectionError:
+        except ConnectionError as e:
+            self._logger.error(e)
             await self.disconnect()
-        except Exception:
+        except Exception as e:
+            self._logger.error(e)
             await self.disconnect()
 
         await self._status.update(
@@ -161,8 +167,6 @@ class SonicAmp(Scriptable):
             parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
         except Exception:
             pass
-
-        # ic(command.byte_message, command.answer, command.status_result, self._status)
 
         return command.answer.string
 

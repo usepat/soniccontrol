@@ -51,25 +51,29 @@ class ConnectionWindow(UIComponent):
 
     @async_handler
     async def _attempt_connection(self):
-        logger = create_logger_for_connection("simulation")
+        logger = create_logger_for_connection(self._view.get_url())
         baudrate = 9600
 
+        logger.debug("Create serial connection")
         reader, writer = await open_serial_connection(
             url=self._view.get_url(), baudrate=baudrate
         )
+        logger.debug("Established serial connection")
         try:
             serial, commands = await ConnectionBuilder.build(
                 reader=reader,
                 writer=writer,
                 logger=logger,
             )
-
+            logger.debug("Build SonicAmp for device")
             sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
+            logger.error(e)
             Messagebox.show_error(e)
             return
 
+        logger.info("Created device successfully, open device window")
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

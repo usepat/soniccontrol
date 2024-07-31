@@ -60,7 +60,7 @@ class RamperLocal(Ramper):
 
         try:
             await device.get_overview()
-            # Do we need those two lines?
+            # TODO: Do we need those two lines?
             # await device.execute_command(f"!freq={start}")
             # await device.set_signal_on()
             await self._ramp(device, list(values), args.hold_on, args.hold_off)

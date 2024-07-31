@@ -10,7 +10,7 @@ class _Files:
     ROOT_DIR: Final[Path] = SOURCE_DIR.parent
     BIN_DIR: Final[Path] = ROOT_DIR / "bin"
     LOG_DIR: Final[Path] = ROOT_DIR / "logs"
-    LOGGING_CONFIG: Final[Path] = LOG_DIR / "config.json"
+    LOGGING_CONFIG: Final[Path] = ROOT_DIR / "log_config.json"
     RESOURCES_DIR: Final[Path] = ROOT_DIR / "resources"
     PICTURES_DIR: Final[Path] = RESOURCES_DIR / "pictures"
     FONTS_DIR: Final[Path] = RESOURCES_DIR / "fonts"
