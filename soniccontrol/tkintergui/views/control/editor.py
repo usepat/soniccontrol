@@ -1,8 +1,9 @@
 import asyncio
 from enum import Enum
+import logging
 import pathlib
 from tkinter import filedialog
-from typing import AsyncIterator, Callable, Final, List, Optional, Tuple
+from typing import Callable, Final, List, Optional, Tuple
 
 import attrs
 import ttkbootstrap as ttk
@@ -12,7 +13,6 @@ from async_tkinter_loop import async_handler
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
-from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
 from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
@@ -32,17 +32,20 @@ class ScriptFile:
     text: str = attrs.field(default="")
     filetypes: List[Tuple[str, str]] = attrs.field(default=[("Text Files", "*.txt"), ("Sonic Script", "*.sonic")])
     default_extension: str = attrs.field(default=".sonic")
+    logger: logging.Logger = attrs.field(default=logging.getLogger("ScriptFile"))
 
     def load_script(self, filepath: Optional[str] = None):
         if filepath is not None:
             self.filepath = filepath
         with pathlib.Path(self.filepath).open("r") as f:
+            self.logger.info("Load script from %s", self.filepath)
             self.text = f.read()
 
     def save_script(self, filepath: Optional[str] = None):
         if filepath is not None:
             self.filepath = filepath
         with pathlib.Path(self.filepath).open("w") as f:
+            self.logger.info("Save script to %s", self.filepath)
             f.write(self.text)
         
 
@@ -53,13 +56,15 @@ class InterpreterState(Enum):
 
 
 class Editor(UIComponent):
-    def __init__(self, parent: UIComponent, root, device: SonicAmp, app_state: AppState):
-        self._root = root
+    def __init__(self, parent: UIComponent, device: SonicAmp, app_state: AppState):
+        self._logger = logging.getLogger(parent.logger.name + "." + Editor.__name__)
+
+        self._logger.debug("Create Editor")
         self._device = device
         self._app_state = app_state
         self._scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
         self._interpreter_worker = None
-        self._script: ScriptFile = ScriptFile()
+        self._script: ScriptFile = ScriptFile(logger=self._logger)
         self._interpreter: Optional[Script] = None
         self._interpreter_state = InterpreterState.READY
         self._view = EditorView(parent.view)
@@ -86,61 +91,62 @@ class Editor(UIComponent):
 
     def _set_interpreter_state(self, interpreter_state: InterpreterState):
         self._interpreter_state = interpreter_state
+        self._logger.info("Interpreterstate: %s", self._interpreter_state.name)
         match interpreter_state:
             case InterpreterState.READY:
-                self.view.start_pause_continue_button.configure(
+                self._view.start_pause_continue_button.configure(
                     label=ui_labels.START_LABEL,
                     image=(images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
                     command=lambda: self._on_start_script(False),
                     enabled=True
                 )
-                self.view.single_step_button.configure(
+                self._view.single_step_button.configure(
                     label=ui_labels.SINGLE_STEP_LABEL,
                     image=(images.FORWARDS_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
                     command=lambda: self._on_start_script(True),
                     enabled=True
                 )
-                self.view.stop_button.configure(
+                self._view.stop_button.configure(
                     label=ui_labels.STOP_LABEL,
                     image=(images.END_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
                     command=self._on_stop_script,
                     enabled=False
                 )
-                self.view.editor_enabled = True
-                self.view.current_task = "Idle"
-                self.view.highlight_line(None)
+                self._view.editor_enabled = True
+                self._view.current_task = "Idle"
+                self._view.highlight_line(None)
                 self._app_state.execution_state = ExecutionState.IDLE
 
             case InterpreterState.RUNNING:
-                self.view.start_pause_continue_button.configure(
+                self._view.start_pause_continue_button.configure(
                     label=ui_labels.PAUSE_LABEL,
                     image=(images.PAUSE_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
                     command=self._on_pause_script,
                     enabled=True
                 )
-                self.view.single_step_button.configure(
+                self._view.single_step_button.configure(
                     enabled=False
                 )
-                self.view.stop_button.configure(
+                self._view.stop_button.configure(
                     enabled=True
                 )
-                self.view.editor_enabled = False
+                self._view.editor_enabled = False
                 self._app_state.execution_state = ExecutionState.BUSY_EXECUTING_SCRIPT
 
             case InterpreterState.PAUSED:
-                self.view.start_pause_continue_button.configure(
+                self._view.start_pause_continue_button.configure(
                     label=ui_labels.RESUME_LABEL,
                     image=(images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
                     command=self._on_continue_script,
                     enabled=True
                 )
-                self.view.single_step_button.configure(
+                self._view.single_step_button.configure(
                     enabled=True
                 )
-                self.view.stop_button.configure(
+                self._view.stop_button.configure(
                     enabled=True
                 )
-                self.view.editor_enabled = False
+                self._view.editor_enabled = False
                 self._app_state.execution_state = ExecutionState.IDLE
 
     def _on_load_script(self):
@@ -152,7 +158,7 @@ class Editor(UIComponent):
             return
         
         self._script.load_script(filename)
-        self.view.editor_text = self._script.text
+        self._view.editor_text = self._script.text
 
     def _on_save_as_script(self):
         filename: str = filedialog.asksaveasfilename(
@@ -173,12 +179,13 @@ class Editor(UIComponent):
             self._on_save_as_script()
 
     def _on_open_scriping_guide(self):
-        ScriptingGuide(self._root, self.view.editor_text_view, scripting_cards_data)
+        ScriptingGuide(self._view, self._view.editor_text_view, scripting_cards_data)
 
 
     @async_handler
     async def _on_start_script(self, single_instruction: bool):
-        self._script.text = self.view.editor_text
+        self._logger.info("Start script")
+        self._script.text = self._view.editor_text
         if self._interpreter_state == InterpreterState.READY:
             try:
                 self._interpreter = self._scripting.parse_script(self._script.text)
@@ -191,6 +198,7 @@ class Editor(UIComponent):
 
     @async_handler
     async def _on_stop_script(self):
+        self._logger.info("Stop script")
         if self._interpreter_worker and not self._interpreter_worker.done() and not self._interpreter_worker.cancelled():
             self._interpreter_worker.cancel()
             await self._interpreter_worker
@@ -199,11 +207,13 @@ class Editor(UIComponent):
 
     @async_handler
     async def _on_continue_script(self):
+        self._logger.info("Continue script")
         self._set_interpreter_state(InterpreterState.RUNNING)
         self._interpreter_worker = asyncio.create_task(self._interpreter_engine())
 
     @async_handler
     async def _on_pause_script(self):
+        self._logger.info("Pause script")
         if self._interpreter_worker and not self._interpreter_worker.done() and not self._interpreter_worker.cancelled():
             self._interpreter_worker.cancel()
             await self._interpreter_worker
@@ -215,13 +225,16 @@ class Editor(UIComponent):
             return
         try:
             async for line_index, task in self._interpreter:
-                self.view.highlight_line(line_index)
-                self.view.current_task = task
+                self._view.highlight_line(line_index)
+                self._view.current_task = task
+                self._logger.info("Current task: %s", task)
                 if single_instruction and line_index != 0:
                     break
         except asyncio.CancelledError:
+            self._logger.warn("Interpreter got interrupted, while executing a script")
             return
         except Exception as e:
+            self._logger.error(e)
             self._show_err_msg(e)   
             self._set_interpreter_state(InterpreterState.PAUSED)
             return

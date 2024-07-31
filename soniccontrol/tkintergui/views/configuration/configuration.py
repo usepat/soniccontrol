@@ -1,5 +1,6 @@
 
 import asyncio
+import logging
 from pathlib import Path
 from typing import Any, Callable, List, Iterable, Optional
 import attrs
@@ -25,6 +26,9 @@ from async_tkinter_loop import async_handler
 
 class Configuration(UIComponent):
     def __init__(self, parent: UIComponent, device: SonicAmp):
+        self._logger = logging.getLogger(parent.logger.name + "." + Configuration.__name__)
+        
+        self._logger.debug("Create Configuration Component")
         self._count_atk_atf = 4
         self._config: Config = Config()
         self._config_schema = ConfigSchema()
@@ -50,6 +54,7 @@ class Configuration(UIComponent):
             self._change_transducer_config()
 
     def _load_config(self):
+        self._logger.info("Load configuration from %s", files.CONFIG_JSON)
         with open(files.CONFIG_JSON, "r") as file:
             data_dict = json.load(file)
             self._config = self._config_schema.load(data_dict).data
@@ -73,15 +78,18 @@ class Configuration(UIComponent):
         else:
             self._config.transducers[self.current_transducer_config] = transducer_config
 
+        self._logger.info("Save configuration to %s", files.CONFIG_JSON)
         with open(files.CONFIG_JSON, "w") as file:
             data_dict = self._config_schema.dump(self._config).data
             json.dump(data_dict, file)
 
     def _validate_transducer_config_data(self, transducer_config: TransducerConfig) -> bool:            
         if self.current_transducer_config is None and any(map(lambda tconfig: tconfig.name == transducer_config.name, self._config.transducers)):
+            self.logger.warn("config with the same name already exists")
             Messagebox.show_error("config with the same name already exists")
             return False
         if transducer_config.init_script_path is not None and not transducer_config.init_script_path.exists():
+            self.logger.warn("there exists no init script with the specified path")
             Messagebox.show_error("there exists no init script with the specified path")
             return False
         return True
@@ -113,7 +121,8 @@ class Configuration(UIComponent):
         if self.current_transducer_config is None:
             return
 
-        self._config.transducers.pop(self.current_transducer_config)
+        config = self._config.transducers.pop(self.current_transducer_config)
+        self._logger.info("Delete transducer config %s", config.name)
         with open(files.CONFIG_JSON, "w") as file:
             data_dict = self._config_schema.dump(self._config).data
             json.dump(data_dict, file)
@@ -123,6 +132,7 @@ class Configuration(UIComponent):
 
     @async_handler
     async def _submit_transducer_config(self):
+        self._logger.info("Submit Transducer Config")
         # TODO: start load animation
 
         for i, atconfig in enumerate(self.view.atconfigs):
@@ -142,6 +152,9 @@ class Configuration(UIComponent):
 
         with script_file_path.open(mode="r") as f:
             script = f.read()
+
+        self._logger.info("Execute init file")
+        self._logger.debug("Init file:\n%s", script)
         scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
         interpreter = scripting.parse_script(script)
 
@@ -149,8 +162,10 @@ class Configuration(UIComponent):
             while anext(interpreter, None):
                 pass
         except asyncio.CancelledError:
+            self._logger.error("The execution of the init file got interrupted")
             return
         except Exception as e:
+            self._logger.error(e)
             Messagebox.show_error(e)
             return
         finally:

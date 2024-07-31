@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, List
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -16,7 +17,10 @@ from soniccontrol.utils.files import images, files
 
 class SerialMonitor(UIComponent):
     def __init__(self, parent: UIComponent, sonicamp: SonicAmp):
-        super().__init__(parent, SerialMonitorView(parent.view))
+        self._logger = logging.getLogger(parent.logger.name + "." + SerialMonitor.__name__)
+        super().__init__(parent, SerialMonitorView(parent.view), self._logger)
+
+        self._logger.debug("Create SerialMonitor")
         self._device = sonicamp
         self._command_history: List[str] = []
         self._command_history_index: int = 0
@@ -28,6 +32,7 @@ class SerialMonitor(UIComponent):
     @async_handler
     async def _send_command(self): 
         command_str = self._view.command_line_input.strip()
+        self._logger.debug("Command: %s", command_str)
         self._view.command_line_input = ""
         self._view.add_text_line(">>> " + command_str)
         if len(self._command_history) == 0 or command_str != self._command_history[self._command_history_index]:
@@ -42,6 +47,7 @@ class SerialMonitor(UIComponent):
 
 
     def _print_answer(self, answer_str: str):
+        self._logger.debug("Answer: %s", answer_str)
         self._view.add_text_line(answer_str)
 
 
@@ -54,6 +60,7 @@ class SerialMonitor(UIComponent):
 
 
     async def _handle_internal_command(self, command_str: str) -> None:
+        self._logger.debug("Execute internal command")
         if command_str == "clear":
             self._view.clear()
         elif command_str == "help":

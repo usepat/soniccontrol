@@ -37,9 +37,9 @@ class DeviceWindow(UIComponent):
         try:
             self._device = device
             self._view = DeviceWindowView(root)
-            super().__init__(None, self._view)
+            super().__init__(None, self._view, self._logger)
 
-            self._app_state = AppState()
+            self._app_state = AppState(self._logger)
             self._updater = Updater(self._device)
             self._proc_controller = ProcedureController(self._device)
 
@@ -55,7 +55,7 @@ class DeviceWindow(UIComponent):
             self._sonicmeasure = SonicMeasure(self)
             self._serialmonitor = SerialMonitor(self, self._device)
             self._logging = Logging(self, self._logStorage.logs)
-            self._editor = Editor(self, root, self._device, self._app_state)
+            self._editor = Editor(self, self._device, self._app_state)
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
             self._info = Info(self)
             self._configuration = Configuration(self, self._device)

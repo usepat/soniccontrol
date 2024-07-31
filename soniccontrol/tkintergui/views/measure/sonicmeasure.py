@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Optional
 import matplotlib.figure
 import pandas as pd
@@ -21,8 +22,12 @@ from soniccontrol.utils.plotlib.plot_builder import PlotBuilder
 
 class SonicMeasure(UIComponent):
     def __init__(self, parent: UIComponent):
-        self._capture = Capture()
-        super().__init__(parent, SonicMeasureView(parent.view))
+        self._logger = logging.getLogger(parent.logger.name + "." + SonicMeasure.__name__)
+
+        self._logger.debug("Create SonicMeasure")
+        self._capture = Capture(self._logger) # TODO: move this to device window
+        self._view = SonicMeasureView(parent.view)
+        super().__init__(parent, self._view)
 
         self._time_figure = matplotlib.figure.Figure(dpi=100)
         self._time_subplot = self._time_figure.add_subplot(1, 1, 1)
@@ -36,9 +41,9 @@ class SonicMeasure(UIComponent):
         
         self._csv_table = CsvTable(self)
 
-        self.view.set_capture_button_command(lambda: self._on_toggle_capture())
-        self.view.set_capture_button_label(ui_labels.START_CAPTURE)
-        self.view.add_tabs({
+        self._view.set_capture_button_command(lambda: self._on_toggle_capture())
+        self._view.set_capture_button_label(ui_labels.START_CAPTURE)
+        self._view.add_tabs({
             ui_labels.LIVE_PLOT: self._timeplottab.view, 
             ui_labels.SONIC_MEASURE_LABEL: self._spectralplottab.view, 
             ui_labels.CSV_TAB_TITLE: self._csv_table.view

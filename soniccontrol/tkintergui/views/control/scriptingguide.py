@@ -1,13 +1,15 @@
 from typing import List
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame, ScrolledText
+from soniccontrol.interfaces.view import View
 from soniccontrol.tkintergui.utils.constants import tk_const
 from soniccontrol.tkintergui.utils.types import ScriptingGuideCardDataDict
 from soniccontrol.tkintergui.widgets.card import Card
 
 
 class ScriptingGuide(ttk.Toplevel):
-    def __init__(self, root: ttk.Window, editor_text: ScrolledText, cards_data: List[ScriptingGuideCardDataDict], *args, **kwargs):
+    def __init__(self, parent: ttk.Window | View, editor_text: ScrolledText, cards_data: List[ScriptingGuideCardDataDict], *args, **kwargs):
+        root = parent.winfo_toplevel() if isinstance(parent, View) else parent
         super().__init__(root, *args, **kwargs)
         self._editor_text: ScrolledText = editor_text
         self._scrolled_frame: ScrolledFrame = ScrolledFrame(self)

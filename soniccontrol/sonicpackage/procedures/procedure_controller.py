@@ -56,7 +56,7 @@ class ProcedureController(EventManager):
         if self.is_proc_running:
             raise Exception(f"There is already a procedure running")
         
-        self._logger.info("Execute procedure %s with args %s", proc_type.name, str(args))
+        self._logger.info("Run procedure %s with args %s", proc_type.name, str(args))
         self._running_proc_type = proc_type
         self._running_proc_task = asyncio.create_task(procedure.execute(self._device, args))
         self._running_proc_task.add_done_callback(lambda _e: self._on_proc_finished())
@@ -69,6 +69,7 @@ class ProcedureController(EventManager):
             self._on_proc_finished()
 
     def _on_proc_finished(self) -> None:
+        self._logger.info("Procedure stopped")
         self._running_proc_task = None
         self._running_proc_type = None
         self.emit(Event(events.PROCEDURE_STOPPED))

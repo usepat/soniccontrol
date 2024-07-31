@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, Dict, Iterable
 
 from async_tkinter_loop import async_handler
@@ -18,6 +19,9 @@ from soniccontrol.utils.files import images
 
 class ProcControlling(UIComponent):
     def __init__(self, parent: UIComponent, proc_controller: ProcedureController, app_state: AppState):
+        self._logger = logging.getLogger(parent.logger.name + "." + ProcControlling.__name__)
+
+        self._logger.debug("Create ProcControlling")
         self._proc_controller = proc_controller
         self._app_state = app_state
         self._view = ProcControllingView(parent.view)
@@ -65,6 +69,7 @@ class ProcControlling(UIComponent):
             try:
                 self._proc_controller.execute_proc(proc_type, proc_args)
             except Exception as e:
+                self._logger.error(e)
                 Messagebox.show_error(str(e))
 
     @async_handler
