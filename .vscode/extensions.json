@@ -12,6 +12,9 @@
 		"github.vscode-pull-request-github",
 		"mhutchie.git-graph",
 
+		// for serial communication
+		"ms-vscode.vscode-serial-monitor",
+
 		// for python
         "ms-python.black-formatter",
         "ms-python.debugpy",

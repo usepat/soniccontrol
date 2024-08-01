@@ -17,7 +17,6 @@ from soniccontrol.utils.system import PLATFORM
 
 @attrs.define
 class SerialCommunicator(Communicator):
-    _init_command: Command = attrs.field(init=False)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _lock: asyncio.Lock = attrs.field(init=False, factory=asyncio.Lock, repr=False)
@@ -109,7 +108,7 @@ class SerialCommunicator(Communicator):
                 answer = "" # FIXME: is this a good idea to handle the error like this?
 
             command.answer.receive_answer(answer)
-            await self._answer_queue.put(command)
+            self._answer_queue.put_nowait(command)
 
         if self._writer is None or self._reader is None:
             self._logger.warn("No connection is available")
