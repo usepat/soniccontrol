@@ -91,6 +91,7 @@ class _UIStringsEN:
     RESUME_LABEL: Final[str] = "Resume"
     SINGLE_STEP_LABEL: Final[str] = "Single Step"
     CONNECT_LABEL: Final[str] = "Connect"
+    CONNECT_TO_SIMULATION_LABEL: Final[str] = "Connect To Simulation"
     DISCONNECT_LABEL: Final[str] = "Disconnect"
     HOME_LABEL: Final[str] = "Home"
     SCRIPTING_LABEL: Final[str] = "Scripting"

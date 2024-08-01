@@ -43,7 +43,6 @@ class ConnectionBuilder:
         await commands.get_info.execute()
         if commands.get_info.answer.valid:
             logger.info("Connected with legacy protocol")
-            serial.subscribe(serial.DISCONNECTED_EVENT, lambda _e: writer.close())
             return (serial, commands)
         else:
             await serial.close_communication()
@@ -54,15 +53,13 @@ class ConnectionBuilder:
         await serial.open_communication(reader, writer)
         commands = CommandSet(serial)
         await commands.get_info.execute()
-
+    
         if commands.get_info.answer.valid:
             logger.info("Connected with sonic protocol")
-            serial.subscribe(serial.DISCONNECTED_EVENT, lambda _e: writer.close())
             return (serial, commands)
 
         # TODO: fix this. Define with Thomas an interface for ?info and implement it.
         logger.info("Connected with sonic protocol")
-        serial.subscribe(serial.DISCONNECTED_EVENT, lambda _e: writer.close())
         return (serial, commands)
     
         # raise ConnectionError("Failed to connect due to incompatibility")

@@ -156,8 +156,6 @@ class SerialCommunicator(Communicator):
     async def _close_communication(self) -> None:
         if self._task is not None:
             await self._package_fetcher.stop()
-        if sys.getrefcount(self._writer) == 1:
-            self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None
@@ -236,16 +234,11 @@ class LegacySerialCommunicator(Communicator):
             self._init_command.validate()
             ic(f"Init Command: {self._init_command}")
 
-        try:
-            self._reader, self._writer = reader, writer
-        except Exception as e:
-            ic(sys.exc_info())
-            self._reader = None
-            self._writer = None
-        else:
-            await get_first_message()
-            self._connection_opened.set()
-            self._task = asyncio.create_task(self._worker())
+        self._reader, self._writer = reader, writer
+
+        await get_first_message()
+        self._connection_opened.set()
+        self._task = asyncio.create_task(self._worker())
 
     async def _worker(self) -> None:
         async def send_and_get(command: Command) -> None:
@@ -331,8 +324,6 @@ class LegacySerialCommunicator(Communicator):
             self._task = None
 
     def _close_communication(self) -> None:
-        if sys.getrefcount(self._writer) == 1:
-            self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None
