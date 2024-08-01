@@ -4,7 +4,12 @@
         {
             "label": "Build SonicControl with PyInstaller",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/create_exe.sh",
+            "linux": { 
+                "command": "${workspaceFolder}/scripts/create_exe.sh" 
+            },
+            "windows": {
+                "command": "${workspaceFolder}/scripts/create_exe.bat"
+            },
             "args": [
                 "${workspaceFolder}"
             ],
@@ -18,7 +23,8 @@
                 "focus": false,
                 "panel": "shared"
             },
-            "problemMatcher": []
+            "problemMatcher": [
+            ]
         }
     ]
 }

@@ -11,6 +11,7 @@ six==1.16.0
 tzdata==2023.3
 pytest>=6.0
 pytest-cov>=2.0
+pyinstaller>=6.9.0
 mypy>=0.910
 flake8>=3.9
 tox>=3.24
