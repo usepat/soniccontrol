@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import Callable, Any, Tuple
+import logging
+from typing import Any
 import abc
 from soniccontrol.sonicpackage.package_parser import Package, PackageParser
-from soniccontrol.sonicpackage import logger
 
 
 class ProtocolType(Enum):
@@ -67,9 +67,16 @@ class LegacySonicProtocol(CommunicationProtocol):
         return 1
 
 
+class DeviceLogLevel(Enum):
+    ERROR = "ERROR"
+    WARN = "WARN"
+    INFO = "INFO"
+    DEBUG = "DEBUG"
+
 class SonicProtocol(CommunicationProtocol):
-    def __init__(self, log_callback: Callable[[str], None]):
-        self._log_callback: Callable[[str], None] = log_callback
+    def __init__(self, logger: logging.Logger):
+        self._logger: logging.Logger = logging.getLogger(logger.name + "." + SonicProtocol.__name__)
+        self._device_logger: logging.Logger = logging.getLogger(logger.name + ".device")
         super().__init__()
 
     @property
@@ -84,13 +91,28 @@ class SonicProtocol(CommunicationProtocol):
     def max_bytes(self) -> int:
         return PackageParser.max_bytes
 
+    @staticmethod
+    def _extract_log_level(log: str) -> int:
+        log_level_str = log[4:log.index(":")]
+        match log_level_str:
+            case DeviceLogLevel.ERROR:
+                return logging.ERROR
+            case DeviceLogLevel.WARN:
+                return logging.WARN
+            case DeviceLogLevel.INFO:
+                return logging.INFO
+            case DeviceLogLevel.DEBUG:
+                return logging.DEBUG
+        raise SyntaxError("Could not parse log level")
+
     def parse_response(self, response: str) -> tuple[int, str]:
         package = PackageParser.parse_package(response)
         lines = package.content.splitlines()
         answer = ""
         for line in lines:
-            if line.startswith("LOG"):
-                self._log_callback(line)
+            if line.startswith("LOG="):
+                log_level = SonicProtocol._extract_log_level(line)
+                self._device_logger.log(log_level, line)
             elif line.isspace() or len(line) == 0:
                 continue  # ignore whitespace
             else:
@@ -103,7 +125,6 @@ class SonicProtocol(CommunicationProtocol):
         message_str = (
             PackageParser.write_package(package) + "\n"
         )  # \n is needed after the package.
-        logger.debug(f"WRITE_PACKAGE({message_str})")
 
         return message_str
     

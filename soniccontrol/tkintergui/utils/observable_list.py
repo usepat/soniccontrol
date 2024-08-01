@@ -10,7 +10,7 @@ class ObservableList(EventManager):
 
     def __init__(self, init=[]):
         super().__init__()
-        self._list = init
+        self._list: list = init
     
     def append(self, item):
         self._list.append(item)
@@ -18,6 +18,10 @@ class ObservableList(EventManager):
 
     def remove(self, item):
         self._list.remove(item)
+        self.emit(Event(ObservableList.EVENT_ITEM_DELETED, item=item, list_new=self._list))
+
+    def remove_at(self, index: int) -> None:
+        item = self._list.pop(index)
         self.emit(Event(ObservableList.EVENT_ITEM_DELETED, item=item, list_new=self._list))
 
     def clear(self):

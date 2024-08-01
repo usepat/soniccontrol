@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, Dict, List
 from async_tkinter_loop import async_handler
 from serial_asyncio import open_serial_connection
@@ -10,7 +11,7 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.state_updater.logger import Logger
+from soniccontrol.state_updater.logger import LogStorage, create_logger_for_connection
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.device_window import DeviceWindow
@@ -23,7 +24,7 @@ class DeviceWindowManager:
         self._id_device_window_counter = 0
         self._opened_device_windows: Dict[int, DeviceWindow] = {}
 
-    def open_device_window(self, sonicamp: SonicAmp, logger: Logger) -> DeviceWindow:
+    def open_device_window(self, sonicamp: SonicAmp, logger: logging.Logger) -> DeviceWindow:
         device_window = DeviceWindow(sonicamp, self._root, logger)
         device_window._view.focus_set()  # grab focus and bring window to front
         self._id_device_window_counter += 1
@@ -50,25 +51,29 @@ class ConnectionWindow(UIComponent):
 
     @async_handler
     async def _attempt_connection(self):
-        logger = Logger()
+        logger = create_logger_for_connection(self._view.get_url())
         baudrate = 9600
 
+        logger.debug("Create serial connection")
         reader, writer = await open_serial_connection(
             url=self._view.get_url(), baudrate=baudrate
         )
+        logger.debug("Established serial connection")
         try:
             serial, commands = await ConnectionBuilder.build(
                 reader=reader,
                 writer=writer,
-                log_callback=lambda log: logger.insert_log_to_queue(log),
+                logger=logger,
             )
-
-            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands)
+            logger.debug("Build SonicAmp for device")
+            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
+            logger.error(e)
             Messagebox.show_error(e)
             return
 
+        logger.info("Created device successfully, open device window")
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

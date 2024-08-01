@@ -33,18 +33,18 @@ jobs:
       run: bash ./scripts/create_exe.sh ${{ github.workspace }}
 
     - name: Compile .ISS to .EXE Installer
-      uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
       with:
         path: scripts/installer.iss
 
     - name: Upload windows executable
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: windows executable
         path: ./dist/SonicControl/SonicControl.exe
 
     - name: Upload installer
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: windows installer
         path: ./dist/SonicControlInstaller/SonicControlInstaller.exe

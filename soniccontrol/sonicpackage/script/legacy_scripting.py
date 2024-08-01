@@ -1,17 +1,15 @@
+import logging
 from typing import *
 import copy
-import asyncio
 import attrs
-from icecream import ic
-from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.holder import Holder, convert_to_holder_args
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.script.scripting_facade import Script, ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.state_updater.logger import get_base_logger
 
 
 
-@attrs.define
 class SonicParser:
     SUPPORTED_TOKENS: List[str] = [
         "frequency",
@@ -144,6 +142,7 @@ class SonicParser:
 @attrs.define()
 class LegacySequencer(Script):
     _sonicamp: SonicAmp = attrs.field(repr=False)
+    _logger: logging.Logger = attrs.field()
     _proc_controller: ProcedureController = attrs.field()
     _commands: List[Any] = attrs.field(factory=list)
     _original_commands: List[Any] = attrs.field(factory=list)
@@ -154,12 +153,14 @@ class LegacySequencer(Script):
     def __init__(
         self,
         sonicamp: SonicAmp,
+        logger: logging.Logger,
         proc_controller: ProcedureController,
         commands: List[Any],
-        original_commands: List[Any]
+        original_commands: List[Any],
     ) -> None:
         super().__init__()
-        self.__attrs_init__(sonicamp, proc_controller, commands, original_commands)
+        logger = logging.getLogger(logger.name + "." + LegacySequencer.__name__)
+        self.__attrs_init__(sonicamp, logger, proc_controller, commands, original_commands)
 
     @property
     def current_line(self) -> int:
@@ -200,11 +201,11 @@ class LegacySequencer(Script):
         elif loop.get("quantifier") == -1:
             self._current_line += 1
         else:
-            ic(f"Jumping to {loop['end'] + 1}; quantifier = 0")
+            self._logger.debug("Jumping to %d; quantifier = 0", loop['end'] + 1)
             self._current_line = loop["end"] + 1
 
     def endloop_response(self) -> None:
-        ic(f"'endloop' @ {self._current_line}")
+        self._logger.debug("'endloop' @ %d", self._current_line)
         loop_command: dict[str, int] = list(
             filter(
                 lambda x: (x["loop"].get("end") == self._current_line), self._commands
@@ -219,7 +220,7 @@ class LegacySequencer(Script):
     async def execute_command(self, line: int) -> None:
         command: Dict[str, Any] = self._commands[self._current_line]
         self._current_command = f'Executing {command["command"]} {command["argument"]}'
-        ic(f"Executing command: '{command}'")
+        self._logger.info(f"Executing command: '%s'", str(command))
 
         match command["command"]:
             case _ if command["command"].startswith(("?", "!")):
@@ -253,8 +254,10 @@ class LegacyScriptingFacade(ScriptingFacade):
         self._device = device
         self._proc_controller = ProcedureController(self._device)
         self._parser = SonicParser()
+        self._logger = get_base_logger(device._logger)
 
     def parse_script(self, text: str) -> LegacySequencer:
+        self._logger.debug("Parse script:\n%s", text)
         parsed_test = self._parser.parse_text(text)
         parsed_test = zip(
             parsed_test["commands"], parsed_test["arguments"], parsed_test["loops"]
@@ -266,7 +269,8 @@ class LegacyScriptingFacade(ScriptingFacade):
         )
         original_commands = copy.deepcopy(commands)
         
-        interpreter = LegacySequencer(self._device, self._proc_controller, commands=commands, original_commands=original_commands)     
+        self._logger.debug("parsed commands:\n%s", str(original_commands))
+        interpreter = LegacySequencer(self._device, self._logger, self._proc_controller, commands=commands, original_commands=original_commands)     
         return interpreter
 
     def lint_text(self, text: str) -> str: ...

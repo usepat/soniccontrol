@@ -38,7 +38,7 @@ class FlashingView(TabView):
 
     @property
     def tab_title(self) -> str:
-        return ui_labels.SETTINGS_LABEL
+        return ui_labels.FLASHER_LABEL
     
     def _initialize_children(self) -> None:
         FLASH_PADDING: Final[tuple[int, int, int, int]] = (5, 0, 5, 5)

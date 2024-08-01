@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
 import ttkbootstrap as ttk
@@ -14,19 +15,23 @@ from soniccontrol.utils.files import images
 
 class StatusBar(UIComponent):
     def __init__(self, parent: UIComponent, parent_slot: View):
+        self._logger = logging.getLogger(parent.logger.name + "." + StatusBar.__name__)
+        
+        self._logger.debug("Create Statusbar")
         self._view = StatusBarView(parent_slot)
         self._status_panel = StatusPanel(self, self._view.panel_frame)
         self._status_panel_expanded = False
-        super().__init__(parent, self._view)
+        super().__init__(parent, self._view, self._logger)
         self._view.set_status_clicked_command(self.on_expand_status_panel)
         self._view.expand_panel_frame(self._status_panel_expanded)
 
     def on_expand_status_panel(self) -> None:
+        self._logger.debug("Expand status panel")
         self._status_panel_expanded = not self._status_panel_expanded
         self._view.expand_panel_frame(self._status_panel_expanded)
 
     def on_update_status(self, status: Status):
-        temperature = status.temperature if status.temperature else 0
+        temperature = status.temperature if status.temperature is not None else 0
         self._view.update_labels(
             f"{status.communication_mode}",
             f"Freq.: {status.frequency / 1000} kHz",
@@ -160,7 +165,8 @@ class StatusBarView(View):
     def set_status_clicked_command(self, command: Callable[[], None]) -> None:
         for child in self._scrolled_info.winfo_children():
             child.bind(events.CLICKED_EVENT, lambda _e: command())
-        self._scrolled_info.bind(events.CLICKED_EVENT, lambda _e: command())
+        self._mode_label.bind(events.CLICKED_EVENT, lambda _e: command())
+        self._signal_label.bind(events.CLICKED_EVENT, lambda _e: command())
 
     def on_script_start(self) -> None:
         self._mode_frame.configure(bootstyle=ttk.SUCCESS)

@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from soniccontrol.sonicpackage.amp_data import Status
 from soniccontrol.state_updater.csv_writer import CsvWriter
@@ -6,7 +7,8 @@ from soniccontrol.state_updater.data_provider import DataProvider
 
 
 class Capture:
-    def __init__(self):
+    def __init__(self, logger: logging.Logger = logging.getLogger()):
+        self._logger = logging.getLogger(logger.name + "." + Capture.__name__)
         self._is_capturing = False
         self._data_attrs = ["timestamp", "signal", "frequency", "gain", "urms", "irms", "phase", "temperature"]
         self._capture_file_format = "./logs/sonicmeasure-{}.csv"
@@ -29,11 +31,13 @@ class Capture:
         capture_filename = self._capture_file_format.format(timestamp)
         self._csv_data_collector.open_file(capture_filename, self._data_attrs)
         self._is_capturing = True
+        self._logger.info("Start Capture")
 
 
     def end_capture(self):
         self._csv_data_collector.close_file()
         self._is_capturing = False
+        self._logger.info("End Capture")
 
 
     def on_update(self, status: Status):

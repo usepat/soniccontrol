@@ -5,7 +5,7 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
-from soniccontrol.state_updater.logger import Logger
+from soniccontrol.state_updater.logger import LogStorage, create_logger_for_connection
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.connection_window import DeviceWindowManager
@@ -29,21 +29,25 @@ class CliConnectionWindow(UIComponent):
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
         )
-        logger = Logger()
 
+        logger = create_logger_for_connection("simulation")
+
+        logger.debug("Established serial connection")
         try:
             serial, commands = await ConnectionBuilder.build(
                 reader=process.stdout,
                 writer=process.stdin,
-                log_callback=lambda log: logger.insert_log_to_queue(log),
+                logger=logger,
             )
-
-            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands)
+            logger.debug("Build SonicAmp for device")
+            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
+            logger.error(e)
             Messagebox.show_error(e)
             return
-        
+
+        logger.info("Created device successfully, open device window")
         self._device_window_manager.open_device_window(sonicamp, logger)
 
 

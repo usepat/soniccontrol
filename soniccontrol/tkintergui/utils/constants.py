@@ -103,6 +103,8 @@ class _UIStringsEN:
     INFO_LABEL: Final[str] = "Info"
     SERIAL_MONITOR_LABEL: Final[str] = "Serial Monitor"
     LOGS_LABEL: Final[str] = "Logs"
+    FLASHER_LABEL: Final[str] = "Flasher"
+    PROCEDURES_LABEL: Final[str] = "Procedures"
     SONIC_LABEL: Final[str] = "sonic"
     SONIC_MEASURE_LABEL: Final[str] = "Sonic Measure"
     SPECIFY_PATH_LABEL: Final[str] = "Specify Path"
