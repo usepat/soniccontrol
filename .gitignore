@@ -6,8 +6,7 @@
 *pycache*
 output/
 tmp*
-logs/*.log
-logs/*.csv
+logs/
 # Node artifact files
 node_modules/
 #dist/

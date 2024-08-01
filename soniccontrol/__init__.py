@@ -15,11 +15,13 @@ import logging.config
 import pathlib
 import subprocess
 import sys
+import os
 from ttkbootstrap.utility import enable_high_dpi_awareness
 from soniccontrol.utils.files import files
 from soniccontrol.utils.system import System, PLATFORM
 
 def setup_logging() -> None:
+    os.makedirs(files.LOG_DIR, exist_ok=True)
     config_file: pathlib.Path = files.LOGGING_CONFIG
     with config_file.open() as file:
         config = json.load(file)

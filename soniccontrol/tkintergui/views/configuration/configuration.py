@@ -3,11 +3,11 @@ import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Callable, List, Iterable, Optional
-import attrs
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from ttkbootstrap.scrolled import ScrolledFrame
 import json
+import os
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
@@ -53,7 +53,16 @@ class Configuration(UIComponent):
             self._current_transducer_config = value
             self._change_transducer_config()
 
+    def _create_default_config_file(self):
+        self._logger.info("Create empty configuration file at %s", files.CONFIG_JSON)
+        with open(files.CONFIG_JSON, "w") as file:
+            data_dict = self._config_schema.dump(Config()).data
+            json.dump(data_dict, file)
+
     def _load_config(self):
+        if not files.CONFIG_JSON.exists():
+            self._create_default_config_file()
+
         self._logger.info("Load configuration from %s", files.CONFIG_JSON)
         with open(files.CONFIG_JSON, "r") as file:
             data_dict = json.load(file)

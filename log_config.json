@@ -17,7 +17,7 @@
       "class": "logging.handlers.WatchedFileHandler",
       "level": "DEBUG",
       "formatter": "simple",
-      "filename": "logs/parrot_food_logs_for_integration_tesing.log",
+      "filename": "logs/parrot_food_logs_for_integration_testing.log",
       "mode": "w"
     }
   },
