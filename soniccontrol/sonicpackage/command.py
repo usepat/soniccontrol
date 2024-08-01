@@ -406,12 +406,12 @@ class Command(Sendable):
         This method resets the answer, sets the argument if provided, and sends the command asynchronously using the specified connection.
         It then validates the answer and updates the status result with the received timestamp. Finally, it returns a tuple containing the answer and the status result.
         """
-        if self.serial_communication is None:
+        if self.serial_communication is None and connection is None:
             raise ValueError(
                 f"The serial communication reference is not viable. {self.serial_communication = } {type(self.serial_communication) = }"
             )
 
-        if not connection:
+        if connection is None:
             connection = self.serial_communication
 
         self.answer.reset()

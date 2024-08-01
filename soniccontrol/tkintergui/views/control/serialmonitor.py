@@ -6,7 +6,8 @@ from async_tkinter_loop import async_handler
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
-from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.sonicpackage.command import Command
+from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
@@ -16,12 +17,12 @@ from soniccontrol.utils.files import images, files
 
 
 class SerialMonitor(UIComponent):
-    def __init__(self, parent: UIComponent, sonicamp: SonicAmp):
+    def __init__(self, parent: UIComponent, communicator: Communicator):
         self._logger = logging.getLogger(parent.logger.name + "." + SerialMonitor.__name__)
         super().__init__(parent, SerialMonitorView(parent.view), self._logger)
 
         self._logger.debug("Create SerialMonitor")
-        self._device = sonicamp
+        self._communicator = communicator
         self._command_history: List[str] = []
         self._command_history_index: int = 0
         self.view.set_send_command_button_command(lambda: self._send_command())
@@ -42,9 +43,17 @@ class SerialMonitor(UIComponent):
         if self._is_internal_command(command_str):
             await self._handle_internal_command(command_str) 
         else:
-            answer_str = await self._device.execute_command(command_str) 
+            answer_str = await self._send_and_receive(command_str)
             self._print_answer(answer_str)
 
+    async def _send_and_receive(self, command_str: str) -> str:
+        try:
+            answer, _ = await Command(message=command_str).execute(connection=self._communicator)
+            return answer.string
+        except Exception as e:
+            self._logger.error(e)
+            await self._communicator.close_communication()
+            return str(e)
 
     def _print_answer(self, answer_str: str):
         self._logger.debug("Answer: %s", answer_str)
@@ -65,11 +74,11 @@ class SerialMonitor(UIComponent):
             self._view.clear()
         elif command_str == "help":
             help_text = ""
-            if self._device.serial.protocol.major_version == 1:
+            if self._communicator.protocol.major_version == 1:
                 with open(files.HELPTEXT_SONIC_V1, "r") as file:
                     help_text = file.read()
             else:
-                help_text = await self._device.get_help()
+                help_text = await self._send_and_receive("?help")
             
             help_text += "\n"
             with open(files.HELPTEXT_INTERNAL_COMMANDS, "r") as file:

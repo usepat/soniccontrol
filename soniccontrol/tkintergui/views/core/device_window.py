@@ -53,7 +53,7 @@ class DeviceWindow(UIComponent):
             self._logger.debug("Create views")
             self._home = Home(self, self._device)
             self._sonicmeasure = SonicMeasure(self)
-            self._serialmonitor = SerialMonitor(self, self._device)
+            self._serialmonitor = SerialMonitor(self, self._device.serial)
             self._logging = Logging(self, self._logStorage.logs)
             self._editor = Editor(self, self._device, self._app_state)
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
