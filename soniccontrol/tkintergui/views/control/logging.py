@@ -14,16 +14,17 @@ from soniccontrol.tkintergui.utils.observable_list import ObservableList
 class Logging(UIComponent):
     def __init__(self, parent: UIComponent, logs: ObservableList):
         self._logs = logs
-        super().__init__(parent, LoggingView(parent.view))
+        self._view = LoggingView(parent.view)
+        super().__init__(parent, self._view)
         self._init_logs()
         self._logs.subscribe(ObservableList.EVENT_ITEM_ADDED, self._add_log)
 
     def _init_logs(self):
         for log in self._logs:
-            self.view.add_text_line(log)
+            self._view.append_text_line(log)
 
     def _add_log(self, e: Event):
-        self.view.add_text_line(e.data.item)
+        self._view.append_text_line(e.data["item"])
 
 
 

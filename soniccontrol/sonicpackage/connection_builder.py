@@ -13,7 +13,7 @@ class ConnectionBuilder:
 
     @staticmethod
     async def build(
-        reader: asyncio.StreamReader, writer: asyncio.StreamWriter, **kwargs
+        reader: asyncio.StreamReader, writer: asyncio.StreamWriter, logger: logging.Logger
     ) -> tuple[Communicator, Union[CommandSet, CommandSetLegacy]]:
         """
         Builds a connection using the provided `reader` and `writer` objects.
@@ -32,34 +32,33 @@ class ConnectionBuilder:
 
         """
 
-        logger = kwargs.get("logger", logging.getLogger())
-        logger = logging.getLogger(logger.name + "." + ConnectionBuilder.__name__)
+        com_logger = logging.getLogger(logger.name + "." + ConnectionBuilder.__name__)
 
-        logger.info("Trying to connect with legacy protocol")
-        serial: Communicator = LegacySerialCommunicator()
+        com_logger.info("Trying to connect with legacy protocol")
+        serial: Communicator = LegacySerialCommunicator(logger=logger)  #type: ignore
 
         await serial.open_communication(reader, writer)
         commands: Union[CommandSet, CommandSetLegacy] = CommandSetLegacy(serial)
         await commands.get_info.execute()
         if commands.get_info.answer.valid:
-            logger.info("Connected with legacy protocol")
+            com_logger.info("Connected with legacy protocol")
             return (serial, commands)
         else:
             await serial.close_communication()
-            logger.warn("Connection could not be established with legacy protocol")
+            com_logger.warn("Connection could not be established with legacy protocol")
 
-        logger.info("Trying to connect with new sonic protocol")
-        serial = SerialCommunicator(**kwargs)
+        com_logger.info("Trying to connect with new sonic protocol")
+        serial = SerialCommunicator(logger=logger) #type: ignore
         await serial.open_communication(reader, writer)
         commands = CommandSet(serial)
         await commands.get_info.execute()
     
         if commands.get_info.answer.valid:
-            logger.info("Connected with sonic protocol")
+            com_logger.info("Connected with sonic protocol")
             return (serial, commands)
         else:
             await serial.close_communication()
-            logger.warn("Connection could not be established with sonic protocol")
+            com_logger.warn("Connection could not be established with sonic protocol")
 
             # TODO: fix this. Define with Thomas an interface for ?info and implement it.
             # logger.info("Connected with sonic protocol")

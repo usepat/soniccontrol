@@ -6,7 +6,7 @@ from serial_asyncio import open_serial_connection
 import serial.tools.list_ports as list_ports
 import ttkbootstrap as ttk
 import tkinter as tk
-from ttkbootstrap.dialogs.dialogs import Messagebox, Dialog
+from ttkbootstrap.dialogs.dialogs import Messagebox
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
@@ -121,7 +121,7 @@ class ConnectionWindow(UIComponent):
             if user_answer is None or user_answer == "No": 
                 return
             
-            connection: Communicator = LegacySerialCommunicator()
+            connection: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
             await connection.open_communication(reader, writer)
             self._device_window_manager.open_rescue_window(connection, connection_name)
         except Exception as e:

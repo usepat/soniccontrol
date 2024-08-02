@@ -186,9 +186,11 @@ class LegacySerialCommunicator(Communicator):
     _writer: Optional[asyncio.StreamWriter] = attrs.field(
         init=False, default=None, repr=False
     )
+    _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
     def __attrs_post_init__(self) -> None:
         self._task: Optional[asyncio.Task[None]] = None
+        self._logger = logging.getLogger(self._logger.name + "." + LegacySerialCommunicator.__name__)
         self._init_command = Command(
             estimated_response_time=0.5,
             validators=(
@@ -235,10 +237,11 @@ class LegacySerialCommunicator(Communicator):
                 await self.read_long_message(reading_time=6)
             )
             self._init_command.validate()
-            ic(f"Init Command: {self._init_command}")
+            self._logger.info(self._init_command.answer)
 
         self._reader, self._writer = reader, writer
 
+        self._logger.info("Open communication with handshake")
         await get_first_message()
         self._connection_opened.set()
         self._task = asyncio.create_task(self._worker())
@@ -246,6 +249,8 @@ class LegacySerialCommunicator(Communicator):
     async def _worker(self) -> None:
         async def send_and_get(command: Command) -> None:
             assert (self._writer is not None)
+            if command.message != "-":
+                self._logger.info("Write command: %s", command.byte_message)
 
             self._writer.write(command.byte_message)
             await self._writer.drain()
@@ -254,11 +259,14 @@ class LegacySerialCommunicator(Communicator):
                 if command.expects_long_answer
                 else self.read_message()
             )
+
+            if command.message != "-":
+                self._logger.info("Received Answer: %s", response)
             command.answer.receive_answer(response)
             await self._answer_queue.put(command)
 
         if self._writer is None or self._reader is None:
-            ic("No connection available")
+            self._logger.warn("No connection available")
             return
         while self._writer is not None and not self._writer.is_closing():
             command: Command = await self._command_queue.get()
@@ -269,7 +277,7 @@ class LegacySerialCommunicator(Communicator):
                     self._close_communication()
                     return
                 except Exception as e:
-                    ic(sys.exc_info())
+                    self._logger.error(str(e))
                     break
         self._close_communication()
 
@@ -289,7 +297,7 @@ class LegacySerialCommunicator(Communicator):
             response = await self._reader.readline()
             message = response.decode(PLATFORM.encoding).strip()
         except Exception as e:
-            ic(f"Exception while reading {sys.exc_info()}")
+            self._logger.error(str(e))
         return message
 
     async def read_long_message(
@@ -310,7 +318,7 @@ class LegacySerialCommunicator(Communicator):
             except asyncio.TimeoutError:
                 continue
             except Exception as e:
-                ic(f"Exception while reading {sys.exc_info()}")
+                self._logger.error(str(e))
                 break
 
         return message

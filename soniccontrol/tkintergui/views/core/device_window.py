@@ -11,7 +11,7 @@ from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.state_updater.logger import DeviceLogFilter, LogStorage
+from soniccontrol.state_updater.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
 from soniccontrol.state_updater.updater import Updater
 from soniccontrol.tkintergui.utils.constants import ui_labels
 from soniccontrol.tkintergui.utils.events import Event
@@ -75,8 +75,9 @@ class RescueWindow(DeviceWindow):
             self._logStorage = LogStorage()
             log_storage_handler = self._logStorage.create_log_handler()
             logging.getLogger(connection_name).addHandler(log_storage_handler)
-            device_log_filter = DeviceLogFilter()
-            log_storage_handler.addFilter(device_log_filter)
+            not_device_log_filter = NotDeviceLogFilter()
+            log_storage_handler.addFilter(not_device_log_filter)
+            log_storage_handler.setLevel(logging.DEBUG)
 
             self._logger.debug("Create views")
             self._serialmonitor = SerialMonitor(self, self._communicator)
