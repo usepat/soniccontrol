@@ -15,6 +15,7 @@ from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import create_logger_for_connection
+from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.device_window import DeviceWindow, KnownDeviceWindow, RescueWindow
@@ -92,6 +93,12 @@ class ConnectionWindow(UIComponent):
     async def _attempt_connection(self, connection_name: str, reader: StreamReader, writer: StreamWriter):
         logger = create_logger_for_connection(connection_name)
         logger.debug("Established serial connection")
+
+        def set_loading_animation_frame(frame: str) -> None:
+            self._view.loading_text = frame
+        animation = Animator(DotAnimationSequence("Connecting"), set_loading_animation_frame, 2.)
+        animation.start(num_repeats=-1)
+        
         try:
             serial, commands = await ConnectionBuilder.build(
                 reader=reader,
@@ -106,10 +113,15 @@ class ConnectionWindow(UIComponent):
             logger.error(e)
             Messagebox.show_error(e)
             # TODO open rescue mode
-            return
-
-        logger.info("Created device successfully, open device window")
-        self._device_window_manager.open_known_device_window(sonicamp, connection_name)
+        except Exception as e:
+            logger.error(e)
+            Messagebox.show_error(e)
+        else:
+            logger.info("Created device successfully, open device window")
+            self._device_window_manager.open_known_device_window(sonicamp, connection_name)
+        finally:
+            await animation.stop()
+            self._view.loading_text = ""
 
 
 class ConnectionWindowView(ttk.Window):
@@ -145,6 +157,12 @@ class ConnectionWindowView(ttk.Window):
             text=ui_labels.CONNECT_TO_SIMULATION_LABEL,
         )
 
+        self._loading_text: ttk.StringVar = ttk.StringVar()
+        self._loading_label: ttk.Label = ttk.Label(
+            self,
+            textvariable=self._loading_text
+        )
+
         self._url_connection_frame.pack(side=ttk.TOP, fill=ttk.X, expand=True, pady=sizes.MEDIUM_PADDING)
         self._ports_menue.pack(
             side=ttk.LEFT, expand=True, fill=ttk.X, padx=sizes.SMALL_PADDING
@@ -154,6 +172,16 @@ class ConnectionWindowView(ttk.Window):
 
         if show_simulation_button:
             self._connect_to_simulation_button.pack(side=ttk.BOTTOM, fill=ttk.X, padx=sizes.SMALL_PADDING, pady=sizes.MEDIUM_PADDING)
+
+        self._loading_label.pack(side=ttk.TOP, pady=sizes.MEDIUM_PADDING)
+
+    @property
+    def loading_text(self) -> str:
+        return self._loading_text.get()
+    
+    @loading_text.setter
+    def loading_text(self, value: str) -> None:
+        self._loading_text.set(value)
 
     def get_url(self) -> str:
         return self._port.get()
