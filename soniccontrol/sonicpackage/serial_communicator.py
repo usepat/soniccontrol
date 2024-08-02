@@ -134,15 +134,18 @@ class SerialCommunicator(Communicator):
         await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
-        TIMEOUT = 10 # in seconds
-        MAX_RETRIES = 3
+        timeout = command.estimated_response_time 
+        MAX_RETRIES = 3 # in seconds
         for i in range(MAX_RETRIES):
             await self._command_queue.put(command)
-            received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+            received = await asyncio.wait_for(command.answer.received.wait(), timeout)
             if received:
                 return
-            self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %d s", i, MAX_RETRIES, TIMEOUT)
+            self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %d s", i, MAX_RETRIES, timeout)
         raise ConnectionError("Device is not responding")
+    
+    async def read_message(self) -> str:
+        return await self._package_fetcher.pop_message()
 
     async def close_communication(self) -> None:
         if self._task is not None:
@@ -249,7 +252,7 @@ class LegacySerialCommunicator(Communicator):
             response = await (
                 self.read_long_message(response_time=command.estimated_response_time)
                 if command.expects_long_answer
-                else self.read_message(response_time=command.estimated_response_time)
+                else self.read_message()
             )
             command.answer.receive_answer(response)
             await self._answer_queue.put(command)
@@ -271,21 +274,19 @@ class LegacySerialCommunicator(Communicator):
         self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
-        TIMEOUT = 10 # 10s
+        timeout = command.estimated_response_time + 0.1 # Add extra time because of long message 
         await self._command_queue.put(command)
-        received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+        received = await asyncio.wait_for(command.answer.received.wait(), timeout)
         if not received:
             raise ConnectionError("Device is not responding")
 
-    async def read_message(self, response_time: float = 0.3) -> str:
+    async def read_message(self) -> str:
         message: str = ""
         await asyncio.sleep(0.2)
         if self._reader is None:
             return message
         try:
-            response = await asyncio.wait_for(
-                self._reader.readline(), timeout=response_time
-            )
+            response = await self._reader.readline()
             message = response.decode(PLATFORM.encoding).strip()
         except Exception as e:
             ic(f"Exception while reading {sys.exc_info()}")

@@ -12,6 +12,7 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
 from soniccontrol.sonicpackage.connection_builder import ConnectionBuilder
 from soniccontrol.sonicpackage.interfaces import Communicator
+from soniccontrol.sonicpackage.serial_communicator import LegacySerialCommunicator
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import create_logger_for_connection
 from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence
@@ -110,11 +111,14 @@ class ConnectionWindow(UIComponent):
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
             logger.error(e)
-            Messagebox.show_error(e)
-            # TODO open rescue mode
+            Messagebox.show_error(str(e))
+
+            connection: Communicator = LegacySerialCommunicator()
+            await connection.open_communication(reader, writer)
+            self._device_window_manager.open_rescue_window(connection, connection_name)
         except Exception as e:
             logger.error(e)
-            Messagebox.show_error(e)
+            Messagebox.show_error(str(e))
         else:
             logger.info("Created device successfully, open device window")
             self._device_window_manager.open_known_device_window(sonicamp, connection_name)

@@ -318,7 +318,7 @@ class Answer:
 class Command(Sendable):
     argument: str = attrs.field(default="", converter=str)
     message: str = attrs.field(default="")
-    estimated_response_time: float = attrs.field(default=0.3)
+    estimated_response_time: float = attrs.field(default=5)
     expects_long_answer: bool = attrs.field(default=False, repr=False)
     _validators: List[CommandValidator] = attrs.field(factory=list)
     answer: Answer = attrs.field(init=False, factory=Answer)

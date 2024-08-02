@@ -191,7 +191,7 @@ class Configuration(UIComponent):
             return
         except Exception as e:
             self._logger.error(e)
-            Messagebox.show_error(e)
+            Messagebox.show_error(str(e))
             return
 
     def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:

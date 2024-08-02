@@ -8,13 +8,13 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.command import Command
 from soniccontrol.sonicpackage.interfaces import Communicator
+from soniccontrol.state_updater.message_fetcher import MessageFetcher
 from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence, load_animation
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.app_state import ExecutionState
 from soniccontrol.utils.files import images, files
-
 
 
 class SerialMonitor(UIComponent):
@@ -36,14 +36,18 @@ class SerialMonitor(UIComponent):
         )
         self._send_and_receive = animation_decorator(self._send_and_receive) 
 
+
         self._logger.debug("Create SerialMonitor")
         self._communicator = communicator
+        self._message_fetcher = MessageFetcher(self._communicator)
         self._command_history: List[str] = []
         self._command_history_index: int = 0
-        self._view.set_send_command_button_command(lambda: self._send_command())
-        self._view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
+        self._view.set_send_command_button_command(self._send_command)
+        self._view.set_read_button_command(self._on_read_button_pressed)
+        self._view.bind_command_line_input_on_return_pressed(self._send_command)
         self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
         self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
+        self._message_fetcher.subscribe(MessageFetcher.MESSAGE_RECEIVED_EVENT, lambda e: self._view.add_text_line(e.data["message"]))
 
     @async_handler
     async def _send_command(self): 
@@ -109,6 +113,12 @@ class SerialMonitor(UIComponent):
         self._command_history_index %= len(self._command_history) 
         self._view.command_line_input = self._command_history[self._command_history_index]
 
+    @async_handler
+    async def _on_read_button_pressed(self):
+        if self._message_fetcher.is_running:
+            await self._message_fetcher.stop()
+        else:
+            self._message_fetcher.run()
 
     def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
         execution_state: ExecutionState = e.new_value
@@ -230,6 +240,9 @@ class SerialMonitorView(TabView):
 
     def set_send_command_button_command(self, command: Callable[[], None]):
         self._send_button.configure(command=command)
+
+    def set_read_button_command(self, command: Callable[[], None]):
+        self._read_button.configure(command=command)
 
     def set_send_command_button_enabled(self, enabled: bool) -> None:
         self._send_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)

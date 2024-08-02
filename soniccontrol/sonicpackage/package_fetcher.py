@@ -14,6 +14,7 @@ class PackageFetcher:
         self._reader = reader
         self._answers: Dict[int, str] = {}
         self._answer_received = asyncio.Event()
+        self._messages = asyncio.Queue(maxsize=100)
         self._task = None
         self._protocol: SonicProtocol = protocol
         self._logger: logging.Logger = logging.getLogger(logger.name + "." + PackageFetcher.__name__)
@@ -79,4 +80,15 @@ class PackageFetcher:
         )
         message += data.decode(PLATFORM.encoding)
 
+        self._queue_message(message)
         return message
+    
+    def _queue_message(self, message: str) -> None:
+        try:
+            self._messages.put_nowait(message)
+        except asyncio.QueueFull:
+            self._messages.get_nowait()
+            self._messages.put_nowait(message)
+
+    async def pop_message(self) -> str:
+        return await self._messages.get()

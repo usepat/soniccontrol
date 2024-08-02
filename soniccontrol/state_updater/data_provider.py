@@ -7,7 +7,7 @@ class DataProvider(EventManager):
     def __init__(self):
         super().__init__()
         self._max_size = 100
-        self._data = pd.DataFrame
+        self._data = pd.DataFrame()
         self._dataqueue = deque([], maxlen=100)
 
 
