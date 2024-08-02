@@ -1,12 +1,12 @@
 from asyncio import StreamReader, StreamWriter
 import asyncio
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional, cast
 from async_tkinter_loop import async_handler
 from serial_asyncio import open_serial_connection
 import serial.tools.list_ports as list_ports
 import ttkbootstrap as ttk
 import tkinter as tk
-from ttkbootstrap.dialogs.dialogs import Messagebox
+from ttkbootstrap.dialogs.dialogs import Messagebox, Dialog
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.sonicpackage.builder import AmpBuilder
@@ -15,7 +15,7 @@ from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.serial_communicator import LegacySerialCommunicator
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol.state_updater.logger import create_logger_for_connection
-from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence
+from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence, load_animation
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
 from soniccontrol.tkintergui.views.core.device_window import DeviceWindow, KnownDeviceWindow, RescueWindow
@@ -53,6 +53,16 @@ class ConnectionWindow(UIComponent):
     def __init__(self, show_simulation_button=False):
         self._view: ConnectionWindowView = ConnectionWindowView(show_simulation_button)
         super().__init__(None, self._view)
+
+        # set animation decorator
+        def set_loading_animation_frame(frame: str) -> None:
+            self._view.loading_text = frame
+        def on_animation_end() -> None:
+            self._view.loading_text = ""
+        animation = Animator(DotAnimationSequence("Connecting"), set_loading_animation_frame, 2., done_callback=on_animation_end)
+        decorator = load_animation(animation)
+        self._attempt_connection = decorator(self._attempt_connection)
+
         self._device_window_manager = DeviceWindowManager(self._view)
         self._view.set_connect_via_url_button_command(self._on_connect_via_url)
         self._view.set_connect_to_simulation_button_command(self._on_connect_to_simulation)
@@ -94,11 +104,6 @@ class ConnectionWindow(UIComponent):
         logger = create_logger_for_connection(connection_name)
         logger.debug("Established serial connection")
 
-        def set_loading_animation_frame(frame: str) -> None:
-            self._view.loading_text = frame
-        animation = Animator(DotAnimationSequence("Connecting"), set_loading_animation_frame, 2.)
-        animation.run(num_repeats=-1)
-        
         try:
             serial, commands = await ConnectionBuilder.build(
                 reader=reader,
@@ -111,8 +116,11 @@ class ConnectionWindow(UIComponent):
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
             logger.error(e)
-            Messagebox.show_error(str(e))
-
+            message = ui_labels.COULD_NOT_CONNECT_MESSAGE.format(str(e))
+            user_answer: Optional[str] = cast(Optional[str], Messagebox.yesno(message))
+            if user_answer is None or user_answer == "No": 
+                return
+            
             connection: Communicator = LegacySerialCommunicator()
             await connection.open_communication(reader, writer)
             self._device_window_manager.open_rescue_window(connection, connection_name)
@@ -122,9 +130,6 @@ class ConnectionWindow(UIComponent):
         else:
             logger.info("Created device successfully, open device window")
             self._device_window_manager.open_known_device_window(sonicamp, connection_name)
-        finally:
-            await animation.stop()
-            self._view.loading_text = ""
 
 
 class ConnectionWindowView(ttk.Window):
