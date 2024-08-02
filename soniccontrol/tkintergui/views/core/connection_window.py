@@ -1,6 +1,5 @@
 from asyncio import StreamReader, StreamWriter
 import asyncio
-import logging
 from typing import Callable, Dict, List
 from async_tkinter_loop import async_handler
 from serial_asyncio import open_serial_connection
@@ -97,7 +96,7 @@ class ConnectionWindow(UIComponent):
         def set_loading_animation_frame(frame: str) -> None:
             self._view.loading_text = frame
         animation = Animator(DotAnimationSequence("Connecting"), set_loading_animation_frame, 2.)
-        animation.start(num_repeats=-1)
+        animation.run(num_repeats=-1)
         
         try:
             serial, commands = await ConnectionBuilder.build(

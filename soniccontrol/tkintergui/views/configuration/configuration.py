@@ -13,6 +13,7 @@ from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.script.legacy_scripting import LegacyScriptingFacade
 from soniccontrol.sonicpackage.script.scripting_facade import ScriptingFacade
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.views.configuration.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
@@ -142,15 +143,30 @@ class Configuration(UIComponent):
     @async_handler
     async def _submit_transducer_config(self):
         self._logger.info("Submit Transducer Config")
-        # TODO: start load animation
-
+        
+        # Start animation
+        animation = Animator(
+            DotAnimationSequence(ui_labels.SEND_LABEL), 
+            self._view.set_submit_config_button_label, 
+            2,
+            done_callback=lambda: self._view.set_submit_config_button_label(ui_labels.SEND_LABEL)
+        )
+        animation.run(num_repeats=-1)
+        
+        # Send data
         for i, atconfig in enumerate(self.view.atconfigs):
             await self._device.set_atf(i, atconfig.atf)
             await self._device.set_atk(i, atconfig.atk)
             await self._device.set_att(i, atconfig.att)
             await self._device.set_aton(i, atconfig.aton)
 
-        asyncio.create_task(self._interpreter_engine())
+        task = asyncio.create_task(self._interpreter_engine())
+
+        # add stop animation callback
+        @async_handler
+        async def stop_animation(_task):
+            await animation.stop()
+        task.add_done_callback(stop_animation)
 
     async def _interpreter_engine(self):
         assert(self._current_transducer_config is not None)
@@ -177,8 +193,6 @@ class Configuration(UIComponent):
             self._logger.error(e)
             Messagebox.show_error(e)
             return
-        finally:
-            pass # TODO: end load animation
 
     def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
         execution_state: ExecutionState = e.new_value
@@ -331,6 +345,9 @@ class ConfigurationView(TabView):
 
     def set_submit_config_button_enabled(self, enabled: bool) -> None:
         self._submit_config_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
+
+    def set_submit_config_button_label(self, text: str) -> None:
+        self._submit_config_button.configure(text=text)
 
     @property 
     def atconfigs(self) -> List[ATConfig]:

@@ -8,6 +8,7 @@ from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.command import Command
 from soniccontrol.sonicpackage.interfaces import Communicator
+from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence, load_animation
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
@@ -19,16 +20,30 @@ from soniccontrol.utils.files import images, files
 class SerialMonitor(UIComponent):
     def __init__(self, parent: UIComponent, communicator: Communicator):
         self._logger = logging.getLogger(parent.logger.name + "." + SerialMonitor.__name__)
-        super().__init__(parent, SerialMonitorView(parent.view), self._logger)
+        self._view = SerialMonitorView(parent.view)
+        super().__init__(parent, self._view, self._logger)
+
+        # decorate send and receive with loading animation
+        self._animation = Animator(
+            DotAnimationSequence("Wait for answer", num_dots=5), 
+            self._view.set_loading_text, 
+            5,
+            done_callback=lambda: self._view.set_loading_text("")
+        )
+        animation_decorator = load_animation(
+            self._animation, 
+            num_repeats=-1
+        )
+        self._send_and_receive = animation_decorator(self._send_and_receive) 
 
         self._logger.debug("Create SerialMonitor")
         self._communicator = communicator
         self._command_history: List[str] = []
         self._command_history_index: int = 0
-        self.view.set_send_command_button_command(lambda: self._send_command())
-        self.view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
-        self.view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
-        self.view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
+        self._view.set_send_command_button_command(lambda: self._send_command())
+        self._view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
+        self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
+        self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
 
     @async_handler
     async def _send_command(self): 
@@ -53,7 +68,7 @@ class SerialMonitor(UIComponent):
         except Exception as e:
             self._logger.error(e)
             await self._communicator.close_communication()
-            return str(e)
+            return str(e)        
 
     def _print_answer(self, answer_str: str):
         self._logger.debug("Answer: %s", answer_str)
@@ -123,6 +138,15 @@ class SerialMonitorView(TabView):
         self._scrolled_frame: ScrolledFrame = ScrolledFrame(
             self._output_frame, autohide=True
         )
+        self._monitor_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_frame
+        )
+        self._loading_label: ttk.Label = ttk.Label(
+            self._scrolled_frame,
+            text="",
+            font=("Consolas", 10)
+        )
+
         INPUT_FRAME_PADDING = (3, 1, 3, 4)
         self._input_frame: ttk.Labelframe = ttk.Labelframe(
             self._main_frame, text=ui_labels.INPUT_LABEL, padding=INPUT_FRAME_PADDING
@@ -161,6 +185,15 @@ class SerialMonitorView(TabView):
             fill=ttk.BOTH,
             pady=sizes.MEDIUM_PADDING,
             padx=sizes.MEDIUM_PADDING,
+        )
+        self._monitor_frame.pack(
+            fill=ttk.BOTH,
+            expand=True
+        )
+        self._loading_label.pack(
+            side=ttk.BOTTOM,
+            anchor=ttk.W,
+            fill=ttk.X
         )
 
         self._input_frame.grid(
@@ -211,6 +244,9 @@ class SerialMonitorView(TabView):
     @command_line_input.setter
     def command_line_input(self, text: str):
         self._command_line_input.set(text)
+
+    def set_loading_text(self, text: str) -> None:
+        self._loading_label.configure(text=text)
 
     def bind_command_line_input_on_down_pressed(self, command: Callable[[], None]):
         self._command_line_input_field.bind("<Down>", lambda _: command()) 
