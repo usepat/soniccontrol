@@ -57,12 +57,12 @@ class ConnectionBuilder:
             com_logger.info("Connected with sonic protocol")
             return (serial, commands)
         else:
-            await serial.close_communication()
-            com_logger.warn("Connection could not be established with sonic protocol")
+            # await serial.close_communication()
+            # com_logger.warn("Connection could not be established with sonic protocol")
 
             # TODO: fix this. Define with Thomas an interface for ?info and implement it.
-            # logger.info("Connected with sonic protocol")
-            # return (serial, commands)
+            logger.info("Connected with sonic protocol")
+            return (serial, commands)
         
     
         raise ConnectionError("Failed to connect due to incompatibility")

@@ -104,6 +104,8 @@ class _UIStringsEN:
     INFO_LABEL: Final[str] = "Info"
     SERIAL_MONITOR_LABEL: Final[str] = "Serial Monitor"
     LOGS_LABEL: Final[str] = "Logs"
+    APP_LOGS_LABEL: Final[str] = "Application Logs"
+    DEVICE_LOGS_LABEL: Final[str] = "Device Logs"
     FLASHER_LABEL: Final[str] = "Flasher"
     PROCEDURES_LABEL: Final[str] = "Procedures"
     SONIC_LABEL: Final[str] = "sonic"

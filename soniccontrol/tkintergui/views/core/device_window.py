@@ -20,7 +20,7 @@ from soniccontrol.tkintergui.views.configuration.flashing import Flashing
 from soniccontrol.tkintergui.views.core.app_state import AppState, ExecutionState
 from soniccontrol.tkintergui.views.home import Home
 from soniccontrol.tkintergui.views.info import Info
-from soniccontrol.tkintergui.views.control.logging import Logging
+from soniccontrol.tkintergui.views.control.logging import Logging, LoggingTab
 from soniccontrol.tkintergui.views.control.editor import Editor
 from soniccontrol.tkintergui.views.control.proc_controlling import ProcControlling
 from soniccontrol.tkintergui.views.control.serialmonitor import SerialMonitor
@@ -81,7 +81,7 @@ class RescueWindow(DeviceWindow):
 
             self._logger.debug("Create views")
             self._serialmonitor = SerialMonitor(self, self._communicator)
-            self._logging = Logging(self, self._logStorage.logs)
+            self._logging = LoggingTab(self, self._logStorage.logs)
 
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
@@ -106,18 +106,11 @@ class KnownDeviceWindow(DeviceWindow):
             self._updater = Updater(self._device)
             self._proc_controller = ProcedureController(self._device)
 
-            self._logger.debug("Create logStorage for storing logs")
-            self._logStorage = LogStorage()
-            log_storage_handler = self._logStorage.create_log_handler()
-            logging.getLogger(connection_name).addHandler(log_storage_handler)
-            device_log_filter = DeviceLogFilter()
-            log_storage_handler.addFilter(device_log_filter)
-
             self._logger.debug("Create views")
             self._home = Home(self, self._device)
             self._sonicmeasure = SonicMeasure(self)
             self._serialmonitor = SerialMonitor(self, self._device.serial)
-            self._logging = Logging(self, self._logStorage.logs)
+            self._logging = Logging(self, connection_name)
             self._editor = Editor(self, self._device, self._app_state)
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
             self._info = Info(self)

@@ -36,7 +36,7 @@ class Configuration(UIComponent):
         self._view = ConfigurationView(parent.view, self, self._count_atk_atf)
         self._current_transducer_config: Optional[int] = None
         self._device = device
-        super().__init__(parent, self._view)
+        super().__init__(parent, self._view, self._logger)
         self._view.set_save_config_command(self._save_config)
         self._view.set_transducer_config_selected_command(self._on_transducer_config_selected)
         self._view.set_add_transducer_config_command(self._add_transducer_config_template)
