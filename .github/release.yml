@@ -1,21 +1,16 @@
-name: Release Notes
-description: >
-  This file configures the release notes for this repository.
-labels:
-  - bug
-  - feature
-  - enhancement
-exclude_labels:
-  - documentation
-  - test
-  - duplicate
-categories:
-  - New Features:
-      labels:
-        - feature
-  - Changes:
+changelog:
+  exclude:
+    labels:
+      - documentation
+      - test
+      - duplicate
+  categories:
+    - title: New Features 🎉
       labels:
         - enhancement
-  - Bug Fixes:
+    - title: Changes 🛠
+      labels:
+        - feature
+    - title: Bug Fixes 🐞
       labels:
         - bug
