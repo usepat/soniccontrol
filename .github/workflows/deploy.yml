@@ -30,7 +30,8 @@ jobs:
         pip install -r requirements_dev.txt
   
     - name: Run build script
-      run: bash ./scripts/create_exe.sh ${{ github.workspace }}
+      run: call ./scripts/create_exe.bat ${{ github.workspace }}
+      shell: cmd
 
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.4

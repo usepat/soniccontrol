@@ -1,5 +1,4 @@
 #!/bin/bash
-
 WORKSPACE_DIR=$1
 
 echo "create exe file with pyinstaller"
