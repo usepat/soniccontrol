@@ -152,9 +152,6 @@ class SonicAmp(Scriptable):
             
             command: Command = self._commands[message]
             await command.execute(argument=argument, connection=self._serial)
-        except ConnectionError as e:
-            self._logger.error(e)
-            await self.disconnect()
         except Exception as e:
             self._logger.error(e)
             await self.disconnect()

@@ -134,15 +134,18 @@ class SerialCommunicator(Communicator):
         await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
-        TIMEOUT = 10 # in seconds
-        MAX_RETRIES = 3
+        timeout = command.estimated_response_time 
+        MAX_RETRIES = 3 # in seconds
         for i in range(MAX_RETRIES):
             await self._command_queue.put(command)
-            received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+            received = await asyncio.wait_for(command.answer.received.wait(), timeout)
             if received:
                 return
-            self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %d s", i, MAX_RETRIES, TIMEOUT)
+            self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %d s", i, MAX_RETRIES, timeout)
         raise ConnectionError("Device is not responding")
+    
+    async def read_message(self) -> str:
+        return await self._package_fetcher.pop_message()
 
     async def close_communication(self) -> None:
         if self._task is not None:
@@ -156,8 +159,6 @@ class SerialCommunicator(Communicator):
     async def _close_communication(self) -> None:
         if self._task is not None:
             await self._package_fetcher.stop()
-        if sys.getrefcount(self._writer) == 1:
-            self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None
@@ -185,9 +186,11 @@ class LegacySerialCommunicator(Communicator):
     _writer: Optional[asyncio.StreamWriter] = attrs.field(
         init=False, default=None, repr=False
     )
+    _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
     def __attrs_post_init__(self) -> None:
         self._task: Optional[asyncio.Task[None]] = None
+        self._logger = logging.getLogger(self._logger.name + "." + LegacySerialCommunicator.__name__)
         self._init_command = Command(
             estimated_response_time=0.5,
             validators=(
@@ -234,35 +237,36 @@ class LegacySerialCommunicator(Communicator):
                 await self.read_long_message(reading_time=6)
             )
             self._init_command.validate()
-            ic(f"Init Command: {self._init_command}")
+            self._logger.info(self._init_command.answer)
 
-        try:
-            self._reader, self._writer = reader, writer
-        except Exception as e:
-            ic(sys.exc_info())
-            self._reader = None
-            self._writer = None
-        else:
-            await get_first_message()
-            self._connection_opened.set()
-            self._task = asyncio.create_task(self._worker())
+        self._reader, self._writer = reader, writer
+
+        self._logger.info("Open communication with handshake")
+        await get_first_message()
+        self._connection_opened.set()
+        self._task = asyncio.create_task(self._worker())
 
     async def _worker(self) -> None:
         async def send_and_get(command: Command) -> None:
             assert (self._writer is not None)
+            if command.message != "-":
+                self._logger.info("Write command: %s", command.byte_message)
 
             self._writer.write(command.byte_message)
             await self._writer.drain()
             response = await (
                 self.read_long_message(response_time=command.estimated_response_time)
                 if command.expects_long_answer
-                else self.read_message(response_time=command.estimated_response_time)
+                else self.read_message()
             )
+
+            if command.message != "-":
+                self._logger.info("Received Answer: %s", response)
             command.answer.receive_answer(response)
             await self._answer_queue.put(command)
 
         if self._writer is None or self._reader is None:
-            ic("No connection available")
+            self._logger.warn("No connection available")
             return
         while self._writer is not None and not self._writer.is_closing():
             command: Command = await self._command_queue.get()
@@ -273,29 +277,27 @@ class LegacySerialCommunicator(Communicator):
                     self._close_communication()
                     return
                 except Exception as e:
-                    ic(sys.exc_info())
+                    self._logger.error(str(e))
                     break
         self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
-        TIMEOUT = 10 # 10s
+        timeout = command.estimated_response_time + 0.1 # Add extra time because of long message 
         await self._command_queue.put(command)
-        received = await asyncio.wait_for(command.answer.received.wait(), TIMEOUT)
+        received = await asyncio.wait_for(command.answer.received.wait(), timeout)
         if not received:
             raise ConnectionError("Device is not responding")
 
-    async def read_message(self, response_time: float = 0.3) -> str:
+    async def read_message(self) -> str:
         message: str = ""
         await asyncio.sleep(0.2)
         if self._reader is None:
             return message
         try:
-            response = await asyncio.wait_for(
-                self._reader.readline(), timeout=response_time
-            )
+            response = await self._reader.readline()
             message = response.decode(PLATFORM.encoding).strip()
         except Exception as e:
-            ic(f"Exception while reading {sys.exc_info()}")
+            self._logger.error(str(e))
         return message
 
     async def read_long_message(
@@ -316,7 +318,7 @@ class LegacySerialCommunicator(Communicator):
             except asyncio.TimeoutError:
                 continue
             except Exception as e:
-                ic(f"Exception while reading {sys.exc_info()}")
+                self._logger.error(str(e))
                 break
 
         return message
@@ -331,8 +333,6 @@ class LegacySerialCommunicator(Communicator):
             self._task = None
 
     def _close_communication(self) -> None:
-        if sys.getrefcount(self._writer) == 1:
-            self._writer.close() if self._writer is not None else None
         self._connection_opened.clear()
         self._connection_closed.set()
         self._reader = None

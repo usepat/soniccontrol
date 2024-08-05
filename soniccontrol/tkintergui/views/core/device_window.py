@@ -11,16 +11,16 @@ from soniccontrol.interfaces.view import TabView
 from soniccontrol.sonicpackage.interfaces import Communicator
 from soniccontrol.sonicpackage.procedures.procedure_controller import ProcedureController
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.state_updater.logger import DeviceLogFilter, LogStorage
+from soniccontrol.state_updater.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
 from soniccontrol.state_updater.updater import Updater
-from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
+from soniccontrol.tkintergui.utils.constants import ui_labels
 from soniccontrol.tkintergui.utils.events import Event
 from soniccontrol.tkintergui.views.configuration.configuration import Configuration
 from soniccontrol.tkintergui.views.configuration.flashing import Flashing
 from soniccontrol.tkintergui.views.core.app_state import AppState, ExecutionState
 from soniccontrol.tkintergui.views.home import Home
 from soniccontrol.tkintergui.views.info import Info
-from soniccontrol.tkintergui.views.control.logging import Logging
+from soniccontrol.tkintergui.views.control.logging import Logging, LoggingTab
 from soniccontrol.tkintergui.views.control.editor import Editor
 from soniccontrol.tkintergui.views.control.proc_controlling import ProcControlling
 from soniccontrol.tkintergui.views.control.serialmonitor import SerialMonitor
@@ -28,33 +28,89 @@ from soniccontrol.tkintergui.views.measure.sonicmeasure import SonicMeasure
 from soniccontrol.tkintergui.views.core.status import StatusBar
 from soniccontrol.tkintergui.widgets.notebook import Notebook
 
-
 class DeviceWindow(UIComponent):
     CLOSE_EVENT = "Close"
 
-    def __init__(self, device: SonicAmp, root, logger: logging.Logger):
-        self._logger: logging.Logger = logging.getLogger(logger.name + ".ui")
-        try:
-            self._device = device
-            self._view = DeviceWindowView(root)
-            super().__init__(None, self._view, self._logger)
+    def __init__(self, logger: logging.Logger, deviceWindowView: "DeviceWindowView", communicator: Communicator):
+        self._logger = logger
+        self._communicator = communicator
+        self._view = deviceWindowView
+        super().__init__(None, self._view, self._logger)
+        self._app_state = AppState(self._logger)
 
-            self._app_state = AppState(self._logger)
-            self._updater = Updater(self._device)
-            self._proc_controller = ProcedureController(self._device)
+        self._view.add_close_callback(self.close)
+        self._communicator.subscribe(Communicator.DISCONNECTED_EVENT, lambda _e: self.on_disconnect())
+    
+        self._app_state.execution_state = ExecutionState.IDLE
+
+    def on_disconnect(self) -> None:
+        if not self._view.is_open:
+            return # Window was closed already
+        
+        self._app_state.execution_state = ExecutionState.NOT_RESPONSIVE
+        
+        # Window is open, Ask User if he wants to close it
+        answer: Optional[str] = cast(Optional[str], Messagebox.okcancel(ui_labels.DEVICE_DISCONNECTED_MSG, ui_labels.DEVICE_DISCONNECTED_TITLE))
+        if answer is None or answer == "Cancel":
+            return
+        else:
+            self.close()
+
+    @async_handler
+    async def close(self) -> None:
+        self._logger.info("Close window")
+        self.emit(Event(DeviceWindow.CLOSE_EVENT))
+        self._view.close()
+        await self._communicator.close_communication()
+
+class RescueWindow(DeviceWindow):
+    def __init__(self, communicator: Communicator, root, connection_name: str):
+        self._logger: logging.Logger = logging.getLogger(connection_name + ".ui")
+        try:
+            self._communicator = communicator
+            self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
+            super().__init__(self._logger, self._view, self._communicator)
 
             self._logger.debug("Create logStorage for storing logs")
             self._logStorage = LogStorage()
             log_storage_handler = self._logStorage.create_log_handler()
-            logger.addHandler(log_storage_handler)
-            device_log_filter = DeviceLogFilter()
-            log_storage_handler.addFilter(device_log_filter)
+            logging.getLogger(connection_name).addHandler(log_storage_handler)
+            not_device_log_filter = NotDeviceLogFilter()
+            log_storage_handler.addFilter(not_device_log_filter)
+            log_storage_handler.setLevel(logging.DEBUG)
+
+            self._logger.debug("Create views")
+            self._serialmonitor = SerialMonitor(self, self._communicator)
+            self._logging = LoggingTab(self, self._logStorage.logs)
+
+            self._logger.debug("Created all views, add them as tabs")
+            self._view.add_tab_views([
+                self._serialmonitor.view, 
+                self._logging.view, 
+            ])
+
+            self._logger.debug("add callbacks and listeners to event emitters")
+            self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
+        except Exception as e:
+            self._logger.error(e)
+            raise
+
+class KnownDeviceWindow(DeviceWindow):
+    def __init__(self, device: SonicAmp, root, connection_name: str):
+        self._logger: logging.Logger = logging.getLogger(connection_name + ".ui")
+        try:
+            self._device = device
+            self._view = DeviceWindowView(root, title=f"Device Window - {connection_name}")
+            super().__init__(self._logger, self._view, self._device.serial)
+
+            self._updater = Updater(self._device)
+            self._proc_controller = ProcedureController(self._device)
 
             self._logger.debug("Create views")
             self._home = Home(self, self._device)
             self._sonicmeasure = SonicMeasure(self)
-            self._serialmonitor = SerialMonitor(self, self._device)
-            self._logging = Logging(self, self._logStorage.logs)
+            self._serialmonitor = SerialMonitor(self, self._device.serial)
+            self._logging = Logging(self, connection_name)
             self._editor = Editor(self, self._device, self._app_state)
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
             self._info = Info(self)
@@ -76,45 +132,22 @@ class DeviceWindow(UIComponent):
             ])
 
             self._logger.debug("add callbacks and listeners to event emitters")
-            self._view.add_close_callback(self.close)
-            self._device.serial.subscribe(Communicator.DISCONNECTED_EVENT, lambda _e: self.on_disconnect())
             self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
             self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))
             self._updater.execute()
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._configuration.on_execution_state_changed)
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._home.on_execution_state_changed)
-
-            self._app_state.execution_state = ExecutionState.IDLE
         except Exception as e:
             self._logger.error(e)
             raise
 
-    def on_disconnect(self) -> None:
-        if not self._view.is_open:
-            return # Window was closed already
-        
-        self._app_state.execution_state = ExecutionState.NOT_RESPONSIVE
-        
-        # Window is open, Ask User if he wants to close it
-        answer: Optional[str] = cast(Optional[str], Messagebox.okcancel(ui_labels.DEVICE_DISCONNECTED_MSG, ui_labels.DEVICE_DISCONNECTED_TITLE))
-        if answer is None or answer == "Cancel":
-            return
-        else:
-            self.close()
-
-    @async_handler
-    async def close(self) -> None:
-        self._logger.info("Close window")
-        self.emit(Event(DeviceWindow.CLOSE_EVENT))
-        self._view.close()
-        await self._device.disconnect()
-
 
 class DeviceWindowView(tk.Toplevel):
     def __init__(self, root, *args, **kwargs) -> None:
+        title = kwargs.pop("title", "Device Window")
         super().__init__(root, *args, **kwargs)
-        self.title("Device Window")
+        self.title(title)
         self.geometry('450x550')
         self.minsize(450, 400)
 

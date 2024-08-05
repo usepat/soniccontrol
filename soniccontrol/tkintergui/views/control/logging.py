@@ -1,9 +1,12 @@
 
+import logging
+from typing import Dict
 from soniccontrol.interfaces.ui_component import UIComponent
-from soniccontrol.interfaces.view import TabView
+from soniccontrol.interfaces.view import TabView, View
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 
+from soniccontrol.state_updater.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
 from soniccontrol.tkintergui.utils.constants import sizes, ui_labels
 from soniccontrol.tkintergui.utils.events import Event
 from soniccontrol.utils.files import images
@@ -12,22 +15,72 @@ from soniccontrol.tkintergui.utils.observable_list import ObservableList
 
 
 class Logging(UIComponent):
+    def __init__(self, parent: UIComponent, connection_name: str):
+        self._logger: logging.Logger = logging.getLogger(connection_name)
+        self._view = LoggingView(parent.view)
+        super().__init__(parent, self._view, self._logger)
+
+        self._logger.debug("Create logStorage for storing logs")
+        self._app_logStorage = LogStorage()
+        app_log_storage_handler = self._app_logStorage.create_log_handler()
+        self._logger.addHandler(app_log_storage_handler)
+        not_device_log_filter = NotDeviceLogFilter()
+        app_log_storage_handler.addFilter(not_device_log_filter)
+
+        self._device_logStorage = LogStorage()
+        device_log_storage_handler = self._device_logStorage.create_log_handler()
+        self._logger.addHandler(device_log_storage_handler)
+        device_log_filter = DeviceLogFilter()
+        device_log_storage_handler.addFilter(device_log_filter)
+
+        self._application_log_tab = LoggingTab(self, self._app_logStorage.logs)
+        self._device_log_tab = LoggingTab(self, self._device_logStorage.logs)
+        self._view.add_tabs({
+            ui_labels.DEVICE_LOGS_LABEL: self._device_log_tab.view,
+            ui_labels.APP_LOGS_LABEL: self._application_log_tab.view
+        })
+
+
+class LoggingView(TabView):
+    def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
+        super().__init__(master, *args, **kwargs)
+
+    @property
+    def image(self) -> ttk.ImageTk.PhotoImage:
+        return ImageLoader.load_image(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
+
+    @property
+    def tab_title(self) -> str:
+        return ui_labels.LOGS_LABEL
+    
+    def _initialize_children(self) -> None:
+        self._notebook: ttk.Notebook = ttk.Notebook(self)
+
+    def _initialize_publish(self) -> None:
+        self._notebook.pack(expand=True, fill=ttk.BOTH)
+
+    def add_tabs(self, tabs: Dict[str, View]) -> None:
+        for (title, tabview) in tabs.items():
+            self._notebook.add(tabview, text=title)
+
+
+class LoggingTab(UIComponent):
     def __init__(self, parent: UIComponent, logs: ObservableList):
         self._logs = logs
-        super().__init__(parent, LoggingView(parent.view))
+        self._view = LoggingTabView(parent.view)
+        super().__init__(parent, self._view)
         self._init_logs()
         self._logs.subscribe(ObservableList.EVENT_ITEM_ADDED, self._add_log)
 
     def _init_logs(self):
         for log in self._logs:
-            self.view.add_text_line(log)
+            self._view.append_text_line(log)
 
     def _add_log(self, e: Event):
-        self.view.add_text_line(e.data.item)
+        self._view.append_text_line(e.data["item"])
 
 
-
-class LoggingView(TabView):
+class LoggingTabView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
 

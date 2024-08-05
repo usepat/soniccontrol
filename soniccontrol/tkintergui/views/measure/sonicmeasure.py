@@ -27,7 +27,7 @@ class SonicMeasure(UIComponent):
         self._logger.debug("Create SonicMeasure")
         self._capture = Capture(self._logger) # TODO: move this to device window
         self._view = SonicMeasureView(parent.view)
-        super().__init__(parent, self._view)
+        super().__init__(parent, self._view, self._logger)
 
         self._time_figure = matplotlib.figure.Figure(dpi=100)
         self._time_subplot = self._time_figure.add_subplot(1, 1, 1)

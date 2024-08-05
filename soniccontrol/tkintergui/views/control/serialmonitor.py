@@ -6,7 +6,10 @@ from async_tkinter_loop import async_handler
 
 from soniccontrol.interfaces.ui_component import UIComponent
 from soniccontrol.interfaces.view import TabView
-from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.sonicpackage.command import Command
+from soniccontrol.sonicpackage.interfaces import Communicator
+from soniccontrol.state_updater.message_fetcher import MessageFetcher
+from soniccontrol.tkintergui.utils.animator import Animator, DotAnimationSequence, load_animation
 from soniccontrol.tkintergui.utils.constants import sizes, style, ui_labels
 from soniccontrol.tkintergui.utils.events import PropertyChangeEvent
 from soniccontrol.tkintergui.utils.image_loader import ImageLoader
@@ -14,20 +17,37 @@ from soniccontrol.tkintergui.views.core.app_state import ExecutionState
 from soniccontrol.utils.files import images, files
 
 
-
 class SerialMonitor(UIComponent):
-    def __init__(self, parent: UIComponent, sonicamp: SonicAmp):
+    def __init__(self, parent: UIComponent, communicator: Communicator):
         self._logger = logging.getLogger(parent.logger.name + "." + SerialMonitor.__name__)
-        super().__init__(parent, SerialMonitorView(parent.view), self._logger)
+        self._view = SerialMonitorView(parent.view)
+        super().__init__(parent, self._view, self._logger)
+
+        # decorate send and receive with loading animation
+        self._animation = Animator(
+            DotAnimationSequence("Wait for answer", num_dots=5), 
+            self._view.set_loading_text, 
+            5,
+            done_callback=lambda: self._view.set_loading_text("")
+        )
+        animation_decorator = load_animation(
+            self._animation, 
+            num_repeats=-1
+        )
+        self._send_and_receive = animation_decorator(self._send_and_receive) 
+
 
         self._logger.debug("Create SerialMonitor")
-        self._device = sonicamp
+        self._communicator = communicator
+        self._message_fetcher = MessageFetcher(self._communicator)
         self._command_history: List[str] = []
         self._command_history_index: int = 0
-        self.view.set_send_command_button_command(lambda: self._send_command())
-        self.view.bind_command_line_input_on_return_pressed(lambda: self._send_command())
-        self.view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
-        self.view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
+        self._view.set_send_command_button_command(self._send_command)
+        self._view.set_read_button_command(self._on_read_button_pressed)
+        self._view.bind_command_line_input_on_return_pressed(self._send_command)
+        self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
+        self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
+        self._message_fetcher.subscribe(MessageFetcher.MESSAGE_RECEIVED_EVENT, lambda e: self._view.add_text_line(e.data["message"]))
 
     @async_handler
     async def _send_command(self): 
@@ -42,9 +62,17 @@ class SerialMonitor(UIComponent):
         if self._is_internal_command(command_str):
             await self._handle_internal_command(command_str) 
         else:
-            answer_str = await self._device.execute_command(command_str) 
+            answer_str = await self._send_and_receive(command_str)
             self._print_answer(answer_str)
 
+    async def _send_and_receive(self, command_str: str) -> str:
+        try:
+            answer, _ = await Command(message=command_str).execute(connection=self._communicator)
+            return answer.string
+        except Exception as e:
+            self._logger.error(e)
+            await self._communicator.close_communication()
+            return str(e)        
 
     def _print_answer(self, answer_str: str):
         self._logger.debug("Answer: %s", answer_str)
@@ -65,11 +93,11 @@ class SerialMonitor(UIComponent):
             self._view.clear()
         elif command_str == "help":
             help_text = ""
-            if self._device.serial.protocol.major_version == 1:
+            if self._communicator.protocol.major_version == 1:
                 with open(files.HELPTEXT_SONIC_V1, "r") as file:
                     help_text = file.read()
             else:
-                help_text = await self._device.get_help()
+                help_text = await self._send_and_receive("?help")
             
             help_text += "\n"
             with open(files.HELPTEXT_INTERNAL_COMMANDS, "r") as file:
@@ -85,6 +113,12 @@ class SerialMonitor(UIComponent):
         self._command_history_index %= len(self._command_history) 
         self._view.command_line_input = self._command_history[self._command_history_index]
 
+    @async_handler
+    async def _on_read_button_pressed(self):
+        if self._message_fetcher.is_running:
+            await self._message_fetcher.stop()
+        else:
+            self._message_fetcher.run()
 
     def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
         execution_state: ExecutionState = e.new_value
@@ -114,6 +148,15 @@ class SerialMonitorView(TabView):
         self._scrolled_frame: ScrolledFrame = ScrolledFrame(
             self._output_frame, autohide=True
         )
+        self._monitor_frame: ttk.Frame = ttk.Frame(
+            self._scrolled_frame
+        )
+        self._loading_label: ttk.Label = ttk.Label(
+            self._scrolled_frame,
+            text="",
+            font=("Consolas", 10)
+        )
+
         INPUT_FRAME_PADDING = (3, 1, 3, 4)
         self._input_frame: ttk.Labelframe = ttk.Labelframe(
             self._main_frame, text=ui_labels.INPUT_LABEL, padding=INPUT_FRAME_PADDING
@@ -153,6 +196,15 @@ class SerialMonitorView(TabView):
             pady=sizes.MEDIUM_PADDING,
             padx=sizes.MEDIUM_PADDING,
         )
+        self._monitor_frame.pack(
+            fill=ttk.BOTH,
+            expand=True
+        )
+        self._loading_label.pack(
+            side=ttk.BOTTOM,
+            anchor=ttk.W,
+            fill=ttk.X
+        )
 
         self._input_frame.grid(
             row=1,
@@ -189,6 +241,9 @@ class SerialMonitorView(TabView):
     def set_send_command_button_command(self, command: Callable[[], None]):
         self._send_button.configure(command=command)
 
+    def set_read_button_command(self, command: Callable[[], None]):
+        self._read_button.configure(command=command)
+
     def set_send_command_button_enabled(self, enabled: bool) -> None:
         self._send_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
 
@@ -202,6 +257,9 @@ class SerialMonitorView(TabView):
     @command_line_input.setter
     def command_line_input(self, text: str):
         self._command_line_input.set(text)
+
+    def set_loading_text(self, text: str) -> None:
+        self._loading_label.configure(text=text)
 
     def bind_command_line_input_on_down_pressed(self, command: Callable[[], None]):
         self._command_line_input_field.bind("<Down>", lambda _: command()) 

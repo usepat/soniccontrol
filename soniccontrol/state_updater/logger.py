@@ -30,11 +30,17 @@ def get_base_logger(logger: logging.Logger) -> logging.Logger:
 class DeviceLogFilter(logging.Filter):
     def filter(self, record) -> bool:
         return "device" in record.name
+    
+class NotDeviceLogFilter(logging.Filter):
+    def filter(self, record) -> bool:
+        return "device" not in record.name
 
 class LogStorage:
     class LogStorageHandler(logging.Handler):
         def __init__(self, logStorage: "LogStorage"):
             super(LogStorage.LogStorageHandler, self).__init__()
+            formatter = logging.Formatter("%(asctime)s: %(levelname)s - %(name)s - %(message)s")
+            self.setFormatter(formatter)
             self._logStorage = logStorage
 
         def emit(self, record: logging.LogRecord) -> None:

@@ -68,7 +68,7 @@ class Editor(UIComponent):
         self._interpreter: Optional[Script] = None
         self._interpreter_state = InterpreterState.READY
         self._view = EditorView(parent.view)
-        super().__init__(parent, self._view)
+        super().__init__(parent, self._view, self._logger)
 
         self._view.add_menu_command(ui_labels.LOAD_LABEL, self._on_load_script)
         self._view.add_menu_command(ui_labels.SAVE_LABEL, self._on_save_script)

@@ -318,7 +318,7 @@ class Answer:
 class Command(Sendable):
     argument: str = attrs.field(default="", converter=str)
     message: str = attrs.field(default="")
-    estimated_response_time: float = attrs.field(default=0.3)
+    estimated_response_time: float = attrs.field(default=5)
     expects_long_answer: bool = attrs.field(default=False, repr=False)
     _validators: List[CommandValidator] = attrs.field(factory=list)
     answer: Answer = attrs.field(init=False, factory=Answer)
@@ -406,12 +406,12 @@ class Command(Sendable):
         This method resets the answer, sets the argument if provided, and sends the command asynchronously using the specified connection.
         It then validates the answer and updates the status result with the received timestamp. Finally, it returns a tuple containing the answer and the status result.
         """
-        if self.serial_communication is None:
+        if self.serial_communication is None and connection is None:
             raise ValueError(
                 f"The serial communication reference is not viable. {self.serial_communication = } {type(self.serial_communication) = }"
             )
 
-        if not connection:
+        if connection is None:
             connection = self.serial_communication
 
         self.answer.reset()

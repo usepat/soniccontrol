@@ -26,7 +26,7 @@ class ProcControlling(UIComponent):
         self._app_state = app_state
         self._view = ProcControllingView(parent.view)
         self._proc_widgets: Dict[ProcedureType, ProcedureWidget] = {}
-        super().__init__(parent, self._view)
+        super().__init__(parent, self._view, self._logger)
         self._add_proc_widgets()
         self._view.set_procedure_selected_command(self._on_proc_selected)
         self._view.set_start_button_command(self._on_run_pressed)
