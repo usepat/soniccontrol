@@ -55,17 +55,17 @@ class Configuration(UIComponent):
             self._change_transducer_config()
 
     def _create_default_config_file(self):
-        self._logger.info("Create empty configuration file at %s", files.CONFIG_JSON)
-        with open(files.CONFIG_JSON, "w") as file:
+        self._logger.info("Create empty configuration file at %s", files.TRANSDUCDER_CONFIG_JSON)
+        with open(files.TRANSDUCDER_CONFIG_JSON, "w") as file:
             data_dict = self._config_schema.dump(Config()).data
             json.dump(data_dict, file)
 
     def _load_config(self):
-        if not files.CONFIG_JSON.exists():
+        if not files.TRANSDUCDER_CONFIG_JSON.exists():
             self._create_default_config_file()
 
-        self._logger.info("Load configuration from %s", files.CONFIG_JSON)
-        with open(files.CONFIG_JSON, "r") as file:
+        self._logger.info("Load configuration from %s", files.TRANSDUCDER_CONFIG_JSON)
+        with open(files.TRANSDUCDER_CONFIG_JSON, "r") as file:
             data_dict = json.load(file)
             self._config = self._config_schema.load(data_dict).data
 
@@ -88,8 +88,8 @@ class Configuration(UIComponent):
         else:
             self._config.transducers[self.current_transducer_config] = transducer_config
 
-        self._logger.info("Save configuration to %s", files.CONFIG_JSON)
-        with open(files.CONFIG_JSON, "w") as file:
+        self._logger.info("Save configuration to %s", files.TRANSDUCDER_CONFIG_JSON)
+        with open(files.TRANSDUCDER_CONFIG_JSON, "w") as file:
             data_dict = self._config_schema.dump(self._config).data
             json.dump(data_dict, file)
 
@@ -133,7 +133,7 @@ class Configuration(UIComponent):
 
         config = self._config.transducers.pop(self.current_transducer_config)
         self._logger.info("Delete transducer config %s", config.name)
-        with open(files.CONFIG_JSON, "w") as file:
+        with open(files.TRANSDUCDER_CONFIG_JSON, "w") as file:
             data_dict = self._config_schema.dump(self._config).data
             json.dump(data_dict, file)
 

@@ -8,6 +8,6 @@ pyinstaller --noconfirm --onedir --windowed ^
 --contents-directory "." ^
 --add-data "%WORKSPACE_DIR%\resources;resources" ^
 --add-data "%WORKSPACE_DIR%\bin;bin" ^
---add-data "%WORKSPACE_DIR%\log_config.json;." ^
+--add-data "%WORKSPACE_DIR%\configs;configs" ^
 --collect-all soniccontrol ^
 "%WORKSPACE_DIR%\soniccontrol\__main__.py"
