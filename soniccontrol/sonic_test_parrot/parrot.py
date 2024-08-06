@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import List, Literal, Optional, Union, ClassVar
 
 from soniccontrol.sonicpackage.builder import AmpBuilder
-from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.sonicpackage.communication.serial_communicator import SerialCommunicator
 
 
 @dataclass
@@ -94,7 +94,7 @@ class Parrot:
 
 
     def __init__(self, serial_communicator: SerialCommunicator, log_lines: List[str]):
-        self.serial_communicator = serial_communicator
+        self.communication.serial_communicator = serial_communicator
         self.sonic_amp = None
         self.logs = LogParser.parse_logs(log_lines)
         self.log_iter = iter(self.logs)
@@ -107,7 +107,7 @@ class Parrot:
 
     async def setup_amp(self):
         builder = AmpBuilder()
-        self.sonic_amp = await builder.build_amp(self.serial_communicator)
+        self.sonic_amp = await builder.build_amp(self.communication.serial_communicator)
 
         self._validate_imitation()
         

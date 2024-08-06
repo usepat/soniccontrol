@@ -9,7 +9,7 @@ from soniccontrol.sonicpackage.amp_data import Info, Status
 from soniccontrol.sonicpackage.commands import Command, CommandValidator
 from soniccontrol.sonicpackage.interfaces import Scriptable
 from soniccontrol.sonicpackage.procedures.ramper import Ramper
-from soniccontrol.sonicpackage.serial_communicator import Communicator
+from soniccontrol.sonicpackage.communication.serial_communicator import Communicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
 

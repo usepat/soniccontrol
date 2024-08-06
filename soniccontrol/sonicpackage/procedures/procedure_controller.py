@@ -8,9 +8,9 @@ from soniccontrol.sonicpackage.procedures.procedure import Procedure
 from soniccontrol.sonicpackage.procedures.procedure_instantiator import ProcedureInstantiator
 from soniccontrol.sonicpackage.procedures.ramper import Ramper, RamperArgs
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol.state_updater.logger import get_base_logger
-from soniccontrol.tkintergui.utils.constants import events
-from soniccontrol.tkintergui.utils.events import Event, EventManager
+from soniccontrol.gui.state_fetching.logger import get_base_logger
+from soniccontrol.gui.constants import events
+from soniccontrol.sonicpackage.events import Event, EventManager
 
 
 class ProcedureType(Enum):

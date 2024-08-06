@@ -8,9 +8,9 @@ import shutil
 from serial_asyncio import open_serial_connection
 
 from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
-import soniccontrol.utils.files as files
+import soniccontrol.files as files
 from soniccontrol.sonicpackage.builder import AmpBuilder
-from soniccontrol.sonicpackage.serial_communicator import SerialCommunicator
+from soniccontrol.sonicpackage.communication.serial_communicator import SerialCommunicator
 from soniccontrol.sonic_test_parrot.parrot import Parrot
 
 

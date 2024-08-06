@@ -1,11 +1,9 @@
 import abc
 import asyncio
-from typing import *
+from typing import Any, Dict
 
-import attrs
-
-from soniccontrol.sonicpackage.sonicprotocol import CommunicationProtocol
-from soniccontrol.tkintergui.utils.events import EventManager
+from soniccontrol.sonicpackage.communication.sonicprotocol import CommunicationProtocol
+from soniccontrol.sonicpackage.events import EventManager
 
 
 class Sendable(abc.ABC):

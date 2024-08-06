@@ -19,7 +19,7 @@ from typing import (
 import attrs
 from icecream import ic
 from soniccontrol.sonicpackage.interfaces import Communicator, Sendable
-from soniccontrol.utils.system import PLATFORM
+from soniccontrol.system import PLATFORM
 
 parrot_feeder = logging.getLogger("parrot_feeder")
 

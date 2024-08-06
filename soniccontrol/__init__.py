@@ -17,12 +17,12 @@ import subprocess
 import sys
 import os
 from ttkbootstrap.utility import enable_high_dpi_awareness
-from soniccontrol.utils.files import files
-from soniccontrol.utils.system import System, PLATFORM
+from soniccontrol.files import files
+from soniccontrol.system import System, PLATFORM
 
 # create directories if missing
-os.makedirs(files.LOG_DIR, exist_ok=True)
 os.makedirs(files.DATA_DIR, exist_ok=True)
+os.makedirs(files.LOG_DIR, exist_ok=True)
 
 def setup_logging() -> None:
     config_file: pathlib.Path = files.LOGGING_CONFIG

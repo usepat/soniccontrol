@@ -1,5 +1,5 @@
-from soniccontrol.tkintergui.views.core.connection_window import ConnectionWindow
-from soniccontrol.utils.system import PLATFORM, System
+from soniccontrol.gui.views.core.connection_window import ConnectionWindow
+from soniccontrol.system import PLATFORM, System
 from soniccontrol import soniccontrol_logger as logger
 
 from async_tkinter_loop import async_mainloop
