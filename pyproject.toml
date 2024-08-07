@@ -1,7 +1,55 @@
+[project]
+name = "soniccontrol"
+version = "2.2.0"
+description = "Lightweight GUI for controlling a sonicamp"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.10"
+license = {text = "GNU GPLv3 License"}
+authors = [
+    {name="Ilja Golovanov", email="ilja.golovanov@usepat.com"},
+    {name="David Wild", email="david.wild@usepat.com"},
+]
+maintainers = [
+    {name="David Wild", email="david.wild@usepat.com"},
+]
+urls = { "Homepage" = "https://github.com/usepat/soniccontrol" }
+classifiers = [
+    "Development Status :: 5 - Production/Experimental",
+    "Intended Audience :: PAT",
+    "License :: OSI Approved :: GNU GPLv3 License",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Linux",
+    "Programming Language :: Python :: 3"
+]
+
+[project.optional-dependencies]
+testing = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "mypy>=0.910",
+    "flake8>=3.9",
+    "tox>=3.24"
+]
+
+[project.gui-scripts]
+soniccontrol = "soniccontrol_gui:start_gui"
 
 [build-system]
-requires = ["setuptools>=42.0", "wheel"]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+zip-safe = true
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# linter and testing tools
+
+[tool.flake8]
+max-line-length = 100
 
 [tool.pytest.ini_options]
 addopts = "--cov=soniccontrol"
@@ -17,7 +65,7 @@ strict_equality = true
 warn_redundant_casts = true
 
 [tool.pyright]
-include = ["soniccontrol"]
+include = ["src"]
 
 # [black]
 # line-length = 160

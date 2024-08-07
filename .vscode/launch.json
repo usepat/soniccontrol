@@ -8,7 +8,7 @@
             "name": "Python Debugger: Soniccontrol",
             "type": "debugpy",
             "request": "launch",
-            "module": "soniccontrol"
+            "module": "soniccontrol_gui"
         },
         {
             "name": "Python Debugger: Run Simulation",

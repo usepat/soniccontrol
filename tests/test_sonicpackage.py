@@ -6,11 +6,11 @@ from typing import Any, Optional
 import attrs
 import numpy as np
 import pytest
-from soniccontrol.sonicpackage.amp_data import Info, Status
-from soniccontrol.sonicpackage.command import Answer, Command
-from soniccontrol.sonicpackage.commands import Commands
-from soniccontrol.sonicpackage.interfaces import Communicator
-from soniccontrol.sonicpackage.sonicamp_ import SonicAmp
+from sonicpackage.amp_data import Info, Status
+from sonicpackage.command import Answer, Command
+from sonicpackage.commands import Commands
+from sonicpackage.interfaces import Communicator
+from sonicpackage.sonicamp_ import SonicAmp
 
 
 @attrs.define
