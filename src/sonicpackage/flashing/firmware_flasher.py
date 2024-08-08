@@ -4,7 +4,8 @@ import subprocess
 from sonicpackage import logger
 from sonicpackage.interfaces import FirmwareFlasher
 from shared.system import PLATFORM
-from shared.files import files
+import sonicpackage.bin.avrdude
+from importlib import resources as rs
 
 
 class LegacyFirmwareFlasher(FirmwareFlasher):
@@ -111,8 +112,9 @@ class LegacyFirmwareFlasher(FirmwareFlasher):
             str: The command to flash the firmware.
 
         """
+        avrdude_executable = rs.files(sonicpackage.bin.avrdude).joinpath(PLATFORM.platform_name + ".avrdude")
         return (
-            f'"{files.AVRDUDE / PLATFORM.platform_name / "avrdude"}" '
+            f'"{str(avrdude_executable)}" '
             f'{"-n" if test_mode else ""} -v -p '
             f"atmega328p -c arduino -P {self._port} "
             f'-b 115200 -D -U flash:w:"{self._filepath}":i'

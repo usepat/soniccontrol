@@ -14,7 +14,7 @@ from soniccontrol_gui.views.measure.csv_table import CsvTable
 matplotlib.use("TkAgg")
 
 from soniccontrol_gui.constants import sizes, ui_labels
-from shared.files import images
+from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.measure.plotting import Plotting
 from soniccontrol_gui.utils.plotlib.plot_builder import PlotBuilder
@@ -101,7 +101,7 @@ class SonicMeasureView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.LINECHART_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.LINECHART_ICON_BLACK, sizes.TAB_ICON_SIZE)
     
     @property
     def tab_title(self) -> str:

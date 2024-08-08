@@ -2,12 +2,11 @@
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any, Callable, List, Iterable, Optional
+from typing import Callable, List, Iterable, Optional
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from ttkbootstrap.scrolled import ScrolledFrame
 import json
-import os
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
@@ -18,10 +17,10 @@ from soniccontrol_gui.constants import sizes, ui_labels
 from sonicpackage.events import PropertyChangeEvent
 from soniccontrol_gui.views.configuration.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
 from soniccontrol_gui.views.core.app_state import ExecutionState
-from shared.files import images
+from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.file_browse_button import FileBrowseButtonView
-from shared.files import files
+from soniccontrol_gui.constants import files
 from async_tkinter_loop import async_handler
     
 
@@ -209,7 +208,7 @@ class ConfigurationView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.SETTINGS_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.SETTINGS_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:

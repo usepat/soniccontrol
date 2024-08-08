@@ -3,7 +3,7 @@ import logging
 import logging.handlers
 
 from soniccontrol_gui.utils.observable_list import ObservableList
-from shared.files import files
+from soniccontrol_gui.constants import files
 
 
 def create_logger_for_connection(connection_name: str) -> logging.Logger:

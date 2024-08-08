@@ -9,7 +9,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from soniccontrol_gui.state_fetching.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
 from soniccontrol_gui.constants import sizes, ui_labels
 from sonicpackage.events import Event
-from shared.files import images
+from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.utils.observable_list import ObservableList
 
@@ -47,7 +47,7 @@ class LoggingView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:
@@ -86,7 +86,7 @@ class LoggingTabView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:

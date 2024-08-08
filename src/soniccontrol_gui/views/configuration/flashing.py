@@ -9,7 +9,7 @@ import ttkbootstrap as ttk
 from soniccontrol_gui.constants import sizes, ui_labels
 from sonicpackage.events import PropertyChangeEvent
 from soniccontrol_gui.views.core.app_state import AppState
-from shared.files import images
+from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.file_browse_button import FileBrowseButtonView
 
@@ -34,7 +34,7 @@ class FlashingView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.SETTINGS_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.SETTINGS_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:

@@ -9,7 +9,7 @@ from soniccontrol_gui.constants import (color, events, fonts, sizes,
                                                      style, ui_labels)
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.horizontal_scrolled_frame import HorizontalScrolledFrame
-from shared.files import images
+from soniccontrol_gui.resources import images
 
 
 
@@ -127,7 +127,7 @@ class StatusBarView(View):
             self._signal_frame,
             bootstyle=style.INVERSE_SECONDARY, # I just read bootystyle instead of bootstyle. lol
             padding=ICON_LABEL_PADDING,
-            image=ImageLoader.load_image(
+            image=ImageLoader.load_image_resource(
                 images.LIGHTNING_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
             compound=ttk.LEFT,
@@ -320,7 +320,7 @@ class StatusPanelView(View):
 
     def set_signal_image(self, image_path: Path, sizing: Tuple[int, int]) -> None:
         self._signal_label.configure(
-            image=ImageLoader.load_image(image_path, sizing)
+            image=ImageLoader.load_image_resource(image_path, sizing)
         )
 
     def update_stats(self, freq: float, gain: float, temp: float, urms: str, irms: str, phase: str, signal: str):

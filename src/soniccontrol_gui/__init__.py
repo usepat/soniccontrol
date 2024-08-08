@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import glob
+import fnmatch
 import json
 import logging
 import logging.config
@@ -12,14 +12,16 @@ from ttkbootstrap.utility import enable_high_dpi_awareness
 from async_tkinter_loop import async_mainloop
 from soniccontrol_gui.views.core.connection_window import ConnectionWindow
 from shared.system import System, PLATFORM
-from shared.files import files
+from soniccontrol_gui.constants import files
+from soniccontrol_gui.resources import resources
+from importlib import resources as rs
 
 # create directories if missing
 os.makedirs(files.DATA_DIR, exist_ok=True)
 os.makedirs(files.LOG_DIR, exist_ok=True)
 
 def setup_logging() -> None:
-    config_file: pathlib.Path = files.LOGGING_CONFIG
+    config_file: pathlib.Path = resources.LOGGING_CONFIG
     with config_file.open() as file:
         config = json.load(file)
     logging.config.dictConfig(config)
@@ -34,12 +36,14 @@ def check_high_dpi_windows() -> None:
 
 def setup_fonts() -> None:
     print("Installing fonts...")
-    platform: str = sys.platform
-    font_files = glob.glob(str(files.FONTS_DIR / "*.ttf"))
+    font_files = []
+    for font_resource in resources.FONTS.iterdir():
+        if fnmatch.fnmatch(font_resource.name, "*.ttf"):
+            font_files.append(str(font_resource))
     try:
         process = subprocess.run(
             [
-                files.SOURCE_DIR / rf"gui/bin/font-install/{platform}/font-install",
+                str(rs.files(f"soniccontrol_gui.bin.font-install.{sys.platform}").joinpath("font-install")),
                 *list(font for font in font_files),
             ],
         )

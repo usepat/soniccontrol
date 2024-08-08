@@ -14,7 +14,8 @@ from soniccontrol_gui.constants import sizes, style, ui_labels
 from sonicpackage.events import PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import ExecutionState
-from shared.files import images, files
+from soniccontrol_gui.resources import images
+from soniccontrol_gui.constants import files
 
 
 class SerialMonitor(UIComponent):
@@ -134,7 +135,7 @@ class SerialMonitorView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:
@@ -172,7 +173,7 @@ class SerialMonitorView(TabView):
             self._input_frame,
             text=ui_labels.SEND_LABEL,
             style=ttk.SUCCESS,
-            image=ImageLoader.load_image(
+            image=ImageLoader.load_image_resource(
                 images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             ),
             compound=ttk.RIGHT,

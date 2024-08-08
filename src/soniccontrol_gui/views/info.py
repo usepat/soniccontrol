@@ -8,7 +8,7 @@ from soniccontrol_gui.view import TabView
 from soniccontrol_gui.constants import fonts, sizes, ui_labels
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.document import Document, Image, Text
-from shared.files import images
+from soniccontrol_gui.resources import images
 
 
 class Info(UIComponent):
@@ -16,7 +16,7 @@ class Info(UIComponent):
         # Todo implement markdown parser instead of doing this
         content=[
             ui_labels.HOME_HELP_INTRODUCTION,
-            ImageLoader.load_image(images.HOME_CONTROL_PANEL, (300, 200)),
+            ImageLoader.load_image_resource(images.HOME_CONTROL_PANEL, (300, 200)),
             ui_labels.HOME_HELP_CONTROL_PANEL,
             Text(ui_labels.FREQUENCY, font=fonts.QTYPE_OT_CONDLIGHT),
             ui_labels.HOME_HELP_FREQUENCY,
@@ -49,7 +49,7 @@ class InfoView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.INFO_ICON_BLACK, (25, 25))
+        return ImageLoader.load_image_resource(images.INFO_ICON_BLACK, (25, 25))
 
     @property
     def tab_title(self) -> str:
@@ -85,7 +85,7 @@ class InfoView(TabView):
                 fonts.QTYPE_OT_CONDLIGHT,
                 fonts.SMALL_HEADING_SIZE,
             ),
-            image=ImageLoader.load_image(images.HOME_ICON_BLACK, sizes.TAB_ICON_SIZE),
+            image=ImageLoader.load_image_resource(images.HOME_ICON_BLACK, sizes.TAB_ICON_SIZE),
             compound=ttk.LEFT,
             anchor=ttk.CENTER,
             justify=ttk.CENTER

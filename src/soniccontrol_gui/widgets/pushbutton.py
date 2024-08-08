@@ -30,7 +30,7 @@ class PushButtonView:
         if command:
             self._button.configure(command=command)
         if image:
-            self._button.configure(image=ImageLoader.load_image(*image))
+            self._button.configure(image=ImageLoader.load_image_resource(*image))
         if enabled is not None:
             self._button.configure(state=(ttk.NORMAL if enabled else ttk.DISABLED))
 

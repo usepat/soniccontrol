@@ -3,7 +3,7 @@ from async_tkinter_loop import async_handler
 from ttkbootstrap.scrolled import ScrolledFrame
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView, View
-from sonicpackage.amp_data import Info, Version
+from sonicpackage.amp_data import Version
 from sonicpackage.sonicamp_ import SonicAmp
 
 import ttkbootstrap as ttk
@@ -12,7 +12,7 @@ from sonicpackage.events import PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import ExecutionState
 from soniccontrol_gui.widgets.spinbox import Spinbox
-from shared.files import images
+from soniccontrol_gui.resources import images
 from soniccontrol_gui.constants import ui_labels, sizes
 
 
@@ -65,7 +65,7 @@ class HomeView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.HOME_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.HOME_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:

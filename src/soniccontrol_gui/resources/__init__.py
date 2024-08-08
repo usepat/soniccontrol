@@ -1,19 +1,15 @@
 import attrs
 from pathlib import Path
 from importlib import resources as rs
-import soniccontrol_gui.resources
-import soniccontrol_gui.resources.fonts
-import soniccontrol_gui.resources.pictures
-import soniccontrol_gui.resources.texts
 import soniccontrol_gui
 
 @attrs.frozen
 class _Resources:
     LOGGING_CONFIG = Path(str(rs.files(soniccontrol_gui).joinpath("log_config.json")))
-    RESOURCES = rs.files(soniccontrol_gui.resources)
-    PICTURES = rs.files(soniccontrol_gui.resources.pictures)
-    FONTS = rs.files(soniccontrol_gui.resources.fonts)
-    TEXTS = rs.files(soniccontrol_gui.resources.texts)
+    RESOURCES = rs.files("soniccontrol_gui.resources")
+    PICTURES = rs.files("soniccontrol_gui.resources.pictures")
+    FONTS = rs.files("soniccontrol_gui.resources.fonts")
+    TEXTS = rs.files("soniccontrol_gui.resources.texts")
     HELPTEXT_SONIC_V1 = Path(str(TEXTS.joinpath("helpttext_sonic_v1.md")))
     HELPTEXT_INTERNAL_COMMANDS = Path(str(TEXTS.joinpath("helptext_internal_commands.md")))
 

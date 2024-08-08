@@ -23,7 +23,7 @@ from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import AppState, ExecutionState
 from soniccontrol_gui.widgets.pushbutton import PushButtonView
 from soniccontrol_gui.views.control.scriptingguide import ScriptingGuide
-from shared.files import images
+from soniccontrol_gui.resources import images
 
 
 @attrs.define
@@ -250,7 +250,7 @@ class EditorView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.SCRIPT_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.SCRIPT_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:
@@ -291,7 +291,7 @@ class EditorView(TabView):
             self._navigation_button_frame,
             text=ui_labels.GUIDE_LABEL,
             style=ttk.INFO,
-            image=ImageLoader.load_image(images.INFO_ICON_WHITE, (13, 13)),
+            image=ImageLoader.load_image_resource(images.INFO_ICON_WHITE, (13, 13)),
             compound=ttk.LEFT, 
         )
         self._menue: ttk.Menu = ttk.Menu(self._navigation_button_frame)
@@ -299,7 +299,7 @@ class EditorView(TabView):
             self._navigation_button_frame,
             menu=self._menue,
             style=ttk.DARK,
-            image=ImageLoader.load_image(images.MENUE_ICON_WHITE, (13, 13)),
+            image=ImageLoader.load_image_resource(images.MENUE_ICON_WHITE, (13, 13)),
             compound=ttk.LEFT,
         )
 

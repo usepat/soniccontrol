@@ -75,7 +75,7 @@ class DocumentView(View):
                     wraplength=self._wraplength,
                     anchor=ttk.CENTER,
                     justify=ttk.CENTER,
-                    image=ImageLoader.load_image(element.image_path, element.image_size)
+                    image=ImageLoader.load_image_resource(element.image_path, element.image_size)
                 )
             uielement.grid(
                 row=index + 1,

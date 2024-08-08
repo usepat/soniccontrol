@@ -5,9 +5,8 @@ from threading import Lock
 
 import ttkbootstrap as ttk
 
-
-def give_image(image: pathlib.Path, sizing: tuple[int, int]) -> ttk.ImageTk.PhotoImage:
-    return ttk.ImageTk.PhotoImage(ttk.Image.open(image).resize(sizing))
+from soniccontrol_gui.resources import resources
+from importlib.resources import as_file
 
 
 class SingletonMeta(type):
@@ -40,23 +39,26 @@ class ImageLoader(metaclass=SingletonMeta):
 
     @classmethod
     def generate_image_key(
-        cls, image_path: pathlib.Path, sizing: tuple[int, int]
+        cls, image_name: str, sizing: tuple[int, int]
     ) -> str:
-        return f"{image_path}{sizing}"
+        return f"{image_name}{sizing}"
 
     @classmethod
-    def _load_image(
-        cls, image: pathlib.Path, sizing: tuple[int, int]
+    def _load_image_resource(
+        cls, image_name: str, sizing: tuple[int, int]
     ) -> ttk.ImageTk.PhotoImage:
-        return ttk.ImageTk.PhotoImage(ttk.Image.open(image).resize(sizing))
+        with as_file(resources.PICTURES.joinpath(image_name)) as image:
+            bytes = image.read_bytes()
+            tk_image = ttk.Image.open(image, "r").resize(sizing)
+            return ttk.ImageTk.PhotoImage(image=tk_image)
 
     @classmethod
-    def load_image(
-        cls, image_path: pathlib.Path, sizing: tuple[int, int]
+    def load_image_resource(
+        cls, image_name: str, sizing: tuple[int, int]
     ) -> ttk.ImageTk.PhotoImage:
         if cls._master is None:
             raise RuntimeError("master not initialized")
-        key: str = cls.generate_image_key(image_path, sizing)
+        key: str = cls.generate_image_key(image_name, sizing)
         if key not in cls.images:
-            cls.images[key] = cls._load_image(image_path, sizing)
+            cls.images[key] = cls._load_image_resource(image_name, sizing)
         return cls.images[key]

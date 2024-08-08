@@ -19,7 +19,9 @@ from soniccontrol_gui.utils.animator import Animator, DotAnimationSequence, load
 from soniccontrol_gui.constants import sizes, style, ui_labels
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.device_window import DeviceWindow, KnownDeviceWindow, RescueWindow
-from shared.files import images, files
+from soniccontrol_gui.resources import images
+from importlib import resources as rs
+import sonicpackage.bin
 
 
 class DeviceWindowManager:
@@ -86,7 +88,7 @@ class ConnectionWindow(UIComponent):
     @async_handler 
     async def _on_connect_to_simulation(self):
         process = await asyncio.create_subprocess_shell(
-            str(files.CLI_MVC_MOCK),
+            str(rs.files(sonicpackage.bin).joinpath("cli_simulation_mvp")),
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
@@ -139,7 +141,7 @@ class ConnectionWindowView(ttk.Window):
         self._url_connection_frame: ttk.Frame = ttk.Frame(self)
         self._refresh_button: ttk.Button = ttk.Button(
             self._url_connection_frame,
-            image=ImageLoader.load_image(
+            image=ImageLoader.load_image_resource(
                 images.REFRESH_ICON_GREY, sizes.BUTTON_ICON_SIZE
             ),
             style=style.SECONDARY_OUTLINE,

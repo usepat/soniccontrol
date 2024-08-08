@@ -14,7 +14,7 @@ from sonicpackage.events import Event, PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import AppState, ExecutionState
 from soniccontrol_gui.widgets.procedure_widget import ProcedureWidget
-from shared.files import images
+from soniccontrol_gui.resources import images
 
 
 class ProcControlling(UIComponent):
@@ -94,7 +94,7 @@ class ProcControllingView(TabView):
 
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
-        return ImageLoader.load_image(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
+        return ImageLoader.load_image_resource(images.CONSOLE_ICON_BLACK, sizes.TAB_ICON_SIZE)
 
     @property
     def tab_title(self) -> str:
