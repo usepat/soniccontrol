@@ -1,6 +1,5 @@
 [project]
 name = "soniccontrol"
-version = "2.2.0"
 description = "Lightweight GUI for controlling a sonicamp"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
@@ -22,6 +21,9 @@ classifiers = [
     "Operating System :: Linux",
     "Programming Language :: Python :: 3"
 ]
+dynamic = ["version"]
+
+# TODO: add dependencies
 
 [project.optional-dependencies]
 testing = [
@@ -36,7 +38,7 @@ testing = [
 soniccontrol = "soniccontrol_gui:start_gui"
 
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=42", "wheel", "setuptools-git-versioning>=2.0,<3"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -45,6 +47,9 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools-git-versioning]
+enabled = true
 
 # linter and testing tools
 

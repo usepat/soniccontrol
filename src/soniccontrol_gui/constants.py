@@ -21,7 +21,7 @@ tk_const: Final[_TkinterConstants] = _TkinterConstants()
 @attrs.frozen
 class _Files:
     DATA_DIR = Path("./data")
-    LOG_DIR = Path("./logs")
+    LOG_DIR = DATA_DIR / "logs"
     TRANSDUCDER_CONFIG_JSON = DATA_DIR / "transducer_configs.json"
     SONICCONTROL_LOG = LOG_DIR / "soniccontrol.log"
 
