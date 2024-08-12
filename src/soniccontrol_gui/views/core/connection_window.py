@@ -1,5 +1,6 @@
 from asyncio import StreamReader, StreamWriter
 import asyncio
+from pathlib import Path
 from typing import Callable, Dict, List, Optional, cast
 from async_tkinter_loop import async_handler
 from serial_asyncio import open_serial_connection
@@ -76,13 +77,14 @@ class ConnectionWindow(UIComponent):
 
     @async_handler
     async def _on_connect_via_url(self):
-        connection_name = self._view.get_url()
+        url = self._view.get_url()
         baudrate = 9600
 
         reader, writer = await open_serial_connection(
-            url=connection_name, baudrate=baudrate
+            url=url, baudrate=baudrate
         )
 
+        connection_name = Path(url).name
         await self._attempt_connection(connection_name, reader, writer)
 
     @async_handler 
