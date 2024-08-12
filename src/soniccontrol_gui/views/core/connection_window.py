@@ -10,6 +10,7 @@ import tkinter as tk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.view import View
 from sonicpackage.builder import AmpBuilder
 from sonicpackage.communication.connection_builder import ConnectionBuilder
 from sonicpackage.interfaces import Communicator
@@ -135,10 +136,12 @@ class ConnectionWindow(UIComponent):
             self._device_window_manager.open_known_device_window(sonicamp, connection_name)
 
 
-class ConnectionWindowView(ttk.Window):
+class ConnectionWindowView(ttk.Window, View):
     def __init__(self, show_simulation_button: bool, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         ImageLoader(self)
+
+        self.iconphoto(True, ImageLoader.load_image_resource(images.LOGO, sizes.LARGE_BUTTON_ICON_SIZE))
 
         self._url_connection_frame: ttk.Frame = ttk.Frame(self)
         self._refresh_button: ttk.Button = ttk.Button(

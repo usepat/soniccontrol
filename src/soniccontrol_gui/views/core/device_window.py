@@ -7,13 +7,14 @@ import tkinter as tk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.view import TabView
 from sonicpackage.interfaces import Communicator
 from sonicpackage.procedures.procedure_controller import ProcedureController
 from sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol_gui.state_fetching.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
 from soniccontrol_gui.state_fetching.updater import Updater
-from soniccontrol_gui.constants import ui_labels
+from soniccontrol_gui.constants import sizes, ui_labels
 from sonicpackage.events import Event
 from soniccontrol_gui.views.configuration.configuration import Configuration
 from soniccontrol_gui.views.configuration.flashing import Flashing
@@ -27,6 +28,8 @@ from soniccontrol_gui.views.control.serialmonitor import SerialMonitor
 from soniccontrol_gui.views.measure.sonicmeasure import SonicMeasure
 from soniccontrol_gui.views.core.status import StatusBar
 from soniccontrol_gui.widgets.notebook import Notebook
+from soniccontrol_gui.resources import images
+
 
 class DeviceWindow(UIComponent):
     CLOSE_EVENT = "Close"
@@ -150,6 +153,8 @@ class DeviceWindowView(tk.Toplevel):
         self.title(title)
         self.geometry('450x550')
         self.minsize(450, 400)
+        self.iconphoto(True, ImageLoader.load_image_resource(images.LOGO, sizes.LARGE_BUTTON_ICON_SIZE))
+
 
         self.wm_title(ui_labels.IDLE_TITLE)
         ttk.Style(ui_labels.THEME)

@@ -48,6 +48,8 @@ class _Images:
     SAVE_ICON_WHITE = "save_icon_white.png"
     END_ICON_WHITE = "end_icon_white.png"
     END_ICON_BLACK = "end_icon_black.png"
+    
+    LOGO = "usepat_logo.png"
 
     HOME_CONTROL_PANEL = "home_control_panel.png"
     HOME_SIGNAL_CONTROL_PANEL = "home_signal_control_panel.png"
