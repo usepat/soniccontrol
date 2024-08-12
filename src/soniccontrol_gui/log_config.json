@@ -12,17 +12,9 @@
       "level": "INFO",
       "formatter": "simple",
       "stream": "ext://sys.stderr"
-    },
-    "parrot_file": {
-      "class": "logging.handlers.WatchedFileHandler",
-      "level": "DEBUG",
-      "formatter": "simple",
-      "filename": "data/logs/parrot_food_logs_for_integration_testing.log",
-      "mode": "w"
     }
   },
   "loggers": {
-    "root": { "level": "DEBUG", "handlers": ["stderr"] },
-    "parrot_feeder": { "level": "DEBUG", "handlers": ["parrot_file"]}
+    "root": { "level": "DEBUG", "handlers": ["stderr"] }
   }
 }

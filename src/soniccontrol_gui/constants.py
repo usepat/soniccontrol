@@ -1,8 +1,8 @@
-from pathlib import Path
 from typing import Final, List, Literal
 
 import attrs
 
+from shared.system import PLATFORM, create_appdata_directory
 from soniccontrol_gui.utils.types import ScriptingGuideCardDataDict
 
 
@@ -20,7 +20,7 @@ tk_const: Final[_TkinterConstants] = _TkinterConstants()
 
 @attrs.frozen
 class _Files:
-    DATA_DIR = Path("./data")
+    DATA_DIR =  create_appdata_directory(PLATFORM, "SonicControl")
     LOG_DIR = DATA_DIR / "logs"
     TRANSDUCDER_CONFIG_JSON = DATA_DIR / "transducer_configs.json"
     SONICCONTROL_LOG = LOG_DIR / "soniccontrol.log"

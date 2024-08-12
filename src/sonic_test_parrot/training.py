@@ -1,24 +1,15 @@
 import asyncio
-import json
 import logging
-import pathlib
 from typing import Callable, List, Optional, Union
 import typing
 import shutil
 from serial_asyncio import open_serial_connection
 
 from sonicpackage.sonicamp_ import SonicAmp
-import files as files
 from sonicpackage.builder import AmpBuilder
 from sonicpackage.communication.serial_communicator import SerialCommunicator
-from src.sonic_test_parrot.parrot import Parrot
+from sonic_test_parrot.parrot import Parrot
 
-
-def setup_logging() -> None:
-    config_file: pathlib.Path = files.LOGGING_CONFIG
-    with config_file.open() as file:
-        config = json.load(file)
-    logging.config.dictConfig(config)
 
 
 CommandList = List[List[str]]

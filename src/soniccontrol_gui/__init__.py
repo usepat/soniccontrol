@@ -10,6 +10,7 @@ import sys
 import os
 from ttkbootstrap.utility import enable_high_dpi_awareness
 from async_tkinter_loop import async_mainloop
+from sonic_test_parrot import setup_parrot_feeder
 from soniccontrol_gui.views.core.connection_window import ConnectionWindow
 from shared.system import System, PLATFORM
 from soniccontrol_gui.constants import files
@@ -56,8 +57,10 @@ def setup_fonts() -> None:
 check_high_dpi_windows()
 setup_fonts()
 
-def start_gui(enable_simulation=False):
-    main_window = ConnectionWindow(enable_simulation)
+def start_gui(dev_mode=False):
+    if dev_mode:
+        setup_parrot_feeder()
+    main_window = ConnectionWindow(dev_mode)
     if PLATFORM != System.WINDOWS:
         soniccontrol_logger.info("Enabling high dpi awareness for DARWIN/ LINUX")
         enable_high_dpi_awareness(main_window.view)

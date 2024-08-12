@@ -9,6 +9,10 @@ OutputBaseFilename=SonicControlInstaller
 Compression=lzma
 SolidCompression=yes
 
+; Create Dir for storing data and logging and set permissions
+[Dirs]
+Name: "{userappdata}\soniccontrol_data"; Permissions: everyone-modify
+
 ; Include the files from the build directory
 [Files]
 Source: "..\dist\SonicControl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
