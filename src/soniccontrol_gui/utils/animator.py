@@ -30,7 +30,7 @@ class Animator(Generic[AnimationFrame]):
                  frame_rate: float,
                  done_callback: Optional[Callable[[], None]] = None
                 ):
-        self._original_sequence = sequence
+        self._original_sequence = list(sequence)
         self._apply_on_target = apply_on_target
         self._original_frame_rate = frame_rate
         self._worker: Optional[asyncio.Task] = None
@@ -46,7 +46,7 @@ class Animator(Generic[AnimationFrame]):
         if frame_rate is None:
             frame_rate = self._original_frame_rate
 
-        sequence = itertools.tee(self._original_sequence, 1)[0]
+        sequence = self._original_sequence
         if num_repeats == -1:
             sequence = itertools.cycle(sequence)
         else:

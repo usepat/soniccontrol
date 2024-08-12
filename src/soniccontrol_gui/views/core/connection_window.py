@@ -66,11 +66,23 @@ class ConnectionWindow(UIComponent):
         decorator = load_animation(animation)
         self._attempt_connection = decorator(self._attempt_connection)
 
+        self._is_connecting = False # Make this to asyncio Event if needed
+
         self._device_window_manager = DeviceWindowManager(self._view)
         self._view.set_connect_via_url_button_command(self._on_connect_via_url)
         self._view.set_connect_to_simulation_button_command(self._on_connect_to_simulation)
         self._view.set_refresh_button_command(self._refresh_ports)
         self._refresh_ports()
+
+    @property
+    def is_connecting(self) -> bool:
+        return self._is_connecting
+    
+    @is_connecting.setter
+    def is_connecting(self, value: bool):
+        self._is_connecting = value
+        self._view.enable_connect_via_url_button(not value)
+        self._view.enable_connect_to_simulation_button(not value)
 
     def _refresh_ports(self):
         ports = [port.device for port in list_ports.comports()]
@@ -78,6 +90,9 @@ class ConnectionWindow(UIComponent):
 
     @async_handler
     async def _on_connect_via_url(self):
+        assert (not self.is_connecting)
+        self._is_connecting = True
+
         url = self._view.get_url()
         baudrate = 9600
 
@@ -87,9 +102,13 @@ class ConnectionWindow(UIComponent):
 
         connection_name = Path(url).name
         await self._attempt_connection(connection_name, reader, writer)
+        self._is_connecting = False
 
     @async_handler 
     async def _on_connect_to_simulation(self):
+        assert (not self.is_connecting)
+        self._is_connecting = True
+
         process = await asyncio.create_subprocess_shell(
             str(rs.files(sonicpackage.bin).joinpath("cli_simulation_mvp")),
             stdin=asyncio.subprocess.PIPE,
@@ -103,6 +122,8 @@ class ConnectionWindow(UIComponent):
         writer = process.stdin
         reader = process.stdout
         await self._attempt_connection(connection_name, reader, writer)
+
+        self._is_connecting = False
 
     async def _attempt_connection(self, connection_name: str, reader: StreamReader, writer: StreamWriter):
         logger = create_logger_for_connection(connection_name)
@@ -211,3 +232,9 @@ class ConnectionWindowView(ttk.Window, View):
 
     def set_ports(self, ports: List[str]) -> None:
         self._ports_menue.configure(values=ports)
+
+    def enable_connect_via_url_button(self, enabled: bool) -> None:
+        self._connect_via_url_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
+
+    def enable_connect_to_simulation_button(self, enabled: bool) -> None:
+        self._connect_to_simulation_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
