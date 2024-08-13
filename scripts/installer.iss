@@ -9,13 +9,17 @@ OutputBaseFilename=SonicControlInstaller
 Compression=lzma
 SolidCompression=yes
 
+; Create Dir for storing data and logging and set permissions
+[Dirs]
+Name: "{userappdata}\soniccontrol_data"; Permissions: everyone-modify
+
 ; Include the files from the build directory
 [Files]
 Source: "..\dist\SonicControl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Define the icons to create
 [Icons]
-Name: "{group}\SonicControl"; Filename: "{app}\SonicControl.exe"
+Name: "{group}\SonicControl"; Filename: "{app}\SonicControl.exe"; IconFilename: "{app}\soniccontrol_gui\resources\icons\usepat_logo.ico"
 
 ; Define how to run the application after installation
 [Run]

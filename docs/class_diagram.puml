@@ -8,7 +8,7 @@ interface network.Communicator {
 network.Communicator "1" --> "1" network.CommunicationProtocol: uses
 
 class network.BasicProtocol implements network.CommunicationProtocol {}
-class network.SonicProtocol implements network.CommunicationProtocol {}
+class network.communication.sonicprotocol implements network.CommunicationProtocol {}
 
 class network.SerialCommunicator implements network.Communicator {
   -_port: str
