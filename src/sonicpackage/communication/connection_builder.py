@@ -41,7 +41,8 @@ class ConnectionBuilder:
         try:
             await serial.open_communication(reader, writer)
             await commands.get_info.execute()
-        except Exception as _:
+        except Exception as e:
+            com_logger.error(str(e))
             await serial.close_communication()
             com_logger.warn("Connection could not be established with legacy protocol")
         else:
@@ -59,8 +60,10 @@ class ConnectionBuilder:
         try:
             await serial.open_communication(reader, writer)
             await commands.get_info.execute()
-        except Exception as _:
+        except Exception as e:
+            com_logger.error(str(e))
             await serial.close_communication()
+            com_logger.warn("Connection could not be established with sonic protocol")
             raise ConnectionError("Failed to connect due to incompatibility")
         else:
             if commands.get_info.answer.valid:
@@ -73,6 +76,3 @@ class ConnectionBuilder:
                 # TODO: fix this. Define with Thomas an interface for ?info and implement it.
                 logger.info("Connected with sonic protocol")
                 return (serial, commands)
-                
-        raise ConnectionError("Failed to connect due to incompatibility")
-

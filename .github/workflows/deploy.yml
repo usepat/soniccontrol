@@ -1,9 +1,8 @@
 name: Build and Package
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+  
 
 jobs:
   build:
@@ -36,14 +35,18 @@ jobs:
       with:
         path: scripts/installer.iss
 
-    - name: Upload windows executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows executable
-        path: ./dist/SonicControl/SonicControl.exe
-
     - name: Upload installer
       uses: actions/upload-artifact@v4
       with:
         name: windows installer
         path: ./dist/SonicControlInstaller/SonicControlInstaller.exe
+
+    - name: Zip SonicControl
+      run: |
+        Compress-Archive -Path "./dist/SonicControl" -DestinationPath "./SonicControl.zip" -Update
+
+    - name: Upload SonicControl zip archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: SonicControl for windows
+        path: ./SonicControl.zip
