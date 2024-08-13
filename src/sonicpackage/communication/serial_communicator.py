@@ -138,10 +138,11 @@ class SerialCommunicator(Communicator):
         MAX_RETRIES = 3 # in seconds
         for i in range(MAX_RETRIES):
             await self._command_queue.put(command)
-            received = await asyncio.wait_for(command.answer.received.wait(), timeout)
-            if received:
+            try:
+                await asyncio.wait_for(command.answer.received.wait(), timeout)
                 return
-            self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %d s", i, MAX_RETRIES, timeout)
+            except TimeoutError:
+                self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %d s", i, MAX_RETRIES, timeout)
         raise ConnectionError("Device is not responding")
     
     async def read_message(self) -> str:
@@ -284,8 +285,9 @@ class LegacySerialCommunicator(Communicator):
     async def send_and_wait_for_answer(self, command: Command) -> None:
         timeout = command.estimated_response_time + 0.1 # Add extra time because of long message 
         await self._command_queue.put(command)
-        received = await asyncio.wait_for(command.answer.received.wait(), timeout)
-        if not received:
+        try:
+            await asyncio.wait_for(command.answer.received.wait(), timeout)
+        except TimeoutError:
             raise ConnectionError("Device is not responding")
 
     async def read_message(self) -> str:
