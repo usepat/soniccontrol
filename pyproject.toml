@@ -25,15 +25,6 @@ dynamic = ["version"]
 
 # TODO: add dependencies
 
-[project.optional-dependencies]
-testing = [
-    "pytest>=6.0",
-    "pytest-cov>=2.0",
-    "mypy>=0.910",
-    "flake8>=3.9",
-    "tox>=3.24"
-]
-
 [project.gui-scripts]
 soniccontrol = "soniccontrol_gui:start_gui"
 
@@ -51,14 +42,30 @@ where = ["src"]
 [tool.setuptools-git-versioning]
 enabled = true
 
+# Setup testing
+
+[project.optional-dependencies]
+testing = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "mypy>=0.910",
+    "flake8>=3.9",
+    "tox>=3.24"
+]
+
+[tool.pytest]
+testpaths = ["tests"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=soniccontrol",
+    "--import-mode=importlib"
+]
+
 # linter and testing tools
 
 [tool.flake8]
 max-line-length = 100
-
-[tool.pytest.ini_options]
-addopts = "--cov=soniccontrol"
-testpaths = ["tests"]
 
 [tool.mypy]
 check_untyped_defs = true
