@@ -43,7 +43,7 @@ jobs:
 
     - name: Zip SonicControl
       run: |
-        zip -r ./SonicControl.zip ./dist/SonicControl
+        Compress-Archive -Path "./dist/SonicControl" -DestinationPath "./SonicControl.zip" -Update
 
     - name: Upload SonicControl zip archive
       uses: actions/upload-artifact@v4
