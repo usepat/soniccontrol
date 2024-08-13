@@ -134,8 +134,8 @@ class SerialCommunicator(Communicator):
         await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
-        timeout = command.estimated_response_time 
-        MAX_RETRIES = 3 # in seconds
+        timeout = 3 # in seconds
+        MAX_RETRIES = 3 
         for i in range(MAX_RETRIES):
             await self._command_queue.put(command)
             try:
