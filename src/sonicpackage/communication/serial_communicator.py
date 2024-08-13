@@ -142,7 +142,7 @@ class SerialCommunicator(Communicator):
                 await asyncio.wait_for(command.answer.received.wait(), timeout)
                 return
             except TimeoutError:
-                self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %d s", i, MAX_RETRIES, timeout)
+                self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %f s", i, MAX_RETRIES, timeout)
         raise ConnectionError("Device is not responding")
     
     async def read_message(self) -> str:

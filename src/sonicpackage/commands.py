@@ -478,7 +478,7 @@ class CommandSet:
 
         self.get_info: Command = Command(
             message="?info",
-            estimated_response_time=0.5,
+            estimated_response_time=2.5,
             expects_long_answer=True,
             validators=(
                 type_validator,
