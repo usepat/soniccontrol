@@ -39,7 +39,7 @@ class StreamReaderFake(StreamReader):
 
 
 @pytest.mark.asyncio
-async def test_get_answer_of_package_order_does_not_matter():
+async def test_get_answer_of_package_ensures_that_order_does_not_matter():
     reader = StreamReaderFake()
     protocol = SonicProtocol()
     pkg_fetcher = PackageFetcher(reader, protocol)
