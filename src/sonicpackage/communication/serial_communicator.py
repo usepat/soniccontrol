@@ -19,7 +19,6 @@ from shared.system import PLATFORM
 class SerialCommunicator(Communicator):
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
-    _lock: asyncio.Lock = attrs.field(init=False, factory=asyncio.Lock, repr=False)
     _command_queue: asyncio.Queue[Command] = attrs.field(
         init=False, factory=asyncio.Queue, repr=False
     )
@@ -117,16 +116,15 @@ class SerialCommunicator(Communicator):
         try:
             while self._writer is not None and not self._writer.is_closing():
                 command: Command = await self._command_queue.get()
-                async with self._lock:
-                    try:
-                        await send_and_get(command)
-                    except serial.SerialException as e:
-                        self._logger.error(e)
-                        await self._close_communication()
-                        return
-                    except Exception as e:
-                        self._logger.error(e)
-                        break
+                try:
+                    await send_and_get(command)
+                except serial.SerialException as e:
+                    self._logger.error(e)
+                    await self._close_communication()
+                    return
+                except Exception as e:
+                    self._logger.error(e)
+                    break
         except asyncio.CancelledError:
             self._logger.warn("The serial communicator was stopped")
             await self._close_communication()
@@ -190,7 +188,6 @@ class LegacySerialCommunicator(Communicator):
     _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
     def __attrs_post_init__(self) -> None:
-        self._lock = asyncio.Lock()
         self._task: Optional[asyncio.Task[None]] = None
         self._logger = logging.getLogger(self._logger.name + "." + LegacySerialCommunicator.__name__)
         self._init_command = Command(
@@ -272,15 +269,14 @@ class LegacySerialCommunicator(Communicator):
             return
         while self._writer is not None and not self._writer.is_closing():
             command: Command = await self._command_queue.get()
-            async with self._lock:
-                try:
-                    await send_and_get(command)
-                except serial.SerialException:
-                    self._close_communication()
-                    return
-                except Exception as e:
-                    self._logger.error(str(e))
-                    break
+            try:
+                await send_and_get(command)
+            except serial.SerialException:
+                self._close_communication()
+                return
+            except Exception as e:
+                self._logger.error(str(e))
+                break
         self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
