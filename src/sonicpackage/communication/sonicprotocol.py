@@ -74,7 +74,7 @@ class DeviceLogLevel(Enum):
     DEBUG = "DEBUG"
 
 class SonicProtocol(CommunicationProtocol):
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, logger: logging.Logger = logging.getLogger()):
         self._logger: logging.Logger = logging.getLogger(logger.name + "." + SonicProtocol.__name__)
         self._device_logger: logging.Logger = logging.getLogger(logger.name + ".device")
         super().__init__()

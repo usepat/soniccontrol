@@ -1,4 +1,4 @@
-import pytest
+# This is file is only here to check if testing and CI setup is working 
 
 def hello_world():
     return "hello world"
