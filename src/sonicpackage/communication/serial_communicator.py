@@ -190,6 +190,7 @@ class LegacySerialCommunicator(Communicator):
     _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
     def __attrs_post_init__(self) -> None:
+        self._lock = asyncio.Lock()
         self._task: Optional[asyncio.Task[None]] = None
         self._logger = logging.getLogger(self._logger.name + "." + LegacySerialCommunicator.__name__)
         self._init_command = Command(
@@ -283,7 +284,7 @@ class LegacySerialCommunicator(Communicator):
         self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
-        timeout = command.estimated_response_time + 0.1 # Add extra time because of long message 
+        timeout =  3 # in seconds
         await self._command_queue.put(command)
         try:
             await asyncio.wait_for(command.answer.received.wait(), timeout)
@@ -296,7 +297,7 @@ class LegacySerialCommunicator(Communicator):
         if self._reader is None:
             return message
         try:
-            response = await self._reader.readline()
+            response = await self.readline()
             message = response.decode(PLATFORM.encoding).strip()
         except Exception as e:
             self._logger.error(str(e))
@@ -313,7 +314,7 @@ class LegacySerialCommunicator(Communicator):
         while time.time() < target:
             try:
                 response = await asyncio.wait_for(
-                    self._reader.readline(), timeout=response_time
+                    self.readline(), timeout=response_time
                 )
                 line = response.decode(PLATFORM.encoding).strip()
                 message.append(line)
@@ -324,6 +325,13 @@ class LegacySerialCommunicator(Communicator):
                 break
 
         return message
+    
+    async def readline(self) -> bytes:
+        if self._reader is None:
+            return b""
+
+        async with self._lock:
+            return await self._reader.readline()
 
     async def close_communication(self) -> None:
         if self._task is not None:
