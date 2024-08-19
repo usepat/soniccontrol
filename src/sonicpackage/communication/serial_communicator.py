@@ -164,6 +164,7 @@ class SerialCommunicator(Communicator):
         self._connection_closed.set()
         if self._writer is not None:
             self._writer.close()
+            await self._writer.wait_closed()
         self._reader = None
         self._writer = None
         self._logger.info("Disconnected from device")
@@ -172,7 +173,7 @@ class SerialCommunicator(Communicator):
 
 @attrs.define
 class LegacySerialCommunicator(Communicator):   
-    BAUDRATE = 112500
+    BAUDRATE = 115200
 
     _init_command: Command = attrs.field(init=False)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
@@ -263,7 +264,7 @@ class LegacySerialCommunicator(Communicator):
             response = await (
                 self.read_long_message(response_time=command.estimated_response_time)
                 if command.expects_long_answer
-                else self.read_message()
+                else self._read_message()
             )
 
             if command.message != "-":
@@ -279,28 +280,37 @@ class LegacySerialCommunicator(Communicator):
             try:
                 await send_and_get(command)
             except serial.SerialException:
-                self._close_communication()
-                return
+                break
+            except asyncio.CancelledError:
+                break
             except Exception as e:
                 self._logger.error(str(e))
                 break
-        self._close_communication()
+        await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
-        timeout =  3 # in seconds
-        await self._command_queue.put(command)
-        try:
-            await asyncio.wait_for(command.answer.received.wait(), timeout)
-        except TimeoutError:
-            raise ConnectionError("Device is not responding")
+        async with self._lock:
+            timeout =  10 # in seconds
+            await self._command_queue.put(command)
+            try:
+                await asyncio.wait_for(command.answer.received.wait(), timeout)
+            except TimeoutError:
+                raise ConnectionError("Device is not responding")
 
     async def read_message(self) -> str:
+        async with self._lock:
+            try:
+                await asyncio.wait_for(self._read_message(), 1)
+            except TimeoutError:
+                return ""
+
+    async def _read_message(self) -> str:
         message: str = ""
         await asyncio.sleep(0.2)
         if self._reader is None:
             return message
         try:
-            response = await self.readline()
+            response = await self._reader.readline()
             message = response.decode(PLATFORM.encoding).strip()
         except Exception as e:
             self._logger.error(str(e))
@@ -317,7 +327,7 @@ class LegacySerialCommunicator(Communicator):
         while time.time() < target:
             try:
                 response = await asyncio.wait_for(
-                    self.readline(), timeout=response_time
+                    self._reader.readline(), timeout=response_time
                 )
                 line = response.decode(PLATFORM.encoding).strip()
                 message.append(line)
@@ -328,13 +338,6 @@ class LegacySerialCommunicator(Communicator):
                 break
 
         return message
-    
-    async def readline(self) -> bytes:
-        if self._reader is None:
-            return b""
-
-        async with self._lock:
-            return await self._reader.readline()
 
     async def close_communication(self) -> None:
         if self._task is not None:
@@ -344,12 +347,14 @@ class LegacySerialCommunicator(Communicator):
             except asyncio.CancelledError:
                 pass
             self._task = None
+        await self._close_communication() # for some reason it cancels the task directly without calling the internal except
 
-    def _close_communication(self) -> None:
+    async def _close_communication(self) -> None:
         self._connection_opened.clear()
         self._connection_closed.set()
         if self._writer is not None:
             self._writer.close()
+            await self._writer.wait_closed()
         self._reader = None
         self._writer = None
         self.emit(Event(Communicator.DISCONNECTED_EVENT))

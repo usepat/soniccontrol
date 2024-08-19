@@ -160,10 +160,7 @@ class SonicAmp(Scriptable):
             **command.status_result, **status_kwargs_if_valid_command
         )
 
-        try:
-            parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
-        except Exception:
-            pass
+        parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
 
         return command.answer.string
 

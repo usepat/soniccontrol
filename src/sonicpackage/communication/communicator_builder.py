@@ -43,15 +43,13 @@ class CommunicatorBuilder:
             await commands.get_info.execute()
         except Exception as e:
             com_logger.error(str(e))
-            await serial.close_communication()
-            com_logger.warn("Connection could not be established with legacy protocol")
         else:
             if commands.get_info.answer.valid:
                 com_logger.info("Connected with legacy protocol")
                 return (serial, commands)
-            else:
-                await serial.close_communication()
-                com_logger.warn("Connection could not be established with legacy protocol")
+            
+        await serial.close_communication()
+        com_logger.warn("Connection could not be established with legacy protocol")
 
         com_logger.info("Trying to connect with new sonic protocol")
         serial = SerialCommunicator(logger=logger) #type: ignore

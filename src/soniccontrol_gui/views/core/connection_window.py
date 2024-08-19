@@ -1,9 +1,6 @@
-from asyncio import StreamReader, StreamWriter
-import asyncio
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, cast
 from async_tkinter_loop import async_handler
-from serial_asyncio import open_serial_connection
 import serial.tools.list_ports as list_ports
 import ttkbootstrap as ttk
 import tkinter as tk
