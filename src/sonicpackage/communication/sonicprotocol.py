@@ -107,10 +107,11 @@ class SonicProtocol(CommunicationProtocol):
 
     def parse_response(self, response: str) -> tuple[int, str]:
         package = PackageParser.parse_package(response)
-        lines = package.content.splitlines()
+        lines = package.content.splitlines(keepends=True)
         answer = ""
         for line in lines:
             if line.startswith("LOG="):
+                line = line.strip()
                 log_level = SonicProtocol._extract_log_level(line)
                 self._device_logger.log(log_level, line)
             elif line.isspace() or len(line) == 0:
