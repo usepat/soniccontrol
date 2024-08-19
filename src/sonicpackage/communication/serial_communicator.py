@@ -6,6 +6,7 @@ from typing import Any, Dict, Final, Optional, List
 
 import attrs
 import serial
+from sonicpackage.communication.connection_factory import ConnectionFactory, SerialConnectionFactory
 from sonicpackage.communication.package_fetcher import PackageFetcher
 from icecream import ic
 from sonicpackage.command import Command, CommandValidator
@@ -17,6 +18,8 @@ from shared.system import PLATFORM
 
 @attrs.define
 class SerialCommunicator(Communicator):
+    BAUDRATE = 9600
+
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _command_queue: asyncio.Queue[Command] = attrs.field(
@@ -57,13 +60,12 @@ class SerialCommunicator(Communicator):
         return {}
 
     async def open_communication(
-        self,
-        reader: asyncio.StreamReader,
-        writer: asyncio.StreamWriter,
+        self, connection_factory: ConnectionFactory
     ) -> None:
         self._logger.debug("try open communication")
-        self._reader = reader
-        self._writer = writer
+        if isinstance(connection_factory, SerialConnectionFactory):
+            connection_factory.baudrate = SerialCommunicator.BAUDRATE 
+        self._reader, self._writer = await connection_factory.open_connection()
         self._protocol = SonicProtocol(self._logger)
         self._package_fetcher = PackageFetcher(self._reader, self._protocol, self._logger)
         self._connection_opened.set()
@@ -160,6 +162,8 @@ class SerialCommunicator(Communicator):
             await self._package_fetcher.stop()
         self._connection_opened.clear()
         self._connection_closed.set()
+        if self._writer is not None:
+            self._writer.close()
         self._reader = None
         self._writer = None
         self._logger.info("Disconnected from device")
@@ -167,7 +171,9 @@ class SerialCommunicator(Communicator):
 
 
 @attrs.define
-class LegacySerialCommunicator(Communicator):
+class LegacySerialCommunicator(Communicator):   
+    BAUDRATE = 112500
+
     _init_command: Command = attrs.field(init=False)
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
@@ -229,7 +235,7 @@ class LegacySerialCommunicator(Communicator):
         return self._init_command.status_result
 
     async def open_communication(
-        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        self, connection_factory: ConnectionFactory
     ) -> None:
         async def get_first_message() -> None:
             self._init_command.answer.receive_answer(
@@ -238,8 +244,9 @@ class LegacySerialCommunicator(Communicator):
             self._init_command.validate()
             self._logger.info(self._init_command.answer)
 
-        self._reader, self._writer = reader, writer
-
+        if isinstance(connection_factory, SerialConnectionFactory):
+            connection_factory.baudrate = LegacySerialCommunicator.BAUDRATE 
+        self._reader, self._writer = await connection_factory.open_connection()
         self._logger.info("Open communication with handshake")
         await get_first_message()
         self._connection_opened.set()
@@ -341,6 +348,8 @@ class LegacySerialCommunicator(Communicator):
     def _close_communication(self) -> None:
         self._connection_opened.clear()
         self._connection_closed.set()
+        if self._writer is not None:
+            self._writer.close()
         self._reader = None
         self._writer = None
         self.emit(Event(Communicator.DISCONNECTED_EVENT))

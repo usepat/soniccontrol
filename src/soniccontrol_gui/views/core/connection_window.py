@@ -12,7 +12,8 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import View
 from sonicpackage.builder import AmpBuilder
-from sonicpackage.communication.connection_builder import ConnectionBuilder
+from sonicpackage.communication.communicator_builder import CommunicatorBuilder
+from sonicpackage.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
 from sonicpackage.interfaces import Communicator
 from sonicpackage.communication.serial_communicator import LegacySerialCommunicator
 from sonicpackage.sonicamp_ import SonicAmp
@@ -96,12 +97,9 @@ class ConnectionWindow(UIComponent):
         url = self._view.get_url()
         baudrate = 9600
 
-        reader, writer = await open_serial_connection(
-            url=url, baudrate=baudrate
-        )
-
+        connection_factory = SerialConnectionFactory(url=url, baudrate=baudrate)
         connection_name = Path(url).name
-        await self._attempt_connection(connection_name, reader, writer)
+        await self._attempt_connection(connection_name, connection_factory)
         self._is_connecting = False
 
     @async_handler 
@@ -109,33 +107,24 @@ class ConnectionWindow(UIComponent):
         assert (not self.is_connecting)
         self._is_connecting = True
 
-        process = await asyncio.create_subprocess_shell(
-            str(rs.files(sonicpackage.bin).joinpath("cli_simulation_mvp")),
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-        )
-        assert(process.stdout is not None)
-        assert(process.stdin is not None)
-
         connection_name = "simulation"
-        writer = process.stdin
-        reader = process.stdout
-        await self._attempt_connection(connection_name, reader, writer)
+        bin_file = str(rs.files(sonicpackage.bin).joinpath("cli_simulation_mvp"))
+
+        connection_factory = CLIConnectionFactory(bin_file=bin_file)
+
+        await self._attempt_connection(connection_name, connection_factory)
 
         self._is_connecting = False
 
-    async def _attempt_connection(self, connection_name: str, reader: StreamReader, writer: StreamWriter):
+    async def _attempt_connection(self, connection_name: str, connection_factory: ConnectionFactory):
         logger = create_logger_for_connection(connection_name)
         logger.debug("Established serial connection")
 
         try:
-            serial, commands = await ConnectionBuilder.build(
-                reader=reader,
-                writer=writer,
-                logger=logger,
+            serial, commands = await CommunicatorBuilder.build(
+                connection_factory,
+                logger=logger
             )
-            serial.subscribe(serial.DISCONNECTED_EVENT, lambda _e: writer.close())
             logger.debug("Build SonicAmp for device")
             sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
             await sonicamp.serial.connection_opened.wait()
@@ -147,7 +136,7 @@ class ConnectionWindow(UIComponent):
                 return
             
             connection: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
-            await connection.open_communication(reader, writer)
+            await connection.open_communication(connection_factory)
             self._device_window_manager.open_rescue_window(connection, connection_name)
         except Exception as e:
             logger.error(e)
