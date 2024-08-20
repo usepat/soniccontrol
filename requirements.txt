@@ -1,6 +1,7 @@
 altgraph==0.17.4
 asttokens==2.4.1
 async-tkinter-loop==0.9.3
+asynctest==0.13.0
 attrs==23.2.0
 backcall==0.2.0
 beautifulsoup4==4.12.3

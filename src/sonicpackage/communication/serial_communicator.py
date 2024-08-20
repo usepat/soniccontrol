@@ -106,7 +106,7 @@ class SerialCommunicator(Communicator):
                     self._logger.info("Receive Answer: %s", answer)
             except Exception as e:
                 self._logger.error(e)
-                answer = "" # FIXME: is this a good idea to handle the error like this?
+                answer = str(e) # FIXME: is this a good idea to handle the error like this?
 
             command.answer.receive_answer(answer)
             self._answer_queue.put_nowait(command)
@@ -156,6 +156,7 @@ class SerialCommunicator(Communicator):
             except asyncio.CancelledError:
                 pass
             self._task = None
+        await self._close_communication()
 
     async def _close_communication(self) -> None:
         if self._task is not None:

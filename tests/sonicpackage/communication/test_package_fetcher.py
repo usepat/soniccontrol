@@ -1,13 +1,14 @@
 import pytest
+import asyncio
 
+from shared.system import PLATFORM
 from sonicpackage.communication.package_fetcher import PackageFetcher
 from sonicpackage.communication.sonicprotocol import SonicProtocol
-from tests.sonicpackage.communication.stream_reader_fake import StreamReaderFake
 
 
 @pytest.mark.asyncio
 async def test_get_answer_of_package_ensures_that_order_does_not_matter():
-    reader = StreamReaderFake()
+    reader = asyncio.StreamReader()
     protocol = SonicProtocol()
     pkg_fetcher = PackageFetcher(reader, protocol)
 
@@ -18,9 +19,9 @@ async def test_get_answer_of_package_ensures_that_order_does_not_matter():
     try:
         pkg_fetcher.run()
 
-        await reader.feed_data(protocol.parse_request("asdfd", 10))
-        await reader.feed_data(msg_str)
-        await reader.feed_data(protocol.parse_request("hsghfare", 23))
+        reader.feed_data(protocol.parse_request("asdfd", 10).encode(PLATFORM.encoding))
+        reader.feed_data(msg_str.encode(PLATFORM.encoding))
+        reader.feed_data(protocol.parse_request("hsghfare", 23).encode(PLATFORM.encoding))
 
         answer = await pkg_fetcher.get_answer_of_package(15)
         await pkg_fetcher.stop()

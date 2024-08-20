@@ -5,10 +5,10 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.autoComplete.extraPaths": [
-        "${workspaceRootPath}/tests"
+        "${workspaceFolder}/tests"
     ],
     "editor.detectIndentation": true,
     "python.analysis.extraPaths": [
-        "${workspaceRootPath}/tests"
+        "${workspaceFolder}/tests"
     ]
 }
