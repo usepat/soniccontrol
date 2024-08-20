@@ -4,5 +4,11 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "editor.detectIndentation": true
+    "python.autoComplete.extraPaths": [
+        "${workspaceRootPath}/tests"
+    ],
+    "editor.detectIndentation": true,
+    "python.analysis.extraPaths": [
+        "${workspaceRootPath}/tests"
+    ]
 }

@@ -11,7 +11,7 @@ SolidCompression=yes
 
 ; Create Dir for storing data and logging and set permissions
 [Dirs]
-Name: "{userappdata}\soniccontrol_data"; Permissions: everyone-modify
+Name: "{userappdata}\SonicControl"; Permissions: everyone-modify
 
 ; Include the files from the build directory
 [Files]
