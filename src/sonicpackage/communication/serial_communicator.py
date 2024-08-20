@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import traceback
 import time
 from typing import Any, Dict, Final, Optional, List
 
@@ -60,7 +61,8 @@ class SerialCommunicator(Communicator):
         return {}
 
     async def open_communication(
-        self, connection_factory: ConnectionFactory
+        self, connection_factory: ConnectionFactory,
+        loop = asyncio.get_event_loop()
     ) -> None:
         self._logger.debug("try open communication")
         if isinstance(connection_factory, SerialConnectionFactory):
@@ -70,7 +72,7 @@ class SerialCommunicator(Communicator):
         self._package_fetcher = PackageFetcher(self._reader, self._protocol, self._logger)
         self._connection_opened.set()
 
-        self._task = asyncio.create_task(self._worker())
+        self._task = loop.create_task(self._worker())
         self._package_fetcher.run()
 
     async def _worker(self) -> None:
@@ -116,7 +118,7 @@ class SerialCommunicator(Communicator):
             return
 
         try:
-            while self._writer is not None and not self._writer.is_closing():
+            while self._writer is not None:
                 command: Command = await self._command_queue.get()
                 try:
                     await send_and_get(command)
@@ -134,6 +136,9 @@ class SerialCommunicator(Communicator):
         await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
+        if not self._connection_opened.is_set():
+            raise ConnectionError("Communicator is not connected")
+
         timeout = 3 # in seconds
         MAX_RETRIES = 3 
         for i in range(MAX_RETRIES):
@@ -143,6 +148,7 @@ class SerialCommunicator(Communicator):
                 return
             except TimeoutError:
                 self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %f s", i, MAX_RETRIES, timeout)
+        await self.close_communication()
         raise ConnectionError("Device is not responding")
     
     async def read_message(self) -> str:
@@ -290,6 +296,9 @@ class LegacySerialCommunicator(Communicator):
         await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
+        if not self.connection_opened.is_set():
+            raise ConnectionError("Communicator is not connected")
+
         async with self._lock:
             timeout =  10 # in seconds
             await self._command_queue.put(command)
@@ -301,7 +310,8 @@ class LegacySerialCommunicator(Communicator):
     async def read_message(self) -> str:
         async with self._lock:
             try:
-                await asyncio.wait_for(self._read_message(), 1)
+                msg = await asyncio.wait_for(self._read_message(), 1)
+                return msg
             except TimeoutError:
                 return ""
 
