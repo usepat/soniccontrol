@@ -1,8 +1,6 @@
 import logging
 from typing import Any, Dict, Tuple, Union
 
-import attrs
-from icecream import ic
 from sonicpackage.command import Answer
 from sonicpackage.commands import CommandSet, CommandSetLegacy
 from sonicpackage.interfaces import Communicator

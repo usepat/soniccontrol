@@ -3,17 +3,17 @@ import logging
 from typing import Union
 
 from sonicpackage.commands import CommandSet, CommandSetLegacy
+from sonicpackage.communication.connection_factory import ConnectionFactory
 from sonicpackage.interfaces import Communicator
 from sonicpackage.communication.serial_communicator import (
     LegacySerialCommunicator,
     SerialCommunicator,
 )
 
-class ConnectionBuilder:
-
+class CommunicatorBuilder:
     @staticmethod
     async def build(
-        reader: asyncio.StreamReader, writer: asyncio.StreamWriter, logger: logging.Logger
+        connection_factory: ConnectionFactory, logger: logging.Logger
     ) -> tuple[Communicator, Union[CommandSet, CommandSetLegacy]]:
         """
         Builds a connection using the provided `reader` and `writer` objects.
@@ -32,33 +32,31 @@ class ConnectionBuilder:
 
         """
 
-        com_logger = logging.getLogger(logger.name + "." + ConnectionBuilder.__name__)
+        com_logger = logging.getLogger(logger.name + "." + CommunicatorBuilder.__name__)
 
         com_logger.info("Trying to connect with legacy protocol")
         serial: Communicator = LegacySerialCommunicator(logger=logger)  #type: ignore
         commands: Union[CommandSet, CommandSetLegacy] = CommandSetLegacy(serial)
 
         try:
-            await serial.open_communication(reader, writer)
+            await serial.open_communication(connection_factory)
             await commands.get_info.execute()
         except Exception as e:
             com_logger.error(str(e))
-            await serial.close_communication()
-            com_logger.warn("Connection could not be established with legacy protocol")
         else:
             if commands.get_info.answer.valid:
                 com_logger.info("Connected with legacy protocol")
                 return (serial, commands)
-            else:
-                await serial.close_communication()
-                com_logger.warn("Connection could not be established with legacy protocol")
+            
+        await serial.close_communication()
+        com_logger.warn("Connection could not be established with legacy protocol")
 
         com_logger.info("Trying to connect with new sonic protocol")
         serial = SerialCommunicator(logger=logger) #type: ignore
         commands = CommandSet(serial)
 
         try:
-            await serial.open_communication(reader, writer)
+            await serial.open_communication(connection_factory)
             await commands.get_info.execute()
         except Exception as e:
             com_logger.error(str(e))

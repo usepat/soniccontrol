@@ -71,7 +71,7 @@ class SerialMonitor(UIComponent):
             answer, _ = await Command(message=command_str).execute(connection=self._communicator)
             return answer.string
         except Exception as e:
-            self._logger.error(e)
+            self._logger.error(str(e))
             await self._communicator.close_communication()
             return str(e)        
 

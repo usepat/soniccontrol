@@ -2,6 +2,7 @@ import abc
 import asyncio
 from typing import Any, Dict
 
+from sonicpackage.communication.connection_factory import ConnectionFactory
 from sonicpackage.communication.sonicprotocol import CommunicationProtocol
 from sonicpackage.events import EventManager
 
@@ -31,7 +32,7 @@ class Communicator(abc.ABC, EventManager):
 
     @abc.abstractmethod
     async def open_communication(
-        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        self, connection_factory: ConnectionFactory
     ): ...
 
     @abc.abstractmethod
