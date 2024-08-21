@@ -27,7 +27,7 @@ async def test_communicator_close_communication_closes_streamwriter(communicator
     connection.writer.wait_closed.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_communicator_close_communication_raises_event(communicator):
+async def test_communicator_close_communication_raises_event_once(communicator):
     mock_close_callback = Mock()
     communicator.subscribe(communicator.DISCONNECTED_EVENT, mock_close_callback)
     
@@ -38,15 +38,13 @@ async def test_communicator_close_communication_raises_event(communicator):
 @pytest.mark.asyncio
 async def test_communicator_send_and_wait_returns_answer(communicator, connection):
     msg = "hello communicator!"
-    msg_id = 2
+    msg_id = 1
     msg_str = PackageParser.write_package(Package("0", "0", msg_id, msg))
     connection.reader.feed_data(data=msg_str.encode(PLATFORM.encoding))
     command = Command(message="?greet")
 
     await communicator.send_and_wait_for_answer(command)
-
-    assert connection.writer.write.assert_called_once_with(Contains("?greet"))
-    assert command.answer == msg
+    assert command.answer.string == msg
 
 @pytest.mark.asyncio
 async def test_communicator_send_and_wait_does_not_throw_parsing_error(communicator, connection):

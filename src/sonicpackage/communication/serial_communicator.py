@@ -22,7 +22,6 @@ class SerialCommunicator(Communicator):
     BAUDRATE = 9600
 
     _connection_opened: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
-    _connection_closed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
     _command_queue: asyncio.Queue[Command] = attrs.field(
         init=False, factory=asyncio.Queue, repr=False
     )
@@ -50,10 +49,6 @@ class SerialCommunicator(Communicator):
     @property
     def connection_opened(self) -> asyncio.Event:
         return self._connection_opened
-
-    @property
-    def connection_closed(self) -> asyncio.Event:
-        return self._connection_closed
     
     @property
     def handshake_result(self) -> Dict[str, Any]:
@@ -99,16 +94,11 @@ class SerialCommunicator(Communicator):
             self._writer.write(message)
             await self._writer.drain()
 
-            answer = ""
-            try:
-                answer = await self._package_fetcher.get_answer_of_package(
-                    message_counter
-                )
-                if command.message != "-":
-                    self._logger.info("Receive Answer: %s", answer)
-            except Exception as e:
-                self._logger.error(e)
-                answer = str(e) # FIXME: is this a good idea to handle the error like this?
+            answer =  await self._package_fetcher.get_answer_of_package(
+                message_counter
+            )
+            if command.message != "-":
+                self._logger.info("Receive Answer: %s", answer)
 
             command.answer.receive_answer(answer)
             self._answer_queue.put_nowait(command)
@@ -120,20 +110,13 @@ class SerialCommunicator(Communicator):
         try:
             while self._writer is not None:
                 command: Command = await self._command_queue.get()
-                try:
-                    await send_and_get(command)
-                except serial.SerialException as e:
-                    self._logger.error(e)
-                    await self._close_communication()
-                    return
-                except Exception as e:
-                    self._logger.error(e)
-                    break
+                await send_and_get(command)
         except asyncio.CancelledError:
             self._logger.warn("The serial communicator was stopped")
+        except Exception as e:
+            self._logger.error(e)
+        finally:
             await self._close_communication()
-            return
-        await self._close_communication()
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
         if not self._connection_opened.is_set():
@@ -146,10 +129,14 @@ class SerialCommunicator(Communicator):
             try:
                 await asyncio.wait_for(command.answer.received.wait(), timeout)
                 return
-            except TimeoutError:
+            except asyncio.TimeoutError:
                 self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %f s", i, MAX_RETRIES, timeout)
-        await self.close_communication()
-        raise ConnectionError("Device is not responding")
+        
+        if self._connection_opened.is_set():
+            await self.close_communication()
+            raise ConnectionError("Device is not responding")
+        else:
+            raise ConnectionError("The connection was closed")
     
     async def read_message(self) -> str:
         return await self._package_fetcher.pop_message()
@@ -162,13 +149,11 @@ class SerialCommunicator(Communicator):
             except asyncio.CancelledError:
                 pass
             self._task = None
-        await self._close_communication()
 
-    async def _close_communication(self) -> None:
+    async def _close_communication(self) -> None: 
         if self._task is not None:
             await self._package_fetcher.stop()
         self._connection_opened.clear()
-        self._connection_closed.set()
         if self._writer is not None:
             self._writer.close()
             await self._writer.wait_closed()
@@ -304,7 +289,7 @@ class LegacySerialCommunicator(Communicator):
             await self._command_queue.put(command)
             try:
                 await asyncio.wait_for(command.answer.received.wait(), timeout)
-            except TimeoutError:
+            except asyncio.TimeoutError:
                 raise ConnectionError("Device is not responding")
 
     async def read_message(self) -> str:
@@ -312,7 +297,7 @@ class LegacySerialCommunicator(Communicator):
             try:
                 msg = await asyncio.wait_for(self._read_message(), 1)
                 return msg
-            except TimeoutError:
+            except asyncio.TimeoutError:
                 return ""
 
     async def _read_message(self) -> str:

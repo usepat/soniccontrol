@@ -22,7 +22,7 @@ class PackageFetcher:
             await self._answer_received.wait()
             self._answer_received.clear()
             if package_id in self._answers:
-                answer: str = self._answers.get(package_id)
+                answer: str = self._answers[package_id]
                 return answer
 
     def run(self) -> None:

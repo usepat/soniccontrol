@@ -28,7 +28,6 @@ wth?
     response_str = f"<0#0#{request_id}#{len(content)}#{content}>"
     package_id, answer = SonicProtocol().parse_response(response_str)
     assert package_id == request_id
-    print (answer)
     assert answer == """1050#1000 Hz
 ahh!
 wth?
