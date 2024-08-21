@@ -25,6 +25,10 @@ class PackageFetcher:
                 answer: str = self._answers[package_id]
                 return answer
 
+    @property
+    def is_running(self) -> bool:
+        return self._task is not None and not self._task.done()
+
     def run(self) -> None:
         self._logger.debug("Start package fetcher")
         self._task = asyncio.create_task(self._worker())
@@ -54,7 +58,7 @@ class PackageFetcher:
                 return
             except Exception as e:
                 self._logger.error("Exception occured while reading the package:\n%s", e)
-                raise
+                return
 
             if len(answer) > 0:
                 self._answers[package_id] = answer

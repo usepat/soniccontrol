@@ -67,10 +67,14 @@ class SerialCommunicator(Communicator):
         self._package_fetcher = PackageFetcher(self._reader, self._protocol, self._logger)
         self._connection_opened.set()
 
-        self._task = loop.create_task(self._worker())
         self._package_fetcher.run()
+        self._task = loop.create_task(self._worker())
 
     async def _worker(self) -> None:
+        assert self._writer is not None
+        assert self._reader is not None
+        assert self._package_fetcher.is_running
+    
         self._logger.debug("Started worker")
         message_counter: int = 0
         message_id_max_client: Final[int] = 2 ** 16 - 1 # 65535 is the max for uint16. so we cannot go higher than that.
@@ -103,12 +107,8 @@ class SerialCommunicator(Communicator):
             command.answer.receive_answer(answer)
             self._answer_queue.put_nowait(command)
 
-        if self._writer is None or self._reader is None:
-            self._logger.warn("No connection is available")
-            return
-
         try:
-            while self._writer is not None:
+            while self._writer is not None and self._package_fetcher.is_running:
                 command: Command = await self._command_queue.get()
                 await send_and_get(command)
         except asyncio.CancelledError:

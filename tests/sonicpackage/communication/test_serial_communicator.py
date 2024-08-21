@@ -6,9 +6,8 @@ from shared.system import PLATFORM
 from sonicpackage.command import Command
 from sonicpackage.communication.package_parser import Package, PackageParser
 from sonicpackage.communication.serial_communicator import SerialCommunicator
-from tests.sonicpackage.communication.mock_connection_factory import connection # this import is used by the tests. Do not delete it
+from tests.sonicpackage.communication.mock_connection_factory import connection # Needed. Do not delete. Intellisense is shit
 from unittest.mock import Mock
-from callee import Contains
 
 
 @pytest_asyncio.fixture()
@@ -47,11 +46,15 @@ async def test_communicator_send_and_wait_returns_answer(communicator, connectio
     assert command.answer.string == msg
 
 @pytest.mark.asyncio
-async def test_communicator_send_and_wait_does_not_throw_parsing_error(communicator, connection):
-    pass
+async def test_communicator_send_and_wait_throws_connection_error_if_parsing_error(communicator, connection):
+    msg_str = "<0#Hello Parsing Error>"
+    connection.reader.feed_data(data=msg_str.encode(PLATFORM.encoding))
+    
+    with pytest.raises(ConnectionError):
+        await communicator.send_and_wait_for_answer(Command(message="-"))
 
 @pytest.mark.asyncio
-async def test_communicator_send_and_wait_connection_error_on_timeout(communicator, connection):
+async def test_communicator_send_and_wait_connection_error_on_timeout(communicator):
     logger = logging.getLogger()
     logger.warn = Mock()
     communicator._logger = logger
@@ -59,12 +62,10 @@ async def test_communicator_send_and_wait_connection_error_on_timeout(communicat
         await communicator.send_and_wait_for_answer(Command(message="-"))
 
 @pytest.mark.asyncio
-async def test_communicator_send_and_wait_connection_error_if_disconnect(communicator, connection):
+async def test_communicator_send_and_wait_connection_error_if_disconnect(communicator):
     await communicator.close_communication()
 
     with pytest.raises(ConnectionError):
         await communicator.send_and_wait_for_answer(Command(message="-"))
 
-@pytest.mark.asyncio
-async def test_communicator_read_message_allowed_while_send_and_await(communicator, connection):
-    pass
+# TODO: Make a test for pulling constantly messages while also using send_and_wait
