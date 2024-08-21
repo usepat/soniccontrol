@@ -401,7 +401,7 @@ class Command(Sendable):
 
         Raises:
             ValueError: If the serial communication reference is not viable.
-            TimeoutError: If the device does not respond
+            ConnectionError: If the device does not respond
 
         This method resets the answer, sets the argument if provided, and sends the command asynchronously using the specified connection.
         It then validates the answer and updates the status result with the received timestamp. Finally, it returns a tuple containing the answer and the status result.

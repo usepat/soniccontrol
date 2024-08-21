@@ -34,6 +34,4 @@ class Holder:
         args: HolderArgs,
     ) -> None:
         duration = args.duration if args.unit == "s" else args.duration / 1000
-        end_time: float = time.time() + duration
-        while time.time() < end_time:
-            await asyncio.sleep(0.01)
+        await asyncio.sleep(duration)
