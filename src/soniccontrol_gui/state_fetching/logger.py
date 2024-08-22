@@ -19,14 +19,6 @@ def create_logger_for_connection(connection_name: str) -> logging.Logger:
     logger.addHandler(log_file_handler)
     return logger
 
-def get_base_logger(logger: logging.Logger) -> logging.Logger:
-    try:
-        base_logger_name = logger.name.split(".").pop(0)
-    except IndexError:
-        base_logger_name = ""
-    
-    return logging.getLogger(base_logger_name)
-
 class DeviceLogFilter(logging.Filter):
     def filter(self, record) -> bool:
         return "device" in record.name

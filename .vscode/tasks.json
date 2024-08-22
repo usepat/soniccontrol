@@ -48,7 +48,9 @@
             "label": "Run unit tests",
             "type": "shell",
             "command": "pytest",
-            "args": [],
+            "args": [
+                "${relativeFile}"
+            ],
             "group": {
                 "kind": "test",
                 "isDefault": true

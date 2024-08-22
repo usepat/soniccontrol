@@ -8,8 +8,7 @@ from sonicpackage.procedures.procedure import Procedure
 from sonicpackage.procedures.procedure_instantiator import ProcedureInstantiator
 from sonicpackage.procedures.ramper import Ramper, RamperArgs
 from sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol_gui.state_fetching.logger import get_base_logger
-from soniccontrol_gui.constants import events
+from sonicpackage.logging import get_base_logger
 from sonicpackage.events import Event, EventManager
 
 
@@ -17,6 +16,8 @@ class ProcedureType(Enum):
     RAMP = "Ramp"
 
 class ProcedureController(EventManager):
+    PROCEDURE_STOPPED: Literal["<<ProcedureStopped>>"] = "<<ProcedureStopped>>"
+
     def __init__(self, device: SonicAmp):
         super().__init__()
         base_logger = get_base_logger(device._logger)
@@ -72,7 +73,7 @@ class ProcedureController(EventManager):
         self._logger.info("Procedure stopped")
         self._running_proc_task = None
         self._running_proc_type = None
-        self.emit(Event(events.PROCEDURE_STOPPED))
+        self.emit(Event(ProcedureController.PROCEDURE_STOPPED))
 
     async def ramp_freq(
         self,

@@ -6,7 +6,7 @@ from sonicpackage.procedures.holder import Holder, convert_to_holder_args
 from sonicpackage.procedures.procedure_controller import ProcedureController
 from sonicpackage.scripting.scripting_facade import Script, ScriptingFacade
 from sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol_gui.state_fetching.logger import get_base_logger
+from sonicpackage.logging import get_base_logger
 
 
 
