@@ -84,10 +84,11 @@ pytz==2024.1
 pyzmq==26.0.3
 referencing==0.35.1
 requests==2.32.3
+robotframework==7.0.1
 rpds-py==0.18.1
 setuptools-git-versioning==2.0.0
 six==1.16.0
--e git+ssh://git@github.com/usepat/soniccontrol.git@2a5885c924fdf4dfdafc7ad8d56cfa2a0d5978ad#egg=soniccontrol
+-e git+ssh://git@github.com/usepat/soniccontrol.git@6e8aef9e1034e996e5967cf200aa8c1e0691b2e1#egg=soniccontrol
 soupsieve==2.5
 stack-data==0.6.3
 tenacity==8.5.0
