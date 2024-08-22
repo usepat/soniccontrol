@@ -32,7 +32,7 @@ class CLIConnectionFactory(ConnectionFactory):
 @attrs.define()
 class SerialConnectionFactory(ConnectionFactory):
     url: Path | str = attrs.field(init=True)
-    baudrate: int = attrs.field(init=True)
+    baudrate: int = attrs.field(default=9600)
 
     async def open_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         reader, writer = await open_serial_connection(

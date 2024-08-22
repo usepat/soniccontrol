@@ -14,9 +14,9 @@ from sonicpackage.communication.connection_factory import CLIConnectionFactory, 
 from sonicpackage.interfaces import Communicator
 from sonicpackage.communication.serial_communicator import LegacySerialCommunicator
 from sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol_gui.state_fetching.logger import create_logger_for_connection
+from sonicpackage.logging import create_logger_for_connection
 from soniccontrol_gui.utils.animator import Animator, DotAnimationSequence, load_animation
-from soniccontrol_gui.constants import sizes, style, ui_labels
+from soniccontrol_gui.constants import sizes, style, ui_labels, files
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.device_window import DeviceWindow, KnownDeviceWindow, RescueWindow
 from soniccontrol_gui.resources import images
@@ -114,7 +114,7 @@ class ConnectionWindow(UIComponent):
         self._is_connecting = False
 
     async def _attempt_connection(self, connection_name: str, connection_factory: ConnectionFactory):
-        logger = create_logger_for_connection(connection_name)
+        logger = create_logger_for_connection(connection_name, files.LOG_DIR)
         logger.debug("Established serial connection")
 
         try:

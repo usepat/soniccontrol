@@ -1,50 +1,89 @@
 from pathlib import Path
-from robot.api.deco import keyword, library
+from typing import Optional
 
-from sonicpackage.procedures.procedure_controller import ProcedureType
+from sonicpackage.builder import AmpBuilder
+from sonicpackage.communication.communicator_builder import CommunicatorBuilder
+from sonicpackage.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
+from sonicpackage.logging import create_logger_for_connection
+from sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
 from sonicpackage.procedures.ramper import RamperArgs
+from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
+from sonicpackage.scripting.scripting_facade import ScriptingFacade
+from sonicpackage.sonicamp_ import SonicAmp
 
-@library()
-class RemoteController():
+
+class RemoteController:
     def __init__(self):
-        pass
+        self._device: Optional[SonicAmp] = None
+        self._scripting: Optional[ScriptingFacade] = None
+        self._proc_controller: Optional[ProcedureController] = None
 
-    @keyword('Connect via serial to')
-    def connect_via_serial(self, url: str) -> None:
-        raise NotImplementedError()
+    async def _connect(self, connection_factory: ConnectionFactory, connection_name: str):
+        logger = create_logger_for_connection(connection_name)
+        serial, commands = await CommunicatorBuilder.build(
+            connection_factory,
+            logger=logger
+        )
+        self._device = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
+        await self._device.serial.connection_opened.wait()
+        self._scripting = LegacyScriptingFacade(self._device)
+        self._proc_controller = ProcedureController(self._device)
 
-    @keyword('Connect via process to')
-    def connect_via_process(self, process_file: Path) -> None:
-        raise NotImplementedError()
+    async def connect_via_serial(self, url: Path) -> None:
+        assert self._device is None
+        connection_factory = SerialConnectionFactory(url=url)
+        connection_name = url.name
+        await self._connect(connection_factory, connection_name)
 
-    @keyword('Set "${attr}" to "${val}"')
-    def set_attr(self, attr: str, val: str) -> None:
-        raise NotImplementedError()
+    async def connect_via_process(self, process_file: Path) -> None:
+        assert self._device is None
+        connection_factory = CLIConnectionFactory(bin_file=process_file)
+        connection_name = process_file.name
+        await self._connect(connection_factory, connection_name)
+
+    async def set_attr(self, attr: str, val: str) -> str:
+        assert self._device is not None
+        return await self._device.execute_command("!" + attr + "=" + val)
+
+    async def get_attr(self, attr: str) -> str:
+        assert self._device is not None
+        return await self._device.execute_command("?" + attr)
     
-    @keyword('Get "${attr}"')
-    def get_attr(self, attr: str) -> None:
-        raise NotImplementedError()
+    async def send_command(self, command_str: str) -> str:
+        assert self._device is not None
+        return await self._device.execute_command(command_str)
 
-    @keyword('Execute script')
-    def execute_script(self, text: str) -> None:
-        raise NotImplementedError()
-    
-    @keyword('Stop script')
-    def stop_script(self) -> None:
-        raise NotImplementedError()
-    
-    @keyword('Execute ramp with ')
+    async def execute_script(self, text: str) -> None:
+        assert self._device is not None
+        assert self._scripting is not None
+
+        interpreter = self._scripting.parse_script(text)
+        async for line_index, task in interpreter:
+            pass
+
     def execute_ramp(self, ramp_args: RamperArgs) -> None:
-        raise NotImplementedError()
+        assert self._device is not None
+        assert self._proc_controller is not None
 
-    @keyword('Execute procedure "${procedure}" with "${args}"')
+        self._proc_controller.execute_proc(ProcedureType.RAMP, ramp_args)
+
     def execute_procedure(self, procedure: ProcedureType, args: dict) -> None:
-        raise NotImplementedError()
+        assert self._device is not None
+        assert self._proc_controller is not None
+
+        arg_class = self._proc_controller.proc_args_list[procedure]
+        procedure_args = arg_class(args)
+        self._proc_controller.execute_proc(procedure, procedure_args)
+
+    async def stop_procedure(self) -> None:
+        assert self._device is not None
+        assert self._proc_controller is not None
+
+        await self._proc_controller.stop_proc()
     
-    @keyword('Stop procedure')
-    def stop_procedure(self) -> None:
-        raise NotImplementedError()
-    
-    @keyword('Disconnect')
-    def disconnect(self) -> None:
-        raise NotImplementedError()
+    async def disconnect(self) -> None:
+        assert self._device is not None
+
+        await self._device.disconnect()
+        self._scripting = None
+        self._proc_controller = None
