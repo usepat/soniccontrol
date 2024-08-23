@@ -13,6 +13,8 @@ from sonicpackage.sonicamp_ import SonicAmp
 
 
 class RemoteController:
+    NOT_CONNECTED = "Controller is not connected to a device"
+
     def __init__(self):
         self._device: Optional[SonicAmp] = None
         self._scripting: Optional[ScriptingFacade] = None
@@ -34,27 +36,29 @@ class RemoteController:
         connection_factory = SerialConnectionFactory(url=url)
         connection_name = url.name
         await self._connect(connection_factory, connection_name)
+        assert self._device is not None
 
     async def connect_via_process(self, process_file: Path) -> None:
         assert self._device is None
         connection_factory = CLIConnectionFactory(bin_file=process_file)
         connection_name = process_file.name
         await self._connect(connection_factory, connection_name)
+        assert self._device is not None
 
     async def set_attr(self, attr: str, val: str) -> str:
-        assert self._device is not None
+        assert self._device is not None,    RemoteController.NOT_CONNECTED
         return await self._device.execute_command("!" + attr + "=" + val)
 
     async def get_attr(self, attr: str) -> str:
-        assert self._device is not None
+        assert self._device is not None,    RemoteController.NOT_CONNECTED
         return await self._device.execute_command("?" + attr)
     
     async def send_command(self, command_str: str) -> str:
-        assert self._device is not None
+        assert self._device is not None,    RemoteController.NOT_CONNECTED
         return await self._device.execute_command(command_str)
 
     async def execute_script(self, text: str) -> None:
-        assert self._device is not None
+        assert self._device is not None,    RemoteController.NOT_CONNECTED
         assert self._scripting is not None
 
         interpreter = self._scripting.parse_script(text)
@@ -62,13 +66,13 @@ class RemoteController:
             pass
 
     def execute_ramp(self, ramp_args: RamperArgs) -> None:
-        assert self._device is not None
+        assert self._device is not None,    RemoteController.NOT_CONNECTED
         assert self._proc_controller is not None
 
         self._proc_controller.execute_proc(ProcedureType.RAMP, ramp_args)
 
     def execute_procedure(self, procedure: ProcedureType, args: dict) -> None:
-        assert self._device is not None
+        assert self._device is not None,    RemoteController.NOT_CONNECTED
         assert self._proc_controller is not None
 
         arg_class = self._proc_controller.proc_args_list[procedure]
@@ -76,14 +80,15 @@ class RemoteController:
         self._proc_controller.execute_proc(procedure, procedure_args)
 
     async def stop_procedure(self) -> None:
-        assert self._device is not None
+        assert self._device is not None,    RemoteController.NOT_CONNECTED
         assert self._proc_controller is not None
 
         await self._proc_controller.stop_proc()
     
     async def disconnect(self) -> None:
-        assert self._device is not None
-
-        await self._device.disconnect()
-        self._scripting = None
-        self._proc_controller = None
+        if self._device is not None:
+            await self._device.disconnect()
+            self._scripting = None
+            self._proc_controller = None
+            self._device = None
+        assert self._device is None

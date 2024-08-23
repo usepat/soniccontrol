@@ -1,23 +1,27 @@
 import asyncio
 from pathlib import Path
 from robot.api.deco import keyword, library
+import robot.api.logger as logger
 from sonicpackage.procedures.procedure_controller import ProcedureType
 from sonicpackage.procedures.ramper import RamperArgs
 from sonicpackage.remote_controller import RemoteController
 
-@library(auto_keywords=False)
-class RemoteControllerLibrary:
+
+@library(auto_keywords=False, scope="SUITE")
+class RobotRemoteController:
     def __init__(self):
         self._controller = RemoteController()
         self._loop = asyncio.get_event_loop()
 
     @keyword('Connect via serial to')
-    def connect_via_serial(self, url: Path) -> None:
-        self._loop.run_until_complete(self._controller.connect_via_serial(url))
+    def connect_via_serial(self, url: str) -> None:
+        self._loop.run_until_complete(self._controller.connect_via_serial(Path(url)))
+        logger.info(f"Connected via serial to ${url}")
 
     @keyword('Connect via process to')
-    def connect_via_process(self, process_file: Path) -> None:
-        self._loop.run_until_complete(self._controller.connect_via_process(process_file))
+    def connect_via_process(self, process_file: str) -> None:
+        self._loop.run_until_complete(self._controller.connect_via_process(Path(process_file)))
+        logger.info(f"Connected via process to ${process_file}")
 
     @keyword('Set "${attr}" to "${val}"')
     def set_attr(self, attr: str, val: str) -> str:
@@ -36,8 +40,8 @@ class RemoteControllerLibrary:
         self._loop.run_until_complete(self._controller.execute_script(text))
     
     @keyword('Execute ramp with ')
-    def execute_ramp(self, ramp_args: RamperArgs) -> None:
-        self._controller.execute_ramp(ramp_args)
+    def execute_ramp(self, ramp_args: dict) -> None:
+        self._controller.execute_ramp(RamperArgs(**ramp_args))
 
     @keyword('Execute procedure "${procedure}" with "${args}"')
     def execute_procedure(self, procedure: ProcedureType, args: dict) -> None:
