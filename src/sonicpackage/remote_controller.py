@@ -15,13 +15,17 @@ from sonicpackage.sonicamp_ import SonicAmp
 class RemoteController:
     NOT_CONNECTED = "Controller is not connected to a device"
 
-    def __init__(self):
+    def __init__(self, log_path: Optional[Path]=None):
         self._device: Optional[SonicAmp] = None
         self._scripting: Optional[ScriptingFacade] = None
         self._proc_controller: Optional[ProcedureController] = None
+        self._log_path: Optional[Path] = log_path
 
     async def _connect(self, connection_factory: ConnectionFactory, connection_name: str):
-        logger = create_logger_for_connection(connection_name)
+        if self._log_path:
+            logger = create_logger_for_connection(connection_name, self._log_path)   
+        else:
+            logger = create_logger_for_connection(connection_name)
         serial, commands = await CommunicatorBuilder.build(
             connection_factory,
             logger=logger

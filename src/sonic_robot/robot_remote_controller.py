@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+from typing import Optional
 from robot.api.deco import keyword, library
 import robot.api.logger as logger
 from sonicpackage.procedures.procedure_controller import ProcedureType
@@ -9,8 +10,8 @@ from sonicpackage.remote_controller import RemoteController
 
 @library(auto_keywords=False, scope="SUITE")
 class RobotRemoteController:
-    def __init__(self):
-        self._controller = RemoteController()
+    def __init__(self, log_path: Optional[str] = None):
+        self._controller = RemoteController(log_path=Path(log_path) if log_path else None)
         self._loop = asyncio.get_event_loop()
 
     @keyword('Connect via serial to')
