@@ -1,7 +1,6 @@
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import attrs
-from soniccontrol_gui.constants import events
 
 
 @attrs.define
@@ -27,8 +26,10 @@ class PropertyChangeEvent(Event):
     _new_value: Any = attrs.field()
     _sender: Any = attrs.field()
 
+    PROPERTY_CHANGE_EVENT: Literal["<<PropertyChange>>"] = "<<PropertyChange>>"
+
     def __init__(self, property_name: str, old_value: Any, new_value: Any, sender: Any = None, **kwargs) -> None:
-        self.__attrs_init__(events.PROPERTY_CHANGE_EVENT, dict(**kwargs), property_name, old_value, new_value, sender) #type: ignore
+        self.__attrs_init__(PropertyChangeEvent.PROPERTY_CHANGE_EVENT, dict(**kwargs), property_name, old_value, new_value, sender) #type: ignore
 
     @property
     def property_name(self) -> str:

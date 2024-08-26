@@ -4,6 +4,8 @@ import attrs
 
 from shared.system import PLATFORM, create_appdata_directory
 from soniccontrol_gui.utils.types import ScriptingGuideCardDataDict
+from sonicpackage.events import PropertyChangeEvent
+from sonicpackage.procedures.procedure_controller import ProcedureController
 
 
 @attrs.frozen
@@ -250,9 +252,9 @@ class _Events:
     SIGNAL_OFF: Literal["<<SignalOff>>"] = "<<SignalOff>>"
     SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
     SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
-    PROPERTY_CHANGE_EVENT: Literal["<<PropertyChange>>"] = "<<PropertyChange>>"
+    PROPERTY_CHANGE_EVENT = PropertyChangeEvent.PROPERTY_CHANGE_EVENT
     PROCEDURE_RUNNING: Literal["<<ProcedureRunning>>"] = "<<ProcedureRunning>>"
-    PROCEDURE_STOPPED: Literal["<<ProcedureStopped>>"] = "<<ProcedureStopped>>"
+    PROCEDURE_STOPPED = ProcedureController.PROCEDURE_STOPPED
 
 events: Final[_Events] = _Events()
 

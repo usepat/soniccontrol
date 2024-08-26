@@ -23,6 +23,9 @@ class PackageParser:
     def parse_package(data: str) -> Package:
         regex = re.compile(r"<([^#]+)#([^#]+)#(\d+)#\d+#(.*)>", re.DOTALL)
         regex_match = re.search(regex, data)
+        if regex_match is None:
+            raise SyntaxError(f"Could not parse package: {data}")
+        
         try:
             return Package(
                 destination=regex_match.group(1),
@@ -31,7 +34,7 @@ class PackageParser:
                 content=regex_match.group(4),
             )
         except:
-            raise RuntimeError(f"Could not parse package: {data}")
+            raise SyntaxError(f"Could not parse package: {data}")
 
     @staticmethod
     def write_package(package: Package) -> str:

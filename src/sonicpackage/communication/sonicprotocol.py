@@ -74,7 +74,9 @@ class DeviceLogLevel(Enum):
     DEBUG = "DEBUG"
 
 class SonicProtocol(CommunicationProtocol):
-    def __init__(self, logger: logging.Logger):
+    LOG_PREFIX = "LOG="
+
+    def __init__(self, logger: logging.Logger = logging.getLogger()):
         self._logger: logging.Logger = logging.getLogger(logger.name + "." + SonicProtocol.__name__)
         self._device_logger: logging.Logger = logging.getLogger(logger.name + ".device")
         super().__init__()
@@ -93,7 +95,7 @@ class SonicProtocol(CommunicationProtocol):
 
     @staticmethod
     def _extract_log_level(log: str) -> int:
-        log_level_str = log[4:log.index(":")]
+        log_level_str = log[len(SonicProtocol.LOG_PREFIX):log.index(":")]
         match log_level_str:
             case DeviceLogLevel.ERROR:
                 return logging.ERROR
@@ -110,8 +112,8 @@ class SonicProtocol(CommunicationProtocol):
         lines = package.content.splitlines(keepends=True)
         answer = ""
         for line in lines:
-            if line.startswith("LOG="):
-                line = line.strip()
+            if line.startswith(SonicProtocol.LOG_PREFIX):
+                line = line.strip() # remove newline \n at the end
                 log_level = SonicProtocol._extract_log_level(line)
                 self._device_logger.log(log_level, line)
             elif line.isspace() or len(line) == 0:
