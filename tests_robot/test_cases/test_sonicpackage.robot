@@ -1,5 +1,5 @@
 *** Settings ***
-Library    sonic_robot.RobotRemoteController    log_path=./tests_robot/results    AS    RemoteController
+Library    sonic_robot.RobotRemoteController    log_path=${OUTPUT_DIR}    AS    RemoteController
 Variables    sonic_robot.variables
 
 Suite Setup    Connect to device

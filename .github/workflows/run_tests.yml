@@ -5,7 +5,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
+    
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -34,7 +36,8 @@ jobs:
           name: python-cache
           path: ~/.cache/pip
 
-  test:
+
+  unit_tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -47,3 +50,25 @@ jobs:
       - name: Run PyTest
         run: |
           pytest
+  
+
+  system_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download cache
+        uses: actions/download-artifact@v4
+        with:
+          name: python-cache
+          path: ~/.cache/pip
+
+      - name: Run Robot
+        run: /
+          robot . -d ./results
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: results
+      
