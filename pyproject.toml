@@ -34,11 +34,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 zip-safe = true
+# Include package data is needed so that the resources get shipped with the package
 include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# We use this to automatically get the version from the git tags
 [tool.setuptools-git-versioning]
 enabled = true
 
@@ -57,8 +59,9 @@ testing = [
 testpaths = ["tests"]
 
 [tool.pytest.ini_options]
+# tell the coverage tool to look how much of sonicpackage stastements was covered by the test
 addopts = [
-    "--cov=sonicpackage",
+    "--cov=sonicpackage", 
     "--import-mode=importlib"
 ]
 

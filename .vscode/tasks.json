@@ -43,7 +43,7 @@
             }
         }, 
         {
-            "label": "Run unit tests",
+            "label": "Run unit tests of current file",
             "type": "shell",
             "command": "pytest",
             "args": [
