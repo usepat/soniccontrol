@@ -23,13 +23,13 @@ For that it is needed that we can also execute the script step by step and that 
 
 There exists two versions of the parser. A old one and a new one. The new one was written after the programmer realized what the standard for writing parsers is (We all made those mistakes as beginners). However the new parser lies at the moment in its own repo and will replace the old one in the future.
 
-To make replacement easier the whole interpreter logic is hidden in the facade @ref sonicpackage.scripting.scripting_facade.ScriptingFacade .
-It provides the method @ref sonicpackage.scripting.scripting_facade.ScriptingFacade.parse_text that returns you a @ref sonicpackage.scripting.scripting_facade.Script that is an async iterator (so it can be executed step by step), that returns the line number and command name of the currently executed command.
+To make replacement easier the whole interpreter logic is hidden in the facade [LegacyScriptingFacade](@ref legacy_scripting.LegacyScriptingFacade).
+It provides the method [LegacyScriptingFacade.parse_text](@ref sonicpackage.scripting.scripting_facade.ScriptingFacade.parse_text) that returns you a [Script](@ref sonicpackage.scripting.scripting_facade.Script) that is an async iterator (so it can be executed step by step), that returns the line number and command name of the currently executed command.
 
 ### Legacy
 
-The @ref legacy_scripting.LegacyScriptingFacade uses internally the @ref sonicpackage.scripting.legacy_scripting.SonicParser to parse the text to a list of commands, arguments and loops. The loops are a list of dicts, that specify start or stop index and the quantifier (how many times to run a loop). 
-Those results are then taken by the @ref sonicpackage.scripting.legacy_scripting.LegacySequencer that is a subclass of @ref sonicpackage.scripting.scripting_facade.Script. So this is the interpreter.
+The [LegacyScriptingFacade](@ref legacy_scripting.LegacyScriptingFacade) uses internally the @ref sonicpackage.scripting.legacy_scripting.SonicParser to parse the text to a list of commands, arguments and loops. The loops are a list of dicts, that specify start or stop index and the quantifier (how many times to run a loop). 
+Those results are then taken by the [LegacySequencer](@ref sonicpackage.scripting.legacy_scripting.LegacySequencer) that is a subclass of [Script](@ref sonicpackage.scripting.scripting_facade.Script). So this is the interpreter.
 
 ### New
 

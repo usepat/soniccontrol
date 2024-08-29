@@ -15,7 +15,7 @@ Logging is implemented in sonic package like this that each class gets passed an
 
 Also the SonicControl GUI application creates an own logger for each connection. So you have normally something like `connection.class1.class2` as logger names, where class1 instantiated class2. For example `COM1.SerialCommunicator.PackageFetcher`.
 
-The log files get written into a file with the same name as the connection normally. This is defined in the method @ref sonicpackage.logging.create_logger_for_connection .
+The log files get written into a file with the same name as the connection normally. This is defined in the method [create_logger_for_connection](@ref sonicpackage.logging.create_logger_for_connection).
 
 The device can also send logs and those logged via a device logger in the @ref sonicprotocol.SonicProtocol class.
 

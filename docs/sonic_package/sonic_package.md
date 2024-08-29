@@ -11,12 +11,16 @@
 SonicPackage is the core of SonicControl.
 It contains all necessary functionality to communicate with the device, send commands and get answers, execute scripts and execute procedures.
 
+@startuml
+!include sonicpackage/class_sonic_package.puml
+@enduml
+
 ## Sonic Amp
 
 @see sonicpackage.sonicamp_.SonicAmp
 
-The SonicAmp is responsible for executing commands and then updates the @ref sonicpackage.amp_data.Status of itself. It basically represents the device and hides all the communication that occurs under the hood, so that you can program, like you execute commands on the device directly.  
-The amp has to be constructed with the @ref sonicpackage.builder.AmpBuilder after constructing the Communicator.
+The SonicAmp is responsible for executing commands and then updates the [Status](@ref sonicpackage.amp_data.Status) of itself. It basically represents the device and hides all the communication that occurs under the hood, so that you can program, like you execute commands on the device directly.  
+The amp has to be constructed with the [AmpBuilder](@ref sonicpackage.builder.AmpBuilder) after constructing the [Communicator](@ref sonicpackage.communication.communicator.Communicator).
 
 ## RemoteController
 

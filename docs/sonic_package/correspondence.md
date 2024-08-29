@@ -9,17 +9,21 @@
 
 This document describes how commands and answers are represented in code and how validation, construction, etc. works.
 
-## Commands {Commands}
+@startuml
+!include sonicpackage/class_correspondence.puml
+@enduml
+
+## Commands {#Commands}
 
 @see sonicpackage.command.Command
 
-Commands consist of a command name and optionally a command argument. You can pass them a @ref sonicpackage.communication.communicator.Communicator instance on construction that they use when executed with @ref sonicpackage.command.Command.execute or you can pass a communicator in that function. Over the Communicator they pass the command as a message. 
+Commands consist of a command name and optionally a command argument. You can pass them a  [Communicator](@ref sonicpackage.communication.communicator.Communicator) instance on construction that they use when executed with [Command.execute](@ref sonicpackage.command.Command.execute) or you can pass a communicator in that function. Over the Communicator they pass the command as a message. 
 
-Commands have one or more @ref sonicpackage.command.CommandValidator to check and parse the response they receive by the Communicator. They have internally an answer struct that will then be set with the parsed result.
+Commands have one or more [CommandValidator](@ref sonicpackage.command.CommandValidator) to check and parse the response they receive by the Communicator. They have internally an answer struct that will then be set with the parsed result.
 
 > Note: In Future there will be a refactor that will move the answer out of the command. Instead it will have a answer_factory method, and answer_validator for creating and then returning the answer
 
-## Answers {Answers}
+## Answers {#Answers}
 
 @see sonicpackage.command.Answer
 
@@ -32,7 +36,7 @@ Also it stores the full original response of the Communicator.
 ## CommandSet
 
 The legacy protocol and the new protocol use different commands and also some commands that are the same, but have different responses. Our solution to that is by separating the commands into two distinct command sets.  
-The sonicpackage.communication.communicator_builder.CommunicatorBuilder finds out which protocol gets used and returns depending on that the right Command Set and Communicator.
+The [CommunicatorBuilder](@ref sonicpackage.communication.communicator_builder.CommunicatorBuilder) finds out which protocol gets used and returns depending on that the right Command Set and Communicator.
 
 ### Generating CommandSet and Commands via SonicProtocol
 

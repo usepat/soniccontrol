@@ -83,7 +83,19 @@ We can reference pages with `@subpage` and can group them together with
 [PlantUML](https://plantuml.com/) is a markup language for generating graphs and diagrams of many kinds.
 It supports class, sequence, state, package, use cases diagrams and many more.
 
-For generating the diagrams you need to install PlantUML and specify the `PLANTUML_JAR_PATH` as an environment variable. Then you can include diagrams via `@include`.
-All puml-files need to lie inside *docs/diagrams*, because this is specified as a lookup path for doxygen.
+For generating the diagrams you need to install PlantUML and specify the `PLANTUML_JAR_PATH` as an environment variable. Then you can add diagrams directly in the doxygen comments via:
+```plantuml
+@startuml
+' diagram code...
+@enduml
+```
+or 
+```plantuml
+@startuml
+' preprocessor macro to include a puml file
+!include path/to/diagram.puml 
+@enduml
+```
+All puml-files need to lie inside *docs/diagrams*, because this is specified as a lookup path for doxygen with `PLANTUML_INCLUDE_PATH`.
 
 @}

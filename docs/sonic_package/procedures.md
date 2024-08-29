@@ -1,13 +1,23 @@
-# Procedures
+@defgroup Procedures
+@ingroup SonicPackage
+@addtogroup Procedures
+
+@{
+
+# Procedures {#Procedures}
 
 ## Brief Description
 
 Procedures are little programs that have a predefined process, that can be adjusted by parameters.  
 They set the gain and frequency on the device.
 
+@startuml
+!include sonicpackage/class_procedures.puml
+@enduml
+
 ## Use Cases
 
-Some of them are for tuning(adjust frequency), ramping (go through a range of sequences), scaning(find the peak frequency).  
+Some of the procedures are for tuning(adjust frequency), ramping (go through a range of sequences), scaning(find the peak frequency).  
 The user can define the parameters of the procedure (how long a single step takes, for example).  
 The user can select which procedures to run and can start and stop them.  
 A procedure is basically a program. It can be included in a script.  
@@ -21,8 +31,9 @@ The communication could become a bottleneck.
 
 ## Implementation
 
-On construction of the sonic amp in the sonic amp builder, we look if we get back with `?list_commands` a list that contains our procedure. Like that we can check, if the device has the procedure.  
-We make a ProcedureInstantiator, that checks on the sonic amp if it has the procedure. Internally the ProcedureInstantiator gives back than either a remote or local procedure. Both have the same interface so they can be interchanged easely. 
+On construction of [SonicAmp](@ref sonicpackage.sonicamp_.SonicAmp) in the [AmpBuilder](@ref sonicpackage.builder.AmpBuilder), we look if we get back with `?list_commands` commands that can start procedures like `!ramp` and `!tune`. Like that we can check, which procedures the device has natively.  
+We make a [ProcedureInstantiator](@ref sonicpackage.procedures.procedure_instantiator.ProcedureInstantiator), that checks on the sonic amp if it has the procedure. Internally the ProcedureInstantiator gives back than either a remote or local procedure. Both have the same [interface](@ref sonicpackage.procedures.procedure.Procedure) so they can be interchanged easely. 
 
-There exists a ProcedureController that stores all available procedures for the device and ensures that only one procedure is running at a time. The ProcedureController is used to start and stop procedures.
+There exists a [ProcedureController](@ref sonicpackage.procedures.procedure_controller.ProcedureController) that stores all available procedures for the device and ensures that only one procedure is running at a time. The ProcedureController is used to start and stop procedures.
 
+@}
