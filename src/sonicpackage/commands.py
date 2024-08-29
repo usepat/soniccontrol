@@ -1,7 +1,7 @@
 from __future__ import annotations
 import datetime
 import attrs
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from sonicpackage.command import Command, CommandValidator
 
 

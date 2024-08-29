@@ -1,0 +1,458 @@
+@startuml classes_sonicpackage
+set namespaceSeparator none
+class "AmpBuilder" as sonicpackage.builder.AmpBuilder {
+  build_amp(ser: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger) -> SonicAmp
+}
+class "Answer" as sonicpackage.command.Answer {
+  lines
+  measured_response
+  received
+  received_timestamp
+  string
+  valid
+  receive_answer(answer: Iterable[str] | str) -> None
+  reset() -> None
+}
+class "CLIConnectionFactory" as sonicpackage.communication.connection_factory.CLIConnectionFactory {
+  open_connection() -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+}
+class "Command" as sonicpackage.command.Command {
+  byte_message
+  full_message
+  status_result
+  validators
+  add_validators(validators: Union[CommandValidator, Iterable[CommandValidator]]) -> None
+  execute(argument: Any, connection: Optional[Communicator]) -> tuple[Answer, dict[str, Any]]
+  get_dict() -> dict
+  set_argument(argument: Any) -> None
+  validate() -> bool
+}
+class "CommandSet" as sonicpackage.commands.CommandSet {
+  get_atf_values
+  get_atk_values
+  get_aton_values
+  get_att_values
+  get_command_list
+  get_frequency
+  get_gain
+  get_info
+  get_pzt
+  get_status
+  get_uipt
+  set_atf1
+  set_atf2
+  set_atf3
+  set_atf4
+  set_atk1
+  set_atk2
+  set_atk3
+  set_atk4
+  set_aton1
+  set_aton2
+  set_aton3
+  set_aton4
+  set_att1
+  set_att2
+  set_att3
+  set_att4
+  set_frequency
+  set_gain
+  set_switching_frequency
+  signal_off
+  signal_on
+}
+class "CommandSetLegacy" as sonicpackage.commands.CommandSetLegacy {
+  get_atf1
+  get_atf2
+  get_atf3
+  get_att1
+  get_info
+  get_overview
+  get_sens
+  get_sens_factorised
+  get_sens_fullscale_values
+  get_status
+  get_type
+  set_analog_mode
+  set_atf1
+  set_atf2
+  set_atf3
+  set_atk1
+  set_atk2
+  set_atk3
+  set_att1
+  set_frequency
+  set_gain
+  set_khz_mode
+  set_mhz_mode
+  set_serial_mode
+  set_switching_frequency
+  signal_auto
+  signal_off
+  signal_on
+}
+class "CommandValidator" as sonicpackage.command.CommandValidator {
+  result
+  accepts(data: str) -> bool
+  generate_named_pattern(pattern: str, keywords: List[str]) -> str
+}
+class "CommunicationProtocol" as sonicpackage.communication.sonicprotocol.CommunicationProtocol {
+  end_symbol
+  major_version
+  max_bytes
+  start_symbol
+  {abstract}parse_request(request: str, request_id: int) -> Any
+  {abstract}parse_response(response: str) -> Any
+  {abstract}prot_type() -> ProtocolType
+}
+class "Communicator" as sonicpackage.interfaces.Communicator {
+  DISCONNECTED_EVENT : str
+  connection_opened
+  handshake_result
+  protocol
+  {abstract}close_communication() -> None
+  {abstract}open_communication(connection_factory: ConnectionFactory)
+  {abstract}read_message() -> str
+  {abstract}send_and_wait_for_answer(message: Sendable) -> None
+}
+class "CommunicatorBuilder" as sonicpackage.communication.communicator_builder.CommunicatorBuilder {
+  build(connection_factory: ConnectionFactory, logger: logging.Logger) -> tuple[Communicator, Union[CommandSet, CommandSetLegacy]]
+}
+class "ConnectionFactory" as sonicpackage.communication.connection_factory.ConnectionFactory {
+  {abstract}open_connection() -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+}
+class "Converter" as sonicpackage.command.Converter {
+  result
+  convert() -> Any
+}
+class "DeviceLogLevel" as sonicpackage.communication.sonicprotocol.DeviceLogLevel {
+  name
+}
+class "Event" as sonicpackage.events.Event {
+  data
+  type_
+}
+class "EventManager" as sonicpackage.events.EventManager {
+  emit(event: Event) -> None
+  subscribe(event_type: str, listener: Callable[[Event], None]) -> None
+  subscribe_property_listener(property_name: str, listener: Callable[[PropertyChangeEvent], None]) -> None
+}
+class "FirmwareFlasher" as sonicpackage.interfaces.FirmwareFlasher {
+  {abstract}flash_firmware() -> None
+}
+class "Holder" as sonicpackage.procedures.holder.Holder {
+  execute(args: HolderArgs) -> None
+}
+class "HolderArgs" as sonicpackage.procedures.holder.HolderArgs {
+  unit : Literal
+}
+class "Info" as sonicpackage.amp_data.Info {
+  firmware_info
+  update() -> Info
+}
+class "LegacyFirmwareFlasher" as sonicpackage.flashing.firmware_flasher.LegacyFirmwareFlasher {
+  file_uploaded
+  file_validated
+  flash_command(test_mode: bool) -> str
+  flash_firmware() -> None
+  upload_firmware() -> None
+  validate_firmware() -> None
+}
+class "LegacyScriptingFacade" as sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade {
+  lint_text(text: str) -> str
+  parse_script(text: str) -> LegacySequencer
+}
+class "LegacySequencer" as sonicpackage.scripting.legacy_scripting.LegacySequencer {
+  current_line
+  current_task
+  is_finished
+  endloop_response() -> None
+  execute_command(line: int) -> None
+  startloop_response() -> None
+}
+class "LegacySerialCommunicator" as sonicpackage.communication.serial_communicator.LegacySerialCommunicator {
+  BAUDRATE : int
+  connection_closed
+  connection_opened
+  handshake_result
+  protocol
+  close_communication() -> None
+  open_communication(connection_factory: ConnectionFactory) -> None
+  read_long_message(response_time: float, reading_time: float) -> List[str]
+  read_message() -> str
+  send_and_wait_for_answer(command: Command) -> None
+}
+class "LegacySonicProtocol" as sonicpackage.communication.sonicprotocol.LegacySonicProtocol {
+  end_symbol
+  major_version
+  max_bytes
+  start_symbol
+  parse_request(request: str, request_id: int) -> Any
+  parse_response(response: str) -> str
+  {abstract}prot_type() -> ProtocolType
+}
+class "Modules" as sonicpackage.amp_data.Modules {
+  from_string(module_string: str) -> Modules
+}
+class "Package" as sonicpackage.communication.package_parser.Package {
+  content : str
+  destination : str
+  identifier : int
+  length
+  source : str
+}
+class "PackageFetcher" as sonicpackage.communication.package_fetcher.PackageFetcher {
+  is_running
+  get_answer_of_package(package_id: int) -> str
+  pop_message() -> str
+  run() -> None
+  stop() -> None
+}
+class "PackageParser" as sonicpackage.communication.package_parser.PackageParser {
+  end_symbol : str
+  max_bytes : int
+  start_symbol : str
+  parse_package(data: str) -> Package
+  write_package(package: Package) -> str
+}
+class "ParsingError" as sonicpackage.scripting.scripting_facade.ParsingError {
+}
+class "Procedure" as sonicpackage.procedures.procedure.Procedure {
+  {abstract}execute(device: Scriptable, args: Any) -> None
+  {abstract}get_args_class() -> Type
+}
+class "ProcedureController" as sonicpackage.procedures.procedure_controller.ProcedureController {
+  PROCEDURE_STOPPED : Literal['<<ProcedureStopped>>']
+  is_proc_running
+  proc_args_list
+  running_proc_type
+  execute_proc(proc_type: ProcedureType, args: Any) -> None
+  ramp_freq(freq_center: int, half_range: int, step: int, hold_on_time: float, hold_on_unit: Literal['ms', 's'], hold_off_time: float, hold_off_unit: Literal['ms', 's']) -> None
+  ramp_freq_range(start: int, stop: int, step: int, hold_on_time: float, hold_on_unit: Literal['ms', 's'], hold_off_time: float, hold_off_unit: Literal['ms', 's']) -> None
+  stop_proc() -> None
+}
+class "ProcedureInstantiator" as sonicpackage.procedures.procedure_instantiator.ProcedureInstantiator {
+  instantiate_ramp(device: SonicAmp) -> Optional[Ramper]
+}
+class "ProcedureType" as sonicpackage.procedures.procedure_controller.ProcedureType {
+  name
+}
+class "PropertyChangeEvent" as sonicpackage.events.PropertyChangeEvent {
+  PROPERTY_CHANGE_EVENT : Literal['<<PropertyChange>>']
+  new_value
+  old_value
+  property_name
+  sender
+}
+class "ProtocolType" as sonicpackage.communication.sonicprotocol.ProtocolType {
+  name
+}
+class "Ramper" as sonicpackage.procedures.ramper.Ramper {
+  get_args_class() -> Type
+}
+class "RamperArgs" as sonicpackage.procedures.ramper.RamperArgs {
+}
+class "RamperLocal" as sonicpackage.procedures.ramper.RamperLocal {
+  execute(device: Scriptable, args: RamperArgs) -> None
+}
+class "RamperRemote" as sonicpackage.procedures.ramper.RamperRemote {
+  execute(device: Scriptable, args: RamperArgs) -> None
+}
+class "RemoteController" as sonicpackage.remote_controller.RemoteController {
+  NOT_CONNECTED : str
+  connect_via_process(process_file: Path) -> None
+  connect_via_serial(url: Path) -> None
+  disconnect() -> None
+  execute_procedure(procedure: ProcedureType, args: dict) -> None
+  execute_ramp(ramp_args: RamperArgs) -> None
+  execute_script(text: str) -> None
+  get_attr(attr: str) -> str
+  send_command(command_str: str) -> str
+  set_attr(attr: str, val: str) -> str
+  stop_procedure() -> None
+}
+class "Script" as sonicpackage.scripting.scripting_facade.Script {
+  current_line
+  current_task
+  is_finished
+}
+class "ScriptError" as sonicpackage.scripting.scripting_facade.ScriptError {
+}
+class "Scriptable" as sonicpackage.interfaces.Scriptable {
+  {abstract}execute_command() -> None
+  {abstract}get_overview() -> None
+  {abstract}get_remote_proc_finished_event() -> asyncio.Event
+  {abstract}set_signal_off() -> None
+  {abstract}set_signal_on() -> None
+}
+class "ScriptingFacade" as sonicpackage.scripting.scripting_facade.ScriptingFacade {
+  {abstract}lint_text(text: str) -> str
+  {abstract}parse_script(text: str) -> Script
+}
+class "Sendable" as sonicpackage.interfaces.Sendable {
+  byte_message
+}
+class "SerialCommunicator" as sonicpackage.communication.serial_communicator.SerialCommunicator {
+  BAUDRATE : int
+  connection_opened
+  handshake_result
+  protocol
+  close_communication() -> None
+  open_communication(connection_factory: ConnectionFactory, loop) -> None
+  read_message() -> str
+  send_and_wait_for_answer(command: Command) -> None
+}
+class "SerialConnectionFactory" as sonicpackage.communication.connection_factory.SerialConnectionFactory {
+  open_connection() -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+}
+class "SonicAmp" as sonicpackage.sonicamp_.SonicAmp {
+  commands
+  info
+  serial
+  status
+  add_command(message: Union[str, Command], validators: Optional[CommandValitors]) -> None
+  add_commands(commands: Iterable[Command]) -> None
+  disconnect() -> None
+  execute_command(message: Union[str, Command], argument: Any) -> str
+  get_atf(index: int) -> str
+  get_att(index: int) -> str
+  get_help() -> str
+  get_info() -> str
+  get_overview() -> str
+  get_remote_proc_finished_event() -> asyncio.Event
+  get_sens() -> str
+  get_status() -> str
+  get_type() -> str
+  has_command(command: Union[str, Command]) -> bool
+  send_message(message: str, argument: Any) -> str
+  set_analog_mode() -> str
+  set_atf(index: int, frequency: int) -> str
+  set_atk(index: int, coefficient: float) -> str
+  set_aton(index: int, time_ms: int) -> str
+  set_att(index: int, temperature: float) -> str
+  set_frequency(frequency: int) -> str
+  set_gain(gain: int) -> str
+  set_relay_mode_khz() -> str
+  set_relay_mode_mhz() -> str
+  set_serial_mode() -> str
+  set_signal_auto() -> str
+  set_signal_off() -> str
+  set_signal_on() -> str
+  set_switching_frequency(frequency: int) -> str
+}
+class "SonicParser" as sonicpackage.scripting.legacy_scripting.SonicParser {
+  SUPPORTED_TOKENS : List[str]
+  check_syntax_acception(loops, commands, arguments) -> None
+  parse_for_loops(commands: list[str], arguments: list[Union[str, int]]) -> tuple[dict[str, int], ...]
+  parse_lines(lines: list[str]) -> tuple[Any, ...]
+  parse_text(text: str) -> dict[str, Union[tuple[Any, ...], str]]
+  values_correctly_converted(arg: Union[int, tuple[Union[int, str], ...]]) -> bool
+}
+class "SonicProtocol" as sonicpackage.communication.sonicprotocol.SonicProtocol {
+  LOG_PREFIX : str
+  end_symbol
+  major_version
+  max_bytes
+  start_symbol
+  parse_request(request: str, request_id: int) -> str
+  parse_response(response: str) -> tuple[int, str]
+  {abstract}prot_type() -> ProtocolType
+}
+class "Status" as sonicpackage.amp_data.Status {
+  changed
+  changed_data
+  remote_proc_finished_running
+  version
+  get_dict() -> dict
+  update() -> Status
+}
+sonicpackage.command.Command --|> sonicpackage.interfaces.Sendable
+sonicpackage.communication.connection_factory.CLIConnectionFactory --|> sonicpackage.communication.connection_factory.ConnectionFactory
+sonicpackage.communication.connection_factory.SerialConnectionFactory --|> sonicpackage.communication.connection_factory.ConnectionFactory
+sonicpackage.communication.serial_communicator.LegacySerialCommunicator --|> sonicpackage.interfaces.Communicator
+sonicpackage.communication.serial_communicator.SerialCommunicator --|> sonicpackage.interfaces.Communicator
+sonicpackage.communication.sonicprotocol.LegacySonicProtocol --|> sonicpackage.communication.sonicprotocol.CommunicationProtocol
+sonicpackage.communication.sonicprotocol.SonicProtocol --|> sonicpackage.communication.sonicprotocol.CommunicationProtocol
+sonicpackage.events.PropertyChangeEvent --|> sonicpackage.events.Event
+sonicpackage.flashing.firmware_flasher.LegacyFirmwareFlasher --|> sonicpackage.interfaces.FirmwareFlasher
+sonicpackage.interfaces.Communicator --|> sonicpackage.events.EventManager
+sonicpackage.procedures.procedure_controller.ProcedureController --|> sonicpackage.events.EventManager
+sonicpackage.procedures.ramper.Ramper --|> sonicpackage.procedures.procedure.Procedure
+sonicpackage.procedures.ramper.RamperLocal --|> sonicpackage.procedures.ramper.Ramper
+sonicpackage.procedures.ramper.RamperRemote --|> sonicpackage.procedures.ramper.Ramper
+sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade --|> sonicpackage.scripting.scripting_facade.ScriptingFacade
+sonicpackage.scripting.legacy_scripting.LegacySequencer --|> sonicpackage.scripting.scripting_facade.Script
+sonicpackage.sonicamp_.SonicAmp --|> sonicpackage.interfaces.Scriptable
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_frequency
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_gain
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_switching_frequency
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_info
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_command_list
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_status
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : signal_on
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : signal_off
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_frequency
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_gain
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_uipt
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_pzt
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_atf_values
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_atk_values
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_att_values
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : get_aton_values
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atf1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atf2
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atf3
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atf4
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_aton1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_aton2
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_aton3
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_aton4
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atk1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atk2
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atk3
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_atk4
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_att1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_att2
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_att3
+sonicpackage.command.Command --* sonicpackage.commands.CommandSet : set_att4
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_overview
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_type
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_info
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_frequency
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_gain
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_switching_frequency
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_status
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_sens
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_sens_factorised
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_sens_fullscale_values
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : signal_on
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : signal_off
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : signal_auto
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_serial_mode
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_analog_mode
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_khz_mode
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_mhz_mode
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_atf1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_atf1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_atk1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_atf2
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_atf2
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_atk2
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_atf3
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_atf3
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_atk3
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : set_att1
+sonicpackage.command.Command --* sonicpackage.commands.CommandSetLegacy : get_att1
+sonicpackage.communication.package_fetcher.PackageFetcher --* sonicpackage.communication.serial_communicator.SerialCommunicator : _package_fetcher
+sonicpackage.communication.sonicprotocol.CommunicationProtocol --* sonicpackage.communication.serial_communicator.LegacySerialCommunicator : _protocol
+sonicpackage.communication.sonicprotocol.CommunicationProtocol --* sonicpackage.communication.serial_communicator.SerialCommunicator : _protocol
+sonicpackage.communication.sonicprotocol.SonicProtocol --* sonicpackage.communication.serial_communicator.SerialCommunicator : _protocol
+sonicpackage.procedures.procedure_controller.ProcedureController --* sonicpackage.remote_controller.RemoteController : _proc_controller
+sonicpackage.procedures.procedure_controller.ProcedureController --* sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade : _proc_controller
+sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade --* sonicpackage.remote_controller.RemoteController : _scripting
+sonicpackage.scripting.legacy_scripting.SonicParser --* sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade : _parser
+sonicpackage.communication.sonicprotocol.SonicProtocol --o sonicpackage.communication.package_fetcher.PackageFetcher : _protocol
+sonicpackage.procedures.procedure_controller.ProcedureType --o sonicpackage.procedures.procedure_controller.ProcedureController : _running_proc_type
+sonicpackage.sonicamp_.SonicAmp --o sonicpackage.procedures.procedure_controller.ProcedureController : _device
+sonicpackage.sonicamp_.SonicAmp --o sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade : _device
+@enduml

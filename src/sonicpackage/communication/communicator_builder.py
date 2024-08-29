@@ -1,10 +1,9 @@
-import asyncio
 import logging
 from typing import Union
 
 from sonicpackage.commands import CommandSet, CommandSetLegacy
 from sonicpackage.communication.connection_factory import ConnectionFactory
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from sonicpackage.communication.serial_communicator import (
     LegacySerialCommunicator,
     SerialCommunicator,

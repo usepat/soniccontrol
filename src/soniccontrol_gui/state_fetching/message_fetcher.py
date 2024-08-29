@@ -1,6 +1,6 @@
 import asyncio
 from typing import Optional
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from sonicpackage.events import Event, EventManager
 
 

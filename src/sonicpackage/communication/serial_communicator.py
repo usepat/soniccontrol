@@ -1,7 +1,5 @@
 import asyncio
 import logging
-import sys
-import traceback
 import time
 from typing import Any, Dict, Final, Optional, List
 
@@ -9,9 +7,8 @@ import attrs
 import serial
 from sonicpackage.communication.connection_factory import ConnectionFactory, SerialConnectionFactory
 from sonicpackage.communication.package_fetcher import PackageFetcher
-from icecream import ic
 from sonicpackage.command import Command, CommandValidator
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from sonicpackage.communication.sonicprotocol import CommunicationProtocol, LegacySonicProtocol, SonicProtocol
 from sonicpackage.events import Event
 from shared.system import PLATFORM
