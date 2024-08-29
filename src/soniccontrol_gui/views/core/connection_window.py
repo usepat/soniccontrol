@@ -11,7 +11,7 @@ from soniccontrol_gui.view import View
 from sonicpackage.builder import AmpBuilder
 from sonicpackage.communication.communicator_builder import CommunicatorBuilder
 from sonicpackage.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from sonicpackage.communication.serial_communicator import LegacySerialCommunicator
 from sonicpackage.sonicamp_ import SonicAmp
 from sonicpackage.logging import create_logger_for_connection

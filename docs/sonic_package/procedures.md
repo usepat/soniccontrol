@@ -22,4 +22,7 @@ The communication could become a bottleneck.
 ## Implementation
 
 On construction of the sonic amp in the sonic amp builder, we look if we get back with `?list_commands` a list that contains our procedure. Like that we can check, if the device has the procedure.  
-We make a procedure instantiator, that checks on the sonic amp if it has the procedure. Internally the procedure instantiator gives back than either a remote or local procedure. Both have the same interface so they can be interchanged easely.  
+We make a ProcedureInstantiator, that checks on the sonic amp if it has the procedure. Internally the ProcedureInstantiator gives back than either a remote or local procedure. Both have the same interface so they can be interchanged easely. 
+
+There exists a ProcedureController that stores all available procedures for the device and ensures that only one procedure is running at a time. The ProcedureController is used to start and stop procedures.
+

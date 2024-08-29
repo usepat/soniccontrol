@@ -1,0 +1,118 @@
+@startuml packages_sonicpackage
+set namespaceSeparator none
+package "sonicpackage" as sonicpackage {
+}
+package "sonicpackage.amp_data" as sonicpackage.amp_data {
+}
+package "sonicpackage.builder" as sonicpackage.builder {
+}
+package "sonicpackage.command" as sonicpackage.command {
+}
+package "sonicpackage.commands" as sonicpackage.commands {
+}
+package "sonicpackage.communication" as sonicpackage.communication {
+}
+package "sonicpackage.communication.communicator_builder" as sonicpackage.communication.communicator_builder {
+}
+package "sonicpackage.communication.connection_factory" as sonicpackage.communication.connection_factory {
+}
+package "sonicpackage.communication.package_fetcher" as sonicpackage.communication.package_fetcher {
+}
+package "sonicpackage.communication.package_parser" as sonicpackage.communication.package_parser {
+}
+package "sonicpackage.communication.serial_communicator" as sonicpackage.communication.serial_communicator {
+}
+package "sonicpackage.communication.sonicprotocol" as sonicpackage.communication.sonicprotocol {
+}
+package "sonicpackage.events" as sonicpackage.events {
+}
+package "sonicpackage.flashing" as sonicpackage.flashing {
+}
+package "sonicpackage.flashing.firmware_flasher" as sonicpackage.flashing.firmware_flasher {
+}
+package "sonicpackage.interfaces" as sonicpackage.interfaces {
+}
+package "sonicpackage.logging" as sonicpackage.logging {
+}
+package "sonicpackage.procedures" as sonicpackage.procedures {
+}
+package "sonicpackage.procedures.holder" as sonicpackage.procedures.holder {
+}
+package "sonicpackage.procedures.procedure" as sonicpackage.procedures.procedure {
+}
+package "sonicpackage.procedures.procedure_controller" as sonicpackage.procedures.procedure_controller {
+}
+package "sonicpackage.procedures.procedure_instantiator" as sonicpackage.procedures.procedure_instantiator {
+}
+package "sonicpackage.procedures.ramper" as sonicpackage.procedures.ramper {
+}
+package "sonicpackage.remote_controller" as sonicpackage.remote_controller {
+}
+package "sonicpackage.scripting" as sonicpackage.scripting {
+}
+package "sonicpackage.scripting.legacy_scripting" as sonicpackage.scripting.legacy_scripting {
+}
+package "sonicpackage.scripting.scripting_facade" as sonicpackage.scripting.scripting_facade {
+}
+package "sonicpackage.sonicamp_" as sonicpackage.sonicamp_ {
+}
+sonicpackage.builder --> sonicpackage.command
+sonicpackage.builder --> sonicpackage.commands
+sonicpackage.builder --> sonicpackage.interfaces
+sonicpackage.builder --> sonicpackage.logging
+sonicpackage.builder --> sonicpackage.sonicamp_
+sonicpackage.command --> sonicpackage.interfaces
+sonicpackage.command --> sonicpackage.logging
+sonicpackage.commands --> sonicpackage.command
+sonicpackage.commands --> sonicpackage.interfaces
+sonicpackage.communication.communicator_builder --> sonicpackage.commands
+sonicpackage.communication.communicator_builder --> sonicpackage.communication.connection_factory
+sonicpackage.communication.communicator_builder --> sonicpackage.communication.serial_communicator
+sonicpackage.communication.communicator_builder --> sonicpackage.interfaces
+sonicpackage.communication.package_fetcher --> sonicpackage.communication.sonicprotocol
+sonicpackage.communication.serial_communicator --> sonicpackage.command
+sonicpackage.communication.serial_communicator --> sonicpackage.communication.connection_factory
+sonicpackage.communication.serial_communicator --> sonicpackage.communication.package_fetcher
+sonicpackage.communication.serial_communicator --> sonicpackage.communication.sonicprotocol
+sonicpackage.communication.serial_communicator --> sonicpackage.events
+sonicpackage.communication.serial_communicator --> sonicpackage.interfaces
+sonicpackage.communication.sonicprotocol --> sonicpackage.communication.package_parser
+sonicpackage.flashing.firmware_flasher --> sonicpackage
+sonicpackage.flashing.firmware_flasher --> sonicpackage.interfaces
+sonicpackage.interfaces --> sonicpackage.communication.connection_factory
+sonicpackage.interfaces --> sonicpackage.communication.sonicprotocol
+sonicpackage.interfaces --> sonicpackage.events
+sonicpackage.procedures.procedure --> sonicpackage.interfaces
+sonicpackage.procedures.procedure_controller --> sonicpackage.events
+sonicpackage.procedures.procedure_controller --> sonicpackage.logging
+sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.holder
+sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.procedure
+sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.procedure_instantiator
+sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.ramper
+sonicpackage.procedures.procedure_controller --> sonicpackage.sonicamp_
+sonicpackage.procedures.procedure_instantiator --> sonicpackage.procedures.ramper
+sonicpackage.procedures.procedure_instantiator --> sonicpackage.sonicamp_
+sonicpackage.procedures.ramper --> sonicpackage.interfaces
+sonicpackage.procedures.ramper --> sonicpackage.procedures.holder
+sonicpackage.procedures.ramper --> sonicpackage.procedures.procedure
+sonicpackage.remote_controller --> sonicpackage.builder
+sonicpackage.remote_controller --> sonicpackage.communication.communicator_builder
+sonicpackage.remote_controller --> sonicpackage.communication.connection_factory
+sonicpackage.remote_controller --> sonicpackage.logging
+sonicpackage.remote_controller --> sonicpackage.procedures.procedure_controller
+sonicpackage.remote_controller --> sonicpackage.procedures.ramper
+sonicpackage.remote_controller --> sonicpackage.scripting.legacy_scripting
+sonicpackage.remote_controller --> sonicpackage.scripting.scripting_facade
+sonicpackage.remote_controller --> sonicpackage.sonicamp_
+sonicpackage.scripting.legacy_scripting --> sonicpackage.logging
+sonicpackage.scripting.legacy_scripting --> sonicpackage.procedures.holder
+sonicpackage.scripting.legacy_scripting --> sonicpackage.procedures.procedure_controller
+sonicpackage.scripting.legacy_scripting --> sonicpackage.scripting.scripting_facade
+sonicpackage.scripting.legacy_scripting --> sonicpackage.sonicamp_
+sonicpackage.sonicamp_ --> sonicpackage.amp_data
+sonicpackage.sonicamp_ --> sonicpackage.commands
+sonicpackage.sonicamp_ --> sonicpackage.communication.serial_communicator
+sonicpackage.sonicamp_ --> sonicpackage.interfaces
+sonicpackage.sonicamp_ --> sonicpackage.logging
+sonicpackage.sonicamp_ --> sonicpackage.procedures.ramper
+@enduml

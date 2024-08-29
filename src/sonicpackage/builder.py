@@ -3,7 +3,7 @@ from typing import Any, Dict, Tuple, Union
 
 from sonicpackage.command import Answer
 from sonicpackage.commands import CommandSet, CommandSetLegacy
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from sonicpackage.sonicamp_ import (
     Command,
     Info,
