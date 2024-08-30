@@ -19,6 +19,10 @@ class "Animator" as soniccontrol_gui.utils.animator.Animator {
   run_as_load_animation_for_task(task: asyncio.Task) -> None
   stop() -> None
 }
+class "AppState" as soniccontrol_gui.views.core.app_state.AppState {
+  EXECUTION_STATE_PROP_NAME : str
+  execution_state
+}
 class "ButtonStyle" as soniccontrol_gui.widgets.pushbutton.ButtonStyle {
   name
 }
@@ -61,6 +65,25 @@ class "ConfigurationView" as soniccontrol_gui.views.configuration.configuration.
   set_transducer_config_menu_items(items: Iterable[str]) -> None
   set_transducer_config_selected_command(command: Callable[[], None]) -> None
 }
+class "ConnectionWindow" as soniccontrol_gui.views.core.connection_window.ConnectionWindow {
+  is_connecting
+}
+class "ConnectionWindowView" as soniccontrol_gui.views.core.connection_window.ConnectionWindowView {
+  loading_text
+  enable_connect_to_simulation_button(enabled: bool) -> None
+  enable_connect_via_url_button(enabled: bool) -> None
+  get_url() -> str
+  set_connect_to_simulation_button_command(command: Callable[[], None]) -> None
+  set_connect_via_url_button_command(command: Callable[[], None]) -> None
+  set_ports(ports: List[str]) -> None
+  set_refresh_button_command(command: Callable[[], None]) -> None
+}
+class "CsvTable" as soniccontrol_gui.views.measure.csv_table.CsvTable {
+  on_update_data(e: PropertyChangeEvent)
+}
+class "CsvTableView" as soniccontrol_gui.views.measure.csv_table.CsvTableView {
+  set_csv_data(col_data: list, row_data: list) -> None
+}
 class "CsvWriter" as soniccontrol_gui.state_fetching.csv_writer.CsvWriter {
   close_file()
   open_file(filename: str, header: List[str])
@@ -74,6 +97,22 @@ class "DebounceJob" as soniccontrol_gui.utils.debounce_job.DebounceJob {
 }
 class "DeviceLogFilter" as soniccontrol_gui.state_fetching.logger.DeviceLogFilter {
   filter(record) -> bool
+}
+class "DeviceWindow" as soniccontrol_gui.views.core.device_window.DeviceWindow {
+  CLOSE_EVENT : str
+  close() -> None
+  on_disconnect() -> None
+}
+class "DeviceWindowManager" as soniccontrol_gui.views.core.connection_window.DeviceWindowManager {
+  open_known_device_window(sonicamp: SonicAmp, connection_name: str) -> DeviceWindow
+  open_rescue_window(communicator: Communicator, connection_name: str) -> DeviceWindow
+}
+class "DeviceWindowView" as soniccontrol_gui.views.core.device_window.DeviceWindowView {
+  is_open
+  status_bar_slot
+  add_close_callback(callback: Callable[[], None]) -> None
+  add_tab_views(tab_views: List[TabView])
+  close() -> None
 }
 class "Document" as soniccontrol_gui.widgets.document.Document {
 }
@@ -100,6 +139,9 @@ class "EditorView" as soniccontrol_gui.views.control.editor.EditorView {
 }
 class "Entry" as soniccontrol_gui.widgets.entry.Entry {
   placeholder
+}
+class "ExecutionState" as soniccontrol_gui.views.core.app_state.ExecutionState {
+  name
 }
 class "FileBrowseButtonView" as soniccontrol_gui.widgets.file_browse_button.FileBrowseButtonView {
   path
@@ -173,6 +215,8 @@ class "IntFieldView" as soniccontrol_gui.widgets.procedure_widget.IntFieldView {
 class "InterpreterState" as soniccontrol_gui.views.control.editor.InterpreterState {
   name
 }
+class "KnownDeviceWindow" as soniccontrol_gui.views.core.device_window.KnownDeviceWindow {
+}
 class "LogStorage" as soniccontrol_gui.state_fetching.logger.LogStorage {
   logs
   create_log_handler() -> LogStorageHandler
@@ -244,6 +288,14 @@ class "PlotBuilder" as soniccontrol_gui.utils.plotlib.plot_builder.PlotBuilder {
   create_spectralplot_uip(subplot: matplotlib.axes.Axes) -> Plot
   create_timeplot_fuip(subplot: matplotlib.axes.Axes) -> Plot
 }
+class "Plotting" as soniccontrol_gui.views.measure.plotting.Plotting {
+  create_toggle_line_callback(attrName: str)
+}
+class "PlottingView" as soniccontrol_gui.views.measure.plotting.PlottingView {
+  add_line(attrName: str, line_label: str, toggle_command: Callable[[], None]) -> None
+  get_line_visibility(attrName: str) -> bool
+  update_plot()
+}
 class "ProcControlling" as soniccontrol_gui.views.control.proc_controlling.ProcControlling {
   on_procedure_running(e: Event)
   on_procedure_stopped(_e: Event)
@@ -273,6 +325,8 @@ class "ProcedureWidgetView" as soniccontrol_gui.widgets.procedure_widget.Procedu
 }
 class "PushButtonView" as soniccontrol_gui.widgets.pushbutton.PushButtonView {
   configure(label: str, style: ButtonStyle, image: Optional[Tuple[Path, Tuple[int, int]]], command: Optional[Callable[[], None]], enabled: Optional[bool])
+}
+class "RescueWindow" as soniccontrol_gui.views.core.device_window.RescueWindow {
 }
 class "ResponsiveLabel" as soniccontrol_gui.widgets.responsive_label.ResponsiveLabel {
   adapt(event: ttk.tk.Event) -> None
@@ -311,9 +365,38 @@ class "SerialMonitorView" as soniccontrol_gui.views.control.serialmonitor.Serial
 }
 class "SingletonMeta" as soniccontrol_gui.utils.image_loader.SingletonMeta {
 }
+class "SonicMeasure" as soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure {
+  on_status_update(status: Status)
+}
+class "SonicMeasureView" as soniccontrol_gui.views.measure.sonicmeasure.SonicMeasureView {
+  image
+  tab_title
+  add_tabs(tabs: Dict[str, View]) -> None
+  set_capture_button_command(command)
+  set_capture_button_label(label: str)
+}
 class "Spinbox" as soniccontrol_gui.widgets.spinbox.Spinbox {
   placeholder
   activate_placeholder() -> None
+}
+class "StatusBar" as soniccontrol_gui.views.core.status.StatusBar {
+  on_expand_status_panel() -> None
+  on_update_status(status: Status)
+}
+class "StatusBarView" as soniccontrol_gui.views.core.status.StatusBarView {
+  panel_frame
+  expand_panel_frame(expand: bool) -> None
+  on_script_start() -> None
+  on_script_stop() -> None
+  set_status_clicked_command(command: Callable[[], None]) -> None
+  update_labels(mode: str, freq: str, gain: str, temp: str, urms: str, irms: str, phase: str, signal: str)
+}
+class "StatusPanel" as soniccontrol_gui.views.core.status.StatusPanel {
+  on_update_status(status: Status)
+}
+class "StatusPanelView" as soniccontrol_gui.views.core.status.StatusPanelView {
+  set_signal_image(image_path: Path, sizing: Tuple[int, int]) -> None
+  update_stats(freq: float, gain: float, temp: float, urms: str, irms: str, phase: str, signal: str)
 }
 class "TabView" as soniccontrol_gui.view.TabView {
   image
@@ -604,10 +687,25 @@ soniccontrol_gui.views.control.proc_controlling.ProcControlling --|> soniccontro
 soniccontrol_gui.views.control.proc_controlling.ProcControllingView --|> soniccontrol_gui.view.TabView
 soniccontrol_gui.views.control.serialmonitor.SerialMonitor --|> soniccontrol_gui.ui_component.UIComponent
 soniccontrol_gui.views.control.serialmonitor.SerialMonitorView --|> soniccontrol_gui.view.TabView
+soniccontrol_gui.views.core.connection_window.ConnectionWindow --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.core.connection_window.ConnectionWindowView --|> soniccontrol_gui.view.View
+soniccontrol_gui.views.core.device_window.DeviceWindow --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.core.device_window.KnownDeviceWindow --|> soniccontrol_gui.views.core.device_window.DeviceWindow
+soniccontrol_gui.views.core.device_window.RescueWindow --|> soniccontrol_gui.views.core.device_window.DeviceWindow
+soniccontrol_gui.views.core.status.StatusBar --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.core.status.StatusBarView --|> soniccontrol_gui.view.View
+soniccontrol_gui.views.core.status.StatusPanel --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.core.status.StatusPanelView --|> soniccontrol_gui.view.View
 soniccontrol_gui.views.home.Home --|> soniccontrol_gui.ui_component.UIComponent
 soniccontrol_gui.views.home.HomeView --|> soniccontrol_gui.view.TabView
 soniccontrol_gui.views.info.Info --|> soniccontrol_gui.ui_component.UIComponent
 soniccontrol_gui.views.info.InfoView --|> soniccontrol_gui.view.TabView
+soniccontrol_gui.views.measure.csv_table.CsvTable --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.measure.csv_table.CsvTableView --|> soniccontrol_gui.view.TabView
+soniccontrol_gui.views.measure.plotting.Plotting --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.measure.plotting.PlottingView --|> soniccontrol_gui.view.View
+soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.measure.sonicmeasure.SonicMeasureView --|> soniccontrol_gui.view.TabView
 soniccontrol_gui.widgets.document.Document --|> soniccontrol_gui.ui_component.UIComponent
 soniccontrol_gui.widgets.document.DocumentView --|> soniccontrol_gui.view.View
 soniccontrol_gui.widgets.file_browse_button.FileBrowseButtonView --|> soniccontrol_gui.view.View
@@ -616,14 +714,21 @@ soniccontrol_gui.widgets.procedure_widget.IntFieldView --|> soniccontrol_gui.vie
 soniccontrol_gui.widgets.procedure_widget.ProcedureWidget --|> soniccontrol_gui.ui_component.UIComponent
 soniccontrol_gui.widgets.procedure_widget.ProcedureWidgetView --|> soniccontrol_gui.view.View
 soniccontrol_gui.widgets.procedure_widget.TimeFieldView --|> soniccontrol_gui.view.View
+soniccontrol_gui.state_fetching.capture.Capture --* soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure : _capture
 soniccontrol_gui.state_fetching.csv_writer.CsvWriter --* soniccontrol_gui.state_fetching.capture.Capture : _csv_data_collector
 soniccontrol_gui.state_fetching.data_provider.DataProvider --* soniccontrol_gui.state_fetching.capture.Capture : _data_provider
 soniccontrol_gui.state_fetching.logger.LogStorage --* soniccontrol_gui.views.control.logging.Logging : _app_logStorage
 soniccontrol_gui.state_fetching.logger.LogStorage --* soniccontrol_gui.views.control.logging.Logging : _device_logStorage
+soniccontrol_gui.state_fetching.logger.LogStorage --* soniccontrol_gui.views.core.device_window.RescueWindow : _logStorage
 soniccontrol_gui.state_fetching.message_fetcher.MessageFetcher --* soniccontrol_gui.views.control.serialmonitor.SerialMonitor : _message_fetcher
+soniccontrol_gui.state_fetching.updater.Updater --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _updater
 soniccontrol_gui.utils.animator.Animator --* soniccontrol_gui.views.control.serialmonitor.SerialMonitor : _animation
 soniccontrol_gui.utils.observable_list.ObservableList --* soniccontrol_gui.state_fetching.logger.LogStorage : _logs
+soniccontrol_gui.utils.plotlib.plot.Plot --* soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure : _timeplot
+soniccontrol_gui.utils.plotlib.plot.Plot --* soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure : _spectralplot
+soniccontrol_gui.views.configuration.configuration.Configuration --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _configuration
 soniccontrol_gui.views.configuration.configuration.ConfigurationView --* soniccontrol_gui.views.configuration.configuration.Configuration : _view
+soniccontrol_gui.views.configuration.flashing.Flashing --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _flashing
 soniccontrol_gui.views.configuration.flashing.FlashingView --* soniccontrol_gui.views.configuration.flashing.Flashing : _view
 soniccontrol_gui.views.configuration.transducer_configs.ATConfig --* soniccontrol_gui.views.configuration.transducer_configs.ATConfigSchema.Meta : target
 soniccontrol_gui.views.configuration.transducer_configs.ATConfigFrameView --* soniccontrol_gui.views.configuration.transducer_configs.ATConfigFrame : _view
@@ -631,20 +736,45 @@ soniccontrol_gui.views.configuration.transducer_configs.Config --* soniccontrol_
 soniccontrol_gui.views.configuration.transducer_configs.Config --* soniccontrol_gui.views.configuration.transducer_configs.ConfigSchema.Meta : target
 soniccontrol_gui.views.configuration.transducer_configs.ConfigSchema --* soniccontrol_gui.views.configuration.configuration.Configuration : _config_schema
 soniccontrol_gui.views.configuration.transducer_configs.TransducerConfig --* soniccontrol_gui.views.configuration.transducer_configs.TransducerConfigSchema.Meta : target
+soniccontrol_gui.views.control.editor.Editor --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _editor
 soniccontrol_gui.views.control.editor.EditorView --* soniccontrol_gui.views.control.editor.Editor : _view
 soniccontrol_gui.views.control.editor.ScriptFile --* soniccontrol_gui.views.control.editor.Editor : _script
+soniccontrol_gui.views.control.logging.Logging --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _logging
 soniccontrol_gui.views.control.logging.LoggingTab --* soniccontrol_gui.views.control.logging.Logging : _application_log_tab
 soniccontrol_gui.views.control.logging.LoggingTab --* soniccontrol_gui.views.control.logging.Logging : _device_log_tab
+soniccontrol_gui.views.control.logging.LoggingTab --* soniccontrol_gui.views.core.device_window.RescueWindow : _logging
 soniccontrol_gui.views.control.logging.LoggingTabView --* soniccontrol_gui.views.control.logging.LoggingTab : _view
 soniccontrol_gui.views.control.logging.LoggingView --* soniccontrol_gui.views.control.logging.Logging : _view
+soniccontrol_gui.views.control.proc_controlling.ProcControlling --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _proc_controlling
 soniccontrol_gui.views.control.proc_controlling.ProcControllingView --* soniccontrol_gui.views.control.proc_controlling.ProcControlling : _view
+soniccontrol_gui.views.control.serialmonitor.SerialMonitor --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _serialmonitor
+soniccontrol_gui.views.control.serialmonitor.SerialMonitor --* soniccontrol_gui.views.core.device_window.RescueWindow : _serialmonitor
 soniccontrol_gui.views.control.serialmonitor.SerialMonitorView --* soniccontrol_gui.views.control.serialmonitor.SerialMonitor : _view
+soniccontrol_gui.views.core.app_state.AppState --* soniccontrol_gui.views.core.device_window.DeviceWindow : _app_state
+soniccontrol_gui.views.core.connection_window.ConnectionWindowView --* soniccontrol_gui.views.core.connection_window.ConnectionWindow : _view
+soniccontrol_gui.views.core.connection_window.DeviceWindowManager --* soniccontrol_gui.views.core.connection_window.ConnectionWindow : _device_window_manager
+soniccontrol_gui.views.core.device_window.DeviceWindowView --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _view
+soniccontrol_gui.views.core.device_window.DeviceWindowView --* soniccontrol_gui.views.core.device_window.RescueWindow : _view
+soniccontrol_gui.views.core.status.StatusBar --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _status_bar
+soniccontrol_gui.views.core.status.StatusBarView --* soniccontrol_gui.views.core.status.StatusBar : _view
+soniccontrol_gui.views.core.status.StatusPanel --* soniccontrol_gui.views.core.status.StatusBar : _status_panel
+soniccontrol_gui.views.core.status.StatusPanelView --* soniccontrol_gui.views.core.status.StatusPanel : _view
+soniccontrol_gui.views.home.Home --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _home
 soniccontrol_gui.views.home.HomeView --* soniccontrol_gui.views.home.Home : _view
+soniccontrol_gui.views.info.Info --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _info
 soniccontrol_gui.views.info.InfoView --* soniccontrol_gui.views.info.Info : _view
+soniccontrol_gui.views.measure.csv_table.CsvTable --* soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure : _csv_table
+soniccontrol_gui.views.measure.plotting.Plotting --* soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure : _timeplottab
+soniccontrol_gui.views.measure.plotting.Plotting --* soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure : _spectralplottab
+soniccontrol_gui.views.measure.plotting.PlottingView --* soniccontrol_gui.views.measure.plotting.Plotting : _view
+soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _sonicmeasure
+soniccontrol_gui.views.measure.sonicmeasure.SonicMeasureView --* soniccontrol_gui.views.measure.sonicmeasure.SonicMeasure : _view
 soniccontrol_gui.widgets.document.Document --* soniccontrol_gui.views.info.InfoView : _home_help_frame
 soniccontrol_gui.widgets.document.DocumentView --* soniccontrol_gui.widgets.document.Document : _view
 soniccontrol_gui.widgets.file_browse_button.FileBrowseButtonView --* soniccontrol_gui.views.configuration.configuration.ConfigurationView : _browse_script_init_button
 soniccontrol_gui.widgets.file_browse_button.FileBrowseButtonView --* soniccontrol_gui.views.configuration.flashing.FlashingView : _browse_flash_file_button
+soniccontrol_gui.widgets.horizontal_scrolled_frame.HorizontalScrolledFrame --* soniccontrol_gui.views.core.status.StatusBarView : _scrolled_info
+soniccontrol_gui.widgets.notebook.Notebook --* soniccontrol_gui.views.core.device_window.DeviceWindowView : _notebook
 soniccontrol_gui.widgets.procedure_widget.ProcedureWidgetView --* soniccontrol_gui.widgets.procedure_widget.ProcedureWidget : _view
 soniccontrol_gui.widgets.pushbutton.PushButtonView --* soniccontrol_gui.views.control.editor.EditorView : _start_pause_continue_button
 soniccontrol_gui.widgets.pushbutton.PushButtonView --* soniccontrol_gui.views.control.editor.EditorView : _single_step_button
@@ -654,6 +784,11 @@ soniccontrol_gui.widgets.spinbox.Spinbox --* soniccontrol_gui.views.home.HomeVie
 soniccontrol_gui.ui_component.UIComponent --o soniccontrol_gui.views.configuration.configuration.ConfigurationView : _presenter
 soniccontrol_gui.ui_component.UIComponent --o soniccontrol_gui.views.info.InfoView : _presenter
 soniccontrol_gui.utils.observable_list.ObservableList --o soniccontrol_gui.views.control.logging.LoggingTab : _logs
+soniccontrol_gui.utils.plotlib.plot.Plot --o soniccontrol_gui.views.measure.plotting.Plotting : _plot
 soniccontrol_gui.view.View --o soniccontrol_gui.ui_component.UIComponent : _view
 soniccontrol_gui.views.control.editor.InterpreterState --o soniccontrol_gui.views.control.editor.Editor : _interpreter_state
+soniccontrol_gui.views.core.app_state.AppState --o soniccontrol_gui.views.configuration.flashing.Flashing : _app_state
+soniccontrol_gui.views.core.app_state.AppState --o soniccontrol_gui.views.control.editor.Editor : _app_state
+soniccontrol_gui.views.core.app_state.AppState --o soniccontrol_gui.views.control.proc_controlling.ProcControlling : _app_state
+soniccontrol_gui.views.core.app_state.ExecutionState --o soniccontrol_gui.views.core.app_state.AppState : _execution_state
 @enduml

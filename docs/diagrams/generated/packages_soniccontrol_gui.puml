@@ -68,9 +68,27 @@ package "soniccontrol_gui.views.control.scriptingguide" as soniccontrol_gui.view
 }
 package "soniccontrol_gui.views.control.serialmonitor" as soniccontrol_gui.views.control.serialmonitor {
 }
+package "soniccontrol_gui.views.core" as soniccontrol_gui.views.core {
+}
+package "soniccontrol_gui.views.core.app_state" as soniccontrol_gui.views.core.app_state {
+}
+package "soniccontrol_gui.views.core.connection_window" as soniccontrol_gui.views.core.connection_window {
+}
+package "soniccontrol_gui.views.core.device_window" as soniccontrol_gui.views.core.device_window {
+}
+package "soniccontrol_gui.views.core.status" as soniccontrol_gui.views.core.status {
+}
 package "soniccontrol_gui.views.home" as soniccontrol_gui.views.home {
 }
 package "soniccontrol_gui.views.info" as soniccontrol_gui.views.info {
+}
+package "soniccontrol_gui.views.measure" as soniccontrol_gui.views.measure {
+}
+package "soniccontrol_gui.views.measure.csv_table" as soniccontrol_gui.views.measure.csv_table {
+}
+package "soniccontrol_gui.views.measure.plotting" as soniccontrol_gui.views.measure.plotting {
+}
+package "soniccontrol_gui.views.measure.sonicmeasure" as soniccontrol_gui.views.measure.sonicmeasure {
 }
 package "soniccontrol_gui.widgets" as soniccontrol_gui.widgets {
 }
@@ -96,6 +114,7 @@ package "soniccontrol_gui.widgets.spinbox" as soniccontrol_gui.widgets.spinbox {
 }
 soniccontrol_gui --> soniccontrol_gui.constants
 soniccontrol_gui --> soniccontrol_gui.resources
+soniccontrol_gui --> soniccontrol_gui.views.core.connection_window
 soniccontrol_gui.__main__ --> soniccontrol_gui
 soniccontrol_gui.constants --> soniccontrol_gui.utils.types
 soniccontrol_gui.resources --> soniccontrol_gui
@@ -107,6 +126,7 @@ soniccontrol_gui.ui_component --> soniccontrol_gui.view
 soniccontrol_gui.utils.image_loader --> soniccontrol_gui.resources
 soniccontrol_gui.utils.plotlib.__main__ --> soniccontrol_gui.utils.plotlib.plot
 soniccontrol_gui.utils.plotlib.__main__ --> soniccontrol_gui.utils.plotlib.plot_builder
+soniccontrol_gui.utils.plotlib.__main__ --> soniccontrol_gui.views.measure.plotting
 soniccontrol_gui.utils.plotlib.plot_builder --> soniccontrol_gui.utils.plotlib.plot
 soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.constants
 soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.resources
@@ -115,12 +135,14 @@ soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.utils.an
 soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.utils.image_loader
 soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.view
 soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.views.configuration.transducer_configs
+soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.views.core.app_state
 soniccontrol_gui.views.configuration.configuration --> soniccontrol_gui.widgets.file_browse_button
 soniccontrol_gui.views.configuration.flashing --> soniccontrol_gui.constants
 soniccontrol_gui.views.configuration.flashing --> soniccontrol_gui.resources
 soniccontrol_gui.views.configuration.flashing --> soniccontrol_gui.ui_component
 soniccontrol_gui.views.configuration.flashing --> soniccontrol_gui.utils.image_loader
 soniccontrol_gui.views.configuration.flashing --> soniccontrol_gui.view
+soniccontrol_gui.views.configuration.flashing --> soniccontrol_gui.views.core.app_state
 soniccontrol_gui.views.configuration.flashing --> soniccontrol_gui.widgets.file_browse_button
 soniccontrol_gui.views.configuration.transducer_configs --> soniccontrol_gui.ui_component
 soniccontrol_gui.views.configuration.transducer_configs --> soniccontrol_gui.view
@@ -131,6 +153,7 @@ soniccontrol_gui.views.control.editor --> soniccontrol_gui.utils.image_loader
 soniccontrol_gui.views.control.editor --> soniccontrol_gui.view
 soniccontrol_gui.views.control.editor --> soniccontrol_gui.views.control.logging
 soniccontrol_gui.views.control.editor --> soniccontrol_gui.views.control.scriptingguide
+soniccontrol_gui.views.control.editor --> soniccontrol_gui.views.core.app_state
 soniccontrol_gui.views.control.editor --> soniccontrol_gui.widgets.pushbutton
 soniccontrol_gui.views.control.logging --> soniccontrol_gui.constants
 soniccontrol_gui.views.control.logging --> soniccontrol_gui.resources
@@ -145,6 +168,7 @@ soniccontrol_gui.views.control.proc_controlling --> soniccontrol_gui.ui_componen
 soniccontrol_gui.views.control.proc_controlling --> soniccontrol_gui.utils.image_loader
 soniccontrol_gui.views.control.proc_controlling --> soniccontrol_gui.view
 soniccontrol_gui.views.control.proc_controlling --> soniccontrol_gui.views.control.logging
+soniccontrol_gui.views.control.proc_controlling --> soniccontrol_gui.views.core.app_state
 soniccontrol_gui.views.control.proc_controlling --> soniccontrol_gui.widgets.procedure_widget
 soniccontrol_gui.views.control.scriptingguide --> soniccontrol_gui.constants
 soniccontrol_gui.views.control.scriptingguide --> soniccontrol_gui.utils.types
@@ -158,11 +182,45 @@ soniccontrol_gui.views.control.serialmonitor --> soniccontrol_gui.utils.animator
 soniccontrol_gui.views.control.serialmonitor --> soniccontrol_gui.utils.image_loader
 soniccontrol_gui.views.control.serialmonitor --> soniccontrol_gui.view
 soniccontrol_gui.views.control.serialmonitor --> soniccontrol_gui.views.control.logging
+soniccontrol_gui.views.control.serialmonitor --> soniccontrol_gui.views.core.app_state
+soniccontrol_gui.views.core.connection_window --> soniccontrol_gui.constants
+soniccontrol_gui.views.core.connection_window --> soniccontrol_gui.resources
+soniccontrol_gui.views.core.connection_window --> soniccontrol_gui.ui_component
+soniccontrol_gui.views.core.connection_window --> soniccontrol_gui.utils.animator
+soniccontrol_gui.views.core.connection_window --> soniccontrol_gui.utils.image_loader
+soniccontrol_gui.views.core.connection_window --> soniccontrol_gui.view
+soniccontrol_gui.views.core.connection_window --> soniccontrol_gui.views.core.device_window
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.constants
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.resources
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.state_fetching.logger
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.state_fetching.updater
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.ui_component
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.utils.image_loader
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.view
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.configuration.configuration
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.configuration.flashing
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.control.editor
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.control.logging
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.control.proc_controlling
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.control.serialmonitor
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.core.app_state
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.core.status
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.home
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.info
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.views.measure.sonicmeasure
+soniccontrol_gui.views.core.device_window --> soniccontrol_gui.widgets.notebook
+soniccontrol_gui.views.core.status --> soniccontrol_gui.constants
+soniccontrol_gui.views.core.status --> soniccontrol_gui.resources
+soniccontrol_gui.views.core.status --> soniccontrol_gui.ui_component
+soniccontrol_gui.views.core.status --> soniccontrol_gui.utils.image_loader
+soniccontrol_gui.views.core.status --> soniccontrol_gui.view
+soniccontrol_gui.views.core.status --> soniccontrol_gui.widgets.horizontal_scrolled_frame
 soniccontrol_gui.views.home --> soniccontrol_gui.constants
 soniccontrol_gui.views.home --> soniccontrol_gui.resources
 soniccontrol_gui.views.home --> soniccontrol_gui.ui_component
 soniccontrol_gui.views.home --> soniccontrol_gui.utils.image_loader
 soniccontrol_gui.views.home --> soniccontrol_gui.view
+soniccontrol_gui.views.home --> soniccontrol_gui.views.core.app_state
 soniccontrol_gui.views.home --> soniccontrol_gui.widgets.spinbox
 soniccontrol_gui.views.info --> soniccontrol_gui.constants
 soniccontrol_gui.views.info --> soniccontrol_gui.resources
@@ -170,6 +228,21 @@ soniccontrol_gui.views.info --> soniccontrol_gui.ui_component
 soniccontrol_gui.views.info --> soniccontrol_gui.utils.image_loader
 soniccontrol_gui.views.info --> soniccontrol_gui.view
 soniccontrol_gui.views.info --> soniccontrol_gui.widgets.document
+soniccontrol_gui.views.measure.csv_table --> soniccontrol_gui.ui_component
+soniccontrol_gui.views.measure.csv_table --> soniccontrol_gui.view
+soniccontrol_gui.views.measure.plotting --> soniccontrol_gui.constants
+soniccontrol_gui.views.measure.plotting --> soniccontrol_gui.ui_component
+soniccontrol_gui.views.measure.plotting --> soniccontrol_gui.utils.plotlib.plot
+soniccontrol_gui.views.measure.plotting --> soniccontrol_gui.view
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.constants
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.resources
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.state_fetching.capture
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.ui_component
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.utils.image_loader
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.utils.plotlib.plot_builder
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.view
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.views.measure.csv_table
+soniccontrol_gui.views.measure.sonicmeasure --> soniccontrol_gui.views.measure.plotting
 soniccontrol_gui.widgets.document --> soniccontrol_gui.constants
 soniccontrol_gui.widgets.document --> soniccontrol_gui.ui_component
 soniccontrol_gui.widgets.document --> soniccontrol_gui.utils.image_loader
