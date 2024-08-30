@@ -9,7 +9,7 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.view import TabView
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from sonicpackage.procedures.procedure_controller import ProcedureController
 from sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol_gui.state_fetching.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter

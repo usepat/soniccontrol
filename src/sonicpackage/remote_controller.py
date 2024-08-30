@@ -6,7 +6,7 @@ from sonicpackage.communication.communicator_builder import CommunicatorBuilder
 from sonicpackage.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
 from sonicpackage.logging import create_logger_for_connection
 from sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
-from sonicpackage.procedures.ramper import RamperArgs
+from sonicpackage.procedures.procs.ramper import RamperArgs
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
 from sonicpackage.scripting.scripting_facade import ScriptingFacade
 from sonicpackage.sonicamp_ import SonicAmp

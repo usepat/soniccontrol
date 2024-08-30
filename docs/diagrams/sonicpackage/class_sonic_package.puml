@@ -1,0 +1,91 @@
+@startuml class_sonic_package
+
+class "RemoteController" as sonicpackage.remote_controller.RemoteController {
+  NOT_CONNECTED : str
+  connect_via_process(process_file: Path) -> None
+  connect_via_serial(url: Path) -> None
+  disconnect() -> None
+  execute_procedure(procedure: ProcedureType, args: dict) -> None
+  execute_ramp(ramp_args: RamperArgs) -> None
+  execute_script(text: str) -> None
+  get_attr(attr: str) -> str
+  send_command(command_str: str) -> str
+  set_attr(attr: str, val: str) -> str
+  stop_procedure() -> None
+}
+
+class "ProcedureController" as sonicpackage.procedures.procedure_controller.ProcedureController {
+  PROCEDURE_STOPPED : Literal['<<ProcedureStopped>>']
+  is_proc_running
+  proc_args_list
+  running_proc_type
+  execute_proc(proc_type: ProcedureType, args: Any) -> None
+  ramp_freq(freq_center: int, half_range: int, step: int, hold_on_time: float, hold_on_unit: Literal['ms', 's'], hold_off_time: float, hold_off_unit: Literal['ms', 's']) -> None
+  ramp_freq_range(start: int, stop: int, step: int, hold_on_time: float, hold_on_unit: Literal['ms', 's'], hold_off_time: float, hold_off_unit: Literal['ms', 's']) -> None
+  stop_proc() -> None
+}
+
+class "Communicator" as sonicpackage.communication.communicator.Communicator {
+  DISCONNECTED_EVENT : str
+  connection_opened
+  handshake_result
+  protocol
+  {abstract}close_communication() -> None
+  {abstract}open_communication(connection_factory: ConnectionFactory)
+  {abstract}read_message() -> str
+  {abstract}send_and_wait_for_answer(message: Sendable) -> None
+}
+
+class "Answer" as sonicpackage.command.Answer {
+  lines
+  measured_response
+  received
+  received_timestamp
+  string
+  valid
+  receive_answer(answer: Iterable[str] | str) -> None
+  reset() -> None
+}
+class "Command" as sonicpackage.command.Command {
+  byte_message
+  full_message
+  status_result
+  validators
+  add_validators(validators: Union[CommandValidator, Iterable[CommandValidator]]) -> None
+  execute(argument: Any, connection: Optional[Communicator]) -> tuple[Answer, dict[str, Any]]
+  get_dict() -> dict
+  set_argument(argument: Any) -> None
+  validate() -> bool
+}
+
+class "SonicAmp" as sonicpackage.sonicamp_.SonicAmp {
+  commands
+  info
+  serial
+  status
+  add_command(message: Union[str, Command], validators: Optional[CommandValitors]) -> None
+  add_commands(commands: Iterable[Command]) -> None
+  disconnect() -> None
+  execute_command(message: Union[str, Command], argument: Any) -> str
+  get_remote_proc_finished_event() -> asyncio.Event
+  has_command(command: Union[str, Command]) -> bool
+  send_message(message: str, argument: Any) -> str
+}
+
+class "LegacyScriptingFacade" as sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade {
+  lint_text(text: str) -> str
+  parse_script(text: str) -> LegacySequencer
+}
+
+sonicpackage.procedures.procedure_controller.ProcedureController -u-* sonicpackage.remote_controller.RemoteController
+sonicpackage.procedures.procedure_controller.ProcedureController *-u- sonicpackage.sonicamp_.SonicAmp
+sonicpackage.sonicamp_.SonicAmp -r-* sonicpackage.remote_controller.RemoteController
+sonicpackage.remote_controller.RemoteController *-u- sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade
+sonicpackage.sonicamp_.SonicAmp -l- sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade
+
+sonicpackage.sonicamp_.SonicAmp *-u- sonicpackage.command.Command : _commands
+sonicpackage.sonicamp_.SonicAmp .u.> sonicpackage.command.Answer
+sonicpackage.command.Command .l.> sonicpackage.command.Answer
+sonicpackage.command.Command -u- sonicpackage.communication.communicator.Communicator
+
+@enduml

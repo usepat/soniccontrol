@@ -4,7 +4,7 @@ from typing import Optional
 from robot.api.deco import keyword, library
 import robot.api.logger as logger
 from sonicpackage.procedures.procedure_controller import ProcedureType
-from sonicpackage.procedures.ramper import RamperArgs
+from sonicpackage.procedures.procs.ramper import RamperArgs
 from sonicpackage.remote_controller import RemoteController
 
 

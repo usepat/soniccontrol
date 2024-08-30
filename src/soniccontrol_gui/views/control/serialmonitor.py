@@ -7,7 +7,7 @@ from async_tkinter_loop import async_handler
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView
 from sonicpackage.command import Command
-from sonicpackage.interfaces import Communicator
+from sonicpackage.communication.communicator import Communicator
 from soniccontrol_gui.state_fetching.message_fetcher import MessageFetcher
 from soniccontrol_gui.utils.animator import Animator, DotAnimationSequence, load_animation
 from soniccontrol_gui.constants import sizes, style, ui_labels

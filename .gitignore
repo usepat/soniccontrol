@@ -250,3 +250,6 @@ cython_debug/
 
 # Ignore reports and logs created by the robot framework
 tests_robot/results/
+
+# Ignore doxygen generated documentation
+docs/output

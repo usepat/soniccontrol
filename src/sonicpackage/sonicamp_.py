@@ -8,7 +8,7 @@ from icecream import ic
 from sonicpackage.amp_data import Info, Status
 from sonicpackage.commands import Command, CommandValidator
 from sonicpackage.interfaces import Scriptable
-from sonicpackage.procedures.ramper import Ramper
+from sonicpackage.procedures.procs.ramper import Ramper
 from sonicpackage.communication.serial_communicator import Communicator
 
 CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
