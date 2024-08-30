@@ -42,7 +42,7 @@ jobs:
           cache: 'pip'
 
       - name: Run PyTest
-        run: pytest
+        run: python -m pytest
   
 
   system_tests:
@@ -60,7 +60,7 @@ jobs:
           cache: 'pip'
 
       - name: Run Robot
-        run: robot . -d ./results
+        run: python -m robot . -d ./results
 
       - name: Upload test results
         uses: actions/upload-artifact@v2
