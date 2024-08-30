@@ -1,0 +1,25 @@
+@startuml Model View Presenter
+
+class Model {
+    +data: Data
+    +getData(): Data
+    +setData(Data): void
+}
+
+class View {
+    +display(Data): void
+    +onUserInteraction(): void
+}
+
+class Presenter {
+    +onViewInteraction(): void
+    +updateModel(Data): void
+    +updateView(): void
+}
+
+Model --> Presenter : "Presenter interacts with Model"
+Presenter --> View : "Presenter updates View"
+View --> Presenter : "User interacts with View"
+Presenter --> Model : "Presenter fetches data from Model"
+
+@enduml

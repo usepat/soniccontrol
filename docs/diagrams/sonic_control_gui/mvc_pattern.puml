@@ -1,0 +1,26 @@
+@startuml Model View Controller
+
+class Model {
+    +data: Data
+    +getData(): Data
+    +setData(Data): void
+}
+
+class View {
+    +display(Data): void
+    +getUserInput(): UserInput
+}
+
+class Controller {
+    +handleRequest(): void
+    +updateModel(Data): void
+    +updateView(): void
+}
+
+View --> Controller : "User interacts with View"
+Controller --> Model : "Controller updates Model"
+Model <.. Controller : "Controller fetches data from Model (pull)"
+Controller --> View : "Controller updates View"
+Model ..> View : "Model updates View over events (push)"
+
+@enduml

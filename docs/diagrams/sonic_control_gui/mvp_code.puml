@@ -1,0 +1,71 @@
+@startuml MVP Code
+
+class "View" as soniccontrol_gui.view.View {
+  parent
+}
+
+class "UIComponent" as soniccontrol_gui.ui_component.UIComponent {
+  logger
+  parent
+  view
+}
+
+class "Home" as soniccontrol_gui.views.home.Home {
+  on_execution_state_changed(e: PropertyChangeEvent) -> None
+}
+
+class "HomeView" as soniccontrol_gui.views.home.HomeView {
+  freq
+  gain
+  image
+  signal
+  tab_title
+  set_device_type(text: str) -> None
+  set_disconnect_button_command(command: Callable[[], None]) -> None
+  set_disconnect_button_enabled(enabled: bool) -> None
+  set_firmware_version(text: str) -> None
+  set_protocol_version(text: str) -> None
+  set_send_button_command(command: Callable[[], None]) -> None
+  set_send_button_enabled(enabled: bool) -> None
+}
+
+class "Event" as sonicpackage.events.Event {
+  data
+  type_
+}
+
+class "EventManager" as sonicpackage.events.EventManager {
+  emit(event: Event) -> None
+  subscribe(event_type: str, listener: Callable[[Event], None]) -> None
+  subscribe_property_listener(property_name: str, listener: Callable[[PropertyChangeEvent], None]) -> None
+}
+
+class "SonicAmp" as sonicpackage.sonicamp_.SonicAmp {
+  commands
+  info
+  serial
+  status
+  add_command(message: Union[str, Command], validators: Optional[CommandValitors]) -> None
+  add_commands(commands: Iterable[Command]) -> None
+  disconnect() -> None
+  execute_command(message: Union[str, Command], argument: Any) -> str
+  get_remote_proc_finished_event() -> asyncio.Event
+  has_command(command: Union[str, Command]) -> bool
+  send_message(message: str, argument: Any) -> str
+}
+
+
+soniccontrol_gui.views.home.HomeView -l-|> soniccontrol_gui.view.View
+soniccontrol_gui.ui_component.UIComponent -u-> soniccontrol_gui.view.View : view
+
+soniccontrol_gui.views.home.Home -l-|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.home.Home -u-> soniccontrol_gui.views.home.HomeView : view
+soniccontrol_gui.views.home.Home .r.> sonicpackage.events.Event : reacts
+
+sonicpackage.events.EventManager .r.> sonicpackage.events.Event : emits
+
+sonicpackage.sonicamp_.SonicAmp -d-|> sonicpackage.events.EventManager
+soniccontrol_gui.ui_component.UIComponent -d-|> sonicpackage.events.EventManager
+soniccontrol_gui.views.home.Home -d-> sonicpackage.sonicamp_.SonicAmp : _device (model)
+
+@enduml
