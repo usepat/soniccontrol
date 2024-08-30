@@ -247,15 +247,15 @@ class "PropertyChangeEvent" as sonicpackage.events.PropertyChangeEvent {
 class "ProtocolType" as sonicpackage.communication.sonicprotocol.ProtocolType {
   name
 }
-class "Ramper" as sonicpackage.procedures.ramper.Ramper {
+class "Ramper" as sonicpackage.procedures.procs.ramper.Ramper {
   get_args_class() -> Type
 }
-class "RamperArgs" as sonicpackage.procedures.ramper.RamperArgs {
+class "RamperArgs" as sonicpackage.procedures.procs.ramper.RamperArgs {
 }
-class "RamperLocal" as sonicpackage.procedures.ramper.RamperLocal {
+class "RamperLocal" as sonicpackage.procedures.procs.ramper.RamperLocal {
   execute(device: Scriptable, args: RamperArgs) -> None
 }
-class "RamperRemote" as sonicpackage.procedures.ramper.RamperRemote {
+class "RamperRemote" as sonicpackage.procedures.procs.ramper.RamperRemote {
   execute(device: Scriptable, args: RamperArgs) -> None
 }
 class "RemoteController" as sonicpackage.remote_controller.RemoteController {
@@ -377,9 +377,9 @@ sonicpackage.events.PropertyChangeEvent --|> sonicpackage.events.Event
 sonicpackage.flashing.firmware_flasher.LegacyFirmwareFlasher --|> sonicpackage.interfaces.FirmwareFlasher
 sonicpackage.interfaces.Communicator --|> sonicpackage.events.EventManager
 sonicpackage.procedures.procedure_controller.ProcedureController --|> sonicpackage.events.EventManager
-sonicpackage.procedures.ramper.Ramper --|> sonicpackage.procedures.procedure.Procedure
-sonicpackage.procedures.ramper.RamperLocal --|> sonicpackage.procedures.ramper.Ramper
-sonicpackage.procedures.ramper.RamperRemote --|> sonicpackage.procedures.ramper.Ramper
+sonicpackage.procedures.procs.ramper.Ramper --|> sonicpackage.procedures.procedure.Procedure
+sonicpackage.procedures.procs.ramper.RamperLocal --|> sonicpackage.procedures.procs.ramper.Ramper
+sonicpackage.procedures.procs.ramper.RamperRemote --|> sonicpackage.procedures.procs.ramper.Ramper
 sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade --|> sonicpackage.scripting.scripting_facade.ScriptingFacade
 sonicpackage.scripting.legacy_scripting.LegacySequencer --|> sonicpackage.scripting.scripting_facade.Script
 sonicpackage.sonicamp_.SonicAmp --|> sonicpackage.interfaces.Scriptable

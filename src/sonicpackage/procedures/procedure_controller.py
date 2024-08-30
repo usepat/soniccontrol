@@ -4,16 +4,12 @@ from typing import Any, Dict, Literal, Optional, Type
 import asyncio
 
 from sonicpackage.procedures.holder import HolderArgs
-from sonicpackage.procedures.procedure import Procedure
+from sonicpackage.procedures.procedure import Procedure, ProcedureType
 from sonicpackage.procedures.procedure_instantiator import ProcedureInstantiator
-from sonicpackage.procedures.ramper import Ramper, RamperArgs
+from sonicpackage.procedures.procs.ramper import RamperArgs
 from sonicpackage.sonicamp_ import SonicAmp
 from sonicpackage.logging import get_base_logger
 from sonicpackage.events import Event, EventManager
-
-
-class ProcedureType(Enum):
-    RAMP = "Ramp"
 
 class ProcedureController(EventManager):
     PROCEDURE_STOPPED: Literal["<<ProcedureStopped>>"] = "<<ProcedureStopped>>"
@@ -26,10 +22,8 @@ class ProcedureController(EventManager):
 
         self._logger.debug("Instantiate procedures")
         proc_instantiator = ProcedureInstantiator()
-        self._ramp: Optional[Ramper] = proc_instantiator.instantiate_ramp(self._device)
-        self._procedures: Dict[ProcedureType, Optional[Procedure]] = {
-            ProcedureType.RAMP: self._ramp
-        }
+        self._procedures: Dict[ProcedureType, Procedure] = proc_instantiator.instantiate_procedures(self._device)
+        self._ramp: Optional[Procedure] = self._procedures.get(ProcedureType.RAMP, None)
         self._running_proc_task: Optional[asyncio.Task] = None
         self._running_proc_type: Optional[ProcedureType] = None
 
@@ -38,7 +32,6 @@ class ProcedureController(EventManager):
         return { 
             proc_type: procedure.get_args_class() 
             for proc_type, procedure in self._procedures.items() 
-            if procedure is not None 
         }
 
     @property
@@ -51,7 +44,7 @@ class ProcedureController(EventManager):
 
     def execute_proc(self, proc_type: ProcedureType, args: Any) -> None:
         assert(proc_type in self._procedures)
-        procedure = self._procedures[proc_type]
+        procedure = self._procedures.get(proc_type, None)
         if procedure is None:
             raise Exception(f"The procedure {repr(proc_type)} is not available for the current device")
         if self.is_proc_running:

@@ -7,7 +7,7 @@ from sonicpackage.procedures.holder import HolderArgs
 from sonicpackage.procedures.procedure_instantiator import ProcedureInstantiator
 from sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
 from sonicpackage.sonicamp_ import SonicAmp
-from sonicpackage.procedures.ramper import RamperArgs, RamperRemote
+from sonicpackage.procedures.procs.ramper import RamperArgs, RamperRemote
 
 
 @pytest.fixture

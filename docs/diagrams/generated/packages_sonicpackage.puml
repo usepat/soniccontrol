@@ -44,7 +44,7 @@ package "sonicpackage.procedures.procedure_controller" as sonicpackage.procedure
 }
 package "sonicpackage.procedures.procedure_instantiator" as sonicpackage.procedures.procedure_instantiator {
 }
-package "sonicpackage.procedures.ramper" as sonicpackage.procedures.ramper {
+package "sonicpackage.procedures.procs.ramper" as sonicpackage.procedures.procs.ramper {
 }
 package "sonicpackage.remote_controller" as sonicpackage.remote_controller {
 }
@@ -88,19 +88,19 @@ sonicpackage.procedures.procedure_controller --> sonicpackage.logging
 sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.holder
 sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.procedure
 sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.procedure_instantiator
-sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.ramper
+sonicpackage.procedures.procedure_controller --> sonicpackage.procedures.procs.ramper
 sonicpackage.procedures.procedure_controller --> sonicpackage.sonicamp_
-sonicpackage.procedures.procedure_instantiator --> sonicpackage.procedures.ramper
+sonicpackage.procedures.procedure_instantiator --> sonicpackage.procedures.procs.ramper
 sonicpackage.procedures.procedure_instantiator --> sonicpackage.sonicamp_
-sonicpackage.procedures.ramper --> sonicpackage.interfaces
-sonicpackage.procedures.ramper --> sonicpackage.procedures.holder
-sonicpackage.procedures.ramper --> sonicpackage.procedures.procedure
+sonicpackage.procedures.procs.ramper --> sonicpackage.interfaces
+sonicpackage.procedures.procs.ramper --> sonicpackage.procedures.holder
+sonicpackage.procedures.procs.ramper --> sonicpackage.procedures.procedure
 sonicpackage.remote_controller --> sonicpackage.builder
 sonicpackage.remote_controller --> sonicpackage.communication.communicator_builder
 sonicpackage.remote_controller --> sonicpackage.communication.connection_factory
 sonicpackage.remote_controller --> sonicpackage.logging
 sonicpackage.remote_controller --> sonicpackage.procedures.procedure_controller
-sonicpackage.remote_controller --> sonicpackage.procedures.ramper
+sonicpackage.remote_controller --> sonicpackage.procedures.procs.ramper
 sonicpackage.remote_controller --> sonicpackage.scripting.legacy_scripting
 sonicpackage.remote_controller --> sonicpackage.scripting.scripting_facade
 sonicpackage.remote_controller --> sonicpackage.sonicamp_
@@ -114,5 +114,5 @@ sonicpackage.sonicamp_ --> sonicpackage.commands
 sonicpackage.sonicamp_ --> sonicpackage.communication.serial_communicator
 sonicpackage.sonicamp_ --> sonicpackage.interfaces
 sonicpackage.sonicamp_ --> sonicpackage.logging
-sonicpackage.sonicamp_ --> sonicpackage.procedures.ramper
+sonicpackage.sonicamp_ --> sonicpackage.procedures.procs.ramper
 @enduml

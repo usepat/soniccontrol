@@ -1,6 +1,5 @@
 
 import asyncio
-import time
 from typing import Any, Literal, Tuple, Union, cast
 
 import attrs
@@ -18,6 +17,13 @@ class HolderArgs:
         TimeUnit, 
         attrs.field(factory=lambda: str("ms"), validator=[validators.in_(["ms", "s"])])
     )
+
+    @property
+    def duration_in_ms(self) -> float | int:
+        if self.unit == "ms":
+            return self.duration
+        else:
+            return self.duration * 1000
 
 HoldTuple = Tuple[Union[int, float], TimeUnit]
 def convert_to_holder_args(obj: Any) -> HolderArgs:

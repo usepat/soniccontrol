@@ -1,4 +1,4 @@
-from typing import List, Literal, Tuple, Type, Union
+from typing import List, Type, Union
 import asyncio
 
 import attrs
@@ -102,14 +102,12 @@ class RamperRemote(Ramper):
         try:
             start = args.freq_center - args.half_range
             stop = args.freq_center + args.half_range + args.step
-            hold_on_ms = args.hold_on.duration if args.hold_on.unit == 'ms' else args.hold_on.duration * 1000
-            hold_off_ms = args.hold_off.duration if args.hold_off.unit == 'ms' else args.hold_off.duration * 1000
 
             await device.execute_command(f"!ramp_start_freq={start}")
             await device.execute_command(f"!ramp_stop_freq={stop}")
             await device.execute_command(f"!ramp_step={args.step}")
-            await device.execute_command(f"!ramp_ton={hold_on_ms}")
-            await device.execute_command(f"!ramp_toff={hold_off_ms}")
+            await device.execute_command(f"!ramp_ton={args.hold_on.duration_in_ms}")
+            await device.execute_command(f"!ramp_toff={args.hold_off.duration_in_ms}")
             await device.execute_command(f"!ramp")
         except asyncio.CancelledError:
             await device.execute_command("!stop")

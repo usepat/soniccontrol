@@ -32,18 +32,18 @@ class "ProcedureController" as sonicpackage.procedures.procedure_controller.Proc
   stop_proc() -> None
 }
 
-class "Ramper" as sonicpackage.procedures.ramper.Ramper {
+class "Ramper" as sonicpackage.procedures.procs.ramper.Ramper {
   get_args_class() -> Type
 }
 
-class "RamperArgs" as sonicpackage.procedures.ramper.RamperArgs {
+class "RamperArgs" as sonicpackage.procedures.procs.ramper.RamperArgs {
 }
 
-class "RamperLocal" as sonicpackage.procedures.ramper.RamperLocal {
+class "RamperLocal" as sonicpackage.procedures.procs.ramper.RamperLocal {
   execute(device: Scriptable, args: RamperArgs) -> None
 }
 
-class "RamperRemote" as sonicpackage.procedures.ramper.RamperRemote {
+class "RamperRemote" as sonicpackage.procedures.procs.ramper.RamperRemote {
   execute(device: Scriptable, args: RamperArgs) -> None
 }
 
@@ -65,9 +65,9 @@ class "SonicAmp" as sonicpackage.sonicamp_.SonicAmp {
 }
 
 sonicpackage.procedures.procedure_controller.ProcedureController -d-|> sonicpackage.events.EventManager
-sonicpackage.procedures.ramper.Ramper -d-|> sonicpackage.procedures.procedure.Procedure
-sonicpackage.procedures.ramper.RamperLocal -d-|> sonicpackage.procedures.ramper.Ramper
-sonicpackage.procedures.ramper.RamperRemote -d-|> sonicpackage.procedures.ramper.Ramper
+sonicpackage.procedures.procs.ramper.Ramper -d-|> sonicpackage.procedures.procedure.Procedure
+sonicpackage.procedures.procs.ramper.RamperLocal -d-|> sonicpackage.procedures.procs.ramper.Ramper
+sonicpackage.procedures.procs.ramper.RamperRemote -d-|> sonicpackage.procedures.procs.ramper.Ramper
 
 sonicpackage.procedures.procedure_controller.ProcedureController -r-* sonicpackage.remote_controller.RemoteController : _proc_controller
 sonicpackage.procedures.procedure_controller.ProcedureController -d-* sonicpackage.scripting.legacy_scripting.LegacyScriptingFacade : _proc_controller
