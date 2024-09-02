@@ -63,7 +63,9 @@ class SerialCommunicator(Communicator):
         self._protocol = SonicProtocol(self._logger)
         self._package_fetcher = PackageFetcher(self._reader, self._protocol, self._logger)
         self._connection_opened.set()
-
+        self._writer.write(b'\n')
+        await self._writer.drain()
+        self._package_fetcher._read_response()
         self._package_fetcher.run()
         self._task = loop.create_task(self._worker())
 
