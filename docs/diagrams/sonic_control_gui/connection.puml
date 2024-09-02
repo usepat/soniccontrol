@@ -1,0 +1,80 @@
+@startuml Establishing a Connection
+
+set separator . 
+skinparam classSeparator "."
+skinparam packageSeparator "."
+top to bottom direction
+
+class "ConnectionFactory" as sonicpackage.communication.connection_factory.ConnectionFactory {
+  {abstract}open_connection() -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+}
+
+class "Communicator" as sonicpackage.communication.communicator.Communicator {
+  DISCONNECTED_EVENT : str
+  connection_opened
+  handshake_result
+  {abstract}close_communication() -> None
+  {abstract}open_communication(connection_factory: ConnectionFactory)
+}
+
+class "CommunicatorBuilder" as sonicpackage.communication.communicator_builder.CommunicatorBuilder {
+  build(connection_factory: ConnectionFactory, logger: logging.Logger) -> tuple[Communicator, Union[CommandSet, CommandSetLegacy]]
+}
+
+class "AmpBuilder" as sonicpackage.builder.AmpBuilder {
+  build_amp(ser: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger) -> SonicAmp
+}
+
+class "SonicAmp" as sonicpackage.sonicamp_.SonicAmp {
+  info
+  serial
+  status
+  disconnect() -> None
+}
+
+class "Updater" as soniccontrol_gui.state_fetching.updater.Updater {
+  running
+  execute() -> None
+  stop_execution() -> None
+}
+
+class "AppState" as soniccontrol_gui.views.core.app_state.AppState {
+  EXECUTION_STATE_PROP_NAME : str
+  execution_state
+}
+class "RescueWindow" as soniccontrol_gui.views.core.device_window.RescueWindow {
+}
+class "KnownDeviceWindow" as soniccontrol_gui.views.core.device_window.KnownDeviceWindow {
+}
+class "DeviceWindow" as soniccontrol_gui.views.core.device_window.DeviceWindow {
+  CLOSE_EVENT : str
+  close() -> None
+  on_disconnect() -> None
+}
+class "DeviceWindowManager" as soniccontrol_gui.views.core.connection_window.DeviceWindowManager {
+  open_known_device_window(sonicamp: SonicAmp, connection_name: str) -> DeviceWindow
+  open_rescue_window(communicator: Communicator, connection_name: str) -> DeviceWindow
+}
+class "ConnectionWindow" as soniccontrol_gui.views.core.connection_window.ConnectionWindow {
+  is_connecting
+}
+
+sonicpackage.sonicamp_.SonicAmp --> sonicpackage.communication.communicator.Communicator : _serial
+sonicpackage.sonicamp_.SonicAmp <.u. sonicpackage.builder.AmpBuilder : builds
+sonicpackage.communication.communicator.Communicator *-u- sonicpackage.communication.connection_factory.ConnectionFactory
+sonicpackage.communication.communicator.Communicator <.. sonicpackage.communication.communicator_builder.CommunicatorBuilder : builds
+
+soniccontrol_gui.views.core.connection_window.ConnectionWindow --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.core.device_window.DeviceWindow --|> soniccontrol_gui.ui_component.UIComponent
+soniccontrol_gui.views.core.device_window.KnownDeviceWindow --|> soniccontrol_gui.views.core.device_window.DeviceWindow
+soniccontrol_gui.views.core.device_window.RescueWindow --|> soniccontrol_gui.views.core.device_window.DeviceWindow
+soniccontrol_gui.state_fetching.updater.Updater --* soniccontrol_gui.views.core.device_window.KnownDeviceWindow : _updater
+soniccontrol_gui.views.core.connection_window.DeviceWindowManager --* soniccontrol_gui.views.core.connection_window.ConnectionWindow : _device_window_manager
+soniccontrol_gui.views.core.device_window.DeviceWindow -l-> soniccontrol_gui.views.core.app_state.AppState : app_state
+
+soniccontrol_gui.views.core.device_window.DeviceWindow --* soniccontrol_gui.views.core.connection_window.DeviceWindowManager : _open_windows
+
+soniccontrol_gui.views.core.device_window.DeviceWindow -l-> sonicpackage.sonicamp_.SonicAmp : _device
+soniccontrol_gui.views.core.connection_window.ConnectionWindow -l-> sonicpackage.sonicamp_.SonicAmp : _device
+
+@enduml

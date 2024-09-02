@@ -1,5 +1,8 @@
 @startuml class_procedures
 
+set separator . 
+top to bottom direction
+
 class "RemoteController" as sonicpackage.remote_controller.RemoteController {
   NOT_CONNECTED : str
   connect_via_process(process_file: Path) -> None

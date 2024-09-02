@@ -1,4 +1,7 @@
-@startuml MVP Code
+@startuml MVP Code 
+
+set separator . 
+top to bottom direction
 
 class "View" as soniccontrol_gui.view.View {
   parent

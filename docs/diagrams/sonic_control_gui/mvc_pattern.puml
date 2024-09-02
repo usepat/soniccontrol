@@ -1,5 +1,8 @@
 @startuml Model View Controller
 
+set separator . 
+top to bottom direction
+
 class Model {
     +data: Data
     +getData(): Data
