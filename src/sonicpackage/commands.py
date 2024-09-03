@@ -702,3 +702,5 @@ class CommandSet:
             validators=float_value_validator,
             serial_communication=serial,
         )
+
+        #add tune scan wipe with empty validators
