@@ -103,6 +103,9 @@ class SerialCommunicator(Communicator):
             if command.message != "-":
                 self._logger.info("Receive Answer: %s", answer)
 
+            index = answer.find('#')  #Quick fix for removing command code from answer
+            answer = answer[index + 1:] if index != -1 else answer 
+
             command.answer.receive_answer(answer)
             self._answer_queue.put_nowait(command)
 
@@ -126,10 +129,10 @@ class SerialCommunicator(Communicator):
         for i in range(MAX_RETRIES):
             await self._command_queue.put(command)
             try:
-                await asyncio.wait_for(command.answer.received.wait(), timeout)
+                await asyncio.wait_for(command.answer.received.wait(), timeout * (self._command_queue.qsize() + 1))
                 return
             except asyncio.TimeoutError:
-                self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %f s", i, MAX_RETRIES, timeout)
+                self._logger.warn("%d th attempt of %d. Device did not respond in the given timeout of %f s when sending %s", i, MAX_RETRIES, timeout, command.full_message)
         
         if self._connection_opened.is_set():
             await self.close_communication()

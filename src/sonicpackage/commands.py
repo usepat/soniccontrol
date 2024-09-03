@@ -506,17 +506,24 @@ class CommandSet:
             message="-",
             estimated_response_time=0.35,
             validators=CommandValidator(
-                pattern=f"{rInt}#{rInt}#{rInt}#{rInt}#{rFloat}#{rInt}#{rInt}#{rInt}#{rInt}#{rAlpha}",
+                pattern=f"{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rAlpha}",
                 error=int,
                 frequency=int,
                 gain=int,
                 procedure=int,
-                temperature=float,
+                temperature=attrs.converters.pipe(
+                    int,
+                    lambda temp: (temp / 1000.0) - 272.15,   # Convert miliKevling to Celsius by dividing by 1000 and subtracting Kevling constant
+                ),
                 urms=int,
                 irms=int,
                 phase=int,
                 ts_flag=int,
-                signal=attrs.converters.to_bool,
+                signal=attrs.converters.pipe(
+                    str,
+                    lambda signal: str.lower(signal),
+                    attrs.converters.to_bool,
+                ),
             ),
             serial_communication=serial,
         )

@@ -78,7 +78,8 @@ class PlottingView(View):
             self._toggle_button_frame, 
             text=line_label, 
             variable=self._line_visibilities[attrName],
-            command=toggle_command
+            command=toggle_command,
+            bootstyle="round-toggle"
         )
         toggle_button.grid(row=0, column=len(self._line_toggle_buttons), padx=sizes.SMALL_PADDING)
         self._line_toggle_buttons[attrName] = toggle_button
