@@ -11,10 +11,6 @@
 Procedures are little programs that have a predefined process, that can be adjusted by parameters.  
 They set the gain and frequency on the device.
 
-@startuml
-!include sonicpackage/class_procedures.puml
-@enduml
-
 ## Use Cases
 
 Some of the procedures are for tuning(adjust frequency), ramping (go through a range of sequences), scaning(find the peak frequency).  
@@ -35,5 +31,9 @@ On construction of [SonicAmp](@ref sonicpackage.sonicamp_.SonicAmp) in the [AmpB
 We make a [ProcedureInstantiator](@ref sonicpackage.procedures.procedure_instantiator.ProcedureInstantiator), that checks on the sonic amp if it has the procedure. Internally the ProcedureInstantiator gives back than either a remote or local procedure. Both have the same [interface](@ref sonicpackage.procedures.procedure.Procedure) so they can be interchanged easely. 
 
 There exists a [ProcedureController](@ref sonicpackage.procedures.procedure_controller.ProcedureController) that stores all available procedures for the device and ensures that only one procedure is running at a time. The ProcedureController is used to start and stop procedures.
+
+@startuml
+!include sonicpackage/class_procedures.puml
+@enduml
 
 @}

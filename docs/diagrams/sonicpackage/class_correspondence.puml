@@ -1,5 +1,8 @@
 @startuml class_correspondence
 
+set separator . 
+top to bottom direction
+
 class "Answer" as sonicpackage.command.Answer {
   lines
   measured_response

@@ -1,5 +1,6 @@
 @startuml class_communication
 
+set separator . 
 top to bottom direction
 
 class "ConnectionFactory" as sonicpackage.communication.connection_factory.ConnectionFactory {
