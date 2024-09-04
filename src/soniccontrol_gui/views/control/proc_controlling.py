@@ -1,7 +1,8 @@
 import logging
-from typing import Callable, Dict, Iterable
+from typing import Any, Callable, Dict, Iterable
 
 from async_tkinter_loop import async_handler
+from attr import attrs
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView, View
@@ -17,10 +18,22 @@ from soniccontrol_gui.widgets.procedure_widget import ProcedureWidget
 from soniccontrol_gui.resources import images
 
 
+
+@attrs.define()
+class ProcControllingModel:
+    selected_procedure: ProcedureType = attrs.define(default=ProcedureType.RAMP)
+    procedure_args: Dict[ProcedureType, dict] = attrs.define()
+
+    @property
+    def selected_procedure_args(self) -> dict:
+        return self.procedure_args[self.selected_procedure]
+
+
 class ProcControlling(UIComponent):
     def __init__(self, parent: UIComponent, proc_controller: ProcedureController, app_state: AppState):
         self._logger = logging.getLogger(parent.logger.name + "." + ProcControlling.__name__)
 
+        self._model: ProcControllingModel = ProcControllingModel()
         self._logger.debug("Create ProcControlling")
         self._proc_controller = proc_controller
         self._app_state = app_state
@@ -28,6 +41,7 @@ class ProcControlling(UIComponent):
         self._proc_widgets: Dict[ProcedureType, ProcedureWidget] = {}
         super().__init__(parent, self._view, self._logger)
         self._add_proc_widgets()
+        
         self._view.set_procedure_selected_command(self._on_proc_selected)
         self._view.set_start_button_command(self._on_run_pressed)
         self._view.set_stop_button_command(self._on_stop_pressed)
@@ -50,8 +64,10 @@ class ProcControlling(UIComponent):
 
     def _add_proc_widgets(self):
         for proc_type, args_class in self._proc_controller.proc_args_list.items():
-            proc_widget = ProcedureWidget(self, self._view.procedure_frame, proc_type.value, args_class)
+            proc_dict = {}
+            proc_widget = ProcedureWidget(self, self._view.procedure_frame, proc_type.value, args_class, proc_dict)
             proc_widget.view.hide()
+            self._model.procedure_args[proc_type] = proc_dict
             self._proc_widgets[proc_type] = proc_widget
         proc_names = map(lambda proc_type: proc_type.value, self._proc_controller.proc_args_list.keys())
         self._view.set_procedure_combobox_items(proc_names)
@@ -59,15 +75,14 @@ class ProcControlling(UIComponent):
     def _on_proc_selected(self):
         for proc_widget in self._proc_widgets.values():
             proc_widget.view.hide()
-        proc_type = ProcedureType(self._view.selected_procedure)
-        self._proc_widgets[proc_type].view.show()
+        self._model.selected_procedure = ProcedureType(self._view.selected_procedure)
+        self._proc_widgets[self._model.selected_procedure].view.show()
 
     def _on_run_pressed(self):
-        proc_type = ProcedureType(self._view.selected_procedure)
-        proc_args = self._proc_widgets[proc_type].get_args()
+        proc_args = self._proc_widgets[self._model.selected_procedure].get_args()
         if proc_args is not None:
             try:
-                self._proc_controller.execute_proc(proc_type, proc_args)
+                self._proc_controller.execute_proc(self._model.selected_procedure, proc_args)
             except Exception as e:
                 self._logger.error(e)
                 Messagebox.show_error(str(e))

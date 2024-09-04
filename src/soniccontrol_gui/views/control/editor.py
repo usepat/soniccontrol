@@ -68,6 +68,9 @@ class Editor(UIComponent):
         self._view.add_menu_command(ui_labels.SAVE_LABEL, self._on_save_script)
         self._view.add_menu_command(ui_labels.SAVE_AS_LABEL, self._on_save_as_script)
         self._view.set_scripting_guide_button_command(self._on_open_scriping_guide)
+        def set_text() -> None:
+            self._script.text = self._view.editor_text
+        self._view.bind_editor_text(set_text)
 
         self._set_interpreter_state(self._interpreter.interpreter_state)
         self._interpreter.subscribe(InterpreterEngine.INTERPRETATION_ERROR, lambda e: self._show_err_msg(e.data["error"]))
@@ -242,7 +245,8 @@ class EditorView(TabView):
             padding=SCRIPTING_PADDING,
         )
         self._editor_text: ScrolledText = ScrolledText(
-            self._scripting_frame, autohide=True
+            self._scripting_frame, 
+            autohide=True, 
         )
 
         self._script_status_frame: ttk.Frame = ttk.Frame(self)
@@ -359,6 +363,9 @@ class EditorView(TabView):
     def editor_text(self, value: str) -> None:
         self._editor_text.delete(1.0, ttk.END) # type: ignore
         self._editor_text.insert(ttk.INSERT, value) # type: ignore
+
+    def bind_editor_text(self, command: Callable[[], None]) -> None:
+        self._editor_text.text.bind('<KeyRelease>', lambda event: command())
 
     @property
     def current_task(self) -> str:

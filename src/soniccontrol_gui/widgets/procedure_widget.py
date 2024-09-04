@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 import attrs
 from soniccontrol_gui.ui_component import UIComponent
@@ -36,6 +36,10 @@ class IntFieldView(View):
     @value.setter
     def value(self, v: int) -> None:
         self._value.set(v)
+ 
+    def bind_value_change(self, command: Callable[[int], None]):
+        self._value.trace_add("write", lambda *args: command(self.value))
+
 
 class FloatFieldView(View):
     def __init__(self, master: ttk.Frame | View, field_name: str, *args, default_value: float = 0., **kwargs):
@@ -64,6 +68,9 @@ class FloatFieldView(View):
     @value.setter
     def value(self, v: float) -> None:
         self._value.set(v)
+
+    def bind_value_change(self, command: Callable[[float], None]):
+        self._value.trace_add("write", lambda *args: command(self.value))
 
 class TimeFieldView(View):
     def __init__(self, master: ttk.Frame | View, field_name: str, *args, time: float | int = 0., unit = "ms", **kwargs):
@@ -104,33 +111,51 @@ class TimeFieldView(View):
         self._unit_value.set(v[1])
         self._unit_button.configure(text=v[1])
 
+    def bind_value_change(self, command: Callable[[HoldTuple], None]):
+        self._time_value.trace_add("write", lambda *args: command(self.value))
+        self._unit_value.trace_add("write", lambda *args: command(self.value))
 
 """
 This class holds only information about the procedure args.
 It cannot start or stop procedures. This is done by the ProcedureController class
 """
 class ProcedureWidget(UIComponent):
-    def __init__(self, parent: UIComponent, parent_view: View, procedure_name: str, proc_args_class: Type):
+    def __init__(self, parent: UIComponent, parent_view: View, procedure_name: str, proc_args_class: Type, proc_args_dict: dict):
         self._proc_args_class = proc_args_class
         self._fields: List[Union[TimeFieldView, FloatFieldView, IntFieldView]] = []
         self._procedure_name = procedure_name
         self._view = ProcedureWidgetView(parent_view)
         self._view.set_procedure_name(self._procedure_name)
+        self._proc_args_dict = proc_args_dict
         super().__init__(self, self._view)
         self._add_fields_to_widget()
 
     def _add_fields_to_widget(self):
         for field_name, field in attrs.fields_dict(self._proc_args_class).items():
             if field.type is int:
-                self._fields.append(IntFieldView(self._view.field_slot, field_name))
+                field_view = IntFieldView(self._view.field_slot, field_name)
+                self._proc_args_dict[field_name] = field_view.value
+                self._fields.append(field_view)
             elif field.type is float:
-                self._fields.append(FloatFieldView(self._view.field_slot, field_name))
+                field_view = FloatFieldView(self._view.field_slot, field_name)
+                self._fields.append(field_view)
             elif field.type is HolderArgs:
-                self._fields.append(TimeFieldView(self._view.field_slot, field_name))
+                field_view = TimeFieldView(self._view.field_slot, field_name)
+                self._proc_args_dict[field_name] = field_view.value
+                self._fields.append(field_view)
             else:
                 raise TypeError(f"The field with name {field_name} has the type {field.type}, which is not supported")
+        
+            def set_dict_value(val):
+                self._proc_args_dict[field_name] = val
+            field_view.bind_value_change(set_dict_value)
+            self._proc_args_dict[field_name] = field_view.value
+
         self._view._initialize_publish()
 
+    # TODO: refactor this method. Validation should occur in the fields and each one should display
+    # its own error message
+    # Also constructing the final class should be done by ProcControlling directly
     def get_args(self) -> Optional[Any]:
         dict_args: Dict[str, Any] = {}
         for field in self._fields:
