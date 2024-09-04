@@ -20,13 +20,13 @@ from soniccontrol_gui.views.measure.plotting import Plotting
 from soniccontrol_gui.utils.plotlib.plot_builder import PlotBuilder
 
 
-class SonicMeasure(UIComponent):
+class Measuring(UIComponent):
     def __init__(self, parent: UIComponent):
-        self._logger = logging.getLogger(parent.logger.name + "." + SonicMeasure.__name__)
+        self._logger = logging.getLogger(parent.logger.name + "." + Measuring.__name__)
 
         self._logger.debug("Create SonicMeasure")
         self._capture = Capture(self._logger) # TODO: move this to device window
-        self._view = SonicMeasureView(parent.view)
+        self._view = MeasuringView(parent.view)
         super().__init__(parent, self._view, self._logger)
 
         self._time_figure = matplotlib.figure.Figure(dpi=100)
@@ -65,7 +65,7 @@ class SonicMeasure(UIComponent):
             self._view.set_capture_button_label(ui_labels.END_CAPTURE)
 
 
-class SonicMeasureView(TabView):
+class MeasuringView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
         super().__init__(master, *args, **kwargs)
 
@@ -110,7 +110,7 @@ class SonicMeasureView(TabView):
 
 def main():    
     root = tk.Tk()
-    measureView = SonicMeasureView(root) #type: ignore
+    measureView = MeasuringView(root) #type: ignore
     measureView.grid()
     root.mainloop()
 

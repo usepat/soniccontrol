@@ -13,6 +13,7 @@ from async_tkinter_loop import async_handler
 
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView
+from sonicpackage.scripting.interpreter_engine import CurrentTarget, InterpreterEngine, InterpreterState
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
 from sonicpackage.scripting.scripting_facade import Script, ScriptingFacade
 from sonicpackage.sonicamp_ import SonicAmp
@@ -47,12 +48,6 @@ class ScriptFile:
         with pathlib.Path(self.filepath).open("w") as f:
             self.logger.info("Save script to %s", self.filepath)
             f.write(self.text)
-        
-
-class InterpreterState(Enum):
-    READY = 0
-    PAUSED = 1
-    RUNNING = 2
 
 
 class Editor(UIComponent):
@@ -63,10 +58,9 @@ class Editor(UIComponent):
         self._device = device
         self._app_state = app_state
         self._scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
-        self._interpreter_worker = None
         self._script: ScriptFile = ScriptFile(logger=self._logger)
-        self._interpreter: Optional[Script] = None
-        self._interpreter_state = InterpreterState.READY
+        self._parsed_script: Optional[Script] = None
+        self._interpreter = InterpreterEngine(self._logger)
         self._view = EditorView(parent.view)
         super().__init__(parent, self._view, self._logger)
 
@@ -74,7 +68,11 @@ class Editor(UIComponent):
         self._view.add_menu_command(ui_labels.SAVE_LABEL, self._on_save_script)
         self._view.add_menu_command(ui_labels.SAVE_AS_LABEL, self._on_save_as_script)
         self._view.set_scripting_guide_button_command(self._on_open_scriping_guide)
-        self._set_interpreter_state(self._interpreter_state)
+
+        self._set_interpreter_state(self._interpreter.interpreter_state)
+        self._interpreter.subscribe(InterpreterEngine.INTERPRETATION_ERROR, lambda e: self._show_err_msg(e.data["error"]))
+        self._interpreter.subscribe_property_listener(InterpreterEngine.PROPERTY_INTERPRETER_STATE, lambda e: self._set_interpreter_state(e.new_value))
+        self._interpreter.subscribe_property_listener(InterpreterEngine.PROPERTY_CURRENT_TARGET, lambda e: self._set_current_target(e.new_value))
         self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self.on_execution_state_changed)
 
     def on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
@@ -82,12 +80,16 @@ class Editor(UIComponent):
         if execution_state == ExecutionState.BUSY_EXECUTING_SCRIPT:
             return
         elif execution_state == ExecutionState.IDLE:
-            self._set_interpreter_state(self._interpreter_state)
+            self._set_interpreter_state(self._interpreter.interpreter_state)
         else:
             self._view.start_pause_continue_button.configure(enabled=False)
             self._view.single_step_button.configure(enabled=False)
             self._view.stop_button.configure(enabled=False)
             self._view.editor_enabled = False
+
+    def _set_current_target(self, target: CurrentTarget):
+        self._view.highlight_line(target.line)
+        self._view.current_task = target.task
 
     def _set_interpreter_state(self, interpreter_state: InterpreterState):
         self._interpreter_state = interpreter_state
@@ -97,13 +99,13 @@ class Editor(UIComponent):
                 self._view.start_pause_continue_button.configure(
                     label=ui_labels.START_LABEL,
                     image=(images.PLAY_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
-                    command=lambda: self._on_start_script(False),
+                    command=self._on_start_script,
                     enabled=True
                 )
                 self._view.single_step_button.configure(
                     label=ui_labels.SINGLE_STEP_LABEL,
                     image=(images.FORWARDS_ICON_WHITE, sizes.BUTTON_ICON_SIZE),
-                    command=lambda: self._on_start_script(True),
+                    command=self._on_single_step_script,
                     enabled=True
                 )
                 self._view.stop_button.configure(
@@ -113,8 +115,6 @@ class Editor(UIComponent):
                     enabled=False
                 )
                 self._view.editor_enabled = True
-                self._view.current_task = "Idle"
-                self._view.highlight_line(None)
                 self._app_state.execution_state = ExecutionState.IDLE
 
             case InterpreterState.RUNNING:
@@ -182,63 +182,39 @@ class Editor(UIComponent):
         ScriptingGuide(self._view, self._view.editor_text_view, scripting_cards_data)
 
 
-    @async_handler
-    async def _on_start_script(self, single_instruction: bool):
-        self._logger.info("Start script")
+    def _parse_script(self):
         self._script.text = self._view.editor_text
-        if self._interpreter_state == InterpreterState.READY:
-            try:
-                self._interpreter = self._scripting.parse_script(self._script.text)
-            except Exception as e:
-                self._show_err_msg(e)
-                return
+        try:
+            self._parsed_script = self._scripting.parse_script(self._script.text)  
+        except Exception as e:
+            self._show_err_msg(e)
 
-        self._set_interpreter_state(InterpreterState.RUNNING)
-        self._interpreter_worker = asyncio.create_task(self._interpreter_engine(single_instruction=single_instruction))
+    @async_handler
+    async def _on_start_script(self):
+        if self._interpreter.interpreter_state == InterpreterState.READY:
+            self._parse_script()
 
+        self._interpreter.script = self._parsed_script
+        self._interpreter.start()
+
+    @async_handler
+    async def _on_single_step_script(self):
+        if self._interpreter.interpreter_state == InterpreterState.READY:
+            self._parse_script()
+
+        self._interpreter.script = self._parsed_script
+        self._interpreter.single_step()
+            
     @async_handler
     async def _on_stop_script(self):
-        self._logger.info("Stop script")
-        if self._interpreter_worker and not self._interpreter_worker.done() and not self._interpreter_worker.cancelled():
-            self._interpreter_worker.cancel()
-            await self._interpreter_worker
-        
-        self._set_interpreter_state(InterpreterState.READY)
+        await self._interpreter.stop()
 
-    @async_handler
-    async def _on_continue_script(self):
-        self._logger.info("Continue script")
-        self._set_interpreter_state(InterpreterState.RUNNING)
-        self._interpreter_worker = asyncio.create_task(self._interpreter_engine())
+    def _on_continue_script(self):
+        self._interpreter.start() 
 
     @async_handler
     async def _on_pause_script(self):
-        self._logger.info("Pause script")
-        if self._interpreter_worker and not self._interpreter_worker.done() and not self._interpreter_worker.cancelled():
-            self._interpreter_worker.cancel()
-            await self._interpreter_worker
-        
-        self._set_interpreter_state(InterpreterState.PAUSED)
-
-    async def _interpreter_engine(self, single_instruction: bool = False):
-        if self._interpreter is None:
-            return
-        try:
-            async for line_index, task in self._interpreter:
-                self._view.highlight_line(line_index)
-                self._view.current_task = task
-                self._logger.info("Current task: %s", task)
-                if single_instruction and line_index != 0:
-                    break
-        except asyncio.CancelledError:
-            self._logger.warn("Interpreter got interrupted, while executing a script")
-            return
-        except Exception as e:
-            self._logger.error(e)
-            self._show_err_msg(e)   
-            self._set_interpreter_state(InterpreterState.PAUSED)
-            return
-        self._set_interpreter_state(InterpreterState.PAUSED if single_instruction and not self._interpreter.is_finished else InterpreterState.READY)
+        await self._interpreter.pause()
 
     def _show_err_msg(self, e: Exception):
         Messagebox.show_error(f"{e.__class__.__name__}: {str(e)}")

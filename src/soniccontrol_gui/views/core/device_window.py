@@ -25,7 +25,7 @@ from soniccontrol_gui.views.control.logging import Logging, LoggingTab
 from soniccontrol_gui.views.control.editor import Editor
 from soniccontrol_gui.views.control.proc_controlling import ProcControlling
 from soniccontrol_gui.views.control.serialmonitor import SerialMonitor
-from soniccontrol_gui.views.measure.sonicmeasure import SonicMeasure
+from soniccontrol_gui.views.measure.measuring import Measuring
 from soniccontrol_gui.views.core.status import StatusBar
 from soniccontrol_gui.widgets.notebook import Notebook
 from soniccontrol_gui.resources import images
@@ -111,7 +111,7 @@ class KnownDeviceWindow(DeviceWindow):
 
             self._logger.debug("Create views")
             self._home = Home(self, self._device)
-            self._sonicmeasure = SonicMeasure(self)
+            self._sonicmeasure = Measuring(self)
             self._serialmonitor = SerialMonitor(self, self._device.serial)
             self._logging = Logging(self, connection_name)
             self._editor = Editor(self, self._device, self._app_state)
