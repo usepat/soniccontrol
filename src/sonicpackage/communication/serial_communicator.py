@@ -13,7 +13,6 @@ from sonicpackage.communication.sonicprotocol import CommunicationProtocol, Lega
 from sonicpackage.events import Event
 from shared.system import PLATFORM
 
-
 @attrs.define
 class SerialCommunicator(Communicator):
     BAUDRATE = 9600
@@ -37,6 +36,7 @@ class SerialCommunicator(Communicator):
         self._task = None
         self._logger = logging.getLogger(self._logger.name + "." + SerialCommunicator.__name__)
         self._protocol: CommunicationProtocol = SonicProtocol(self._logger)
+
         super().__init__()
 
     @property
@@ -60,6 +60,7 @@ class SerialCommunicator(Communicator):
         if isinstance(connection_factory, SerialConnectionFactory):
             connection_factory.baudrate = SerialCommunicator.BAUDRATE 
         self._reader, self._writer = await connection_factory.open_connection()
+        #self._writer.transport.set_write_buffer_limits(0) #Quick fix
         self._protocol = SonicProtocol(self._logger)
         self._package_fetcher = PackageFetcher(self._reader, self._protocol, self._logger)
         self._connection_opened.set()
@@ -94,8 +95,32 @@ class SerialCommunicator(Communicator):
             if command.message != "-":
                 self._logger.info("Write package: %s", message_str)
             message = message_str.encode(PLATFORM.encoding)
-            self._writer.write(message)
-            await self._writer.drain()
+
+            total_length = len(message)  # Quick fix for sending messages in small chunks
+            offset = 0
+            chunk_size=20
+            delay = 1
+
+            while offset < total_length:
+                # Extract a chunk of data
+                chunk = message[offset:offset + chunk_size]
+                
+                # Write the chunk to the writer
+                self._writer.write(chunk)
+                
+                # Drain the writer to ensure it's flushed to the transport
+                await self._writer.drain()
+                
+                # Debugging output
+                self._logger.info(f"[DEBUG] Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
+                
+                # Sleep for the given delay between chunks
+                await asyncio.sleep(delay)
+                
+                # Move to the next chunk
+                offset += chunk_size
+
+            self._logger.info("[DEBUG] Finished sending all chunks.")
 
             answer =  await self._package_fetcher.get_answer_of_package(
                 message_counter

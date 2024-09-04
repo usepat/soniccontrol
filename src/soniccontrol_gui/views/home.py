@@ -11,7 +11,6 @@ import ttkbootstrap as ttk
 from sonicpackage.events import PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import ExecutionState
-from soniccontrol_gui.widgets.spinbox import Spinbox
 from soniccontrol_gui.resources import images
 from soniccontrol_gui.constants import ui_labels, sizes
 
@@ -100,10 +99,10 @@ class HomeView(TabView):
             self._control_frame, text=ui_labels.FREQUENCY
         )
         self._freq: ttk.IntVar = ttk.IntVar(value=0)
-        self._freq_spinbox: Spinbox = Spinbox(
+        self._freq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self._freq_frame,
-            placeholder=ui_labels.FREQ_PLACEHOLDER,
-            scrolled_frame=self._main_frame,
+            #placeholder=ui_labels.FREQ_PLACEHOLDER,
+            #scrolled_frame=self._main_frame,
             style=ttk.DARK,
             textvariable=self._freq
         )
@@ -112,7 +111,7 @@ class HomeView(TabView):
             orient=ttk.HORIZONTAL,
             style=ttk.SUCCESS,
             from_=0,
-            to=1000000, # TODO: set correct values
+            to=10000000, # TODO: set correct values
             variable=self._freq
         )
 
@@ -130,10 +129,8 @@ class HomeView(TabView):
             self._control_frame, text=ui_labels.GAIN
         )
         self._gain: ttk.IntVar = ttk.IntVar(value=0)
-        self._gain_spinbox: Spinbox = Spinbox(
+        self._gain_spinbox: ttk.Spinbox = ttk.Spinbox(
             self._gain_frame,
-            placeholder=ui_labels.GAIN_PLACEHOLDER,
-            scrolled_frame=self._main_frame,
             style=ttk.DARK,
             textvariable=self._gain
         )

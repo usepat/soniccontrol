@@ -14,17 +14,17 @@ class RamperArgs:
     freq_center: int = attrs.field(validator=[
         validators.instance_of(int),
         validators.ge(0),
-        validators.le(1000000)
+        validators.le(10000000)
     ])
     half_range: int = attrs.field(validator=[
         validators.instance_of(int),
         validators.ge(0),
-        validators.le(1000000)
+        validators.le(5000000)
     ])
     step: int = attrs.field(validator=[
         validators.instance_of(int),
         validators.ge(10),
-        validators.le(100000)
+        validators.le(500000)
     ])
     hold_on: HolderArgs = attrs.field(
         default=HolderArgs(100, "ms"), 
@@ -110,6 +110,6 @@ class RamperRemote(Ramper):
             await device.execute_command(f"!ramp_toff={args.hold_off.duration_in_ms}")
             await device.execute_command(f"!ramp")
         except asyncio.CancelledError:
-            await device.execute_command("!stop")
+            await device.execute_command("!OFF")  # Maybe make a !stop command
         finally:
             await device.get_remote_proc_finished_event().wait()

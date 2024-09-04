@@ -533,6 +533,12 @@ class CommandSet:
             validators=signal_on_validator,
             serial_communication=serial,
         )
+
+        self.ramp: Command = Command( #Quick fix, for scripting using remote ramp
+            message="!ramp",
+            serial_communication=serial,
+        )
+
         self.signal_off: Command = Command(
             message="!OFF",
             estimated_response_time=0.4,
