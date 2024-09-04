@@ -1,0 +1,32 @@
+@startuml Interpreter State Machine
+ 
+[*] -u-> READY
+
+state READY {
+}
+
+state PAUSED {
+}
+
+state RUNNING {
+
+    state InterpreterEngine {
+        state c <<choice>>
+        [*] --> c
+        c -d-> ExecuteAllTasks : [single_instruction == False]
+        c -r-> PauseAfterFirstTask : [single_instruction == True]
+        ExecuteAllTasks -d-> READY : script completed
+        PauseAfterFirstTask -r-> PAUSED : first task completed
+    }
+
+    [*] --> InterpreterEngine
+    InterpreterEngine --> PAUSED : _on_stop_script
+
+}
+
+READY -u-> RUNNING : _on_start_script(single_instruction)
+PAUSED --> RUNNING : _on_continue_script
+PAUSED -d-> READY : _on_stop_script
+
+
+@enduml
