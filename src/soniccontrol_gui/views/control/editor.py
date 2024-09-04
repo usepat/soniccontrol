@@ -51,16 +51,15 @@ class ScriptFile:
 
 
 class Editor(UIComponent):
-    def __init__(self, parent: UIComponent, device: SonicAmp, app_state: AppState):
+    def __init__(self, parent: UIComponent, scripting: ScriptingFacade, script_file: ScriptFile, interpreter: InterpreterEngine, app_state: AppState):
         self._logger = logging.getLogger(parent.logger.name + "." + Editor.__name__)
 
         self._logger.debug("Create Editor")
-        self._device = device
         self._app_state = app_state
-        self._scripting: ScriptingFacade = LegacyScriptingFacade(self._device)
-        self._script: ScriptFile = ScriptFile(logger=self._logger)
+        self._scripting: ScriptingFacade = scripting
+        self._script: ScriptFile = script_file
         self._parsed_script: Optional[Script] = None
-        self._interpreter = InterpreterEngine(self._logger)
+        self._interpreter = interpreter
         self._view = EditorView(parent.view)
         super().__init__(parent, self._view, self._logger)
 

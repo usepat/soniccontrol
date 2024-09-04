@@ -2,7 +2,7 @@ import logging
 from typing import Any, Callable, Dict, Iterable
 
 from async_tkinter_loop import async_handler
-from attr import attrs
+import attrs
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView, View
@@ -21,8 +21,8 @@ from soniccontrol_gui.resources import images
 
 @attrs.define()
 class ProcControllingModel:
-    selected_procedure: ProcedureType = attrs.define(default=ProcedureType.RAMP)
-    procedure_args: Dict[ProcedureType, dict] = attrs.define()
+    selected_procedure: ProcedureType = attrs.field(default=ProcedureType.RAMP)
+    procedure_args: Dict[ProcedureType, dict] = attrs.field(default={})
 
     @property
     def selected_procedure_args(self) -> dict:

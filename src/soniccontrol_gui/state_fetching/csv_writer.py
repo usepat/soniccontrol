@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 import csv
 
@@ -12,7 +13,7 @@ class CsvWriter:
     def _is_file_open(self) -> bool:
         return self._file and not self._file.closed
 
-    def open_file(self, filename: str, header: List[str]):
+    def open_file(self, filename: Path, header: List[str]):
         self._file = open(filename, mode="w", newline="")
         self._writer = csv.writer(self._file)
         self._header = header

@@ -1,7 +1,8 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict, Iterable, List
 import matplotlib.figure
-import pandas as pd
+from ttkbootstrap.dialogs import Messagebox
+from soniccontrol_gui.state_fetching.capture_target import CaptureTarget, CaptureTargets
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView, View
 import tkinter as tk
@@ -21,11 +22,17 @@ from soniccontrol_gui.utils.plotlib.plot_builder import PlotBuilder
 
 
 class Measuring(UIComponent):
-    def __init__(self, parent: UIComponent):
+    def __init__(self, parent: UIComponent, capture_targets: Dict[CaptureTargets, CaptureTarget]):
         self._logger = logging.getLogger(parent.logger.name + "." + Measuring.__name__)
 
         self._logger.debug("Create SonicMeasure")
         self._capture = Capture(self._logger) # TODO: move this to device window
+        self._capture_targets = capture_targets
+        
+        # ensures that capture ends if a target completes
+        for target in self._capture_targets.values():
+            target.subscribe(CaptureTarget.COMPLETED_EVENT, lambda _e: self._capture.end_capture())
+
         self._view = MeasuringView(parent.view)
         super().__init__(parent, self._view, self._logger)
 
@@ -48,10 +55,15 @@ class Measuring(UIComponent):
             ui_labels.SONIC_MEASURE_LABEL: self._spectralplottab.view, 
             ui_labels.CSV_TAB_TITLE: self._csv_table.view
         })
+        target_strs = map(lambda k: k.value, self._capture_targets.keys())
+        self._view.set_target_combobox_items(target_strs)
 
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._timeplot.update_data(e.new_value))
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._spectralplot.update_data(e.new_value))
         self._capture.data_provider.subscribe_property_listener("data", lambda e: self._csv_table.on_update_data(e))
+
+        self._capture.subscribe(Capture.START_CAPTURE_EVENT, lambda _e: self._view.set_capture_button_label(ui_labels.END_CAPTURE))
+        self._capture.subscribe(Capture.END_CAPTURE_EVENT, lambda _e: self._view.set_capture_button_label(ui_labels.START_CAPTURE))
 
     def on_status_update(self, status: Status):
         self._capture.on_update(status)
@@ -59,11 +71,18 @@ class Measuring(UIComponent):
     def _on_toggle_capture(self):
         if self._capture.is_capturing:
             self._capture.end_capture()
-            self._view.set_capture_button_label(ui_labels.START_CAPTURE)
         else:
-            self._capture.start_capture()
-            self._view.set_capture_button_label(ui_labels.END_CAPTURE)
+            try:
+                target_str = self._view.selected_target
+                if target_str == "":
+                    return
+                target = self._capture_targets[CaptureTargets(target_str)]
+                self._capture.start_capture(target)
+            except Exception as e:
+                self._show_err_msg(e)
 
+    def _show_err_msg(self, e: Exception):
+        Messagebox.show_error(f"{e.__class__.__name__}: {str(e)}")
 
 class MeasuringView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
@@ -73,6 +92,10 @@ class MeasuringView(TabView):
         self._main_frame: ttk.Frame = ttk.Frame(self)
         
         self._capture_frame: ttk.Frame = ttk.Frame(self._main_frame)
+
+        self._selected_target_var = ttk.StringVar()
+        self._target_combobox = ttk.Combobox(self._main_frame, textvariable=self._selected_target_var)
+
         self._capture_btn_text = tk.StringVar()
         self._capture_btn: ttk.Button = ttk.Button(
             self._capture_frame,
@@ -85,7 +108,8 @@ class MeasuringView(TabView):
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         
         self._capture_frame.pack(fill=ttk.X, padx=3, pady=3)
-        self._capture_btn.grid(row=0, column=0, padx=sizes.SMALL_PADDING)
+        self._target_combobox.pack(fill=ttk.X, padx=sizes.SMALL_PADDING)
+        self._capture_btn.pack(fill=ttk.X, padx=sizes.SMALL_PADDING)
 
         self._notebook.pack(expand=True, fill=ttk.BOTH)
 
@@ -99,6 +123,13 @@ class MeasuringView(TabView):
     def set_capture_button_command(self, command):
         self._capture_btn.configure(command=command)
 
+    def set_target_combobox_items(self, items: Iterable[str] | List[str]) -> None:
+        if not isinstance(items, list):
+            items = list(items)
+            
+        self._target_combobox["values"] = items
+        self._selected_target_var.set(items[0])
+
     @property
     def image(self) -> ttk.ImageTk.PhotoImage:
         return ImageLoader.load_image_resource(images.LINECHART_ICON_BLACK, sizes.TAB_ICON_SIZE)
@@ -106,13 +137,9 @@ class MeasuringView(TabView):
     @property
     def tab_title(self) -> str:
         return ui_labels.SONIC_MEASURE_LABEL
+    
+    @property
+    def selected_target(self) -> str:
+        return self._selected_target_var.get()
 
 
-def main():    
-    root = tk.Tk()
-    measureView = MeasuringView(root) #type: ignore
-    measureView.grid()
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
