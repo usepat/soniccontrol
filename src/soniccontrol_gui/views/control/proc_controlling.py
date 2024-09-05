@@ -10,7 +10,7 @@ from sonicpackage.procedures.procedure_controller import ProcedureController, Pr
 
 import ttkbootstrap as ttk
 
-from soniccontrol_gui.constants import events, sizes, ui_labels
+from soniccontrol_gui.constants import sizes, ui_labels
 from sonicpackage.events import Event, PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import AppState, ExecutionState
@@ -30,10 +30,10 @@ class ProcControllingModel:
 
 
 class ProcControlling(UIComponent):
-    def __init__(self, parent: UIComponent, proc_controller: ProcedureController, app_state: AppState):
+    def __init__(self, parent: UIComponent, proc_controller: ProcedureController, model: ProcControllingModel, app_state: AppState):
         self._logger = logging.getLogger(parent.logger.name + "." + ProcControlling.__name__)
 
-        self._model: ProcControllingModel = ProcControllingModel()
+        self._model: ProcControllingModel = model
         self._logger.debug("Create ProcControlling")
         self._proc_controller = proc_controller
         self._app_state = app_state
@@ -45,8 +45,8 @@ class ProcControlling(UIComponent):
         self._view.set_procedure_selected_command(self._on_proc_selected)
         self._view.set_start_button_command(self._on_run_pressed)
         self._view.set_stop_button_command(self._on_stop_pressed)
-        self._proc_controller.subscribe(events.PROCEDURE_RUNNING, self.on_procedure_running)
-        self._proc_controller.subscribe(events.PROCEDURE_STOPPED, self.on_procedure_stopped)
+        self._proc_controller.subscribe(ProcedureController.PROCEDURE_RUNNING, self.on_procedure_running)
+        self._proc_controller.subscribe(ProcedureController.PROCEDURE_STOPPED, self.on_procedure_stopped)
         self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
         
         self.on_procedure_stopped(None) # type: ignore

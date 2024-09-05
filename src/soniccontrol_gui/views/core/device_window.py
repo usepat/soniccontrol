@@ -6,7 +6,7 @@ import tkinter as tk
 
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
-from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureScript, CaptureTargets
+from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureProcedure, CaptureScript, CaptureTargets
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.view import TabView
@@ -26,7 +26,7 @@ from soniccontrol_gui.views.home import Home
 from soniccontrol_gui.views.info import Info
 from soniccontrol_gui.views.control.logging import Logging, LoggingTab
 from soniccontrol_gui.views.control.editor import Editor, ScriptFile
-from soniccontrol_gui.views.control.proc_controlling import ProcControlling
+from soniccontrol_gui.views.control.proc_controlling import ProcControlling, ProcControllingModel
 from soniccontrol_gui.views.control.serialmonitor import SerialMonitor
 from soniccontrol_gui.views.measure.measuring import Measuring
 from soniccontrol_gui.views.core.status import StatusBar
@@ -109,8 +109,11 @@ class KnownDeviceWindow(DeviceWindow):
             self._view = DeviceWindowView(root, title=f"Device Window - {connection_name}")
             super().__init__(self._logger, self._view, self._device.serial)
 
+
+            # Models
             self._updater = Updater(self._device)
             self._proc_controller = ProcedureController(self._device)
+            self._proc_controlling_model = ProcControllingModel()
             self._scripting = LegacyScriptingFacade(self._device)
             self._script_file = ScriptFile(logger=self._logger)
             self._interpreter = InterpreterEngine(self._logger)
@@ -118,8 +121,10 @@ class KnownDeviceWindow(DeviceWindow):
             self._capture_targets = {
                 CaptureTargets.FREE: CaptureFree(),
                 CaptureTargets.SCRIPT: CaptureScript(self._script_file, self._scripting, self._interpreter),
+                CaptureTargets.PROCEDURE: CaptureProcedure(self._proc_controller, self._proc_controlling_model),
             }
 
+            # Components
             self._logger.debug("Create views")
             self._home = Home(self, self._device)
             self._serialmonitor = SerialMonitor(self, self._device.serial)
@@ -129,9 +134,10 @@ class KnownDeviceWindow(DeviceWindow):
             self._info = Info(self)
             self._configuration = Configuration(self, self._device)
             self._flashing = Flashing(self, self._device, self._app_state)
-            self._proc_controlling = ProcControlling(self, self._proc_controller, self._app_state)
+            self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
             self._sonicmeasure = Measuring(self, self._capture_targets)
 
+            # Views
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
                 self._home.view,

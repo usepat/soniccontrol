@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, Iterable, List
+from async_tkinter_loop import async_handler
 import matplotlib.figure
 from ttkbootstrap.dialogs import Messagebox
 from soniccontrol_gui.state_fetching.capture_target import CaptureTarget, CaptureTargets
@@ -31,8 +32,8 @@ class Measuring(UIComponent):
         
         # ensures that capture ends if a target completes
         for target in self._capture_targets.values():
-            target.subscribe(CaptureTarget.COMPLETED_EVENT, lambda _e: self._capture.end_capture())
-
+            target.subscribe(CaptureTarget.COMPLETED_EVENT, lambda _e: self._capture.capture_target_completed_callback())
+ 
         self._view = MeasuringView(parent.view)
         super().__init__(parent, self._view, self._logger)
 
@@ -68,16 +69,17 @@ class Measuring(UIComponent):
     def on_status_update(self, status: Status):
         self._capture.on_update(status)
 
-    def _on_toggle_capture(self):
+    @async_handler
+    async def _on_toggle_capture(self):
         if self._capture.is_capturing:
-            self._capture.end_capture()
+            await self._capture.end_capture()
         else:
             try:
                 target_str = self._view.selected_target
-                if target_str == "":
+                if target_str == "": # return if empty
                     return
                 target = self._capture_targets[CaptureTargets(target_str)]
-                self._capture.start_capture(target)
+                await self._capture.start_capture(target)
             except Exception as e:
                 self._show_err_msg(e)
 
@@ -94,7 +96,11 @@ class MeasuringView(TabView):
         self._capture_frame: ttk.Frame = ttk.Frame(self._main_frame)
 
         self._selected_target_var = ttk.StringVar()
-        self._target_combobox = ttk.Combobox(self._main_frame, textvariable=self._selected_target_var)
+        self._target_combobox = ttk.Combobox(
+            self._main_frame, 
+            textvariable=self._selected_target_var,
+            state="readonly"
+        )
 
         self._capture_btn_text = tk.StringVar()
         self._capture_btn: ttk.Button = ttk.Button(

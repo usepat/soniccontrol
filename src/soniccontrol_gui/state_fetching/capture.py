@@ -32,7 +32,6 @@ class Capture(EventManager):
     def data_provider(self) -> DataProvider:
         return self._data_provider
     
-    @async_handler
     async def start_capture(self, capture_target: CaptureTarget = CaptureFree()):
         assert not self._is_capturing
 
@@ -49,6 +48,14 @@ class Capture(EventManager):
         self._target.run_to_capturing_task()
 
     @async_handler
+    async def capture_target_completed_callback(self):
+        """!
+            @brief Helper Method so end_capture can be called over a callback
+
+            @note This runs in its own asyncio loop. So errors will not propagate upwards
+        """
+        await self.end_capture()
+
     async def end_capture(self):
         assert self._is_capturing
 

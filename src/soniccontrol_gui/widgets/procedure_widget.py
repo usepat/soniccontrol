@@ -146,9 +146,13 @@ class ProcedureWidget(UIComponent):
             else:
                 raise TypeError(f"The field with name {field_name} has the type {field.type}, which is not supported")
         
-            def set_dict_value(val):
-                self._proc_args_dict[field_name] = val
-            field_view.bind_value_change(set_dict_value)
+            # I use here a decorator so that the field_name gets captured by the function and not gets overwritten in 
+            # subsequent runs
+            def set_dict_value(key):
+                def _set_dict_value(val):
+                    self._proc_args_dict[key] = val
+                return _set_dict_value
+            field_view.bind_value_change(set_dict_value(field_name))
             self._proc_args_dict[field_name] = field_view.value
 
         self._view._initialize_publish()

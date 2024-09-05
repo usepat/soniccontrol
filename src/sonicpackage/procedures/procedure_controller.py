@@ -12,7 +12,8 @@ from sonicpackage.logging import get_base_logger
 from sonicpackage.events import Event, EventManager
 
 class ProcedureController(EventManager):
-    PROCEDURE_STOPPED: Literal["<<ProcedureStopped>>"] = "<<ProcedureStopped>>"
+    PROCEDURE_STOPPED: Literal["<<PROCEDURE_STOPPED>>"] = "<<PROCEDURE_STOPPED>>"
+    PROCEDURE_RUNNING: Literal["<<PROCEDURE_RUNNING>>"] = "<<PROCEDURE_RUNNING>>"
 
     def __init__(self, device: SonicAmp):
         super().__init__()
@@ -54,6 +55,7 @@ class ProcedureController(EventManager):
         self._running_proc_type = proc_type
         self._running_proc_task = asyncio.create_task(procedure.execute(self._device, args))
         self._running_proc_task.add_done_callback(lambda _e: self._on_proc_finished())
+        self.emit(Event(ProcedureController.PROCEDURE_RUNNING, proc_type=proc_type))
 
     async def stop_proc(self) -> None:
         self._logger.info("Stop procedure")

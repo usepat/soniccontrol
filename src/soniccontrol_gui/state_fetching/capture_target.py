@@ -1,6 +1,7 @@
 
 import abc
 from enum import Enum
+from typing import Any
 from soniccontrol_gui.views.control.editor import ScriptFile
 from soniccontrol_gui.views.control.proc_controlling import ProcControllingModel
 from sonicpackage.events import Event, EventManager, PropertyChangeEvent
@@ -82,8 +83,41 @@ class CaptureScript(CaptureTarget):
         if self._interpreter_engine.interpreter_state == InterpreterState.RUNNING:
             await self._interpreter_engine.stop()
 
+
 class CaptureProcedure(CaptureTarget):
-    pass
+    def __init__(self, procedure_controller: ProcedureController, proc_model: ProcControllingModel):
+        super().__init__()
+        self._procedure_controller = procedure_controller
+        self._proc_model = proc_model
+        self._args: Any | None = None
+        self._is_capturing = False
+        self._procedure_controller.subscribe(
+            ProcedureController.PROCEDURE_STOPPED, 
+            self._notify_on_procedure_finished
+        )
+
+    def _notify_on_procedure_finished(self, _e: Event):
+        if not self._is_capturing:
+            return
+        
+        self.emit(Event(CaptureTarget.COMPLETED_EVENT))
+
+    async def before_start_capture(self) -> None:
+        selected_proc = self._proc_model.selected_procedure
+        proc_class = self._procedure_controller.proc_args_list[selected_proc]
+        proc_args = self._proc_model.selected_procedure_args
+        self._args = proc_class(**proc_args)
+        self._is_capturing = True
+
+    def run_to_capturing_task(self) -> None:
+        assert self._args is not None
+        self._procedure_controller.execute_proc(self._proc_model.selected_procedure, self._args)
+
+    async def after_end_capture(self) -> None:
+        self._is_capturing = False
+        if self._procedure_controller.is_proc_running:
+            await self._procedure_controller.stop_proc()
+
 
 class CaptureSpectrumMeasure(CaptureTarget):
     pass

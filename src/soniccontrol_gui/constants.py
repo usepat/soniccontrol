@@ -253,7 +253,7 @@ class _Events:
     SIGNAL_ON: Literal["<<SignalOn>>"] = "<<SignalOn>>"
     SAVE_CONFIG: Literal["<<SaveConfig>>"] = "<<SaveConfig>>"
     PROPERTY_CHANGE_EVENT = PropertyChangeEvent.PROPERTY_CHANGE_EVENT
-    PROCEDURE_RUNNING: Literal["<<ProcedureRunning>>"] = "<<ProcedureRunning>>"
+    PROCEDURE_RUNNING = ProcedureController.PROCEDURE_RUNNING
     PROCEDURE_STOPPED = ProcedureController.PROCEDURE_STOPPED
 
 events: Final[_Events] = _Events()
