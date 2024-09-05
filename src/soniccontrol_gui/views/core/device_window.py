@@ -93,8 +93,10 @@ class RescueWindow(DeviceWindow):
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
                 self._serialmonitor.view, 
+            ], right_one=False)
+            self._view.add_tab_views([
                 self._logging.view, 
-            ])
+            ], right_one=True)
 
             self._logger.debug("add callbacks and listeners to event emitters")
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
@@ -144,15 +146,17 @@ class KnownDeviceWindow(DeviceWindow):
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
                 self._home.view,
-                self._sonicmeasure.view, 
                 self._serialmonitor.view, 
-                self._logging.view, 
+                self._proc_controlling.view,
                 self._editor.view, 
-                self._info.view,
                 self._configuration.view, 
                 self._flashing.view,
-                self._proc_controlling.view
-            ])
+            ], right_one=False)
+            self._view.add_tab_views([
+                self._info.view,
+                self._sonicmeasure.view, 
+                self._logging.view, 
+            ], right_one=True)
 
             self._logger.debug("add callbacks and listeners to event emitters")
             self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
@@ -171,8 +175,8 @@ class DeviceWindowView(tk.Toplevel):
         title = kwargs.pop("title", "Device Window")
         super().__init__(root, *args, **kwargs)
         self.title(title)
-        self.geometry('450x550')
-        self.minsize(450, 400)
+        self.geometry('1200x800')
+        self.minsize(600, 400)
         self.iconphoto(True, ImageLoader.load_image_resource(images.LOGO, sizes.LARGE_BUTTON_ICON_SIZE))
 
 
@@ -184,14 +188,27 @@ class DeviceWindowView(tk.Toplevel):
 
         # tkinter components
         self._frame: ttk.Frame = ttk.Frame(self)
-        self._notebook: Notebook = Notebook(self._frame)
+        # We use the tk.PanedWindow, because ttk.PanedWindow do not support minsize and paneconfigure
+        self._paned_window: tk.PanedWindow = tk.PanedWindow(self._frame, orient=ttk.HORIZONTAL)
+        self._notebook_right: Notebook = Notebook(self._paned_window)
+        self._notebook_left: Notebook = Notebook(self._paned_window)
         self._status_bar_slot: ttk.Frame = ttk.Frame(self._frame)
 
         self._frame.pack(fill=ttk.BOTH, expand=True)
+        self._paned_window.pack(fill=ttk.BOTH, expand=True)
         self._status_bar_slot.pack(side=ttk.BOTTOM, fill=ttk.X)
-        self._notebook.pack(side=ttk.TOP, fill=ttk.BOTH, expand=True)
+        self._notebook_left.pack(side=ttk.LEFT, fill=ttk.BOTH)
+        self._notebook_right.pack(side=ttk.LEFT, fill=ttk.BOTH)
 
-        self._notebook.add_tabs(
+        self._paned_window.add(self._notebook_left, minsize=300)
+        self._paned_window.add(self._notebook_right, minsize=300)
+
+        self._notebook_right.add_tabs(
+            [],
+            show_titles=True,
+            show_images=True,
+        )
+        self._notebook_left.add_tabs(
             [],
             show_titles=True,
             show_images=True,
@@ -206,8 +223,9 @@ class DeviceWindowView(tk.Toplevel):
     def is_open(self) -> bool:
         return self.winfo_exists()
 
-    def add_tab_views(self, tab_views: List[TabView]):
-        self._notebook.add_tabs(
+    def add_tab_views(self, tab_views: List[TabView], right_one: bool = False):
+        notebook = self._notebook_right if right_one else self._notebook_left
+        notebook.add_tabs(
             tab_views,
             show_titles=True,
             show_images=True,
