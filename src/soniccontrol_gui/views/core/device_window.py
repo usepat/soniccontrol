@@ -6,7 +6,8 @@ import tkinter as tk
 
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
-from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureProcedure, CaptureScript, CaptureTargets
+from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureProcedure, CaptureScript, CaptureSpectrumMeasure, CaptureTargets
+from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasureModel
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.view import TabView
@@ -117,11 +118,13 @@ class KnownDeviceWindow(DeviceWindow):
             self._scripting = LegacyScriptingFacade(self._device)
             self._script_file = ScriptFile(logger=self._logger)
             self._interpreter = InterpreterEngine(self._logger)
+            self._spectrum_measure_model = SpectrumMeasureModel()
 
             self._capture_targets = {
                 CaptureTargets.FREE: CaptureFree(),
                 CaptureTargets.SCRIPT: CaptureScript(self._script_file, self._scripting, self._interpreter),
                 CaptureTargets.PROCEDURE: CaptureProcedure(self._proc_controller, self._proc_controlling_model),
+                CaptureTargets.SPECTRUM_MEASURE: CaptureSpectrumMeasure(self._updater, self._proc_controller, self._spectrum_measure_model)
             }
 
             # Components
@@ -135,7 +138,7 @@ class KnownDeviceWindow(DeviceWindow):
             self._configuration = Configuration(self, self._device)
             self._flashing = Flashing(self, self._device, self._app_state)
             self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
-            self._sonicmeasure = Measuring(self, self._capture_targets)
+            self._sonicmeasure = Measuring(self, self._capture_targets, self._spectrum_measure_model)
 
             # Views
             self._logger.debug("Created all views, add them as tabs")
@@ -154,7 +157,7 @@ class KnownDeviceWindow(DeviceWindow):
             self._logger.debug("add callbacks and listeners to event emitters")
             self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
             self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))
-            self._updater.execute()
+            self._updater.start()
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._configuration.on_execution_state_changed)
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._home.on_execution_state_changed)

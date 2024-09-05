@@ -4,12 +4,14 @@ from async_tkinter_loop import async_handler
 import matplotlib.figure
 from ttkbootstrap.dialogs import Messagebox
 from soniccontrol_gui.state_fetching.capture_target import CaptureTarget, CaptureTargets
+from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasure, SpectrumMeasureModel
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView, View
 import tkinter as tk
 import ttkbootstrap as ttk
 import matplotlib
 
+from soniccontrol_gui.widgets.procedure_widget import ProcedureWidget
 from sonicpackage.amp_data import Status
 from soniccontrol_gui.state_fetching.capture import Capture
 from soniccontrol_gui.views.measure.csv_table import CsvTable
@@ -23,7 +25,7 @@ from soniccontrol_gui.utils.plotlib.plot_builder import PlotBuilder
 
 
 class Measuring(UIComponent):
-    def __init__(self, parent: UIComponent, capture_targets: Dict[CaptureTargets, CaptureTarget]):
+    def __init__(self, parent: UIComponent, capture_targets: Dict[CaptureTargets, CaptureTarget], spectrum_measure_model: SpectrumMeasureModel):
         self._logger = logging.getLogger(parent.logger.name + "." + Measuring.__name__)
 
         self._logger.debug("Create SonicMeasure")
@@ -48,6 +50,15 @@ class Measuring(UIComponent):
         self._spectralplottab = Plotting(self, self._spectralplot)
         
         self._csv_table = CsvTable(self)
+
+        
+        self._spectrum_measure_widget = ProcedureWidget(
+            self, 
+            self._view.spectrum_measure_frame, 
+            "Spectrum Measure", 
+            SpectrumMeasure.get_args_class(),
+            spectrum_measure_model.form_fields
+        )
 
         self._view.set_capture_button_command(lambda: self._on_toggle_capture())
         self._view.set_capture_button_label(ui_labels.START_CAPTURE)
@@ -110,6 +121,8 @@ class MeasuringView(TabView):
 
         self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
 
+        self._spectrum_measure_frame = ttk.Frame(self._main_frame)
+
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)
         
@@ -118,6 +131,8 @@ class MeasuringView(TabView):
         self._capture_btn.pack(fill=ttk.X, padx=sizes.SMALL_PADDING)
 
         self._notebook.pack(expand=True, fill=ttk.BOTH)
+
+        self._spectrum_measure_frame.pack(side=ttk.BOTTOM, fill=ttk.X, padx=3, pady=3)
 
     def add_tabs(self, tabs: Dict[str, View]) -> None:
         for (title, tabview) in tabs.items():
@@ -147,5 +162,9 @@ class MeasuringView(TabView):
     @property
     def selected_target(self) -> str:
         return self._selected_target_var.get()
+    
+    @property
+    def spectrum_measure_frame(self) -> ttk.Frame:
+        return self._spectrum_measure_frame
 
 

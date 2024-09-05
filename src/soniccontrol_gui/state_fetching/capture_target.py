@@ -2,10 +2,14 @@
 import abc
 from enum import Enum
 from typing import Any
+from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasure, SpectrumMeasureModel
+from soniccontrol_gui.state_fetching.updater import Updater
 from soniccontrol_gui.views.control.editor import ScriptFile
 from soniccontrol_gui.views.control.proc_controlling import ProcControllingModel
 from sonicpackage.events import Event, EventManager, PropertyChangeEvent
+from sonicpackage.procedures.procedure import ProcedureType
 from sonicpackage.procedures.procedure_controller import ProcedureController
+from sonicpackage.procedures.procs.ramper import RamperArgs
 from sonicpackage.scripting.interpreter_engine import InterpreterEngine, InterpreterState
 from sonicpackage.scripting.scripting_facade import ScriptingFacade
 
@@ -120,5 +124,36 @@ class CaptureProcedure(CaptureTarget):
 
 
 class CaptureSpectrumMeasure(CaptureTarget):
-    pass
+    def __init__(self, updater: Updater, procedure_controller: ProcedureController, spectrum_measure_model: SpectrumMeasureModel):
+        super().__init__()
+        self._updater = updater
+        self._procedure_controller = procedure_controller
+        self._spectrum_measure_model = spectrum_measure_model
+        self._spectrum_measure = SpectrumMeasure(self._updater)
+        self._args: Any | None = None
+        self._is_capturing = False
+        self._procedure_controller.subscribe(
+            ProcedureController.PROCEDURE_STOPPED, 
+            self._notify_on_procedure_finished
+        )
 
+    def _notify_on_procedure_finished(self, _e: Event):
+        if not self._is_capturing:
+            return
+        
+        self.emit(Event(CaptureTarget.COMPLETED_EVENT))
+
+    async def before_start_capture(self) -> None:
+        proc_args = self._spectrum_measure_model.form_fields
+        self._args = RamperArgs(**proc_args)
+        self._is_capturing = True
+
+    def run_to_capturing_task(self) -> None:
+        assert self._args is not None
+        self._procedure_controller.execute_procedure(self._spectrum_measure, ProcedureType.SPECTRUM_MEASURE, self._args)
+
+    async def after_end_capture(self) -> None:
+        self._is_capturing = False
+        if self._procedure_controller.is_proc_running:
+            await self._procedure_controller.stop_proc()
+        

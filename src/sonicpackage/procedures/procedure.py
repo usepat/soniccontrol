@@ -8,6 +8,7 @@ from sonicpackage.interfaces import Scriptable
 
 
 class ProcedureType(Enum):
+    SPECTRUM_MEASURE = "Spectrum Measure"
     RAMP = "Ramp"
     SCAN = "Scan"
     TUNE = "Tune"

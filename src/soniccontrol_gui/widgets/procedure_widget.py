@@ -187,6 +187,7 @@ class ProcedureWidgetView(View):
         self._error_label = ttk.Label(self)
 
     def _initialize_publish(self) -> None:
+        self.pack(fill=ttk.BOTH)
         self._title_frame.pack(fill=ttk.X, pady=10)
         self._procedure_label.pack()
         self._scrolled_frame.pack(fill=ttk.BOTH, pady=10, expand=True)

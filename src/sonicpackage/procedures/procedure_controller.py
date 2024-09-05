@@ -48,8 +48,12 @@ class ProcedureController(EventManager):
         procedure = self._procedures.get(proc_type, None)
         if procedure is None:
             raise Exception(f"The procedure {repr(proc_type)} is not available for the current device")
+       
+        self.execute_procedure(procedure, proc_type, args)
+
+    def execute_procedure(self, procedure: Procedure, proc_type: ProcedureType, args: Any):
         if self.is_proc_running:
-            raise Exception(f"There is already a procedure running")
+            raise Exception("There is already a procedure running")
         
         self._logger.info("Run procedure %s with args %s", proc_type.name, str(args))
         self._running_proc_type = proc_type
