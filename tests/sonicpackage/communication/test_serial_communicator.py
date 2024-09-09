@@ -2,7 +2,7 @@ import asyncio
 import logging
 import pytest
 import pytest_asyncio
-from shared.system import PLATFORM
+from sonicpackage.system import PLATFORM
 from sonicpackage.command import Command
 from sonicpackage.communication.package_parser import Package, PackageParser
 from sonicpackage.communication.serial_communicator import SerialCommunicator

@@ -32,12 +32,6 @@ jobs:
       with:
         path: scripts/installer.iss
 
-    - name: Upload installer
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows installer
-        path: ./dist/SonicControlInstaller/SonicControlInstaller.exe
-
     - name: Zip SonicControl
       run: |
         Compress-Archive -Path "./dist/SonicControl" -DestinationPath "./SonicControl.zip" -Update
