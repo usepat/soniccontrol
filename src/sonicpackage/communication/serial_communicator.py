@@ -11,7 +11,7 @@ from sonicpackage.command import Command, CommandValidator
 from sonicpackage.communication.communicator import Communicator
 from sonicpackage.communication.sonicprotocol import CommunicationProtocol, LegacySonicProtocol, SonicProtocol
 from sonicpackage.events import Event
-from shared.system import PLATFORM
+from sonicpackage.system import PLATFORM
 
 @attrs.define
 class SerialCommunicator(Communicator):

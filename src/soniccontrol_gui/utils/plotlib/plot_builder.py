@@ -1,6 +1,8 @@
 from soniccontrol_gui.utils.plotlib.plot import Plot
 
 import matplotlib
+import matplotlib.dates
+import matplotlib.axes
 import pandas as pd
 import datetime
 
@@ -10,6 +12,7 @@ class PlotBuilder:
     @staticmethod
     def create_timeplot_fuip(subplot: matplotlib.axes.Axes) -> Plot:
         plot = Plot(subplot, "timestamp", "Time")
+        plot._plot.xaxis.set_major_locator(matplotlib.dates.AutoDateLocator())
         plot._plot.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%H:%M:%S"))
         
         plot.add_axis("frequency_axis", "Frequency / Hz")

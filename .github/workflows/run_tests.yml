@@ -52,9 +52,9 @@ jobs:
       - name: Run Robot
         run: python -m robot --outputdir ./tests_robot/results .
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results
-          path: ./tests_robot/results
+      # - name: Upload test results
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-results
+      #     path: ./tests_robot/results
       

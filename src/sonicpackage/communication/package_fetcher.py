@@ -4,7 +4,7 @@ from typing import Dict
 from asyncio import StreamReader
 
 from sonicpackage.communication.sonicprotocol import SonicProtocol
-from shared.system import PLATFORM
+from sonicpackage.system import PLATFORM
 
 
 class PackageFetcher:

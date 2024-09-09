@@ -16,33 +16,25 @@ class Updater(EventManager):
     def running(self) -> asyncio.Event:
         return self._running
 
-
-    @property
-    def task(self) -> Optional[asyncio.Task]:
-        return self._task
-
-
-    def execute(self, *args, **kwargs) -> None:
+    def start(self) -> None:
         self._running.set()
         self._task = asyncio.create_task(self._loop())
 
-
-    def stop_execution(self, *args, **kwargs) -> None:
+    async def stop(self) -> None:
+        assert self._task is not None
         self._running.clear()
+        await self._task
 
+    async def update(self) -> None:
+        # HINT: If ever needed to update different device attributes, we can do that, by checking what components the device has
+        # and then additionally call other commands to get this information
+        await self._device.get_status()
+        self.emit(Event("update", status=self._device.status))
 
     async def _loop(self) -> None:
         try:
             while self._running.is_set():
-                await self._worker()
+                await self.update()
         except Exception as e:
             raise
-
-
-    async def _worker(self) -> None:
-        await self._device.get_status()
-
-        # HINT: If ever needed to update different device attributes, we can do that, by checking what components the device has
-        # and then additionally call other commands to get this information
-
-        self.emit(Event("update", status=self._device.status))
+        

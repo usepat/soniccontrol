@@ -6,11 +6,15 @@ import tkinter as tk
 
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
+from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureProcedure, CaptureScript, CaptureSpectrumMeasure, CaptureTargets
+from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasureModel
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.view import TabView
 from sonicpackage.communication.communicator import Communicator
 from sonicpackage.procedures.procedure_controller import ProcedureController
+from sonicpackage.scripting.interpreter_engine import InterpreterEngine
+from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
 from sonicpackage.sonicamp_ import SonicAmp
 from soniccontrol_gui.state_fetching.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
 from soniccontrol_gui.state_fetching.updater import Updater
@@ -22,10 +26,10 @@ from soniccontrol_gui.views.core.app_state import AppState, ExecutionState
 from soniccontrol_gui.views.home import Home
 from soniccontrol_gui.views.info import Info
 from soniccontrol_gui.views.control.logging import Logging, LoggingTab
-from soniccontrol_gui.views.control.editor import Editor
-from soniccontrol_gui.views.control.proc_controlling import ProcControlling
+from soniccontrol_gui.views.control.editor import Editor, ScriptFile
+from soniccontrol_gui.views.control.proc_controlling import ProcControlling, ProcControllingModel
 from soniccontrol_gui.views.control.serialmonitor import SerialMonitor
-from soniccontrol_gui.views.measure.sonicmeasure import SonicMeasure
+from soniccontrol_gui.views.measure.measuring import Measuring
 from soniccontrol_gui.views.core.status import StatusBar
 from soniccontrol_gui.widgets.notebook import Notebook
 from soniccontrol_gui.resources import images
@@ -89,8 +93,10 @@ class RescueWindow(DeviceWindow):
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
                 self._serialmonitor.view, 
+            ], right_one=False)
+            self._view.add_tab_views([
                 self._logging.view, 
-            ])
+            ], right_one=True)
 
             self._logger.debug("add callbacks and listeners to event emitters")
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
@@ -106,38 +112,56 @@ class KnownDeviceWindow(DeviceWindow):
             self._view = DeviceWindowView(root, title=f"Device Window - {connection_name}")
             super().__init__(self._logger, self._view, self._device.serial)
 
+
+            # Models
             self._updater = Updater(self._device)
             self._proc_controller = ProcedureController(self._device)
+            self._proc_controlling_model = ProcControllingModel()
+            self._scripting = LegacyScriptingFacade(self._device)
+            self._script_file = ScriptFile(logger=self._logger)
+            self._interpreter = InterpreterEngine(self._logger)
+            self._spectrum_measure_model = SpectrumMeasureModel()
 
+            self._capture_targets = {
+                CaptureTargets.FREE: CaptureFree(),
+                CaptureTargets.SCRIPT: CaptureScript(self._script_file, self._scripting, self._interpreter),
+                CaptureTargets.PROCEDURE: CaptureProcedure(self._proc_controller, self._proc_controlling_model),
+                CaptureTargets.SPECTRUM_MEASURE: CaptureSpectrumMeasure(self._updater, self._proc_controller, self._spectrum_measure_model)
+            }
+
+            # Components
             self._logger.debug("Create views")
             self._home = Home(self, self._device)
-            self._sonicmeasure = SonicMeasure(self)
             self._serialmonitor = SerialMonitor(self, self._device.serial)
             self._logging = Logging(self, connection_name)
-            self._editor = Editor(self, self._device, self._app_state)
+            self._editor = Editor(self, self._scripting, self._script_file, self._interpreter, self._app_state)
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
             self._info = Info(self)
             self._configuration = Configuration(self, self._device)
             self._flashing = Flashing(self, self._device, self._app_state)
-            self._proc_controlling = ProcControlling(self, self._proc_controller, self._app_state)
+            self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
+            self._sonicmeasure = Measuring(self, self._capture_targets, self._spectrum_measure_model)
 
+            # Views
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
                 self._home.view,
-                self._sonicmeasure.view, 
                 self._serialmonitor.view, 
-                self._logging.view, 
+                self._proc_controlling.view,
                 self._editor.view, 
-                self._info.view,
                 self._configuration.view, 
                 self._flashing.view,
-                self._proc_controlling.view
-            ])
+            ], right_one=False)
+            self._view.add_tab_views([
+                self._info.view,
+                self._sonicmeasure.view, 
+                self._logging.view, 
+            ], right_one=True)
 
             self._logger.debug("add callbacks and listeners to event emitters")
             self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))
             self._updater.subscribe("update", lambda e: self._status_bar.on_update_status(e.data["status"]))
-            self._updater.execute()
+            self._updater.start()
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._configuration.on_execution_state_changed)
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._home.on_execution_state_changed)
@@ -151,8 +175,8 @@ class DeviceWindowView(tk.Toplevel):
         title = kwargs.pop("title", "Device Window")
         super().__init__(root, *args, **kwargs)
         self.title(title)
-        self.geometry('450x550')
-        self.minsize(450, 400)
+        self.geometry('1200x800')
+        self.minsize(600, 400)
         self.iconphoto(True, ImageLoader.load_image_resource(images.LOGO, sizes.LARGE_BUTTON_ICON_SIZE))
 
 
@@ -164,14 +188,27 @@ class DeviceWindowView(tk.Toplevel):
 
         # tkinter components
         self._frame: ttk.Frame = ttk.Frame(self)
-        self._notebook: Notebook = Notebook(self._frame)
+        # We use the tk.PanedWindow, because ttk.PanedWindow do not support minsize and paneconfigure
+        self._paned_window: tk.PanedWindow = tk.PanedWindow(self._frame, orient=ttk.HORIZONTAL)
+        self._notebook_right: Notebook = Notebook(self._paned_window)
+        self._notebook_left: Notebook = Notebook(self._paned_window)
         self._status_bar_slot: ttk.Frame = ttk.Frame(self._frame)
 
         self._frame.pack(fill=ttk.BOTH, expand=True)
+        self._paned_window.pack(fill=ttk.BOTH, expand=True)
         self._status_bar_slot.pack(side=ttk.BOTTOM, fill=ttk.X)
-        self._notebook.pack(side=ttk.TOP, fill=ttk.BOTH, expand=True)
+        self._notebook_left.pack(side=ttk.LEFT, fill=ttk.BOTH)
+        self._notebook_right.pack(side=ttk.LEFT, fill=ttk.BOTH)
 
-        self._notebook.add_tabs(
+        self._paned_window.add(self._notebook_left, minsize=300)
+        self._paned_window.add(self._notebook_right, minsize=300)
+
+        self._notebook_right.add_tabs(
+            [],
+            show_titles=True,
+            show_images=True,
+        )
+        self._notebook_left.add_tabs(
             [],
             show_titles=True,
             show_images=True,
@@ -186,8 +223,9 @@ class DeviceWindowView(tk.Toplevel):
     def is_open(self) -> bool:
         return self.winfo_exists()
 
-    def add_tab_views(self, tab_views: List[TabView]):
-        self._notebook.add_tabs(
+    def add_tab_views(self, tab_views: List[TabView], right_one: bool = False):
+        notebook = self._notebook_right if right_one else self._notebook_left
+        notebook.add_tabs(
             tab_views,
             show_titles=True,
             show_images=True,
