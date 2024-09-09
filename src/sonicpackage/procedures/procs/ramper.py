@@ -110,6 +110,6 @@ class RamperRemote(Ramper):
             await device.execute_command(f"!ramp_toff={args.hold_off.duration_in_ms}")
             await device.execute_command(f"!ramp")
         except asyncio.CancelledError:
-            await device.execute_command("!OFF")  # Maybe make a !stop command
+            await device.execute_command("!OFF")  # TODO Maybe make a !stop command
         finally:
             await device.get_remote_proc_finished_event().wait()

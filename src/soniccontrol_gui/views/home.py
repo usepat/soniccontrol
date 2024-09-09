@@ -110,7 +110,7 @@ class HomeView(TabView):
             self._freq_frame,
             orient=ttk.HORIZONTAL,
             style=ttk.SUCCESS,
-            from_=0,
+            from_=100000,
             to=10000000, # TODO: set correct values
             variable=self._freq
         )

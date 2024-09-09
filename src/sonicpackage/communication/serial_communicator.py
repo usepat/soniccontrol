@@ -96,9 +96,9 @@ class SerialCommunicator(Communicator):
                 self._logger.info("Write package: %s", message_str)
             message = message_str.encode(PLATFORM.encoding)
 
-            total_length = len(message)  # Quick fix for sending messages in small chunks
+            total_length = len(message)  # TODO Quick fix for sending messages in small chunks
             offset = 0
-            chunk_size=20
+            chunk_size=30 # Messages longer than 30 characters could not be sent
             delay = 1
 
             while offset < total_length:
@@ -110,15 +110,18 @@ class SerialCommunicator(Communicator):
                 
                 # Drain the writer to ensure it's flushed to the transport
                 await self._writer.drain()
-                
-                # Debugging output
-                self._logger.info(f"[DEBUG] Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
-                
-                # Sleep for the given delay between chunks
-                await asyncio.sleep(delay)
-                
+
                 # Move to the next chunk
                 offset += chunk_size
+                
+                # Sleep for the given delay between chunks skip the last pause
+                if offset < total_length:
+                    # Debugging output
+                    self._logger.info(f"[DEBUG] Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
+                    await asyncio.sleep(delay)
+                else:
+                    self._logger.info(f"[DEBUG] Wrote last chunk: {chunk}.")
+                
 
             self._logger.info("[DEBUG] Finished sending all chunks.")
 

@@ -534,7 +534,7 @@ class CommandSet:
             serial_communication=serial,
         )
 
-        self.ramp: Command = Command( #Quick fix, for scripting using remote ramp
+        self.ramp: Command = Command( # TODO Quick fix, for scripting using remote ramp
             message="!ramp",
             serial_communication=serial,
         )
@@ -709,4 +709,4 @@ class CommandSet:
             serial_communication=serial,
         )
 
-        #add tune scan wipe with empty validators
+        # TODO add tune scan wipe with empty validators
