@@ -5,6 +5,7 @@ from async_tkinter_loop import async_handler
 import attrs
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.widget_registry import register_widget
 from soniccontrol_gui.view import TabView, View
 from sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
 
@@ -65,7 +66,10 @@ class ProcControlling(UIComponent):
     def _add_proc_widgets(self):
         for proc_type, args_class in self._proc_controller.proc_args_list.items():
             proc_dict = {}
-            proc_widget = ProcedureWidget(self, self._view.procedure_frame, proc_type.value, args_class, proc_dict)
+            proc_widget = ProcedureWidget(
+                self, self._view.procedure_frame, 
+                proc_type.value, args_class, proc_dict,
+            )
             proc_widget.view.hide()
             self._model.procedure_args[proc_type] = proc_dict
             self._proc_widgets[proc_type] = proc_widget
@@ -116,6 +120,7 @@ class ProcControllingView(TabView):
         return ui_labels.PROCEDURES_LABEL
     
     def _initialize_children(self) -> None:
+        tab_name = "proc_controlling"
         self._selected_procedure_var = ttk.StringVar()
         self._procedure_combobox = ttk.Combobox(self, textvariable=self._selected_procedure_var)
 
@@ -127,6 +132,11 @@ class ProcControllingView(TabView):
         self._start_button = ttk.Button(self._controls_frame, text=ui_labels.START_LABEL)
         self._stop_button = ttk.Button(self._controls_frame, text=ui_labels.STOP_LABEL)
         self._running_proc_label = ttk.Label(self._controls_frame, text="Status: Not running")
+
+        register_widget(self._selected_procedure_var, "selected_procedure_var", tab_name)
+        register_widget(self._start_button, "start_button", tab_name)
+        register_widget(self._stop_button, "stop_button", tab_name)
+        register_widget(self._running_proc_label, "running_proc_label", tab_name)
 
     def _initialize_publish(self) -> None:
         self._procedure_combobox.pack(fill=ttk.X, pady=5)

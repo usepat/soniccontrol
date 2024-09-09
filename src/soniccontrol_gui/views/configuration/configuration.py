@@ -8,6 +8,7 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from ttkbootstrap.scrolled import ScrolledFrame
 import json
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.widget_registry import register_widget
 from soniccontrol_gui.view import TabView
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
 from sonicpackage.scripting.scripting_facade import ScriptingFacade
@@ -215,6 +216,8 @@ class ConfigurationView(TabView):
         return ui_labels.SETTINGS_LABEL
 
     def _initialize_children(self) -> None:
+        tab_name = "configuration"
+
         self._config_frame: ttk.Frame = ttk.Frame(self)
         self._add_config_button: ttk.Button = ttk.Button(
             self._config_frame,
@@ -224,6 +227,7 @@ class ConfigurationView(TabView):
             #     images.PLUS_ICON_WHITE, sizes.BUTTON_ICON_SIZE
             # ),
         )
+
         self._selected_config: ttk.StringVar = ttk.StringVar()
         self._config_entry: ttk.Combobox = ttk.Combobox(
             self._config_frame, textvariable=self._selected_config, style=ttk.DARK
@@ -239,6 +243,12 @@ class ConfigurationView(TabView):
             self._config_frame, text=ui_labels.DELETE_LABEL, style=ttk.SUCCESS
         )
 
+        register_widget(self._add_config_button, "add_config_button", tab_name)
+        register_widget(self._selected_config, "selected_config_var", tab_name)
+        register_widget(self._save_config_button, "save_config_button", tab_name)
+        register_widget(self._submit_config_button, "submit_config_button", tab_name)
+        register_widget(self._delete_config_button, "delete_config_button", tab_name)
+
         self._transducer_config_frame: ttk.Frame = ttk.Frame(
             self._config_frame
         )
@@ -249,7 +259,9 @@ class ConfigurationView(TabView):
         self._atconfigs_frame: ScrolledFrame = ScrolledFrame(self._transducer_config_frame)
         self._atconfig_frames: List[ATConfigFrame] = []
         for i in range(0, self._count_atk_atf):
-            self._atconfig_frames.append(ATConfigFrame(self._presenter, self._atconfigs_frame, i))
+            at_config_frame = ATConfigFrame(self._presenter, self._atconfigs_frame, i, parent_widget_name=tab_name)
+            self._atconfig_frames.append(at_config_frame)
+            
         self._browse_script_init_button: FileBrowseButtonView = FileBrowseButtonView(
             self._transducer_config_frame, 
             text=ui_labels.SPECIFY_PATH_LABEL, 

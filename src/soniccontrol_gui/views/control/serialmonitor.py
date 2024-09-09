@@ -5,6 +5,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from async_tkinter_loop import async_handler
 
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.widget_registry import register_widget
 from soniccontrol_gui.view import TabView
 from sonicpackage.command import Command
 from sonicpackage.communication.communicator import Communicator
@@ -142,6 +143,7 @@ class SerialMonitorView(TabView):
         return ui_labels.SERIAL_MONITOR_LABEL
 
     def _initialize_children(self) -> None:
+        tab_name = "serial_monitor"
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._output_frame: ttk.Labelframe = ttk.Labelframe(
             self._main_frame, text=ui_labels.OUTPUT_LABEL
@@ -178,6 +180,10 @@ class SerialMonitorView(TabView):
             ),
             compound=ttk.RIGHT,
         )
+
+        register_widget(self._read_button, "read_button", tab_name)
+        register_widget(self._command_line_input, "command_line_input_var", tab_name)
+        register_widget(self._send_button, "send_button", tab_name)
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)

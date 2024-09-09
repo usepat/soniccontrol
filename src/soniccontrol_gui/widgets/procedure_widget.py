@@ -2,6 +2,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 import attrs
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.widget_registry import register_widget
 from soniccontrol_gui.view import View
 
 import ttkbootstrap as ttk
@@ -154,6 +155,9 @@ class ProcedureWidget(UIComponent):
                 return _set_dict_value
             field_view.bind_value_change(set_dict_value(field_name))
             self._proc_args_dict[field_name] = field_view.value
+
+            # Todo: pass parent widget name
+            register_widget(field_view, field_name + "_view", self._procedure_name)
 
         self._view._initialize_publish()
 

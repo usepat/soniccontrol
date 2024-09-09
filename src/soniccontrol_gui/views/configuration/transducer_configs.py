@@ -5,6 +5,7 @@ import marshmallow as marsh
 import ttkbootstrap as ttk
 
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.widget_registry import register_widget
 from soniccontrol_gui.view import View
 from marshmallow_annotations.ext.attrs import AttrsSchema
 
@@ -55,9 +56,9 @@ class ConfigSchema(AttrsSchema):
 
 
 class ATConfigFrame(UIComponent):
-    def __init__(self, parent: UIComponent, view_parent: View | ttk.Frame, index: int):
+    def __init__(self, parent: UIComponent, view_parent: View | ttk.Frame, index: int, **kwargs):
         self._index = index
-        self._view = ATConfigFrameView(view_parent, index)
+        self._view = ATConfigFrameView(view_parent, index, **kwargs)
         super().__init__(parent, self._view)
 
     @property
@@ -79,6 +80,8 @@ class ATConfigFrame(UIComponent):
 
 class ATConfigFrameView(View):
     def __init__(self, master: ttk.Frame, index: int, *args, **kwargs):
+        parent_widget_name = kwargs.pop("parent_widget_name", "")
+        self._widget_name = parent_widget_name + ".at_config." + str(index)
         self._index = index
         super().__init__(master, *args, **kwargs)
 
@@ -87,6 +90,11 @@ class ATConfigFrameView(View):
         self._atk_var = ttk.StringVar()
         self._att_var = ttk.StringVar()
         self._aton_var = ttk.StringVar()
+
+        register_widget(self._atf_var, "atf_var", self._widget_name)
+        register_widget(self._atk_var, "atk_var", self._widget_name)
+        register_widget(self._att_var, "att_var", self._widget_name)
+        register_widget(self._aton_var, "aton_var", self._widget_name)
     
         self._atf_label = ttk.Label(self, text=f"ATF {self._index}")
         self._atk_label = ttk.Label(self, text=f"ATK {self._index}")

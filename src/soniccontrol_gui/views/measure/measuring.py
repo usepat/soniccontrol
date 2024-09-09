@@ -6,6 +6,7 @@ from ttkbootstrap.dialogs import Messagebox
 from soniccontrol_gui.state_fetching.capture_target import CaptureTarget, CaptureTargets
 from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasure, SpectrumMeasureModel
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.widget_registry import register_widget
 from soniccontrol_gui.view import TabView, View
 import tkinter as tk
 import ttkbootstrap as ttk
@@ -102,6 +103,7 @@ class MeasuringView(TabView):
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
+        tab_name = "measuring"
         self._main_frame: ttk.Frame = ttk.Frame(self)
         
         self._capture_frame: ttk.Frame = ttk.Frame(self._main_frame)
@@ -112,12 +114,14 @@ class MeasuringView(TabView):
             textvariable=self._selected_target_var,
             state="readonly"
         )
+        register_widget(self._selected_target_var, "selected_target_var", tab_name)
 
         self._capture_btn_text = tk.StringVar()
         self._capture_btn: ttk.Button = ttk.Button(
             self._capture_frame,
             textvariable=self._capture_btn_text
         )
+        register_widget(self._capture_btn, "capture_button", tab_name)
 
         self._notebook: ttk.Notebook = ttk.Notebook(self._main_frame)
 

@@ -12,6 +12,7 @@ from ttkbootstrap.dialogs import Messagebox
 from async_tkinter_loop import async_handler
 
 from soniccontrol_gui.ui_component import UIComponent
+from soniccontrol_gui.utils.widget_registry import register_widget
 from soniccontrol_gui.view import TabView
 from sonicpackage.scripting.interpreter_engine import CurrentTarget, InterpreterEngine, InterpreterState
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
@@ -235,6 +236,7 @@ class EditorView(TabView):
         return ui_labels.SCRIPTING_LABEL
 
     def _initialize_children(self) -> None:
+        tab_name = "editor"
         self._main_frame: ttk.Frame = ttk.Frame(self)
 
         SCRIPTING_PADDING: Final[tuple[int, int, int, int]] = (6, 1, 6, 7)
@@ -247,12 +249,15 @@ class EditorView(TabView):
             self._scripting_frame, 
             autohide=True, 
         )
+        register_widget(self._editor_text, "text_editor", tab_name)
 
         self._script_status_frame: ttk.Frame = ttk.Frame(self)
         self._current_task_var = ttk.StringVar(value="")
         self._current_task_label: ttk.Label = ttk.Label(
             self._script_status_frame, textvariable=self._current_task_var, justify=ttk.CENTER, style=ttk.DARK
         )
+        register_widget(self._current_task_var, "current_task_var", tab_name)
+
         self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
         self._start_pause_continue_button = PushButtonView(
             self._navigation_button_frame,
@@ -273,6 +278,10 @@ class EditorView(TabView):
             image=ImageLoader.load_image_resource(images.INFO_ICON_WHITE, (13, 13)),
             compound=ttk.LEFT, 
         )
+        register_widget(self.start_pause_continue_button._button, "start_pause_continue_button", tab_name)
+        register_widget(self._single_step_button._button, "single_step_button", tab_name)
+        register_widget(self._stop_button._button, "stop_button", tab_name)
+
         self._menue: ttk.Menu = ttk.Menu(self._navigation_button_frame)
         self._menue_button: ttk.Menubutton = ttk.Menubutton(
             self._navigation_button_frame,
