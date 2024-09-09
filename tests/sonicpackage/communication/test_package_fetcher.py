@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 
-from shared.system import PLATFORM
+from sonicpackage.system import PLATFORM
 from sonicpackage.communication.package_fetcher import PackageFetcher
 from sonicpackage.communication.sonicprotocol import SonicProtocol
 

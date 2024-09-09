@@ -22,7 +22,7 @@ class PushButtonView:
     def configure(self, 
         label: str="", 
         style: ButtonStyle=ButtonStyle.SUCCESS, 
-        image: Optional[Tuple[Path, Tuple[int, int]]] = None, 
+        image: Optional[Tuple[str, Tuple[int, int]]] = None, 
         command: Optional[Callable[[], None]] = None,
         enabled: Optional[bool] = None
     ):
