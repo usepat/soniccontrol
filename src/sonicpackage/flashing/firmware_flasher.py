@@ -3,7 +3,7 @@ import asyncio
 import subprocess
 from sonicpackage import logger
 from sonicpackage.interfaces import FirmwareFlasher
-from shared.system import PLATFORM
+from sonicpackage.system import PLATFORM
 import sonicpackage.bin.avrdude
 from importlib import resources as rs
 

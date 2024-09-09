@@ -2,7 +2,7 @@ from typing import Final, List, Literal
 
 import attrs
 
-from shared.system import PLATFORM, create_appdata_directory
+from sonicpackage.system import PLATFORM, create_appdata_directory
 from soniccontrol_gui.utils.types import ScriptingGuideCardDataDict
 from sonicpackage.events import PropertyChangeEvent
 from sonicpackage.procedures.procedure_controller import ProcedureController
