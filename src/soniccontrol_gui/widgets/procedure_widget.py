@@ -14,11 +14,15 @@ class IntFieldView(View):
     def __init__(self, master: ttk.Frame | View, field_name: str, *args, default_value: int = 0, **kwargs):
         self._field_name = field_name
         self._value: ttk.IntVar = ttk.IntVar(value=default_value)
+        parent_widget_name = kwargs.pop("parent_widget_name", "")
+        self._widget_name = parent_widget_name + "." + self._field_name
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
         self.label = ttk.Label(self, text=self._field_name)
         self.entry = ttk.Entry(self, textvariable=self._value)
+
+        register_widget(self.entry, "entry", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.grid_columnconfigure(1, weight=1)
@@ -46,11 +50,15 @@ class FloatFieldView(View):
     def __init__(self, master: ttk.Frame | View, field_name: str, *args, default_value: float = 0., **kwargs):
         self._field_name = field_name
         self._value: ttk.DoubleVar = ttk.DoubleVar(value=default_value)
+        parent_widget_name = kwargs.pop("parent_widget_name", "")
+        self._widget_name = parent_widget_name + "." + self._field_name
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
         self.label = ttk.Label(self, text=self._field_name)
         self.entry = ttk.Entry(self, textvariable=self._value)
+
+        register_widget(self.entry, "entry", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.grid_columnconfigure(1, weight=1)
@@ -78,12 +86,17 @@ class TimeFieldView(View):
         self._field_name = field_name
         self._time_value: ttk.DoubleVar = ttk.DoubleVar(value=time)
         self._unit_value: ttk.StringVar = ttk.StringVar(value=unit)
+        parent_widget_name = kwargs.pop("parent_widget_name", "")
+        self._widget_name = parent_widget_name + "." + self._field_name
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
         self._label = ttk.Label(self, text=self._field_name)
         self._entry_time = ttk.Entry(self, textvariable=self._time_value)
         self._unit_button = ttk.Button(self, text=self._unit_value.get(), command=self._toggle_unit)
+
+        register_widget(self._entry_time, "time_entry", self._widget_name)
+        register_widget(self._unit_button, "unit_button", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.grid_columnconfigure(1, weight=1)
@@ -134,14 +147,14 @@ class ProcedureWidget(UIComponent):
     def _add_fields_to_widget(self):
         for field_name, field in attrs.fields_dict(self._proc_args_class).items():
             if field.type is int:
-                field_view = IntFieldView(self._view.field_slot, field_name)
+                field_view = IntFieldView(self._view.field_slot, field_name, parent_widget_name=self._procedure_name)
                 self._proc_args_dict[field_name] = field_view.value
                 self._fields.append(field_view)
             elif field.type is float:
-                field_view = FloatFieldView(self._view.field_slot, field_name)
+                field_view = FloatFieldView(self._view.field_slot, field_name, parent_widget_name=self._procedure_name)
                 self._fields.append(field_view)
             elif field.type is HolderArgs:
-                field_view = TimeFieldView(self._view.field_slot, field_name)
+                field_view = TimeFieldView(self._view.field_slot, field_name, parent_widget_name=self._procedure_name)
                 self._proc_args_dict[field_name] = field_view.value
                 self._fields.append(field_view)
             else:
@@ -155,9 +168,6 @@ class ProcedureWidget(UIComponent):
                 return _set_dict_value
             field_view.bind_value_change(set_dict_value(field_name))
             self._proc_args_dict[field_name] = field_view.value
-
-            # Todo: pass parent widget name
-            register_widget(field_view, field_name + "_view", self._procedure_name)
 
         self._view._initialize_publish()
 

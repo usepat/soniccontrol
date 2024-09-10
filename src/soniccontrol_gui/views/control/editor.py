@@ -256,7 +256,7 @@ class EditorView(TabView):
         self._current_task_label: ttk.Label = ttk.Label(
             self._script_status_frame, textvariable=self._current_task_var, justify=ttk.CENTER, style=ttk.DARK
         )
-        register_widget(self._current_task_var, "current_task_var", tab_name)
+        register_widget(self._current_task_label, "current_task_label", tab_name)
 
         self._navigation_button_frame: ttk.Frame = ttk.Frame(self)
         self._start_pause_continue_button = PushButtonView(

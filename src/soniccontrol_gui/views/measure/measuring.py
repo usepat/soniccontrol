@@ -114,7 +114,7 @@ class MeasuringView(TabView):
             textvariable=self._selected_target_var,
             state="readonly"
         )
-        register_widget(self._selected_target_var, "selected_target_var", tab_name)
+        register_widget(self._target_combobox, "target_combobox", tab_name)
 
         self._capture_btn_text = tk.StringVar()
         self._capture_btn: ttk.Button = ttk.Button(

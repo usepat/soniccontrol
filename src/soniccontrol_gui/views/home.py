@@ -105,8 +105,6 @@ class HomeView(TabView):
             self._control_frame, text=ui_labels.FREQUENCY
         )
         self._freq: ttk.IntVar = ttk.IntVar(value=0)
-        register_widget(self._freq, "frequency_var", tab_name)
-
         self._freq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self._freq_frame,
             #placeholder=ui_labels.FREQ_PLACEHOLDER,
@@ -122,18 +120,18 @@ class HomeView(TabView):
             to=10000000, # TODO: set correct values
             variable=self._freq
         )
+        register_widget(self._freq_spinbox, "frequency_entry", tab_name)
 
         self._signal_frame: ttk.LabelFrame = ttk.LabelFrame(
             self._control_frame, text=ui_labels.SIGNAL_LABEL
         )
         self._signal: ttk.BooleanVar = ttk.BooleanVar(value=False)
-        register_widget(self._signal, "signal_var", tab_name)
-
         self._signal_button: ttk.Checkbutton = ttk.Checkbutton(
             self._signal_frame,
             bootstyle="round-toggle", #type: ignore
             variable=self._signal
         )
+        register_widget(self._signal_button, "signal_button", tab_name)
 
         self._gain_frame: ttk.LabelFrame = ttk.LabelFrame(
             self._control_frame, text=ui_labels.GAIN
@@ -154,6 +152,8 @@ class HomeView(TabView):
             to=150,
             variable=self._gain
         )
+        register_widget(self._gain_spinbox, "gain_entry", tab_name)
+
 
         self._send_button = ttk.Button(
             self._control_frame, text=ui_labels.SEND_LABEL

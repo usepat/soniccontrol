@@ -244,7 +244,7 @@ class ConfigurationView(TabView):
         )
 
         register_widget(self._add_config_button, "add_config_button", tab_name)
-        register_widget(self._selected_config, "selected_config_var", tab_name)
+        register_widget(self._config_entry, "config_entry", tab_name)
         register_widget(self._save_config_button, "save_config_button", tab_name)
         register_widget(self._submit_config_button, "submit_config_button", tab_name)
         register_widget(self._delete_config_button, "delete_config_button", tab_name)

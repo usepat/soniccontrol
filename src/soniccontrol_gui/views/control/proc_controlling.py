@@ -133,7 +133,7 @@ class ProcControllingView(TabView):
         self._stop_button = ttk.Button(self._controls_frame, text=ui_labels.STOP_LABEL)
         self._running_proc_label = ttk.Label(self._controls_frame, text="Status: Not running")
 
-        register_widget(self._selected_procedure_var, "selected_procedure_var", tab_name)
+        register_widget(self._procedure_combobox, "procedure_combobox", tab_name)
         register_widget(self._start_button, "start_button", tab_name)
         register_widget(self._stop_button, "stop_button", tab_name)
         register_widget(self._running_proc_label, "running_proc_label", tab_name)

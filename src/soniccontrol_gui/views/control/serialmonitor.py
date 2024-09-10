@@ -170,7 +170,7 @@ class SerialMonitorView(TabView):
             style=style.DARK_SQUARE_TOGGLE,
         )
         self._command_line_input = ttk.StringVar()
-        self._command_line_input_field: ttk.Entry = ttk.Entry(self._input_frame, textvariable=self._command_line_input, style=ttk.DARK)
+        self.command_line_input_entry: ttk.Entry = ttk.Entry(self._input_frame, textvariable=self._command_line_input, style=ttk.DARK)
         self._send_button: ttk.Button = ttk.Button(
             self._input_frame,
             text=ui_labels.SEND_LABEL,
@@ -182,7 +182,7 @@ class SerialMonitorView(TabView):
         )
 
         register_widget(self._read_button, "read_button", tab_name)
-        register_widget(self._command_line_input, "command_line_input_var", tab_name)
+        register_widget(self.command_line_input_entry, "command_line_input_entry", tab_name)
         register_widget(self._send_button, "send_button", tab_name)
 
     def _initialize_publish(self) -> None:
@@ -230,7 +230,7 @@ class SerialMonitorView(TabView):
             padx=sizes.MEDIUM_PADDING,
             pady=sizes.MEDIUM_PADDING,
         )
-        self._command_line_input_field.grid(
+        self.command_line_input_entry.grid(
             row=0,
             column=1,
             sticky=ttk.EW,
@@ -255,7 +255,7 @@ class SerialMonitorView(TabView):
         self._send_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
 
     def set_command_line_input_enabled(self, enabled: bool) -> None:
-        self._command_line_input_field.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
+        self.command_line_input_entry.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
 
     @property
     def command_line_input(self) -> str:
@@ -269,13 +269,13 @@ class SerialMonitorView(TabView):
         self._loading_label.configure(text=text)
 
     def bind_command_line_input_on_down_pressed(self, command: Callable[[], None]):
-        self._command_line_input_field.bind("<Down>", lambda _: command()) 
+        self.command_line_input_entry.bind("<Down>", lambda _: command()) 
 
     def bind_command_line_input_on_up_pressed(self, command: Callable[[], None]):
-        self._command_line_input_field.bind("<Up>", lambda _: command())
+        self.command_line_input_entry.bind("<Up>", lambda _: command())
 
     def bind_command_line_input_on_return_pressed(self, command: Callable[[], None]):
-        self._command_line_input_field.bind("<Return>", lambda _: command())
+        self.command_line_input_entry.bind("<Return>", lambda _: command())
 
     def add_text_line(self, text: str):
         ttk.Label(self._scrolled_frame, text=text, font=("Consolas", 10)).pack(

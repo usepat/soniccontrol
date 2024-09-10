@@ -169,7 +169,7 @@ class ConnectionWindowView(ttk.Window, View):
             style=ttk.DARK,
             state=ttk.READONLY,
         )
-        register_widget(self._port, "port", window_name)
+        register_widget(self._ports_menue, "ports_combobox", window_name)
 
         self._connect_via_url_button: ttk.Button = ttk.Button(
             self._url_connection_frame,

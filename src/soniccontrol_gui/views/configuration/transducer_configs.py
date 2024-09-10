@@ -90,11 +90,6 @@ class ATConfigFrameView(View):
         self._atk_var = ttk.StringVar()
         self._att_var = ttk.StringVar()
         self._aton_var = ttk.StringVar()
-
-        register_widget(self._atf_var, "atf_var", self._widget_name)
-        register_widget(self._atk_var, "atk_var", self._widget_name)
-        register_widget(self._att_var, "att_var", self._widget_name)
-        register_widget(self._aton_var, "aton_var", self._widget_name)
     
         self._atf_label = ttk.Label(self, text=f"ATF {self._index}")
         self._atk_label = ttk.Label(self, text=f"ATK {self._index}")
@@ -105,6 +100,11 @@ class ATConfigFrameView(View):
         self._atk_spinbox = ttk.Spinbox(self, textvariable=self._atk_var)
         self._att_spinbox = ttk.Spinbox(self, textvariable=self._att_var)
         self._aton_spinbox = ttk.Spinbox(self, textvariable=self._aton_var)
+
+        register_widget(self._atf_spinbox, "atf_entry", self._widget_name)
+        register_widget(self._atk_spinbox, "atk_entry", self._widget_name)
+        register_widget(self._att_spinbox, "att_entry", self._widget_name)
+        register_widget(self._aton_spinbox, "aton_entry", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.columnconfigure(0, weight=1)
