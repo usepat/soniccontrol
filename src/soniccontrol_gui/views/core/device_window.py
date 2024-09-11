@@ -9,8 +9,8 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureProcedure, CaptureScript, CaptureSpectrumMeasure, CaptureTargets
 from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasureModel
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import global_widget_registry
 from soniccontrol_gui.utils.image_loader import ImageLoader
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
 from sonicpackage.communication.communicator import Communicator
 from sonicpackage.procedures.procedure_controller import ProcedureController
@@ -159,7 +159,7 @@ class KnownDeviceWindow(DeviceWindow):
                 self._logging.view, 
             ], right_one=True)
 
-            self._logger.debug(list(global_widget_registry.keys()))
+            self._logger.debug(list(WidgetRegistry._widget_registry.keys()))
 
             self._logger.debug("add callbacks and listeners to event emitters")
             self._updater.subscribe("update", lambda e: self._sonicmeasure.on_status_update(e.data["status"]))

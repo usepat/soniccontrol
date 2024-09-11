@@ -6,13 +6,15 @@ from dataclasses import dataclass
 import datetime
 
 
-def get_text_of_widget(widget: tk.Widget):
-    if isinstance(widget, (tk.Entry, ttk.Combobox)):
+def get_text_of_widget(widget: tk.Widget) -> str:
+    if isinstance(widget, (tk.Entry, ttk.Entry, ttk.Combobox)):
         return widget.get()
     elif isinstance(widget, ttk.ScrolledText):
         return widget.get(1.0, ttk.END)
-    elif isinstance(widget, (tk.Label, tk.Button)):
-        return widget.cget("text")
+    elif isinstance(widget, (tk.Label, ttk.Label, tk.Button, ttk.Button)):
+        return str(widget.cget("text"))
+    elif isinstance(widget, ttk.Meter):
+        return str(widget.amountusedvar.get())
     else:
         raise TypeError("The object has to be of type tk.Label, tk.Entry or tk.Button or inherit from them")
 
@@ -36,6 +38,7 @@ before you register widgets.
 """
 class WidgetRegistry:
     _widget_registry: Dict[str, WidgetReference] = {}
+    _widget_registration_events: Dict[str, asyncio.Event] = {} # for waiting until a widget got registered
     _enabled = False
     _polling_task: Optional[asyncio.Task] = None
 
@@ -45,6 +48,10 @@ class WidgetRegistry:
             key = (parent_widget_name + "." + widget_name) if parent_widget_name else widget_name
             WidgetRegistry._widget_registry[key] = WidgetReference(widget)
 
+            if key not in WidgetRegistry._widget_registration_events:
+                WidgetRegistry._widget_registration_events[key] = asyncio.Event()
+            WidgetRegistry._widget_registration_events[key].set()
+
     @staticmethod
     def is_widget_registered(full_widget_name: str) -> bool:
         return full_widget_name in WidgetRegistry._widget_registry
@@ -52,6 +59,16 @@ class WidgetRegistry:
     @staticmethod
     def get_widget(full_widget_name: str) -> tk.Widget:
         return WidgetRegistry._widget_registry[full_widget_name].widget
+
+    @staticmethod
+    async def wait_for_widget_to_be_registered(full_widget_name: str):
+        if full_widget_name not in WidgetRegistry._widget_registration_events:
+            WidgetRegistry._widget_registration_events[full_widget_name] = asyncio.Event()
+
+        try:
+            await WidgetRegistry._widget_registration_events[full_widget_name].wait()
+        except asyncio.CancelledError:
+            return
 
     @staticmethod
     async def wait_for_widget_to_change(full_widget_name: str):
@@ -70,12 +87,15 @@ class WidgetRegistry:
     @staticmethod
     def set_up():
         WidgetRegistry._enabled = True
-        WidgetRegistry._polling_task = asyncio.create_task(WidgetRegistry._polling_worker())
+        loop = asyncio.get_event_loop()
+        WidgetRegistry._polling_task = loop.create_task(WidgetRegistry._polling_worker())
 
     @staticmethod
     async def clean_up():
         if WidgetRegistry._polling_task and WidgetRegistry._polling_task.cancel():
             await WidgetRegistry._polling_task
+            WidgetRegistry._widget_registry.clear()
+            WidgetRegistry._widget_registration_events.clear()
 
     @staticmethod
     def _poll_updates():

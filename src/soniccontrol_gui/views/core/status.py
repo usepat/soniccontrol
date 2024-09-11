@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Tuple
 import ttkbootstrap as ttk
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import View
@@ -10,6 +10,7 @@ from soniccontrol_gui.constants import (color, events, fonts, sizes,
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.horizontal_scrolled_frame import HorizontalScrolledFrame
 from soniccontrol_gui.resources import images
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 
 
 
@@ -77,6 +78,8 @@ class StatusBarView(View):
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
+        tab_name = "status_bar"
+
         self._panel_frame: ttk.Frame = ttk.Frame(self)
         self._status_bar_frame: ttk.Frame = ttk.Frame(self)
         self._mode_frame: ttk.Frame = ttk.Frame(self._status_bar_frame)
@@ -84,6 +87,7 @@ class StatusBarView(View):
             self._mode_frame,
             bootstyle=style.INVERSE_SECONDARY
         )
+        WidgetRegistry.register_widget(self._mode_label, "mode_label", tab_name)
 
         self._scrolled_info: HorizontalScrolledFrame = HorizontalScrolledFrame(
             self._status_bar_frame, bootstyle=ttk.SECONDARY, autohide=False
@@ -94,32 +98,37 @@ class StatusBarView(View):
             self._scrolled_info,
             bootstyle=style.INVERSE_SECONDARY,
         )
+        WidgetRegistry.register_widget(self._freq_label, "freq_label", tab_name)
 
         self._gain_label: ttk.Label = ttk.Label(
             self._scrolled_info,
             bootstyle=style.INVERSE_SECONDARY,
         )
+        WidgetRegistry.register_widget(self._gain_label, "gain_label", tab_name)
 
         self._temperature_label: ttk.Label = ttk.Label(
             self._scrolled_info,
             bootstyle=style.INVERSE_SECONDARY,
         )
-
+        WidgetRegistry.register_widget(self._temperature_label, "temperature_label", tab_name)
 
         self._urms_label: ttk.Label = ttk.Label(
             self._scrolled_info,
             bootstyle=style.INVERSE_SECONDARY,
         )
+        WidgetRegistry.register_widget(self._urms_label, "urms_label", tab_name)
 
         self._irms_label: ttk.Label = ttk.Label(
             self._scrolled_info,
             bootstyle=style.INVERSE_SECONDARY,
         )
+        WidgetRegistry.register_widget(self._irms_label, "irms_label", tab_name)
 
         self._phase_label: ttk.Label = ttk.Label(
             self._scrolled_info,
             bootstyle=style.INVERSE_SECONDARY,
         )
+        WidgetRegistry.register_widget(self._phase_label, "phase_label", tab_name)
 
         self._signal_frame: ttk.Frame = ttk.Frame(self._status_bar_frame)
         ICON_LABEL_PADDING: tuple[int, int, int, int] = (8, 0, 0, 0)
@@ -132,6 +141,8 @@ class StatusBarView(View):
             ),
             compound=ttk.LEFT,
         )
+        WidgetRegistry.register_widget(self._signal_label, "signal_label", tab_name)
+
         self.configure(bootstyle=ttk.SECONDARY)
 
 
@@ -192,6 +203,8 @@ class StatusPanelView(View):
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
+        tab_name = "status_panel"
+
         self._main_frame: ttk.Frame = ttk.Frame(self)
         self._meter_frame: ttk.Frame = ttk.Frame(self._main_frame)
         self._sonicmeasure_values_frame: ttk.Frame = ttk.Frame(
@@ -208,6 +221,8 @@ class StatusPanelView(View):
             subtext=ui_labels.FREQUENCY,
             metersize=sizes.METERSIZE,
         )
+        WidgetRegistry.register_widget(self._freq_meter, "freq_meter", tab_name)
+
         self._gain_meter: ttk.Meter = ttk.Meter(
             self._meter_frame,
             bootstyle=ttk.SUCCESS,
@@ -215,6 +230,8 @@ class StatusPanelView(View):
             subtext=ui_labels.GAIN,
             metersize=sizes.METERSIZE,
         )
+        WidgetRegistry.register_widget(self._gain_meter, "gain_meter", tab_name)
+
         self._temp_meter: ttk.Meter = ttk.Meter(
             self._meter_frame,
             bootstyle=ttk.WARNING,
@@ -222,6 +239,8 @@ class StatusPanelView(View):
             subtext=ui_labels.TEMPERATURE,
             metersize=sizes.METERSIZE,
         )
+        WidgetRegistry.register_widget(self._temp_meter, "temp_meter", tab_name)
+
         self._urms_label: ttk.Label = ttk.Label(
             self._sonicmeasure_values_frame,
             anchor=ttk.CENTER,
@@ -229,6 +248,8 @@ class StatusPanelView(View):
             background=color.STATUS_LIGHT_GREY,
             font=(fonts.QTYPE_OT, fonts.TEXT_SIZE),
         )
+        WidgetRegistry.register_widget(self._urms_label, "urms_label", tab_name)
+
         self._irms_label: ttk.Label = ttk.Label(
             self._sonicmeasure_values_frame,
             anchor=ttk.CENTER,
@@ -236,6 +257,8 @@ class StatusPanelView(View):
             background=color.STATUS_LIGHT_GREY,
             font=(fonts.QTYPE_OT, fonts.TEXT_SIZE),
         )
+        WidgetRegistry.register_widget(self._irms_label, "irms_label", tab_name)
+
         self._phase_label: ttk.Label = ttk.Label(
             self._sonicmeasure_values_frame,
             anchor=ttk.CENTER,
@@ -244,6 +267,8 @@ class StatusPanelView(View):
             background=color.STATUS_LIGHT_GREY,
             font=(fonts.QTYPE_OT, fonts.TEXT_SIZE),
         )
+        WidgetRegistry.register_widget(self._phase_label, "phase_label", tab_name)
+
         self._signal_label: ttk.Label = ttk.Label(
             self._signal_frame,
             anchor=ttk.CENTER,
@@ -254,6 +279,8 @@ class StatusPanelView(View):
             background=color.STATUS_MEDIUM_GREY,
             style=style.INVERSE_SECONDARY,
         )
+        WidgetRegistry.register_widget(self._signal_label, "signal_label", tab_name)
+
 
     def _initialize_publish(self) -> None:
         self.pack(fill=ttk.X, padx=3, pady=3)
@@ -320,7 +347,7 @@ class StatusPanelView(View):
 
     def set_signal_image(self, image_path: Path, sizing: Tuple[int, int]) -> None:
         self._signal_label.configure(
-            image=ImageLoader.load_image_resource(image_path, sizing)
+            image=ImageLoader.load_image_resource(str(image_path), sizing)
         )
 
     def update_stats(self, freq: float, gain: float, temp: float, urms: str, irms: str, phase: str, signal: str):
