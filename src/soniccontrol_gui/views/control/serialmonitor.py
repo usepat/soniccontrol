@@ -5,7 +5,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from async_tkinter_loop import async_handler
 
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import register_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
 from sonicpackage.command import Command
 from sonicpackage.communication.communicator import Communicator
@@ -181,9 +181,9 @@ class SerialMonitorView(TabView):
             compound=ttk.RIGHT,
         )
 
-        register_widget(self._read_button, "read_button", tab_name)
-        register_widget(self.command_line_input_entry, "command_line_input_entry", tab_name)
-        register_widget(self._send_button, "send_button", tab_name)
+        WidgetRegistry.register_widget(self._read_button, "read_button", tab_name)
+        WidgetRegistry.register_widget(self.command_line_input_entry, "command_line_input_entry", tab_name)
+        WidgetRegistry.register_widget(self._send_button, "send_button", tab_name)
 
     def _initialize_publish(self) -> None:
         self._main_frame.pack(expand=True, fill=ttk.BOTH)

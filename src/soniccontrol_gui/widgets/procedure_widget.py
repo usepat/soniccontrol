@@ -2,7 +2,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 import attrs
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import register_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import View
 
 import ttkbootstrap as ttk
@@ -22,7 +22,7 @@ class IntFieldView(View):
         self.label = ttk.Label(self, text=self._field_name)
         self.entry = ttk.Entry(self, textvariable=self._value)
 
-        register_widget(self.entry, "entry", self._widget_name)
+        WidgetRegistry.register_widget(self.entry, "entry", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.grid_columnconfigure(1, weight=1)
@@ -58,7 +58,7 @@ class FloatFieldView(View):
         self.label = ttk.Label(self, text=self._field_name)
         self.entry = ttk.Entry(self, textvariable=self._value)
 
-        register_widget(self.entry, "entry", self._widget_name)
+        WidgetRegistry.register_widget(self.entry, "entry", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.grid_columnconfigure(1, weight=1)
@@ -95,8 +95,8 @@ class TimeFieldView(View):
         self._entry_time = ttk.Entry(self, textvariable=self._time_value)
         self._unit_button = ttk.Button(self, text=self._unit_value.get(), command=self._toggle_unit)
 
-        register_widget(self._entry_time, "time_entry", self._widget_name)
-        register_widget(self._unit_button, "unit_button", self._widget_name)
+        WidgetRegistry.register_widget(self._entry_time, "time_entry", self._widget_name)
+        WidgetRegistry.register_widget(self._unit_button, "unit_button", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.grid_columnconfigure(1, weight=1)

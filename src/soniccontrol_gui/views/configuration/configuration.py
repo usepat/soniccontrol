@@ -8,7 +8,7 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from ttkbootstrap.scrolled import ScrolledFrame
 import json
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import register_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
 from sonicpackage.scripting.scripting_facade import ScriptingFacade
@@ -243,11 +243,11 @@ class ConfigurationView(TabView):
             self._config_frame, text=ui_labels.DELETE_LABEL, style=ttk.SUCCESS
         )
 
-        register_widget(self._add_config_button, "add_config_button", tab_name)
-        register_widget(self._config_entry, "config_entry", tab_name)
-        register_widget(self._save_config_button, "save_config_button", tab_name)
-        register_widget(self._submit_config_button, "submit_config_button", tab_name)
-        register_widget(self._delete_config_button, "delete_config_button", tab_name)
+        WidgetRegistry.register_widget(self._add_config_button, "add_config_button", tab_name)
+        WidgetRegistry.register_widget(self._config_entry, "config_entry", tab_name)
+        WidgetRegistry.register_widget(self._save_config_button, "save_config_button", tab_name)
+        WidgetRegistry.register_widget(self._submit_config_button, "submit_config_button", tab_name)
+        WidgetRegistry.register_widget(self._delete_config_button, "delete_config_button", tab_name)
 
         self._transducer_config_frame: ttk.Frame = ttk.Frame(
             self._config_frame

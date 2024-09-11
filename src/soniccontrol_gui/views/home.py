@@ -2,7 +2,7 @@ from typing import Callable
 from async_tkinter_loop import async_handler
 from ttkbootstrap.scrolled import ScrolledFrame
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import register_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView, View
 from sonicpackage.amp_data import Version
 from sonicpackage.sonicamp_ import SonicAmp
@@ -91,10 +91,10 @@ class HomeView(TabView):
         self._disconnect_button = ttk.Button(
             self._info_frame, text=ui_labels.DISCONNECT_LABEL
         )
-        register_widget(self._device_type_label, "device_type_label", tab_name)
-        register_widget(self._firmware_version_label, "firmware_version_label", tab_name)
-        register_widget(self._protocol_version_label, "protocol_version_label", tab_name)
-        register_widget(self._disconnect_button, "disconnect_button", tab_name)
+        WidgetRegistry.register_widget(self._device_type_label, "device_type_label", tab_name)
+        WidgetRegistry.register_widget(self._firmware_version_label, "firmware_version_label", tab_name)
+        WidgetRegistry.register_widget(self._protocol_version_label, "protocol_version_label", tab_name)
+        WidgetRegistry.register_widget(self._disconnect_button, "disconnect_button", tab_name)
 
         # Control Frame - Setting Frequency, Gain, Signal
         self._control_frame: ttk.Labelframe = ttk.Labelframe(
@@ -120,7 +120,7 @@ class HomeView(TabView):
             to=10000000, # TODO: set correct values
             variable=self._freq
         )
-        register_widget(self._freq_spinbox, "frequency_entry", tab_name)
+        WidgetRegistry.register_widget(self._freq_spinbox, "frequency_entry", tab_name)
 
         self._signal_frame: ttk.LabelFrame = ttk.LabelFrame(
             self._control_frame, text=ui_labels.SIGNAL_LABEL
@@ -131,13 +131,13 @@ class HomeView(TabView):
             bootstyle="round-toggle", #type: ignore
             variable=self._signal
         )
-        register_widget(self._signal_button, "signal_button", tab_name)
+        WidgetRegistry.register_widget(self._signal_button, "signal_button", tab_name)
 
         self._gain_frame: ttk.LabelFrame = ttk.LabelFrame(
             self._control_frame, text=ui_labels.GAIN
         )
         self._gain: ttk.IntVar = ttk.IntVar(value=0)
-        register_widget(self._gain, "gain_var", tab_name)
+        WidgetRegistry.register_widget(self._gain, "gain_var", tab_name)
 
         self._gain_spinbox: ttk.Spinbox = ttk.Spinbox(
             self._gain_frame,
@@ -152,13 +152,13 @@ class HomeView(TabView):
             to=150,
             variable=self._gain
         )
-        register_widget(self._gain_spinbox, "gain_entry", tab_name)
+        WidgetRegistry.register_widget(self._gain_spinbox, "gain_entry", tab_name)
 
 
         self._send_button = ttk.Button(
             self._control_frame, text=ui_labels.SEND_LABEL
         )
-        register_widget(self._send_button, "send_button", tab_name)
+        WidgetRegistry.register_widget(self._send_button, "send_button", tab_name)
 
 
     def _initialize_publish(self) -> None:

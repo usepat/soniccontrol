@@ -5,7 +5,7 @@ import marshmallow as marsh
 import ttkbootstrap as ttk
 
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import register_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import View
 from marshmallow_annotations.ext.attrs import AttrsSchema
 
@@ -101,10 +101,10 @@ class ATConfigFrameView(View):
         self._att_spinbox = ttk.Spinbox(self, textvariable=self._att_var)
         self._aton_spinbox = ttk.Spinbox(self, textvariable=self._aton_var)
 
-        register_widget(self._atf_spinbox, "atf_entry", self._widget_name)
-        register_widget(self._atk_spinbox, "atk_entry", self._widget_name)
-        register_widget(self._att_spinbox, "att_entry", self._widget_name)
-        register_widget(self._aton_spinbox, "aton_entry", self._widget_name)
+        WidgetRegistry.register_widget(self._atf_spinbox, "atf_entry", self._widget_name)
+        WidgetRegistry.register_widget(self._atk_spinbox, "atk_entry", self._widget_name)
+        WidgetRegistry.register_widget(self._att_spinbox, "att_entry", self._widget_name)
+        WidgetRegistry.register_widget(self._aton_spinbox, "aton_entry", self._widget_name)
 
     def _initialize_publish(self) -> None:
         self.columnconfigure(0, weight=1)

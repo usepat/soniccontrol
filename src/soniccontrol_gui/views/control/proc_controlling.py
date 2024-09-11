@@ -5,7 +5,7 @@ from async_tkinter_loop import async_handler
 import attrs
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import register_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView, View
 from sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
 
@@ -133,10 +133,10 @@ class ProcControllingView(TabView):
         self._stop_button = ttk.Button(self._controls_frame, text=ui_labels.STOP_LABEL)
         self._running_proc_label = ttk.Label(self._controls_frame, text="Status: Not running")
 
-        register_widget(self._procedure_combobox, "procedure_combobox", tab_name)
-        register_widget(self._start_button, "start_button", tab_name)
-        register_widget(self._stop_button, "stop_button", tab_name)
-        register_widget(self._running_proc_label, "running_proc_label", tab_name)
+        WidgetRegistry.register_widget(self._procedure_combobox, "procedure_combobox", tab_name)
+        WidgetRegistry.register_widget(self._start_button, "start_button", tab_name)
+        WidgetRegistry.register_widget(self._stop_button, "stop_button", tab_name)
+        WidgetRegistry.register_widget(self._running_proc_label, "running_proc_label", tab_name)
 
     def _initialize_publish(self) -> None:
         self._procedure_combobox.pack(fill=ttk.X, pady=5)

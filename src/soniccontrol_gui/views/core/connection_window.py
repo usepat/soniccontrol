@@ -7,7 +7,7 @@ import tkinter as tk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
 from soniccontrol_gui.ui_component import UIComponent
-from soniccontrol_gui.utils.widget_registry import register_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import View
 from sonicpackage.builder import AmpBuilder
 from sonicpackage.communication.communicator_builder import CommunicatorBuilder
@@ -169,21 +169,21 @@ class ConnectionWindowView(ttk.Window, View):
             style=ttk.DARK,
             state=ttk.READONLY,
         )
-        register_widget(self._ports_menue, "ports_combobox", window_name)
+        WidgetRegistry.register_widget(self._ports_menue, "ports_combobox", window_name)
 
         self._connect_via_url_button: ttk.Button = ttk.Button(
             self._url_connection_frame,
             style=ttk.SUCCESS,
             text=ui_labels.CONNECT_LABEL,
         )
-        register_widget(self._connect_via_url_button, "connect_via_url_button", window_name)
+        WidgetRegistry.register_widget(self._connect_via_url_button, "connect_via_url_button", window_name)
 
         self._connect_to_simulation_button: ttk.Button = ttk.Button(
             self,
             style=ttk.SUCCESS,
             text=ui_labels.CONNECT_TO_SIMULATION_LABEL,
         )
-        register_widget(self._connect_to_simulation_button, "connect_to_simulation_button", window_name)
+        WidgetRegistry.register_widget(self._connect_to_simulation_button, "connect_to_simulation_button", window_name)
 
         self._loading_text: ttk.StringVar = ttk.StringVar()
         self._loading_label: ttk.Label = ttk.Label(
