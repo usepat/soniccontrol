@@ -18,7 +18,7 @@ from soniccontrol_gui.constants import ui_labels, sizes
 class Home(UIComponent):
     def __init__(self, parent: UIComponent, device: SonicAmp):
         self._device = device
-        self._view = HomeView(parent.view)
+        self._view = HomeView(parent.view, type=device.info.device_type)
         super().__init__(parent, self._view)
         self._view.set_disconnect_button_command(self._on_disconnect_pressed)
         self._view.set_send_button_command(self._on_send_pressed)
@@ -45,7 +45,10 @@ class Home(UIComponent):
         gain = self._view.gain
         signal = self._view.signal
 
-        await self._device.set_frequency(freq)
+        if self._device.get_type() == 'descale':
+            await self._device.set_switching_frequency(freq)
+        else:
+            await self._device.set_frequency(freq)
         await self._device.set_gain(gain)
         if signal:
             await self._device.set_signal_on()
@@ -60,6 +63,9 @@ class Home(UIComponent):
 
 class HomeView(TabView):
     def __init__(self, master: View, *args, **kwargs) -> None:
+        if 'type' in kwargs:
+            self.type = kwargs['type']
+        kwargs.clear()
         super().__init__(master, *args, **kwargs)
 
     @property
@@ -106,12 +112,17 @@ class HomeView(TabView):
             style=ttk.DARK,
             textvariable=self._freq
         )
+        freq_min = 100000
+        freq_max = 10000000
+        if self.type == 'descale':
+            freq_min = 0
+            freq_max = 20
         self._freq_scale: ttk.Scale = ttk.Scale(
             self._freq_frame,
             orient=ttk.HORIZONTAL,
             style=ttk.SUCCESS,
-            from_=100000,
-            to=10000000, # TODO: set correct values
+            from_=freq_min,
+            to=freq_max, # TODO: set correct values
             variable=self._freq
         )
 
