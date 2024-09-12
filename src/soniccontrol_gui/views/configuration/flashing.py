@@ -15,12 +15,13 @@ from soniccontrol_gui.widgets.file_browse_button import FileBrowseButtonView
 
 
 class Flashing(UIComponent):
-    def __init__(self, parent: UIComponent, device: SonicAmp, app_state: AppState):
+    def __init__(self, parent: UIComponent, device: SonicAmp | None = None, app_state: AppState | None = None):
         self._device = device
         self._app_state = app_state
         self._view = FlashingView(parent.view)
         super().__init__(self, self._view)
-        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
+        if self._app_state:
+            self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
 
     def _flash(self) -> None:
         pass

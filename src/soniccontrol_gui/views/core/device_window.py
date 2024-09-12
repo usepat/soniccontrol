@@ -78,6 +78,8 @@ class RescueWindow(DeviceWindow):
             self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
             super().__init__(self._logger, self._view, self._communicator)
 
+            self._flashing = Flashing(self)
+
             self._logger.debug("Create logStorage for storing logs")
             self._logStorage = LogStorage()
             log_storage_handler = self._logStorage.create_log_handler()
@@ -93,6 +95,7 @@ class RescueWindow(DeviceWindow):
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
                 self._serialmonitor.view, 
+                self._flashing.view,
             ], right_one=False)
             self._view.add_tab_views([
                 self._logging.view, 
