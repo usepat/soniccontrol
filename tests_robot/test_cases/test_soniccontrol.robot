@@ -10,6 +10,7 @@ Suite Teardown    Gui.Close app
 *** Variables ***
 ${TIMEOUT_CONNECTION_MS}    ${60000}
 ${TIMEOUT_MS}    ${2000}
+${SIMULATION_EXE_PATH}    ${None}
 
 
 
@@ -27,7 +28,10 @@ Set frequency over home tab updates status bar
 *** Keywords ***
 
 Open device window
-    Gui.Open app
+    IF  ${SIMULATION_EXE_PATH} is None
+        Set Suite Variable    ${SIMULATION_EXE_PATH}    %{SIMULATION_EXE_PATH}    # robotcode: ignore
+    END
+    Gui.Open app    ${SIMULATION_EXE_PATH}
     Gui.Press button "${CONNECTION_CONNECT_TO_SIMULATION_BUTTON}"
     Gui.Wait up to "${TIMEOUT_CONNECTION_MS}" ms for the widget "${HOME_DEVICE_TYPE_LABEL}" to be registered
 

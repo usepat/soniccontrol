@@ -27,7 +27,7 @@ Set frequency updates device state
 Connect to device
     IF    "${DEVICE}" == 'simulation'
         IF  ${SIMULATION_EXE_PATH} is None
-            Set Suite Variable    ${SIMULATION_EXE_PATH}    ${SIMULATION_MVP_EXE}
+            Set Suite Variable    ${SIMULATION_EXE_PATH}    %{SIMULATION_EXE_PATH}    # robotcode: ignore
         END
         RemoteController.Connect via process to    ${SIMULATION_EXE_PATH}
     ELSE

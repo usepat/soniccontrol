@@ -8,6 +8,7 @@ import pathlib
 import subprocess
 import sys
 import os
+from typing import Optional
 from ttkbootstrap.utility import enable_high_dpi_awareness
 from async_tkinter_loop import async_mainloop
 from soniccontrol_gui.views.core.connection_window import ConnectionWindow
@@ -56,8 +57,8 @@ def setup_fonts() -> None:
 check_high_dpi_windows()
 setup_fonts()
 
-def start_gui(simulation_enabled=False):
-    main_window = ConnectionWindow(simulation_enabled)
+def start_gui(simulation_exe_path: Optional[pathlib.Path] = None):
+    main_window = ConnectionWindow(simulation_exe_path=simulation_exe_path)
     if PLATFORM != System.WINDOWS:
         soniccontrol_logger.info("Enabling high dpi awareness for DARWIN/ LINUX")
         enable_high_dpi_awareness(main_window.view)

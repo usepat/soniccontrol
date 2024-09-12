@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 from typing import Any, Coroutine, Dict, List, Optional
 import tkinter as tk
 from async_tkinter_loop.async_tkinter_loop import main_loop
@@ -18,9 +19,9 @@ class RobotSonicControlGui:
         self._loop = asyncio.get_event_loop()
 
     @keyword('Open app')
-    def open_app(self):
+    def open_app(self, simulation_exe_path: str):
         WidgetRegistry.set_up()
-        main_window = ConnectionWindow(True)
+        main_window = ConnectionWindow(Path(simulation_exe_path))
         if PLATFORM != System.WINDOWS:
             enable_high_dpi_awareness(main_window.view)
         self._root = main_window.view.winfo_toplevel()

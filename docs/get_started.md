@@ -78,6 +78,10 @@ You can create a `requirements.txt` with `pip freeze > requirements.txt`. Do thi
 
 To run soniccontrol, either run `soniccontrol` as a command in the cli or execute *src/soniccontrol_gui/__main__.py*.
 
+### Running SonicControl with a simulation
+
+You can create a simulation executable of the firmware and provide the path to it over the `SIMULATION_EXE_PATH` environment variable. If you then start Sonic Control, a **Connect to simulation** button will appear in the connection window.  
+
 ## How to set up the documentation
 
 ### Install PlantUML and Doxygen

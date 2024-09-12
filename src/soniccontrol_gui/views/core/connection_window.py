@@ -21,8 +21,6 @@ from soniccontrol_gui.constants import sizes, style, ui_labels, files
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.device_window import DeviceWindow, KnownDeviceWindow, RescueWindow
 from soniccontrol_gui.resources import images
-from importlib import resources as rs
-import sonicpackage.bin
 
 
 class DeviceWindowManager:
@@ -52,8 +50,10 @@ class DeviceWindowManager:
 
 
 class ConnectionWindow(UIComponent):
-    def __init__(self, show_simulation_button=False):
+    def __init__(self, simulation_exe_path: Optional[Path] = None):
+        show_simulation_button = simulation_exe_path is not None
         self._view: ConnectionWindowView = ConnectionWindowView(show_simulation_button)
+        self._simulation_exe_path = simulation_exe_path
         super().__init__(None, self._view)
 
         # set animation decorator
@@ -103,10 +103,12 @@ class ConnectionWindow(UIComponent):
     @async_handler 
     async def _on_connect_to_simulation(self):
         assert (not self.is_connecting)
+        assert self._simulation_exe_path is not None
+
         self._is_connecting = True
 
         connection_name = "simulation"
-        bin_file = str(rs.files(sonicpackage.bin).joinpath("cli_simulation_mvp"))
+        bin_file = self._simulation_exe_path 
 
         connection_factory = CLIConnectionFactory(bin_file=bin_file)
 
