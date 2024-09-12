@@ -71,18 +71,15 @@ class WidgetRegistry:
             return
 
     @staticmethod
-    async def wait_for_widget_to_change(full_widget_name: str):
-        try:
-            start_time = datetime.datetime.now()
-            ref = WidgetRegistry._widget_registry[full_widget_name]
+    async def wait_for_widget_to_change_text(full_widget_name: str) -> str:
+        start_time = datetime.datetime.now()
+        ref = WidgetRegistry._widget_registry[full_widget_name]
 
+        await ref.text_has_changed.wait()
+        if ref.last_time_text_has_changed < start_time:
+            ref.text_has_changed.clear()
             await ref.text_has_changed.wait()
-            if ref.last_time_text_has_changed < start_time:
-                ref.text_has_changed.clear()
-                await ref.text_has_changed.wait()
-                
-        except asyncio.CancelledError:
-            return
+        return ref.old_text_value
 
     @staticmethod
     def set_up():

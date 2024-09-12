@@ -16,10 +16,10 @@ ${TIMEOUT_MS}    ${2000}
 *** Test Cases ***
 
 Set frequency over home tab updates status bar
-    ${frequency}    Set Variable    ${200000}
+    ${frequency}    Set Variable    "200000"
     Gui.Set text of widget "${HOME_FREQUENCY_ENTRY}" to "${frequency}"
-    Gui.Wait up to "${TIMEOUT_MS}" ms for the widget "${STATUS_BAR_FREQ_LABEL}" to change
-    ${frequency_gui}=    Gui.Get text of widget "${STATUS_BAR_FREQ_LABEL}"
+    Gui.Press button "${HOME_SEND_BUTTON}"
+    ${frequency_gui}=     Gui.Wait up to "${TIMEOUT_MS}" ms for the widget "${STATUS_BAR_FREQ_LABEL}" to change text
     Should Contain    ${frequency_gui}    ${frequency}    # TODO: use a better check
 
 

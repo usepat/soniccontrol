@@ -1,6 +1,5 @@
 import asyncio
-from typing import Any, Coroutine, Optional
-from async_tkinter_loop import async_mainloop
+from typing import Any, Coroutine, Dict, List, Optional
 import tkinter as tk
 from async_tkinter_loop.async_tkinter_loop import main_loop
 import ttkbootstrap as ttk
@@ -10,16 +9,6 @@ from ttkbootstrap.utility import enable_high_dpi_awareness
 from soniccontrol_gui.views.core.connection_window import ConnectionWindow
 from sonicpackage.system import PLATFORM, System
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry, get_text_of_widget
-
-
-async def timeout_wrapper(timeout_ms: int, coroutine: Coroutine[Any, Any, None]):
-    timeout = timeout_ms/1000
-    try:
-        await asyncio.wait_for(coroutine, timeout=timeout)
-    except asyncio.TimeoutError:
-        return False
-    else:
-        return True
 
 
 @library(auto_keywords=False, scope="SUITE")
@@ -51,17 +40,29 @@ class RobotSonicControlGui:
 
     @keyword('Wait up to "${timeout_ms}" ms for the widget "${name_widget}" to be registered')
     def wait_for_widget_to_be_registered(self, timeout_ms: int, name_widget: str) -> None:
-        task = timeout_wrapper(timeout_ms, WidgetRegistry.wait_for_widget_to_be_registered(name_widget))
-        widget_registered = self._loop.run_until_complete(task)
-        if not widget_registered:
-            raise TimeoutError(f"Widget '{name_widget}' did not change in the timeout of {timeout_ms} ms")
+        task = asyncio.wait_for(WidgetRegistry.wait_for_widget_to_be_registered(name_widget), timeout_ms / 1000)
+        self._loop.run_until_complete(task)
+        
+    @keyword('Wait up to "${timeout_ms}" ms for the widget "${name_widget}" to change text')
+    def wait_for_widget_to_change(self, timeout_ms: int, name_widget: str) -> str:  
+        task = asyncio.wait_for(WidgetRegistry.wait_for_widget_to_change_text(name_widget), timeout_ms / 1000)
+        changed_text = self._loop.run_until_complete(task)
+        return changed_text
 
-    @keyword('Wait up to "${timeout_ms}" ms for the widget "${name_widget}" to change')
-    def wait_for_widget_to_change(self, timeout_ms: int, name_widget: str) -> None:  
-        task = timeout_wrapper(timeout_ms, WidgetRegistry.wait_for_widget_to_change(name_widget))
-        widget_changed = self._loop.run_until_complete(task)
-        if not widget_changed:
-            raise TimeoutError(f"Widget '{name_widget}' did not change in the timeout of {timeout_ms} ms")
+    @keyword('Wait up to "${timeout_ms}" ms for multiple widgets "${widget_names}" to change text')
+    def wait_for_multiple_widgets_to_change_and_get_text(self, timeout_ms: int, widget_names: List[str]) -> Dict[str, str]:  
+        tasks: List[Coroutine[Any, Any, str]] = []
+        for widget_name in widget_names:
+            task = WidgetRegistry.wait_for_widget_to_change_text(widget_name)
+            tasks.append(task)
+        
+        async def collect_tasks():
+            results = await asyncio.gather(*tasks)
+            return {widget_name: result for widget_name, result in zip(widget_names, results)}
+
+        coroutine = asyncio.wait_for(collect_tasks(), timeout=timeout_ms / 1000)
+        changed_texts = self._loop.run_until_complete(coroutine)
+        return changed_texts
 
     @keyword('Get text of widget "${name_widget}"')
     def get_widget_text(self, name_widget: str) -> str:         
