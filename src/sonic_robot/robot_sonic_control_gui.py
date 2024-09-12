@@ -9,7 +9,7 @@ import robot.api.logger as logger
 from ttkbootstrap.utility import enable_high_dpi_awareness
 from soniccontrol_gui.views.core.connection_window import ConnectionWindow
 from sonicpackage.system import PLATFORM, System
-from soniccontrol_gui.utils.widget_registry import WidgetRegistry, get_text_of_widget
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry, get_text_of_widget, set_text_of_widget
 
 
 @library(auto_keywords=False, scope="SUITE")
@@ -35,18 +35,25 @@ class RobotSonicControlGui:
         self._loop.run_until_complete(WidgetRegistry.clean_up()) # Maybe we can do this better. But Idk
         self._root.destroy()
 
+    @keyword('Let the app run free for "${time_s}" s')
+    def run_free(self, time_s: int):
+        """
+        This shit is needed, because the sleep function of the robot framework pauses the whole application
+        """
+        self._loop.run_until_complete(asyncio.sleep(time_s))
+
     @keyword('Does the widget "${name_widget}" exist')
     def does_widget_exist(self, name_widget: str) -> bool:
         return WidgetRegistry.is_widget_registered(name_widget)
 
     @keyword('Wait up to "${timeout_ms}" ms for the widget "${name_widget}" to be registered')
     def wait_for_widget_to_be_registered(self, timeout_ms: int, name_widget: str) -> None:
-        task = asyncio.wait_for(WidgetRegistry.wait_for_widget_to_be_registered(name_widget), timeout_ms / 1000)
+        task = asyncio.wait_for(WidgetRegistry.wait_for_widget_to_be_registered(name_widget), timeout_ms / 1000.)
         self._loop.run_until_complete(task)
         
     @keyword('Wait up to "${timeout_ms}" ms for the widget "${name_widget}" to change text')
     def wait_for_widget_to_change(self, timeout_ms: int, name_widget: str) -> str:  
-        task = asyncio.wait_for(WidgetRegistry.wait_for_widget_to_change_text(name_widget), timeout_ms / 1000)
+        task = asyncio.wait_for(WidgetRegistry.wait_for_widget_to_change_text(name_widget), timeout_ms / 1000.)
         changed_text = self._loop.run_until_complete(task)
         return changed_text
 
@@ -57,11 +64,11 @@ class RobotSonicControlGui:
             task = WidgetRegistry.wait_for_widget_to_change_text(widget_name)
             tasks.append(task)
         
-        async def collect_tasks():
+        async def collect_tasks(tasks):
             results = await asyncio.gather(*tasks)
             return {widget_name: result for widget_name, result in zip(widget_names, results)}
 
-        coroutine = asyncio.wait_for(collect_tasks(), timeout=timeout_ms / 1000)
+        coroutine = asyncio.wait_for(collect_tasks(tasks), timeout=timeout_ms / 1000.)
         changed_texts = self._loop.run_until_complete(coroutine)
         return changed_texts
 
@@ -73,25 +80,12 @@ class RobotSonicControlGui:
     @keyword('Set text of widget "${name_widget}" to "${text}"')
     def set_widget_text(self, name_widget: str, text: str) -> None:
         widget = WidgetRegistry.get_widget(name_widget)
-        if isinstance(widget, (tk.Entry, ttk.Entry)):
-            widget.delete(0, ttk.END)
-            widget.insert(0, text)
-        elif isinstance(widget, ttk.ScrolledText):
-            widget.delete(1.0, ttk.END) # type: ignore
-            widget.insert(ttk.INSERT, text)
-        elif isinstance(widget, ttk.Combobox):
-            widget.set(text)
-        elif isinstance(widget, ttk.Meter):
-            widget.configure(amountused=int(text))
-        elif isinstance(widget, (tk.Label, ttk.Label, tk.Button, ttk.Button)):
-            widget.config(text=text)
-        else:
-            raise TypeError("The object has to be of type tk.Label, tk.Entry or tk.Button or inherit from them")
+        set_text_of_widget(widget, text)
 
     @keyword('Press button "${name_widget}"')
     def press_button(self, name_widget: str) -> None:
         widget = WidgetRegistry.get_widget(name_widget)
-        if isinstance(widget, (tk.Button, ttk.Button)):
+        if isinstance(widget, (tk.Button, ttk.Button, ttk.Checkbutton)):
             widget.invoke()
         else:
             raise TypeError(f"The registered object '{name_widget}' is not a button")

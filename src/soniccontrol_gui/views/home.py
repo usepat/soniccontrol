@@ -137,8 +137,6 @@ class HomeView(TabView):
             self._control_frame, text=ui_labels.GAIN
         )
         self._gain: ttk.IntVar = ttk.IntVar(value=0)
-        WidgetRegistry.register_widget(self._gain, "gain_var", tab_name)
-
         self._gain_spinbox: ttk.Spinbox = ttk.Spinbox(
             self._gain_frame,
             style=ttk.DARK,

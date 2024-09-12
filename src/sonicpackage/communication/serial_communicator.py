@@ -66,7 +66,8 @@ class SerialCommunicator(Communicator):
         self._connection_opened.set()
         self._writer.write(b'\n')
         await self._writer.drain()
-        self._package_fetcher._read_response()
+        # FIXME: why do we do this again?
+        # await self._package_fetcher._read_response()
         self._package_fetcher.run()
         self._task = loop.create_task(self._worker())
 
@@ -112,7 +113,7 @@ class SerialCommunicator(Communicator):
                 await self._writer.drain()
                 
                 # Debugging output
-                self._logger.info(f"[DEBUG] Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
+                self._logger.debug(f"Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
                 
                 # Sleep for the given delay between chunks
                 await asyncio.sleep(delay)
@@ -120,7 +121,7 @@ class SerialCommunicator(Communicator):
                 # Move to the next chunk
                 offset += chunk_size
 
-            self._logger.info("[DEBUG] Finished sending all chunks.")
+            self._logger.debug("Finished sending all chunks.")
 
             answer =  await self._package_fetcher.get_answer_of_package(
                 message_counter

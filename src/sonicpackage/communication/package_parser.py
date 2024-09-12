@@ -26,15 +26,12 @@ class PackageParser:
         if regex_match is None:
             raise SyntaxError(f"Could not parse package: {data}")
         
-        try:
-            return Package(
-                destination=regex_match.group(1),
-                source=regex_match.group(2),
-                identifier=int(regex_match.group(3)),
-                content=regex_match.group(4),
-            )
-        except:
-            raise SyntaxError(f"Could not parse package: {data}")
+        return Package(
+            destination=regex_match.group(1),
+            source=regex_match.group(2),
+            identifier=int(regex_match.group(3)),
+            content=regex_match.group(4),
+        )
 
     @staticmethod
     def write_package(package: Package) -> str:

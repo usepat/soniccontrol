@@ -4,6 +4,7 @@ from typing import Union
 from sonicpackage.commands import CommandSet, CommandSetLegacy
 from sonicpackage.communication.connection_factory import ConnectionFactory
 from sonicpackage.communication.communicator import Communicator
+from sonicpackage.communication.package_parser import PackageParser
 from sonicpackage.communication.serial_communicator import (
     LegacySerialCommunicator,
     SerialCommunicator,
@@ -43,6 +44,16 @@ class CommunicatorBuilder:
         except Exception as e:
             com_logger.error(str(e))
         else:
+            # For some reason the get_info command of the legacy protocol can also understand the new ones.
+            # FIXME: Is there some better way to fix this?
+            response = commands.get_info.answer.string
+            try:
+                PackageParser.parse_package(response)
+            except SyntaxError:
+                pass
+            else:
+                commands.get_info.answer.valid = False # response is package. Do not use legacy communicator
+
             if commands.get_info.answer.valid:
                 com_logger.info("Connected with legacy protocol")
                 return (serial, commands)
@@ -59,17 +70,11 @@ class CommunicatorBuilder:
             await commands.get_info.execute()
         except Exception as e:
             com_logger.error(str(e))
-            await serial.close_communication()
-            com_logger.warn("Connection could not be established with sonic protocol")
-            raise ConnectionError("Failed to connect due to incompatibility")
         else:
             if commands.get_info.answer.valid:
                 com_logger.info("Connected with sonic protocol")
                 return (serial, commands)
-            else:
-                # await serial.close_communication()
-                # com_logger.warn("Connection could not be established with sonic protocol")
-
-                # TODO: fix this. Define with Thomas an interface for ?info and implement it.
-                logger.info("Connected with sonic protocol")
-                return (serial, commands)
+            
+        await serial.close_communication()
+        com_logger.warning("Connection could not be established with sonic protocol")
+        raise ConnectionError("Failed to connect due to incompatibility")

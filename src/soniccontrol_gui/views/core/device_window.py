@@ -132,7 +132,6 @@ class KnownDeviceWindow(DeviceWindow):
 
             # Components
             self._logger.debug("Create views")
-            self._home = Home(self, self._device)
             self._serialmonitor = SerialMonitor(self, self._device.serial)
             self._logging = Logging(self, connection_name)
             self._editor = Editor(self, self._scripting, self._script_file, self._interpreter, self._app_state)
@@ -142,6 +141,7 @@ class KnownDeviceWindow(DeviceWindow):
             self._flashing = Flashing(self, self._device, self._app_state)
             self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
             self._sonicmeasure = Measuring(self, self._capture_targets, self._spectrum_measure_model)
+            self._home = Home(self, self._device)
 
             # Views
             self._logger.debug("Created all views, add them as tabs")

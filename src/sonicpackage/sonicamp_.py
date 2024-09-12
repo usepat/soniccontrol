@@ -198,13 +198,13 @@ class SonicAmp(Scriptable):
         return await self.execute_command("!ANALOG")
 
     async def set_frequency(self, frequency: int) -> str:
-        return await self.execute_command("!f=", frequency)
+        return await self.execute_command("!f=", frequency) # FIXME: use command factories / definitions instead of strings
 
     async def set_switching_frequency(self, frequency: int) -> str:
         return await self.execute_command("!swf=", frequency)
 
     async def set_gain(self, gain: int) -> str:
-        return await self.execute_command("!g=", gain)
+        return await self.execute_command("!g=", gain) # FIXME: use command factories / definitions instead of strings
 
     async def set_relay_mode_mhz(self) -> str:
         return await self.execute_command("!MHZ")

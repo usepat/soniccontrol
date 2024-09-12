@@ -2,29 +2,46 @@ import asyncio
 from typing import Dict, Optional
 import tkinter as tk
 import ttkbootstrap as ttk
-from dataclasses import dataclass
+from ttkbootstrap.scrolled import ScrolledText
 import datetime
 
 
 def get_text_of_widget(widget: tk.Widget) -> str:
     if isinstance(widget, (tk.Entry, ttk.Entry, ttk.Combobox)):
         return widget.get()
-    elif isinstance(widget, ttk.ScrolledText):
-        return widget.get(1.0, ttk.END)
-    elif isinstance(widget, (tk.Label, ttk.Label, tk.Button, ttk.Button)):
+    elif isinstance(widget, ScrolledText):
+        return widget.text.get(1.0, ttk.END)
+    elif isinstance(widget, (tk.Label, ttk.Label, tk.Button, ttk.Button, ttk.Checkbutton)):
         return str(widget.cget("text"))
     elif isinstance(widget, ttk.Meter):
         return str(widget.amountusedvar.get())
     else:
         raise TypeError("The object has to be of type tk.Label, tk.Entry or tk.Button or inherit from them")
 
+def set_text_of_widget(widget: tk.Widget, text: str) -> None:
+    if isinstance(widget, (tk.Entry, ttk.Entry)):
+        widget.delete(0, ttk.END)
+        widget.insert(0, text)
+    elif isinstance(widget, ScrolledText):
+        widget.text.delete(1.0, ttk.END)
+        widget.text.insert(ttk.INSERT, text)
+    elif isinstance(widget, ttk.Combobox):
+        widget.set(text)
+    elif isinstance(widget, ttk.Meter):
+        widget.configure(amountused=int(text))
+    elif isinstance(widget, (tk.Label, ttk.Label, tk.Button, ttk.Button, ttk.Checkbutton)):
+        widget.config(text=text)
+    else:
+        raise TypeError("The object has to be of type tk.Label, tk.Entry or tk.Button or inherit from them")
 
-@dataclass
+
+
 class WidgetReference:
-    widget: tk.Widget
-    text_has_changed: asyncio.Event = asyncio.Event()
-    old_text_value: str = ""
-    last_time_text_has_changed: datetime.datetime = datetime.datetime.now()
+    def __init__(self, widget: tk.Widget):
+        self.widget: tk.Widget = widget
+        self.old_text_value = get_text_of_widget(self.widget)
+        self.last_time_text_has_changed = datetime.datetime.now()
+        self.text_has_changed = asyncio.Event()
 
 """!
 @brief Registry solely used for robot testing library
@@ -75,10 +92,11 @@ class WidgetRegistry:
         start_time = datetime.datetime.now()
         ref = WidgetRegistry._widget_registry[full_widget_name]
 
-        await ref.text_has_changed.wait()
-        if ref.last_time_text_has_changed < start_time:
+        if ref.last_time_text_has_changed < start_time and ref.text_has_changed.is_set():
             ref.text_has_changed.clear()
-            await ref.text_has_changed.wait()
+
+        await ref.text_has_changed.wait()
+        ref.text_has_changed.clear()
         return ref.old_text_value
 
     @staticmethod

@@ -73,9 +73,10 @@ class PackageFetcher:
         )
         garbage = garbage_data.decode(PLATFORM.encoding)
         if garbage.strip() != self._protocol.start_symbol:
-            raise RuntimeError(
-                f"Before the package start, there were unexpected characters: {garbage}"
-            )
+            pass # FIXME: just quick fix, because of printf statements in the firmware
+            # raise RuntimeError(
+            #     f"Before the package start, there were unexpected characters: {garbage}"
+            # )
 
         data = await self._reader.readuntil(
             self._protocol.end_symbol.encode(PLATFORM.encoding)
