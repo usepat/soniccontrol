@@ -11,6 +11,7 @@ bottle==0.12.25
 bottle-websocket==0.2.9
 callee==0.3.1
 certifi==2024.7.4
+cffi==1.17.0
 charset-normalizer==3.3.2
 colorama==0.4.6
 contourpy==1.2.1
@@ -61,6 +62,7 @@ packaging==24.1
 pandas==2.2.2
 pandocfilters==1.5.1
 parso==0.8.4
+pefile==2024.8.26
 pexpect==4.9.0
 pickleshare==0.7.5
 Pillow==9.5.0
@@ -72,6 +74,8 @@ prompt_toolkit==3.0.47
 ptyprocess==0.7.0
 pure-eval==0.2.2
 pycodestyle==2.12.1
+pycparser==2.22
+pyelftools==0.31
 pyflakes==3.2.0
 pyglet==2.0.15
 Pygments==2.18.0
@@ -86,13 +90,17 @@ pytest-asyncio==0.23.8
 pytest-cov==5.0.0
 python-dateutil==2.9.0.post0
 pytz==2024.1
+pywin32==306
+pywin32-ctypes==0.2.3
 pyzmq==26.0.3
 referencing==0.35.1
 requests==2.32.3
 robotframework==7.0.1
 rpds-py==0.18.1
+setuptools==74.0.0
 setuptools-git-versioning==2.0.0
 six==1.16.0
+-e git+https://github.com/usepat/soniccontrol.git@5701e2799326aecda58e71849caa9179a05fa35f#egg=soniccontrol
 soupsieve==2.5
 stack-data==0.6.3
 tenacity==8.5.0

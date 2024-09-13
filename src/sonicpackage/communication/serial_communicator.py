@@ -32,6 +32,8 @@ class SerialCommunicator(Communicator):
     )
     _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
+    _restart: bool = False
+
     def __attrs_post_init__(self) -> None:
         self._task = None
         self._logger = logging.getLogger(self._logger.name + "." + SerialCommunicator.__name__)
@@ -146,7 +148,7 @@ class SerialCommunicator(Communicator):
         except Exception as e:
             self._logger.error(e)
         finally:
-            await self._close_communication()
+            await self._close_communication(self._restart)
 
     async def send_and_wait_for_answer(self, command: Command) -> None:
         if not self._connection_opened.is_set():
@@ -171,8 +173,9 @@ class SerialCommunicator(Communicator):
     async def read_message(self) -> str:
         return await self._package_fetcher.pop_message()
 
-    async def close_communication(self) -> None:
+    async def close_communication(self, restart : bool = False) -> None:
         if self._task is not None:
+            self._restart = restart
             self._task.cancel()
             try:
                 await self._task
@@ -180,7 +183,7 @@ class SerialCommunicator(Communicator):
                 pass
             self._task = None
 
-    async def _close_communication(self) -> None: 
+    async def _close_communication(self, restart : bool) -> None: 
         if self._task is not None:
             await self._package_fetcher.stop()
         self._connection_opened.clear()
@@ -190,7 +193,8 @@ class SerialCommunicator(Communicator):
         self._reader = None
         self._writer = None
         self._logger.info("Disconnected from device")
-        self.emit(Event(Communicator.DISCONNECTED_EVENT))
+        if not(restart):
+            self.emit(Event(Communicator.DISCONNECTED_EVENT))
 
 
 @attrs.define
@@ -269,6 +273,7 @@ class LegacySerialCommunicator(Communicator):
 
         if isinstance(connection_factory, SerialConnectionFactory):
             connection_factory.baudrate = LegacySerialCommunicator.BAUDRATE 
+            self._url = connection_factory.url
         self._reader, self._writer = await connection_factory.open_connection()
         self._logger.info("Open communication with handshake")
         await get_first_message()
@@ -365,7 +370,7 @@ class LegacySerialCommunicator(Communicator):
 
         return message
 
-    async def close_communication(self) -> None:
+    async def close_communication(self, restart : bool = False) -> None:
         if self._task is not None:
             self._task.cancel()
             try:
@@ -373,9 +378,9 @@ class LegacySerialCommunicator(Communicator):
             except asyncio.CancelledError:
                 pass
             self._task = None
-        await self._close_communication() # for some reason it cancels the task directly without calling the internal except
+        await self._close_communication(restart) # for some reason it cancels the task directly without calling the internal except
 
-    async def _close_communication(self) -> None:
+    async def _close_communication(self, restart : bool) -> None:
         self._connection_opened.clear()
         self._connection_closed.set()
         if self._writer is not None:
@@ -383,4 +388,5 @@ class LegacySerialCommunicator(Communicator):
             await self._writer.wait_closed()
         self._reader = None
         self._writer = None
-        self.emit(Event(Communicator.DISCONNECTED_EVENT))
+        if not(restart):
+            self.emit(Event(Communicator.DISCONNECTED_EVENT))

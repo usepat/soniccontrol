@@ -1,11 +1,21 @@
+import logging
 import pathlib
 import asyncio
 import subprocess
+from typing import Optional, Tuple
 from sonicpackage import logger
 from sonicpackage.interfaces import FirmwareFlasher
 from sonicpackage.system import PLATFORM
 import sonicpackage.bin.avrdude
 from importlib import resources as rs
+import serial.tools.list_ports as list_ports
+from serial_asyncio import open_serial_connection
+
+from sonicpackage.flashing.tools.elf import load_elf
+
+from sonicpackage.flashing.tools.utils import align
+
+from sonicpackage.flashing.tools.bootloader_protocol import Protocol_RP2040
 
 
 class LegacyFirmwareFlasher(FirmwareFlasher):
@@ -123,17 +133,174 @@ class LegacyFirmwareFlasher(FirmwareFlasher):
 
 
 class NewFirmwareFlasher(FirmwareFlasher):
-    def __init__(self, writer: asyncio.StreamWriter | None, reader: asyncio.StreamReader | None) -> None:
+    def __init__(self, logger: logging.Logger, baudrate: int, file: pathlib.Path) -> None:
         super().__init__()
-        self.writer = writer
-        self.reader = reader
-        self.file_path = None
+        self._logger = logging.getLogger(logger.name + "." + NewFirmwareFlasher.__name__)
+        self.baudrate = baudrate
+        self.file_path = file
+
+    async def find_flashable_device(self) -> Tuple[Optional[asyncio.StreamWriter], Optional[asyncio.StreamReader], Optional[str]]:
+        ports = [port.device for port in list_ports.comports()]
+        for port in ports:
+            try:
+                # Create a connection to the current port with the given baudrate
+                reader, writer = await open_serial_connection(url=port, baudrate=self.baudrate)
+
+                # Flush the read buffer (read until there is nothing left, or timeout)
+                try:
+                    await asyncio.wait_for(reader.read(1024), timeout=2)
+                except asyncio.TimeoutError:
+                    pass  # If there's nothing to read, ignore the timeout and proceed
+
+                # Send "SYNC" and try to read the response
+                for attempt in range(3):  # Try this three times
+                    writer.write(b'SYNC')
+                    await writer.drain()
+
+                    try:
+                        response = await asyncio.wait_for(reader.read(4), timeout=2)
+                    except asyncio.TimeoutError:
+                        break  # If we timeout, go to the next port
+
+                    if response == b'PICO':
+                        # Success: Return the StreamWriter and StreamReader
+                        return writer, reader, port
+                    elif response == b'ERR!':
+                        # If we receive "ERR!", try again by sending "SYNC"
+                        continue
+                    else:
+                        # Unrecognized response, stop and try the next port
+                        break
+
+                # Close connection if the port didn't respond with "PICO"
+                writer.close()
+                await writer.wait_closed()
+
+            except Exception as e:
+                # Handle connection errors, ignore the port, and move to the next one
+                print(f"Error with port {port}: {e}")
+                continue
+        
+        # If no valid device was found, return None
+        return None, None, None
     
     async def flash_firmware(self) -> None:
         if self.file_path:
-            _, extension = pathlib.Path(self.file_path).suffix
-            if extension == ".elf" and pathlib.Path(self.file_path).exists():
-                logger.info(f"Found elf file: {pathlib.Path(self.file_path).name}")
+            extension = self.file_path.suffix
+            if extension == ".elf" and self.file_path.exists():
+                self._logger.info(f"Found elf file: {self.file_path.name}")
+        writer, reader, port = await self.find_flashable_device()
+        if writer and reader:
+            self._logger.info(f"Successfully found a flashable device on port {port}")
+            self.img = load_elf(str(self.file_path)) # TODO change load elf to use PATH
+            self._logger.info(f"Image start address: {self.img.Addr}")
+            if self.img.Data is None or self.img.Addr <= -1:
+                self._logger.info(f"Image empty or address incorrect")
+                return
+            self.protocol = Protocol_RP2040(self._logger, writer, reader)
+            # self._logger.info("Start erasing the flash")
+            # success = await self.erase_flash()
+            # if not success:
+            #     self._logger.info("Error occured stop flashing")
+            #     return
+            # self._logger.info("Start flashing")
+            # success = await self.flash_program()
+            # if not success:
+            #     self._logger.info("Error occured stop flashing")
+            #     return
+            # self._logger.info("Finish flashing by adding seal")
+            # success =  await self.seal_flash()
+            # if not success:
+            #     self._logger.info("Error occured stop flashing")
+            #     return
+            self._logger.info("Finished flashing, reboot device")
+            success = await self.boot_into_program()
+            if not success:
+                self._logger.info("Error occured stop flashing")
+                return
+        else:
+            self._logger.info("No flashable device found")
+
+    async def erase_flash(self) -> bool:
+        has_sync = await self.protocol.sync_cmd()
+        if not has_sync:
+            self._logger.info("Sync command failed")
+            return False
+        device_info = await self.protocol.info_cmd()
+        if self.img.Data is not None and device_info is not None:
+            pad_len = align(int(len(self.img.Data)), device_info.write_size) - int(len(self.img.Data))
+            pad_zeros = bytes(pad_len)
+            data = self.img.Data + pad_zeros
+            if self.img.Addr < device_info.flash_addr:
+                self._logger.info(f"Image load address is too low: {hex(self.img.Addr)} < {hex(device_info.flash_addr)}")
+
+            if self.img.Addr + int(len(data)) > device_info.flash_addr + device_info.flash_size:
+                self._logger.info(f"Image of {len(data)} bytes does not fit in target flash at: {hex(self.img.Addr)}")
+            erase_len = int(align(len(data), device_info.erase_size))
+            for start in range(0, erase_len, device_info.erase_size):
+                erase_addr = self.img.Addr + start
+                #debug("Erase: " + str(erase_addr) + "size: " + str(device_info.erase_size))
+                has_succeeded = await self.protocol.erase_cmd(erase_addr, device_info.erase_size)
+                if not has_succeeded:
+                    self._logger.info(f"Error when erasing flash, at addr: {erase_addr}")
+                    return False
+                    #puts("Error when erasing flash, at addr: " + str(erase_addr))
+                    #exit_prog(True)
+            return True
+        return False
+            
+    async def  flash_program(self) -> bool:
+        has_sync = await self.protocol.sync_cmd()
+        if not has_sync:
+            self._logger.info("Sync command failed")
+            return False
+        device_info = await self.protocol.info_cmd()
+        if self.img.Data is not None and device_info is not None:
+            pad_len = align(int(len(self.img.Data)), device_info.write_size) - int(len(self.img.Data))
+            pad_zeros = bytes(pad_len)
+            data = self.img.Data + pad_zeros
+            for start in range(0, len(data), device_info.max_data_len):
+                end = start + device_info.max_data_len
+                if end > int(len(data)):
+                    end = int(len(data))
+
+                wr_addr = self.img.Addr + start
+                wr_len = end - start
+                wr_data = data[start:end]
+                crc_valid = await self.protocol.write_cmd(wr_addr, wr_len, wr_data)
+                if not crc_valid:
+                    self._logger.info("CRC missmatch exit flasher")
+                    return False
+                # puts("CRC mismatch! Exiting.")
+                    #exit_prog(False)
+        return True
+    
+    async def seal_flash(self) -> bool:
+        has_sync = await self.protocol.sync_cmd()
+        if not has_sync:
+            self._logger.info("Sync command failed")
+            return False
+        device_info = await self.protocol.info_cmd()
+        if self.img.Data is not None and device_info is not None:
+            pad_len = align(int(len(self.img.Data)), device_info.write_size) - int(len(self.img.Data))
+            pad_zeros = bytes(pad_len)
+            data = self.img.Data + pad_zeros
+            has_sealed = await self.protocol.seal_cmd(self.img.Addr, data)
+            #debug("Has sealed: " + str(has_sealed))
+            if not has_sealed:
+                self._logger.info("Sealing flash failed")
+                return False
+                #puts("Sealing failed. Exiting.")
+                #exit_prog(False
+        return True
+
+    async def boot_into_program(self) -> bool:
+        has_sync = await self.protocol.sync_cmd()
+        if not has_sync:
+            self._logger.info("Sync command failed")
+            return False
+        await self.protocol.boot_cmd()
+        return True
 
 
 async def main() -> None:

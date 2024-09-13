@@ -54,9 +54,10 @@ class DeviceWindowManager:
             DeviceWindow.CLOSE_EVENT, lambda _: self._opened_device_windows.pop(device_window_id) #type: ignore
         )
         device_window.subscribe(
-            DeviceWindow.RECONNECT_EVENT, lambda _: self._attempt_connection(connection_factory) #type: ignore
+            DeviceWindow.RECONNECT_EVENT, lambda _: async_handler(self._attempt_connection(connection_factory)) #type: ignore
         )
 
+    @async_handler
     async def _attempt_connection(self, connection_factory: ConnectionFactory):
         logger = create_logger_for_connection(connection_factory.connection_name, files.LOG_DIR)
         logger.debug("Established serial connection")
@@ -105,7 +106,7 @@ class ConnectionWindow(UIComponent):
             await self._device_window_manager._attempt_connection(connection_factory)
 
         self._is_connecting = False # Make this to asyncio Event if needed
-        self._attempt_connection = decorator(_attempt_connection)
+        self._attempt_connection = async_handler(decorator(_attempt_connection))
         
         self._view.set_connect_via_url_button_command(self._on_connect_via_url)
         self._view.set_connect_to_simulation_button_command(self._on_connect_to_simulation)

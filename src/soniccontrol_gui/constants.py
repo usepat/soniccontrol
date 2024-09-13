@@ -226,6 +226,21 @@ class _UIStringsEN:
     FIRMWARE_VERSION_LABEL: Final[str] = "Firmware Version: {}"
     PROTOCOL_VERSION_LABEL: Final[str] = "Protocol Version: {}"
     DEVICE_TYPE_LABEL: Final[str] = "Device Type: {}"
+    DEVICE_FLASHED_TITLE: Final[str] = "Device flashing complete"
+    DEVICE_FLASHED_MSG: Final[str] = "Device was successfully flashed, restart device and soniccontrol"
+    FLASH_LEGACY: Final[str] = "FLASH_LEGACY"
+    FLASH_UART_SLOW: Final[str] = "FLASH_UART_SLOW"
+    FLASH_UART_FAST: Final[str] = "FLASH_UART_FAST"
+    FLASH_USB: Final[str] = "FLASH_USB"
+    
+    # List of all flash mode options
+    FLASH_OPTIONS: Final[List[str]] = [
+        FLASH_USB,
+        FLASH_UART_SLOW, 
+        FLASH_UART_FAST, 
+        FLASH_LEGACY
+    ]
+
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 

@@ -12,7 +12,7 @@ from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.view import TabView
 from sonicpackage.communication.communicator import Communicator
-from sonicpackage.communication.serial_communicator import LegacySerialCommunicator
+from sonicpackage.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
 from sonicpackage.procedures.procedure_controller import ProcedureController
 from sonicpackage.scripting.interpreter_engine import InterpreterEngine
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
@@ -66,6 +66,7 @@ class DeviceWindow(UIComponent):
             self.close()
 
     def on_reconnect(self) -> None:
+        Messagebox.ok(ui_labels.DEVICE_FLASHED_TITLE, ui_labels.DEVICE_FLASHED_MSG)
         self.reconnect()
 
     @async_handler
@@ -78,9 +79,18 @@ class DeviceWindow(UIComponent):
     @async_handler
     async def reconnect(self) -> None:
         self._logger.info("Close window")
+        # if (isinstance(self._communicator, LegacySerialCommunicator) or isinstance(self._communicator, SerialCommunicator)) and self._communicator._reader:
+        #     try:
+        #         while not self._communicator._reader.at_eof():
+        #             # Read all available data in chunks and discard it
+        #             data = await  self._communicator._reader.read(1024)  # Adjust chunk size as needed
+        #             if not data:
+        #                 break
+        #     except Exception as e:
+        #         print(f"Error while flushing reader: {e}")
+        await self._communicator.close_communication(True)
         self.emit(Event(DeviceWindow.RECONNECT_EVENT))
         self._view.close()
-        await self._communicator.close_communication()
         
 
 class RescueWindow(DeviceWindow):
@@ -88,12 +98,11 @@ class RescueWindow(DeviceWindow):
         self._logger: logging.Logger = logging.getLogger(connection_name + ".ui")
         try:
             self._communicator = communicator
-            if isinstance(communicator, LegacySerialCommunicator):
-                communicator._writer
             self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
             super().__init__(self._logger, self._view, self._communicator)
 
-            self._flashing = Flashing(self)
+            self._flashing = Flashing(self, self._logger, communicator=communicator)
+            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect())
 
             self._logger.debug("Create logStorage for storing logs")
             self._logStorage = LogStorage()
@@ -156,8 +165,8 @@ class KnownDeviceWindow(DeviceWindow):
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
             self._info = Info(self)
             self._configuration = Configuration(self, self._device)
-            self._flashing = Flashing(self, self._device, self._app_state, self._updater)
-            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect)
+            self._flashing = Flashing(self, self._logger, self._device, self._app_state, self._updater)
+            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect())
             self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
             self._sonicmeasure = Measuring(self, self._capture_targets, self._spectrum_measure_model)
 
