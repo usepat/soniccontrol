@@ -100,7 +100,7 @@ class SonicAmp(Scriptable):
             ) is not None
         )
 
-    async def send_message(self, message: str = "", argument: Any = "") -> str:
+    async def send_message(self, message: str = "", argument: Any = "", should_log: bool = True) -> str:
         return (
             await Command(
                 message=message,  
@@ -108,13 +108,14 @@ class SonicAmp(Scriptable):
                 estimated_response_time=0.4,
                 expects_long_answer=True,
                 serial_communication=self._serial
-            ).execute()
+            ).execute(should_log=should_log)
         )[0].string
 
     async def execute_command(
         self,
         message: Union[str, Command],
         argument: Any = "",
+        should_log: bool = True,
         **status_kwargs_if_valid_command,
     ) -> str:
         """
@@ -143,24 +144,26 @@ class SonicAmp(Scriptable):
         """
         try:
             message = message if isinstance(message, str) else message.message
-            if message != "-":
-                self._logger.debug("Execute command %s with argument %s", message, str(argument))
+            if should_log:
+                self._logger.info("Execute command %s with argument %s", message, str(argument))
             if message not in self._commands.keys():
                 self._logger.debug("Command not found in commands of sonicamp %s", message)
                 self._logger.debug("Executing message as a new Command...")
-                return await self.send_message(message=message, argument=argument)
+                return await self.send_message(message=message, argument=argument, should_log=should_log)
             
             command: Command = self._commands[message]
-            await command.execute(argument=argument, connection=self._serial)
+            await command.execute(argument=argument, connection=self._serial, should_log=should_log)
         except Exception as e:
             self._logger.error(e)
             await self.disconnect()
+            return str(e)
 
         await self._status.update(
             **command.status_result, **status_kwargs_if_valid_command
         )
 
-        parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
+        if should_log:
+            parrot_feeder.debug("DEVICE_STATE(%s)", json.dumps(self._status.get_dict()))
 
         return command.answer.string
 

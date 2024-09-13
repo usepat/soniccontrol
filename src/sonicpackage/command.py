@@ -387,7 +387,7 @@ class Command(Sendable):
         return {"argument": self.argument, "message": self.message}
 
     async def execute(
-        self, argument: Any = None, connection: Optional[Communicator] = None
+        self, argument: Any = None, connection: Optional[Communicator] = None, should_log: bool = True
     ) -> tuple[Answer, dict[str, Any]]:
         """
         Executes a command asynchronously.
@@ -412,17 +412,24 @@ class Command(Sendable):
             )
 
         if connection is None:
+            assert self.serial_communication is not None
             connection = self.serial_communication
 
         self.answer.reset()
         if argument is not None:
             self.set_argument(argument)
 
-        parrot_feeder.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
+        if should_log:
+            parrot_feeder.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
+        
         await connection.send_and_wait_for_answer(self)
 
         self.answer.valid = self.validate()
         self.status_result.update({"timestamp": self.answer.received_timestamp})
+
+        if should_log:
+            parrot_feeder.debug("ANSWER(%s)", json.dumps({"message": self.answer.string}))
+
         return (self.answer, self.status_result)
 
     def validate(self) -> bool:

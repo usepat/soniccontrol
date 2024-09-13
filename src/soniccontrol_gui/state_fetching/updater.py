@@ -28,7 +28,7 @@ class Updater(EventManager):
     async def update(self) -> None:
         # HINT: If ever needed to update different device attributes, we can do that, by checking what components the device has
         # and then additionally call other commands to get this information
-        await self._device.get_status()
+        await self._device.execute_command("-", should_log=False)
         self.emit(Event("update", status=self._device.status))
 
     async def _loop(self) -> None:

@@ -1,4 +1,3 @@
-import asyncio
 import re
 import json
 import logging
@@ -15,6 +14,12 @@ class LogCommandCall:
     message: str
 
     LOG_STR: ClassVar[str] = "COMMAND_CALL"
+
+@dataclass
+class LogAnswer:
+    message: str
+
+    LOG_STR: ClassVar[str] = "ANSWER"
 
 @dataclass
 class LogDeviceState:
@@ -37,7 +42,7 @@ class LogDeviceState:
     LOG_STR: ClassVar[str] = "DEVICE_STATE"
 
 
-ParrotLog = Union[LogCommandCall, LogDeviceState]
+ParrotLog = Union[LogCommandCall, LogDeviceState, LogAnswer]
 
 
 class LogParser:
@@ -56,6 +61,8 @@ class LogParser:
             return LogParser._parse_command_call(line)
         elif LogDeviceState.LOG_STR in line:
             return LogParser._parse_device_state(line)
+        elif LogAnswer.LOG_STR in line:
+            return LogParser._parse_answer(line)
         else:
             return None
 
@@ -67,13 +74,19 @@ class LogParser:
         return LogCommandCall(**data)
 
     @staticmethod
+    def _parse_answer(line: str) -> LogAnswer:
+        regex = fr".*{LogAnswer.LOG_STR}\((.+)\).*"
+        match = re.match(regex, line)
+        data = json.loads(match.group(1))
+        return LogAnswer(**data)
+
+    @staticmethod
     def _parse_device_state(line: str) -> LogDeviceState:
         regex = fr".*{LogDeviceState.LOG_STR}\((.+)\).*"
         match = re.match(regex, line)
         data = json.loads(match.group(1))
         data = { k: v for (k, v) in data.items() if k in LogDeviceState.__dict__ } # filter out those attributes we are interested in
         return LogDeviceState(**data)
-
 
 
 class Parrot:

@@ -39,16 +39,16 @@ class AmpBuilder:
 
         builder_logger.debug("Try to figure out which device it is with ?info, ?type, ?")
         if isinstance(commands, CommandSetLegacy):
-            await commands.get_type.execute()
+            await commands.get_type.execute(should_log=False)
             if commands.get_type.answer.valid:
                 result_dict.update(commands.get_type.status_result)
 
-        await commands.get_info.execute()
+        await commands.get_info.execute(should_log=False)
         if commands.get_info.answer.valid:
             result_dict.update(commands.get_info.status_result)
 
         if isinstance(commands, CommandSetLegacy):
-            await commands.get_overview.execute()
+            await commands.get_overview.execute(should_log=False)
             if commands.get_overview.answer.valid:
                 result_dict.update(commands.get_overview.status_result)
 
@@ -66,7 +66,7 @@ class AmpBuilder:
 
         if isinstance(commands, CommandSet):
             builder_logger.debug("Get list of available commands of device")
-            await commands.get_command_list.execute()
+            await commands.get_command_list.execute(should_log=False)
             if commands.get_command_list.answer.valid:
                 self._add_commands_from_list_command_answer(
                     commands, sonicamp, commands.get_command_list.answer

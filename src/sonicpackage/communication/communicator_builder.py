@@ -40,7 +40,7 @@ class CommunicatorBuilder:
 
         try:
             await serial.open_communication(connection_factory)
-            await commands.get_info.execute()
+            await commands.get_info.execute(should_log=False)
         except Exception as e:
             com_logger.error(str(e))
         else:
@@ -67,7 +67,7 @@ class CommunicatorBuilder:
 
         try:
             await serial.open_communication(connection_factory)
-            await commands.get_info.execute()
+            await commands.get_info.execute(should_log=False)
         except Exception as e:
             com_logger.error(str(e))
         else:
