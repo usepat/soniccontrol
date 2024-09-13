@@ -22,7 +22,7 @@ from soniccontrol_gui.widgets.file_browse_button import FileBrowseButtonView
 
 class Flashing(UIComponent):
     RECONNECT_EVENT = "Reconnect"
-    def __init__(self, parent: UIComponent, device: SonicAmp, app_state: AppState, updater: Updater):
+    def __init__(self, parent: UIComponent, device: SonicAmp | None = None, app_state: AppState | None = None, updater: Updater):
         if isinstance(device._serial, LegacySerialCommunicator):
             pass
             # self.flasher = LegacyFirmwareFlasher()
@@ -35,7 +35,8 @@ class Flashing(UIComponent):
         self._parent = parent
         self._view = FlashingView(parent.view)
         super().__init__(self, self._view)
-        self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
+        if self._app_state:
+            self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._on_execution_state_changed)
 
         self._view.set_submit_button_command(self._flash)
 

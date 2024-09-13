@@ -12,6 +12,7 @@ from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.view import TabView
 from sonicpackage.communication.communicator import Communicator
+from sonicpackage.communication.serial_communicator import LegacySerialCommunicator
 from sonicpackage.procedures.procedure_controller import ProcedureController
 from sonicpackage.scripting.interpreter_engine import InterpreterEngine
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
@@ -87,8 +88,12 @@ class RescueWindow(DeviceWindow):
         self._logger: logging.Logger = logging.getLogger(connection_name + ".ui")
         try:
             self._communicator = communicator
+            if isinstance(communicator, LegacySerialCommunicator):
+                communicator._writer
             self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
             super().__init__(self._logger, self._view, self._communicator)
+
+            self._flashing = Flashing(self)
 
             self._logger.debug("Create logStorage for storing logs")
             self._logStorage = LogStorage()
@@ -105,6 +110,7 @@ class RescueWindow(DeviceWindow):
             self._logger.debug("Created all views, add them as tabs")
             self._view.add_tab_views([
                 self._serialmonitor.view, 
+                self._flashing.view,
             ], right_one=False)
             self._view.add_tab_views([
                 self._logging.view, 
