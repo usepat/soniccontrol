@@ -100,11 +100,13 @@ class HomeView(TabView):
         self._control_frame: ttk.Labelframe = ttk.Labelframe(
             self._main_frame, text=ui_labels.HOME_CONTROL_LABEL
         )
-
+        freq_label = ui_labels.FREQUENCY
+        if self.type == 'descale':
+            freq_label = ui_labels.SWITCHING_FREQUENCY
         self._freq_frame: ttk.LabelFrame = ttk.LabelFrame(
-            self._control_frame, text=ui_labels.FREQUENCY
+            self._control_frame, text=freq_label
         )
-        self._freq: ttk.IntVar = ttk.IntVar(value=0)
+        self._freq: ttk.IntVar = ttk.IntVar(value=100000)
         self._freq_spinbox: ttk.Spinbox = ttk.Spinbox(
             self._freq_frame,
             #placeholder=ui_labels.FREQ_PLACEHOLDER,

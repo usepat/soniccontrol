@@ -23,31 +23,68 @@ from soniccontrol_gui.resources import images
 from importlib import resources as rs
 import sonicpackage.bin
 
+class DeviceConnectionClasses:
+    def __init__(self, deviceWindow : DeviceWindow, connectionFactory : ConnectionFactory):
+        self._deviceWindow = deviceWindow
+        self._connectionFactory = connectionFactory
+
 
 class DeviceWindowManager:
     def __init__(self, root):
         self._root = root
         self._id_device_window_counter = 0
-        self._opened_device_windows: Dict[int, DeviceWindow] = {}
+        self._opened_device_windows: Dict[int, DeviceConnectionClasses] = {}
 
-    def open_rescue_window(self, communicator: Communicator, connection_name: str) -> DeviceWindow:
-        device_window = RescueWindow(communicator, self._root, connection_name)
-        self._open_device_window(device_window)
+    def open_rescue_window(self, communicator: Communicator, connection_factory : ConnectionFactory) -> DeviceWindow:
+        device_window = RescueWindow(communicator, self._root, connection_factory.connection_name)
+        self._open_device_window(device_window, connection_factory)
         return device_window
 
-    def open_known_device_window(self, sonicamp: SonicAmp, connection_name: str) -> DeviceWindow:
-        device_window = KnownDeviceWindow(sonicamp, self._root, connection_name)
-        self._open_device_window(device_window)
+    def open_known_device_window(self, sonicamp: SonicAmp, connection_factory : ConnectionFactory) -> DeviceWindow:
+        device_window = KnownDeviceWindow(sonicamp, self._root, connection_factory.connection_name)
+        self._open_device_window(device_window, connection_factory)
         return device_window
     
-    def _open_device_window(self, device_window: DeviceWindow):
+    def _open_device_window(self, device_window: DeviceWindow, connection_factory : ConnectionFactory):
         device_window._view.focus_set()  # grab focus and bring window to front
         self._id_device_window_counter += 1
         device_window_id = self._id_device_window_counter
-        self._opened_device_windows[device_window_id] = device_window
+        self._opened_device_windows[device_window_id] = DeviceConnectionClasses(device_window, connection_factory)
         device_window.subscribe(
             DeviceWindow.CLOSE_EVENT, lambda _: self._opened_device_windows.pop(device_window_id) #type: ignore
         )
+        device_window.subscribe(
+            DeviceWindow.RECONNECT_EVENT, lambda _: self._attempt_connection(connection_factory) #type: ignore
+        )
+
+    async def _attempt_connection(self, connection_factory: ConnectionFactory):
+        logger = create_logger_for_connection(connection_factory.connection_name, files.LOG_DIR)
+        logger.debug("Established serial connection")
+
+        try:
+            serial, commands = await CommunicatorBuilder.build(
+                connection_factory,
+                logger=logger
+            )
+            logger.debug("Build SonicAmp for device")
+            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
+            await sonicamp.serial.connection_opened.wait()
+        except ConnectionError as e:
+            logger.error(e)
+            message = ui_labels.COULD_NOT_CONNECT_MESSAGE.format(str(e))
+            user_answer: Optional[str] = cast(Optional[str], Messagebox.yesno(message))
+            if user_answer is None or user_answer == "No": 
+                return
+            
+            connection: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
+            await connection.open_communication(connection_factory)
+            self.open_rescue_window(connection, connection_factory)
+        except Exception as e:
+            logger.error(e)
+            Messagebox.show_error(str(e))
+        else:
+            logger.info("Created device successfully, open device window")
+            self.open_known_device_window(sonicamp, connection_factory)
 
 
 class ConnectionWindow(UIComponent):
@@ -62,11 +99,14 @@ class ConnectionWindow(UIComponent):
             self._view.loading_text = ""
         animation = Animator(DotAnimationSequence("Connecting"), set_loading_animation_frame, 2., done_callback=on_animation_end)
         decorator = load_animation(animation)
-        self._attempt_connection = decorator(self._attempt_connection)
+        self._device_window_manager = DeviceWindowManager(self._view)
+        
+        async def _attempt_connection(connection_factory: ConnectionFactory):
+            await self._device_window_manager._attempt_connection(connection_factory)
 
         self._is_connecting = False # Make this to asyncio Event if needed
-
-        self._device_window_manager = DeviceWindowManager(self._view)
+        self._attempt_connection = decorator(_attempt_connection)
+        
         self._view.set_connect_via_url_button_command(self._on_connect_via_url)
         self._view.set_connect_to_simulation_button_command(self._on_connect_to_simulation)
         self._view.set_refresh_button_command(self._refresh_ports)
@@ -94,9 +134,8 @@ class ConnectionWindow(UIComponent):
         url = self._view.get_url()
         baudrate = 9600
 
-        connection_factory = SerialConnectionFactory(url=url, baudrate=baudrate)
-        connection_name = Path(url).name
-        await self._attempt_connection(connection_name, connection_factory)
+        connection_factory = SerialConnectionFactory(url=url, baudrate=baudrate, connection_name=Path(url).name)
+        await self._attempt_connection(connection_factory)
         self._is_connecting = False
 
     @async_handler 
@@ -104,43 +143,13 @@ class ConnectionWindow(UIComponent):
         assert (not self.is_connecting)
         self._is_connecting = True
 
-        connection_name = "simulation"
+        
         bin_file = str(rs.files(sonicpackage.bin).joinpath("cli_simulation_mvp"))
 
-        connection_factory = CLIConnectionFactory(bin_file=bin_file)
+        connection_factory = CLIConnectionFactory(bin_file=bin_file, connection_name = "simulation")
 
-        await self._attempt_connection(connection_name, connection_factory)
-
+        await self._attempt_connection(connection_factory)
         self._is_connecting = False
-
-    async def _attempt_connection(self, connection_name: str, connection_factory: ConnectionFactory):
-        logger = create_logger_for_connection(connection_name, files.LOG_DIR)
-        logger.debug("Established serial connection")
-
-        try:
-            serial, commands = await CommunicatorBuilder.build(
-                connection_factory,
-                logger=logger
-            )
-            logger.debug("Build SonicAmp for device")
-            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
-            await sonicamp.serial.connection_opened.wait()
-        except ConnectionError as e:
-            logger.error(e)
-            message = ui_labels.COULD_NOT_CONNECT_MESSAGE.format(str(e))
-            user_answer: Optional[str] = cast(Optional[str], Messagebox.yesno(message))
-            if user_answer is None or user_answer == "No": 
-                return
-            
-            connection: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
-            await connection.open_communication(connection_factory)
-            self._device_window_manager.open_rescue_window(connection, connection_name)
-        except Exception as e:
-            logger.error(e)
-            Messagebox.show_error(str(e))
-        else:
-            logger.info("Created device successfully, open device window")
-            self._device_window_manager.open_known_device_window(sonicamp, connection_name)
 
 
 class ConnectionWindowView(ttk.Window, View):

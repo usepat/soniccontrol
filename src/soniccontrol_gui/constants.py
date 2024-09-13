@@ -157,6 +157,7 @@ class _UIStringsEN:
     ATT: Final[str] = "ATT"
     COEFFICIENT: Final[str] = "Coefficient"
     FREQUENCY: Final[str] = "Frequency"
+    SWITCHING_FREQUENCY: Final[str] = "Switching Frequency"
     GAIN: Final[str] = "Gain"
     TEMPERATURE: Final[str] = "Temperature"
     ATF1: Final[str] = f"{ATF}1 {FREQUENCY}"

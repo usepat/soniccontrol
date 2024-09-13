@@ -228,7 +228,7 @@ def to_version(x: Any) -> Version:
 @attrs.define
 class Info:
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
-    firmware_info: str = attrs.field(default="")
+    firmware_info: str = attrs.field(default="") # TODO does not match with validators of info command
     firmware_version: Version = attrs.field(default=(0, 0, 0), converter=to_version) # TODO: delete this. Is just there, so I can implement in the meantime the home tab
     modules: Modules = attrs.field(factory=Modules)
 

@@ -37,6 +37,7 @@ from soniccontrol_gui.resources import images
 
 class DeviceWindow(UIComponent):
     CLOSE_EVENT = "Close"
+    RECONNECT_EVENT = "Reconnect"
 
     def __init__(self, logger: logging.Logger, deviceWindowView: "DeviceWindowView", communicator: Communicator):
         self._logger = logger
@@ -63,12 +64,23 @@ class DeviceWindow(UIComponent):
         else:
             self.close()
 
+    def on_reconnect(self) -> None:
+        self.reconnect()
+
     @async_handler
     async def close(self) -> None:
         self._logger.info("Close window")
         self.emit(Event(DeviceWindow.CLOSE_EVENT))
         self._view.close()
         await self._communicator.close_communication()
+
+    @async_handler
+    async def reconnect(self) -> None:
+        self._logger.info("Close window")
+        self.emit(Event(DeviceWindow.RECONNECT_EVENT))
+        self._view.close()
+        await self._communicator.close_communication()
+        
 
 class RescueWindow(DeviceWindow):
     def __init__(self, communicator: Communicator, root, connection_name: str):
@@ -138,7 +150,8 @@ class KnownDeviceWindow(DeviceWindow):
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
             self._info = Info(self)
             self._configuration = Configuration(self, self._device)
-            self._flashing = Flashing(self, self._device, self._app_state)
+            self._flashing = Flashing(self, self._device, self._app_state, self._updater)
+            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect)
             self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
             self._sonicmeasure = Measuring(self, self._capture_targets, self._spectrum_measure_model)
 

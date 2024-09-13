@@ -462,6 +462,8 @@ class Command(Sendable):
                     accepted = True
                     self.answer.unknown_answers.discard(answer)
                     self._status_result.update(validator.result)
+                else:
+                    return False # TODO ask David if this is Ok
 
         if entire_string_accepted:
             self.answer.unknown_answers.clear()

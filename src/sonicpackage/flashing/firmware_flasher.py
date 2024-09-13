@@ -119,6 +119,21 @@ class LegacyFirmwareFlasher(FirmwareFlasher):
             f"atmega328p -c arduino -P {self._port} "
             f'-b 115200 -D -U flash:w:"{self._filepath}":i'
         )
+    
+
+
+class NewFirmwareFlasher(FirmwareFlasher):
+    def __init__(self, writer: asyncio.StreamWriter | None, reader: asyncio.StreamReader | None) -> None:
+        super().__init__()
+        self.writer = writer
+        self.reader = reader
+        self.file_path = None
+    
+    async def flash_firmware(self) -> None:
+        if self.file_path:
+            _, extension = pathlib.Path(self.file_path).suffix
+            if extension == ".elf" and pathlib.Path(self.file_path).exists():
+                logger.info(f"Found elf file: {pathlib.Path(self.file_path).name}")
 
 
 async def main() -> None:
