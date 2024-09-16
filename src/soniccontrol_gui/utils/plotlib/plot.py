@@ -15,6 +15,8 @@ class Plot(EventManager):
         self._fig: Figure = subplot.get_figure()
         self._plot.set_xlabel(xlabel)
         self._plot.tick_params(axis="x", rotation=45)
+        self._plot.spines['right'].set_visible(False)
+        self._plot.spines['left'].set_visible(False)
         self._dataAttrNameXAxis = dataAttrNameXAxis
         self._lines: Dict[str, matplotlib.lines.Line2D] = {}
         self._axes: Dict[str, matplotlib.axes.Axes] = {}
@@ -51,7 +53,7 @@ class Plot(EventManager):
         if axis_id in self._axes:
             raise KeyError(f"There already exists a axis with this id {axis_id}")
 
-        ax = self._plot if len(self._axes) == 0 else self._plot.twinx()
+        ax = self._plot.twinx()
         self._axes[axis_id] = ax
 
         ax.set_ylabel(ylabel)
@@ -62,7 +64,7 @@ class Plot(EventManager):
             ax.spines['left'].set_visible(False)
             ax.yaxis.set_label_position("right")
             ax.yaxis.set_ticks_position("right")
-            offset = ((len(self._axes) + 1) // 2 - 1) * 60
+            offset = ((len(self._axes) + 1) // 2) * 60
             ax.spines['right'].set_position(
                 ("outward", offset)
             )

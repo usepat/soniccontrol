@@ -18,7 +18,9 @@ class DataProvider(EventManager):
 
     def add_row(self, row: dict):
         if "timestamp" in row.keys():
-            row["timestamp"] = pd.Timestamp(row["timestamp"])
+            row["timestamp"] = pd.to_datetime(row["timestamp"], errors='raise', format="%Y-%m-%d %H:%M:%S.%f")
+            
         self._dataqueue.append(row)
         self._data = pd.DataFrame(list(self._dataqueue), columns=row.keys())
+
         self.emit(PropertyChangeEvent("data", None, self._data))
