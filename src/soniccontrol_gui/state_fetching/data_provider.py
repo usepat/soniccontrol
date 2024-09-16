@@ -17,9 +17,8 @@ class DataProvider(EventManager):
     
 
     def add_row(self, row: dict):
+        if "timestamp" in row.keys():
+            row["timestamp"] = pd.Timestamp(row["timestamp"])
         self._dataqueue.append(row)
         self._data = pd.DataFrame(list(self._dataqueue), columns=row.keys())
-        if "timestamp" in row.keys():
-            self._data["timestamp"] = pd.to_datetime(self._data["timestamp"])
-            self._data["timestamp"] = self._data["timestamp"].dt.tz_localize(None)
         self.emit(PropertyChangeEvent("data", None, self._data))

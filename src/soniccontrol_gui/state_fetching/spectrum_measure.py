@@ -1,17 +1,25 @@
 
+import asyncio
 from typing import Any, Dict, List, Type, Union
 from attrs import validators
 import attrs
 
 from soniccontrol_gui.state_fetching.updater import Updater
 from sonicpackage.interfaces import Scriptable
-from sonicpackage.procedures.holder import Holder, HolderArgs
+from sonicpackage.procedures.holder import Holder, HolderArgs, convert_to_holder_args
 from sonicpackage.procedures.procedure import Procedure
 from sonicpackage.procedures.procs.ramper import RamperArgs
 
 @attrs.define()
 class SpectrumMeasureModel:
     form_fields: Dict[str, Any] = attrs.field(default={})
+
+@attrs.define()
+class SpectrumMeasureArgs(RamperArgs):
+    time_offset_measure: HolderArgs = attrs.field(
+        default=HolderArgs(100, "ms"), 
+        converter=convert_to_holder_args
+    )
 
 
 # TODO: This class can be easily merged with RamperLocal
@@ -21,12 +29,12 @@ class SpectrumMeasure(Procedure):
 
     @classmethod
     def get_args_class(cls) -> Type: 
-        return RamperArgs
+        return SpectrumMeasureArgs
 
     async def execute(
         self,
         device: Scriptable,
-        args: RamperArgs
+        args: SpectrumMeasureArgs
     ) -> None:
         start = args.freq_center - args.half_range
         stop = args.freq_center + args.half_range + args.step # add a step to stop so that stop is inclusive
@@ -47,21 +55,17 @@ class SpectrumMeasure(Procedure):
         hold_on: HolderArgs,
         hold_off: HolderArgs,
     ) -> None:
-        i: int = 0
-        while i < len(values):
+        for  i in range(len(values)):
             value = values[i]
 
             await device.execute_command(f"!freq={value}")
             if hold_off.duration:
                 await device.set_signal_on()
-
+            asyncio.get_running_loop().create_task(self._updater.update())
             await Holder.execute(hold_on)
-            await self._updater.update()
 
             if hold_off.duration:
                 await device.set_signal_off()
                 await Holder.execute(hold_off)
-                await self._updater.update()
 
-            i += 1
 

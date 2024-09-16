@@ -2,14 +2,13 @@
 import abc
 from enum import Enum
 from typing import Any
-from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasure, SpectrumMeasureModel
+from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasure, SpectrumMeasureArgs, SpectrumMeasureModel
 from soniccontrol_gui.state_fetching.updater import Updater
 from soniccontrol_gui.views.control.editor import ScriptFile
 from soniccontrol_gui.views.control.proc_controlling import ProcControllingModel
 from sonicpackage.events import Event, EventManager, PropertyChangeEvent
 from sonicpackage.procedures.procedure import ProcedureType
 from sonicpackage.procedures.procedure_controller import ProcedureController
-from sonicpackage.procedures.procs.ramper import RamperArgs
 from sonicpackage.scripting.interpreter_engine import InterpreterEngine, InterpreterState
 from sonicpackage.scripting.scripting_facade import ScriptingFacade
 
@@ -145,7 +144,7 @@ class CaptureSpectrumMeasure(CaptureTarget):
 
     async def before_start_capture(self) -> None:
         proc_args = self._spectrum_measure_model.form_fields
-        self._args = RamperArgs(**proc_args)
+        self._args = SpectrumMeasureArgs(**proc_args)
         self._is_capturing = True
 
     def run_to_capturing_task(self) -> None:
