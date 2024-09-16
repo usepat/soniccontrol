@@ -17,7 +17,7 @@ from sonicpackage.procedures.procedure_controller import ProcedureController
 from sonicpackage.scripting.interpreter_engine import InterpreterEngine
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
 from sonicpackage.sonicamp_ import SonicAmp
-from soniccontrol_gui.state_fetching.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
+from soniccontrol_gui.state_fetching.logger import LogStorage, NotDeviceLogFilter
 from soniccontrol_gui.state_fetching.updater import Updater
 from soniccontrol_gui.constants import sizes, ui_labels
 from sonicpackage.events import Event
@@ -72,10 +72,10 @@ class DeviceWindow(UIComponent):
         await self._communicator.close_communication()
 
 class RescueWindow(DeviceWindow):
-    def __init__(self, communicator: Communicator, root, connection_name: str):
+    async def __init__(self, device: SonicAmp, root, connection_name: str):
         self._logger: logging.Logger = logging.getLogger(connection_name + ".ui")
         try:
-            self._communicator = communicator
+            self._device = device
             self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
             super().__init__(self._logger, self._view, self._communicator)
 
@@ -87,8 +87,15 @@ class RescueWindow(DeviceWindow):
             log_storage_handler.addFilter(not_device_log_filter)
             log_storage_handler.setLevel(logging.DEBUG)
 
+             # Models
+            self._scripting = LegacyScriptingFacade(self._device)
+            self._script_file = ScriptFile(logger=self._logger)
+            self._interpreter = InterpreterEngine(self._logger)
+            self._app_state = AppState(self._logger)
+
             self._logger.debug("Create views")
-            self._serialmonitor = SerialMonitor(self, self._communicator)
+            self._serialmonitor = SerialMonitor(self, self._device.serial)
+            self._scripting = Editor(self, self._scripting, self._script_file, self._interpreter, self._app_state)
             self._logging = LoggingTab(self, self._logStorage.logs)
 
             self._logger.debug("Created all views, add them as tabs")
@@ -101,6 +108,7 @@ class RescueWindow(DeviceWindow):
 
             self._logger.debug("add callbacks and listeners to event emitters")
             self._app_state.subscribe_property_listener(AppState.EXECUTION_STATE_PROP_NAME, self._serialmonitor.on_execution_state_changed)
+
         except Exception as e:
             self._logger.error(e)
             raise

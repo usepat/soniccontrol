@@ -10,6 +10,7 @@ from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import View
 from sonicpackage.builder import AmpBuilder
+from sonicpackage.commands import CommandSetLegacy
 from sonicpackage.communication.communicator_builder import CommunicatorBuilder
 from sonicpackage.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
 from sonicpackage.communication.communicator import Communicator
@@ -29,8 +30,8 @@ class DeviceWindowManager:
         self._id_device_window_counter = 0
         self._opened_device_windows: Dict[int, DeviceWindow] = {}
 
-    def open_rescue_window(self, communicator: Communicator, connection_name: str) -> DeviceWindow:
-        device_window = RescueWindow(communicator, self._root, connection_name)
+    def open_rescue_window(self, sonicamp: SonicAmp, connection_name: str) -> DeviceWindow:
+        device_window = RescueWindow(sonicamp, self._root, connection_name)
         self._open_device_window(device_window)
         return device_window
 
@@ -135,9 +136,11 @@ class ConnectionWindow(UIComponent):
             if user_answer is None or user_answer == "No": 
                 return
             
-            connection: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
-            await connection.open_communication(connection_factory)
-            self._device_window_manager.open_rescue_window(connection, connection_name)
+            serial: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
+            commands = CommandSetLegacy(serial)
+            await serial.open_communication(connection_factory)
+            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
+            self._device_window_manager.open_rescue_window(sonicamp, connection_name)
         except Exception as e:
             logger.error(e)
             Messagebox.show_error(str(e))
