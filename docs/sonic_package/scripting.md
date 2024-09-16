@@ -26,6 +26,8 @@ There exists two versions of the parser. A old one and a new one. The new one wa
 To make replacement easier the whole interpreter logic is hidden in the facade [LegacyScriptingFacade](@ref legacy_scripting.LegacyScriptingFacade).
 It provides the method [LegacyScriptingFacade.parse_text](@ref sonicpackage.scripting.scripting_facade.ScriptingFacade.parse_text) that returns you a [Script](@ref sonicpackage.scripting.scripting_facade.Script) that is an async iterator (so it can be executed step by step), that returns the line number and command name of the currently executed command.
 
+The [Interpreter Engine](@ref sonicpackage.scripting.interpreter_engine.InterpreterEngine) takes a parsed script and executes it. With that it is possible to stop and resume execution.
+
 ### Legacy
 
 The [LegacyScriptingFacade](@ref legacy_scripting.LegacyScriptingFacade) uses internally the @ref sonicpackage.scripting.legacy_scripting.SonicParser to parse the text to a list of commands, arguments and loops. The loops are a list of dicts, that specify start or stop index and the quantifier (how many times to run a loop). 

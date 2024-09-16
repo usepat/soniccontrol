@@ -1,7 +1,12 @@
-# Editor 
+@defgroup Editor
+@ingroup SonicControlGui
+@addtogroup Editor
+@{
+
+# Editor {#Editor}
 
 ## Brief Description
-s
+
 The editor lets the user execute scripts to control the device.
 
 # Use Cases
@@ -14,6 +19,7 @@ The editor lets the user execute scripts to control the device.
 ## Implementation
 
 @see soniccontrol_gui.views.control.editor
+@see sonicpackage.scripting.interpreter_engine.InterpreterEngine
 
 ### Running the Interpreter
 
@@ -26,6 +32,7 @@ The Editor saves an instance of the Interpreter and runs the [interpreter_engine
 There is a single method [set_interpreter_state](soniccontrol_gui.views.control.editor.Editor._set_interpreter_state) to handle and set in which state the interpreter is. This is important, to control the logic flow of the editor and to enable, disable the gui buttons for starting, stopping the interpreter.
 
 @startuml
-!include soniccontrol_gui/interpreter_state_machine.puml
+!include sonic_control_gui/interpreter_state_machine.puml
 @enduml
 
+@}

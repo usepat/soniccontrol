@@ -1,0 +1,145 @@
+@startuml ProcControlling
+
+set separator . 
+skinparam classSeparator "."
+skinparam packageSeparator "."
+top to bottom direction
+
+' Define the ProcedureType enumeration
+enum ProcedureType {
+    RAMP
+}
+
+' Define the Procedure class
+class Procedure {
+    +execute(device: SonicAmp, args: Any) : asyncio.Future
+    +get_args_class() : Type
+}
+
+' Define the RamperArgs class (inherits HolderArgs)
+class RamperArgs {
+    +int: freq_center
+    +int: half_range
+    +int: step
+    +HolderArgs: hold_on_args
+    +HolderArgs: hold_off_args
+}
+
+' Define the SonicAmp class
+class SonicAmp {
+    +_logger: logging.Logger
+}
+
+' Define the ProcedureController class
+class ProcedureController {
+    +PROCEDURE_STOPPED: str
+    +PROCEDURE_RUNNING: str
+    +__init__(device: SonicAmp) : None
+    +proc_args_list : Dict[ProcedureType, Type]
+    +is_proc_running : bool
+    +running_proc_type : Optional[ProcedureType]
+    +execute_proc(proc_type: ProcedureType, args: Any) : None
+    +stop_proc() : asyncio.Future
+}
+
+' Define the ProcedureWidget class
+class ProcedureWidget {
+    -proc_args_class: Type
+    -fields: List[Union[TimeFieldView, FloatFieldView, IntFieldView]]
+    -procedure_name: str
+    -proc_args_dict: dict
+    +__init__(parent: UIComponent, parent_view: View, procedure_name: str, proc_args_class: Type, proc_args_dict: dict) : None
+    +_add_fields_to_widget() : None
+    +get_args() : Optional[Any]
+}
+
+' Define the ProcedureWidgetView class
+class ProcedureWidgetView {
+    +_initialize_children() : None
+    +_initialize_publish() : None
+    +field_slot : ttk.Frame
+    +set_procedure_name(procedure_name: str) : None
+    +set_error_message(error_msg: Optional[str] = None) : None
+    +show() : None
+    +hide() : None
+}
+
+' Define the IntFieldView class
+class IntFieldView {
+    -field_name: str
+    -value: ttk.IntVar
+    +__init__(master: ttk.Frame | View, field_name: str, default_value: int = 0, parent_widget_name: str = "") : None
+    +bind_value_change(command: Callable[[int], None]) : None
+}
+
+' Define the FloatFieldView class
+class FloatFieldView {
+    -field_name: str
+    -value: ttk.DoubleVar
+    +__init__(master: ttk.Frame | View, field_name: str, default_value: float = 0., parent_widget_name: str = "") : None
+    +bind_value_change(command: Callable[[float], None]) : None
+}
+
+' Define the TimeFieldView class
+class TimeFieldView {
+    -field_name: str
+    -time_value: ttk.DoubleVar
+    -unit_value: ttk.StringVar
+    +__init__(master: ttk.Frame | View, field_name: str, time: float | int = 0., unit: str = "ms", parent_widget_name: str = "") : None
+    +bind_value_change(command: Callable[[HoldTuple], None]) : None
+}
+
+' Define the ProcControllingModel class
+class ProcControllingModel {
+    +selected_procedure: ProcedureType
+    +procedure_args: Dict[ProcedureType, dict]
+    +selected_procedure_args : dict
+}
+
+' Define the ProcControlling class
+class ProcControlling {
+    -_model: ProcControllingModel
+    -_proc_controller: ProcedureController
+    -_app_state: AppState
+    -_proc_widgets: Dict[ProcedureType, ProcedureWidget]
+    +__init__(parent: UIComponent, proc_controller: ProcedureController, model: ProcControllingModel, app_state: AppState) : None
+    +_on_execution_state_changed(e: PropertyChangeEvent) : None
+    +_add_proc_widgets() : None
+    +_on_proc_selected() : None
+    +_on_run_pressed() : None
+    +_on_stop_pressed() : asyncio.Future
+    +on_procedure_running(e: Event) : None
+    +on_procedure_stopped(_e: Event) : None
+}
+
+' Define the ProcControllingView class
+class ProcControllingView {
+    +_initialize_children() : None
+    +_initialize_publish() : None
+    +procedure_frame : ttk.Frame
+    +selected_procedure : str
+    +set_running_proc_label(text: str) : None
+    +set_procedure_combobox_items(items: Iterable[str]) : None
+    +set_procedure_selected_command(command: Callable[[], None]) : None
+    +set_start_button_command(command: Callable[[], None]) : None
+    +set_stop_button_command(command: Callable[[], None]) : None
+    +set_start_button_enabled(enabled: bool) : None
+    +set_stop_button_enabled(enabled: bool) : None
+}
+
+' Relationships
+ProcedureController -- "1" SonicAmp : uses >
+ProcedureController "1" *-- "*" Procedure : contains >
+ProcedureController "1" *-- "*" ProcedureType : uses >
+Procedure "1" *-- "1" RamperArgs : uses >
+ProcedureWidget "1" *-- "*" IntFieldView : contains >
+ProcedureWidget "1" *-- "*" FloatFieldView : contains >
+ProcedureWidget "1" *-- "*" TimeFieldView : contains >
+ProcControlling "1" *-- "1" ProcedureController : uses >
+ProcControlling "1" *-- "1" ProcControllingModel : uses >
+ProcControlling "1" *-- "*" ProcedureWidget : contains >
+ProcControlling "1" *-- "1" ProcControllingView : uses >
+ProcedureWidget "1" *-l- "1" ProcedureWidgetView : uses >
+ProcControllingView "1" *-- "*" ProcedureWidget : contains >
+
+@enduml

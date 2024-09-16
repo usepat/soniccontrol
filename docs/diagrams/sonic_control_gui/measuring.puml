@@ -1,0 +1,159 @@
+@startuml Measuring
+
+set separator . 
+skinparam classSeparator "."
+skinparam packageSeparator "."
+top to bottom direction
+
+' Define Enumerations
+enum CaptureTargets {
+    FREE
+    SCRIPT
+    PROCEDURE
+    SPECTRUM_MEASURE
+}
+
+' Define Classes
+class CaptureTarget {
+    +<<abstract>> before_start_capture() : None
+    +<<abstract>> run_to_capturing_task() : None
+    +<<abstract>> after_end_capture() : None
+    +COMPLETED_EVENT : String
+}
+
+class CaptureFree {
+}
+
+class CaptureScript {
+    -_script_file : ScriptFile
+    -_interpreter_engine : InterpreterEngine
+    -_scripting_facade : ScriptingFacade
+    +_complete_on_script_finish(_event : PropertyChangeEvent) : None
+    +before_start_capture() : None
+    +run_to_capturing_task() : None
+    +after_end_capture() : None
+}
+
+class CaptureProcedure {
+    -_procedure_controller : ProcedureController
+    -_proc_model : ProcControllingModel
+    +_notify_on_procedure_finished(_e : Event) : None
+    +before_start_capture() : None
+    +run_to_capturing_task() : None
+    +after_end_capture() : None
+}
+
+class CaptureSpectrumMeasure {
+    -_spectrum_measure_model : SpectrumMeasureModel
+    -_spectrum_measure : SpectrumMeasure
+    +_notify_on_procedure_finished(_e : Event) : None
+    +before_start_capture() : None
+    +run_to_capturing_task() : None
+    +after_end_capture() : None
+}
+
+class Capture {
+    +START_CAPTURE_EVENT : String
+    +END_CAPTURE_EVENT : String
+    +is_capturing : bool
+    +start_capture(capture_target : CaptureTarget) : None
+    +end_capture() : None
+    +on_update(status : Status) : None
+    -_target : CaptureTarget
+}
+
+class CsvWriter {
+    -_file : Optional[TextIO]
+    +open_file(filename : Path, header : List[str]) : None
+    +write_entry(data : dict) : None
+    +close_file() : None
+}
+
+class DataProvider {
+    -_max_size : int
+    -_dataqueue : deque
+    +data : pd.DataFrame
+    +add_row(row : dict) : None
+}
+
+class Updater {
+    -_device : SonicAmp
+    -_running : asyncio.Event
+    -_task : Optional[asyncio.Task]
+    +start() : None
+    +stop() : None
+    +update() : None
+}
+
+class Plot {
+    -_plot : matplotlib.axes.Axes
+    -_fig : Figure
+    +add_axis(axis_id : str, ylabel : str, **kwargs) : None
+    +add_line(dataAttrName : str, axis_id : str, **kwargs) : None
+    +toggle_line(dataAttrName : str, isVisible : bool) : None
+    +update_plot() : None
+    +update_data(data : pd.DataFrame) : None
+}
+
+class Measuring {
+    -_capture : Capture
+    -_capture_targets : Dict[CaptureTargets, CaptureTarget]
+    -_view : MeasuringView
+    -_timeplot : Plot
+    -_timeplottab : Plotting
+    -_spectralplot : Plot
+    -_spectralplottab : Plotting
+    -_csv_table : CsvTable
+    -_spectrum_measure_widget : ProcedureWidget
+    +on_status_update(status : Status) : None
+    -_on_toggle_capture() : None
+}
+
+class MeasuringView {
+    -_figure : Figure
+    -_line_toggle_buttons : Dict[str, ttk.Checkbutton]
+    -_line_visibilities : Dict[str, tk.BooleanVar]
+    +update_plot() : None
+    +get_line_visibility(attrName : str) : bool
+    +add_line(attrName : str, line_label : str, toggle_command : Callable[[], None]) : None
+}
+
+class Plotting {
+    -_plot : Plot
+    -_figure : Figure
+    -_view : PlottingView
+    +create_toggle_line_callback(attrName : str) : Callable[[], None]
+}
+
+class PlottingView {
+    -_figure_canvas : FigureCanvasTkAgg
+    -_line_toggle_buttons : Dict[str, ttk.Checkbutton]
+    -_line_visibilities : Dict[str, tk.BooleanVar]
+    +update_plot() : None
+    +get_line_visibility(attrName : str) : bool
+    +add_line(attrName : str, line_label : str, toggle_command : Callable[[], None]) : None
+}
+
+' Define Relationships
+Capture --> DataProvider : notifies
+Capture --> CsvWriter : notifies
+Capture --> CaptureTarget : notifies
+CaptureTarget <|-- CaptureFree
+CaptureTarget <|-- CaptureScript
+CaptureTarget <|-- CaptureProcedure
+CaptureTarget <|-- CaptureSpectrumMeasure
+
+Measuring --> Capture
+Measuring --> MeasuringView
+Measuring --> Plotting
+Measuring --> CsvTable
+Measuring --> ProcedureWidget
+
+Plotting --> Plot
+Plotting --> PlottingView
+
+Updater --> SonicAmp
+
+Plot --> Figure
+
+@enduml
