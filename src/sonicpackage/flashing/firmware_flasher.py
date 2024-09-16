@@ -198,30 +198,33 @@ class NewFirmwareFlasher(FirmwareFlasher):
                 self._logger.info(f"Image empty or address incorrect")
                 return
             self.protocol = Protocol_RP2040(self._logger, writer, reader)
-            # self._logger.info("Start erasing the flash")
-            # success = await self.erase_flash()
-            # if not success:
-            #     self._logger.info("Error occured stop flashing")
-            #     return
-            # self._logger.info("Start flashing")
-            # success = await self.flash_program()
-            # if not success:
-            #     self._logger.info("Error occured stop flashing")
-            #     return
-            # self._logger.info("Finish flashing by adding seal")
-            # success =  await self.seal_flash()
-            # if not success:
-            #     self._logger.info("Error occured stop flashing")
-            #     return
+            self._logger.info("Start erasing the flash")
+            success = await self.erase_flash()
+            if not success:
+                self._logger.info("Error occured stop flashing")
+                return
+            self._logger.info("Start flashing")
+            success = await self.flash_program()
+            if not success:
+                self._logger.info("Error occured stop flashing")
+                return
+            self._logger.info("Finish flashing by adding seal")
+            success =  await self.seal_flash()
+            if not success:
+                self._logger.info("Error occured stop flashing")
+                return
             self._logger.info("Finished flashing, reboot device")
             success = await self.boot_into_program()
             if not success:
                 self._logger.info("Error occured stop flashing")
                 return
+            writer.close()
+            await writer.wait_closed()
         else:
             self._logger.info("No flashable device found")
 
     async def erase_flash(self) -> bool:
+        retries = 0
         has_sync = await self.protocol.sync_cmd()
         if not has_sync:
             self._logger.info("Sync command failed")
@@ -242,14 +245,26 @@ class NewFirmwareFlasher(FirmwareFlasher):
                 #debug("Erase: " + str(erase_addr) + "size: " + str(device_info.erase_size))
                 has_succeeded = await self.protocol.erase_cmd(erase_addr, device_info.erase_size)
                 if not has_succeeded:
-                    self._logger.info(f"Error when erasing flash, at addr: {erase_addr}")
-                    return False
+                    if retries > 2:
+                        self._logger.info(f"Erasing failed")
+                        return False
+                    retries += 1
+                    self._logger.info(f"Error when erasing flash, at addr: {erase_addr}, try again")
+                    start -= device_info.erase_size # Redo the step
+                    has_sync = await self.protocol.sync_cmd()
+                    if not has_sync:
+                        self._logger.info("Sync command failed")
+                        return False
+                    continue
                     #puts("Error when erasing flash, at addr: " + str(erase_addr))
                     #exit_prog(True)
+                else:
+                    retries = 0
             return True
         return False
             
     async def  flash_program(self) -> bool:
+        retries = 0
         has_sync = await self.protocol.sync_cmd()
         if not has_sync:
             self._logger.info("Sync command failed")
@@ -269,8 +284,19 @@ class NewFirmwareFlasher(FirmwareFlasher):
                 wr_data = data[start:end]
                 crc_valid = await self.protocol.write_cmd(wr_addr, wr_len, wr_data)
                 if not crc_valid:
-                    self._logger.info("CRC missmatch exit flasher")
-                    return False
+                    if retries > 2:
+                        self._logger.info(f"Flashing failed")
+                        return False
+                    retries += 1
+                    self._logger.info(f"Error when flashing, at addr: {wr_addr}, try again")
+                    start -= device_info.max_data_len # Redo the step
+                    has_sync = await self.protocol.sync_cmd()
+                    if not has_sync:
+                        self._logger.info("Sync command failed")
+                        return False
+                    continue
+                else: 
+                    retries = 0
                 # puts("CRC mismatch! Exiting.")
                     #exit_prog(False)
         return True
@@ -281,26 +307,49 @@ class NewFirmwareFlasher(FirmwareFlasher):
             self._logger.info("Sync command failed")
             return False
         device_info = await self.protocol.info_cmd()
+        retries = 0
         if self.img.Data is not None and device_info is not None:
-            pad_len = align(int(len(self.img.Data)), device_info.write_size) - int(len(self.img.Data))
-            pad_zeros = bytes(pad_len)
-            data = self.img.Data + pad_zeros
-            has_sealed = await self.protocol.seal_cmd(self.img.Addr, data)
-            #debug("Has sealed: " + str(has_sealed))
-            if not has_sealed:
-                self._logger.info("Sealing flash failed")
-                return False
-                #puts("Sealing failed. Exiting.")
-                #exit_prog(False
-        return True
+            while retries < 3:
+                pad_len = align(int(len(self.img.Data)), device_info.write_size) - int(len(self.img.Data))
+                pad_zeros = bytes(pad_len)
+                data = self.img.Data + pad_zeros
+                has_sealed = await self.protocol.seal_cmd(self.img.Addr, data)
+                #debug("Has sealed: " + str(has_sealed))
+                if has_sealed:
+                    self._logger.info("Sealing flash finished")
+                    return True
+                    #puts("Sealing failed. Exiting.")
+                    #exit_prog(False
+                has_sync = await self.protocol.sync_cmd()
+                if not has_sync:
+                    self._logger.info("Sync command failed")
+                    return False
+                retries += 1
+        self._logger.info("Sealing flash failed")
+        return False
 
     async def boot_into_program(self) -> bool:
         has_sync = await self.protocol.sync_cmd()
         if not has_sync:
             self._logger.info("Sync command failed")
             return False
-        await self.protocol.boot_cmd()
-        return True
+        has_booted = await self.protocol.boot_cmd()
+        retries = 0
+        while retries < 3:
+                has_booted = await self.protocol.boot_cmd()
+                #debug("Has sealed: " + str(has_sealed))
+                if has_booted:
+                    self._logger.info("Booted successfully")
+                    return True
+                    #puts("Sealing failed. Exiting.")
+                    #exit_prog(False
+                has_sync = await self.protocol.sync_cmd()
+                if not has_sync:
+                    self._logger.info("Sync command failed")
+                    return False
+                retries += 1
+
+        return False
 
 
 async def main() -> None:

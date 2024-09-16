@@ -100,7 +100,7 @@ rpds-py==0.18.1
 setuptools==74.0.0
 setuptools-git-versioning==2.0.0
 six==1.16.0
--e git+https://github.com/usepat/soniccontrol.git@5701e2799326aecda58e71849caa9179a05fa35f#egg=soniccontrol
+#-e git+https://github.com/usepat/soniccontrol.git@5701e2799326aecda58e71849caa9179a05fa35f#egg=soniccontrol
 soupsieve==2.5
 stack-data==0.6.3
 tenacity==8.5.0

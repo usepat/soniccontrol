@@ -35,7 +35,7 @@ class PicoInfo:
 class Protocol_RP2040:
     MAX_SYNC_ATTEMPTS: ClassVar[int] = 3  # Class-level constant
     has_sync: bool = False
-    wait_time_before_read: float = 0.3  # seconds
+    wait_time_before_read: float = 0.01  # seconds
     
     Opcodes: ClassVar[dict] = {
         'Sync': b'SYNC',
@@ -112,13 +112,14 @@ class Protocol_RP2040:
         for i in range(1, self.MAX_SYNC_ATTEMPTS + 1):
             # print(i)
             response = bytes()
+            response, _ = await self.read(20)
             # debug(response)
             try:
                 #debug("Serial conn port used: " + str(conn.port))
                 # conn.flushInput()
                 # conn.flushOutput()
                 #debug("Starting sync command by sending: " + str(self.Opcodes["Sync"][:]))
-                self._logger.info(f"Send sync command: {self.Opcodes["Sync"][:]}")
+                self._logger.info(f"Send sync command: {self.Opcodes['Sync'][:]}")
                 await self.write(self.Opcodes["Sync"][:])
 
                 #debug("Have send Sync command, start reading response")
@@ -304,6 +305,15 @@ class Protocol_RP2040:
         write_readable = hex_bytes_to_int(write_buff)
         self._logger.info(f"Send boot command: {write_buff}")
         n = await self.write(write_buff)
+
+        all_bytes, data_bytes = await self.read(len(self.Opcodes['ResponseOK']))
+        self._logger.info(f"Sealed, response is: {all_bytes}")
+        #file.write_new_line(all_bytes)
+        #self.log_device_output(all_bytes)
+        #debug("All bytes seal: " + str(all_bytes))
+        if all_bytes[:4] == self.Opcodes['ResponseErr']:
+            return False
+        return True
         #file.write_new_line(write_buff)
 
         # Hopaatskeeeeee
