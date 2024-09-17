@@ -1,4 +1,5 @@
 import abc
+from enum import Enum
 import sys
 from typing import Optional, Tuple
 from icecream import ic
@@ -67,6 +68,17 @@ class Script(abc.ABC):
                 await self._after_script()
                 raise # propagate exception
             return self.current_line, self.current_task
+
+
+class BuiltInFunctions(Enum):
+    ON = "on"
+    OFF = "off"
+    HOLD = "hold"
+    FREQUENCY = "frequency"
+    GAIN = "gain"
+    AUTO = "auto"
+    RAMP_FREQ = "ramp_freq"
+    RAMP_FREQ_RANGE = "ramp_freq_range"
 
 
 class ScriptingFacade(abc.ABC):

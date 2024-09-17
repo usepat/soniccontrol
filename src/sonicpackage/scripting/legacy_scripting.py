@@ -1,10 +1,10 @@
 import logging
-from typing import *
+from typing import List, Optional, Dict, Any, Union, Tuple
 import copy
 import attrs
 from sonicpackage.procedures.holder import Holder, convert_to_holder_args
 from sonicpackage.procedures.procedure_controller import ProcedureController
-from sonicpackage.scripting.scripting_facade import Script, ScriptingFacade
+from sonicpackage.scripting.scripting_facade import BuiltInFunctions, Script, ScriptingFacade
 from sonicpackage.sonicamp_ import SonicAmp
 from sonicpackage.logging import get_base_logger
 
@@ -147,7 +147,7 @@ class LegacySequencer(Script):
     _commands: List[Any] = attrs.field(factory=list)
     _original_commands: List[Any] = attrs.field(factory=list)
     _current_line: int = attrs.field(default=0)
-
+    _commands_aliases: List[BuiltInFunctions] = attrs.field(init=False, default=list(BuiltInFunctions))
     _current_command: str = attrs.field(init=False, default="")
 
     def __init__(
@@ -157,10 +157,17 @@ class LegacySequencer(Script):
         proc_controller: ProcedureController,
         commands: List[Any],
         original_commands: List[Any],
+        include_command_aliases: Optional[List[BuiltInFunctions]] = None,
+        exclude_command_aliases: Optional[List[BuiltInFunctions]] = None
     ) -> None:
         super().__init__()
         logger = logging.getLogger(logger.name + "." + LegacySequencer.__name__)
         self.__attrs_init__(sonicamp, logger, proc_controller, commands, original_commands)
+        if include_command_aliases:
+            self._commands_aliases = include_command_aliases.copy()
+        if exclude_command_aliases:
+            for alias in exclude_command_aliases:
+                self._commands_aliases.remove(alias)
 
     @property
     def current_line(self) -> int:
@@ -217,44 +224,51 @@ class LegacySequencer(Script):
         )
         self._current_line = loop["begin"]
 
-    async def execute_command(self, line: int) -> None:
-        command: Dict[str, Any] = self._commands[self._current_line]
-        self._current_command = f'Executing {command["command"]} {command["argument"]}'
-        self._logger.info(f"Executing command: '%s'", str(command))
-
-        match command["command"]:
-            case _ if command["command"].startswith(("?", "!")):
-                await self._sonicamp.execute_command(command["command"])
-            case "frequency":
+    async def _execute_command_alias(self, command: Dict[str, Any]) -> None:
+        match str(command["command"]):
+            case BuiltInFunctions.FREQUENCY:
                 await self._sonicamp.set_frequency(command["argument"])
-            case "gain":
+            case BuiltInFunctions.GAIN:
                 await self._sonicamp.set_gain(command["argument"])
-            case "ramp_freq":
+            case BuiltInFunctions.RAMP_FREQ:
                 self._current_command = "ramp_freq"
                 await self._proc_controller.ramp_freq(*command["argument"])
-            case "ramp_freq_range":
+            case BuiltInFunctions.RAMP_FREQ_RANGE:
                 self._current_command = "ramp_freq"
                 await self._proc_controller.ramp_freq_range(*command["argument"])
-            case "!AUTO" | "AUTO" | "auto":
+            case "!AUTO" | "AUTO" | BuiltInFunctions.AUTO:
                 await self._sonicamp.set_signal_auto()
-            case "hold":
+            case BuiltInFunctions.HOLD:
                 self._current_command = "Hold"
                 holder_args = convert_to_holder_args(command["argument"])
                 await Holder.execute(holder_args)
-            case "on":
+            case BuiltInFunctions.ON:
                 await self._sonicamp.set_signal_on()
-            case "off":
+            case BuiltInFunctions.OFF:
                 await self._sonicamp.set_signal_off()
             case _:
                 raise ValueError(f"{command} is not valid.")
 
 
+    async def execute_command(self, line: int) -> None:
+        command: Dict[str, Any] = self._commands[self._current_line]
+        self._current_command = f'Executing {command["command"]} {command["argument"]}'
+        self._logger.info(f"Executing command: '%s'", str(command))
+
+        if command["command"].startswith(("?", "!")):
+            await self._sonicamp.execute_command(command["command"])
+        elif command["command"] in self._commands_aliases:
+            await self._execute_command_alias(command)
+
+
 class LegacyScriptingFacade(ScriptingFacade):
-    def __init__(self, device: SonicAmp):
+    def __init__(self, device: SonicAmp, **kwargs):
         self._device = device
         self._proc_controller = ProcedureController(self._device)
         self._parser = SonicParser()
         self._logger = get_base_logger(device._logger)
+        self._include_command_aliases: Optional[List[BuiltInFunctions]] = kwargs.get("include_command_aliases", None)
+        self._exclude_command_aliases: Optional[List[BuiltInFunctions]] = kwargs.get("exclude_command_aliases", None)
 
     def parse_script(self, text: str) -> LegacySequencer:
         self._logger.debug("Parse script:\n%s", text)
@@ -270,7 +284,12 @@ class LegacyScriptingFacade(ScriptingFacade):
         original_commands = copy.deepcopy(commands)
         
         self._logger.debug("parsed commands:\n%s", str(original_commands))
-        interpreter = LegacySequencer(self._device, self._logger, self._proc_controller, commands=commands, original_commands=original_commands)     
+        interpreter = LegacySequencer(
+            self._device, self._logger, self._proc_controller, 
+            commands=commands, original_commands=original_commands,
+            include_command_aliases=self._include_command_aliases,
+            exclude_command_aliases=self._exclude_command_aliases
+        )     
         return interpreter
 
     def lint_text(self, text: str) -> str: ...
