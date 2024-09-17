@@ -86,7 +86,7 @@ class Flashing(UIComponent):
             # Read the response (4 bytes)
             response = await self._reader.read(4)
             await self._device.serial.close_communication(True)
-        elif self._reader and self._writer:
+        elif self._reader and self._writer and isinstance(flasher, NewFirmwareFlasher):
             command = command.encode(PLATFORM.encoding)
             total_length = len(command)  # TODO Quick fix for sending messages in small chunks
             offset = 0
