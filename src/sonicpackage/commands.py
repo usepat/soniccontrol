@@ -710,3 +710,24 @@ class CommandSet:
         )
 
         # TODO add tune scan wipe with empty validators
+
+        self.tune: Command = Command(
+            message="!tune",
+            serial_communication=serial,
+        )
+
+        self.wipe: Command = Command(
+            message="!wipe",
+            serial_communication=serial,
+        )
+
+        self.scan: Command = Command(
+            message="!scan",
+            serial_communication=serial,
+        )
+
+        self.auto: Command = Command(
+            message="!auto",
+            serial_communication=serial,
+        )
+
