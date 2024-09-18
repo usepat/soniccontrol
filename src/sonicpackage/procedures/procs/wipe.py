@@ -11,26 +11,26 @@ from sonicpackage.procedures.procedure import Procedure
 
 @attrs.define(auto_attribs=True)
 class WipeArgs:
-    rang: int = attrs.field(validator=[
+    Wipe_f_range_Hz: int = attrs.field(validator=[
         validators.instance_of(int),
         validators.ge(0),
-        validators.le(1000000)
+        validators.le(5000000)
     ])
-    step: int = attrs.field(validator=[
+    Wipe_f_step_Hz: int = attrs.field(validator=[
         validators.instance_of(int),
         validators.ge(10),
-        validators.le(100000)
+        validators.le(5000000)
     ])
-    sing: HolderArgs = attrs.field(
+    Wipe_t_on_ms: HolderArgs = attrs.field(
         default=HolderArgs(100, "ms"), 
         converter=convert_to_holder_args
     )
-    pause: HolderArgs = attrs.field(
-        default=HolderArgs(100, "ms"), 
+    Wipe_t_off_ms: HolderArgs = attrs.field(
+        default=HolderArgs(0, "ms"), 
         converter=convert_to_holder_args
     )
-    break_time: HolderArgs = attrs.field(
-        default=HolderArgs(100, "ms"), 
+    Wipe_t_pause_ms: HolderArgs = attrs.field(
+        default=HolderArgs(1000, "ms"), 
         converter=convert_to_holder_args
     )
 
@@ -41,11 +41,11 @@ class WipeProc(Procedure):
 
     async def execute(self, device: Scriptable, args: WipeArgs) -> None:
         try:
-            await device.execute_command(f"!wipe_rang={args.rang}")
-            await device.execute_command(f"!wipe_step={args.step}")
-            await device.execute_command(f"!wipe_sing={args.sing.duration_in_ms}")
-            await device.execute_command(f"!wipe_pause={args.pause.duration_in_ms}")
-            await device.execute_command(f"!wipe_break={args.break_time.duration_in_ms}")
+            await device.execute_command(f"!wipe_rang={args.Wipe_f_range_Hz}")
+            await device.execute_command(f"!wipe_step={args.Wipe_f_step_Hz}")
+            await device.execute_command(f"!wipe_sing={args.Wipe_t_on_ms.duration_in_ms}")
+            await device.execute_command(f"!wipe_pause={args.Wipe_t_off_ms.duration_in_ms}")
+            await device.execute_command(f"!wipe_break={args.Wipe_t_pause_ms.duration_in_ms}")
             await device.execute_command("!wipe")
         except asyncio.CancelledError:
             await device.execute_command("!stop")
