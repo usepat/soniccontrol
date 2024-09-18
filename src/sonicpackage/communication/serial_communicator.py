@@ -119,13 +119,13 @@ class SerialCommunicator(Communicator):
                 # Sleep for the given delay between chunks skip the last pause
                 if offset < total_length:
                     # Debugging output
-                    self._logger.info(f"[DEBUG] Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
+                    self._logger.debug(f"[DEBUG] Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
                     await asyncio.sleep(delay)
                 else:
-                    self._logger.info(f"[DEBUG] Wrote last chunk: {chunk}.")
+                    self._logger.debug(f"[DEBUG] Wrote last chunk: {chunk}.")
                 
 
-            self._logger.info("[DEBUG] Finished sending all chunks.")
+            self._logger.debug("[DEBUG] Finished sending all chunks.")
 
             answer =  await self._package_fetcher.get_answer_of_package(
                 message_counter

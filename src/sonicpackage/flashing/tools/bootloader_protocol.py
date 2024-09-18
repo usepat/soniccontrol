@@ -67,13 +67,16 @@ class Protocol_RP2040:
         self._writer.write(data)
         await self._writer.drain()
 
-    async def read(self, response_len) -> Tuple[bytes, bytes]:
-        await asyncio.sleep(self.wait_time_before_read)
+    async def read(self, response_len, wait_before_read = wait_time_before_read) -> Tuple[bytes, bytes]:
+        await asyncio.sleep(wait_before_read)
         response = b""
         try:
             response = await asyncio.wait_for(self._reader.read(response_len), timeout=1.0)
         except asyncio.TimeoutError:
             pass  # Timeout means no more data, or read operation took too long
+        except Exception as e:
+            self._logger.info(f"{e}")
+            pass
         
         err_byte = response.removeprefix(self.Opcodes["ResponseErr"][:])
         data_bytes = bytes()
@@ -151,7 +154,7 @@ class Protocol_RP2040:
         await self.write(self.Opcodes["Info"][:])
         #self.log_plc_output(self.Opcodes["Info"][:])
         #debug("Written following bytes to Pico: " + str(self.Opcodes["Info"][:]))
-        all_bytes, resp_ok_bytes = await self.read(expected_len)
+        all_bytes, resp_ok_bytes = await self.read(expected_len, 0.5)
         #self.log_device_output(all_bytes)
         #file.write_new_line(all_bytes)
         decoded_arr = []
@@ -231,6 +234,8 @@ class Protocol_RP2040:
         #self.log_device_output(all_bytes)
         #debug("All bytes return from read: " + str(all_bytes))
         self._logger.info(f"Written, response is: {all_bytes}")
+        if all_bytes == b"" or data_bytes == b"":
+            return False
         # all_bytes_readable = hex_bytes_to_int(all_bytes)
         resp_crc = bytes_to_little_end_uint32(data_bytes)
         calc_crc = binascii.crc32(data)
@@ -266,7 +271,7 @@ class Protocol_RP2040:
         n = await self.write(write_buff)
         #elf.log_plc_output(write_buff)
         #debug("Number of bytes written: " + str(n))
-        all_bytes, data_bytes = await self.read(len(self.Opcodes['ResponseOK']))
+        all_bytes, data_bytes = await self.read(len(self.Opcodes['ResponseOK']), 0.5)
         self._logger.info(f"Sealed, response is: {all_bytes}")
         #file.write_new_line(all_bytes)
         #self.log_device_output(all_bytes)
@@ -307,13 +312,16 @@ class Protocol_RP2040:
         n = await self.write(write_buff)
 
         all_bytes, data_bytes = await self.read(len(self.Opcodes['ResponseOK']))
-        self._logger.info(f"Sealed, response is: {all_bytes}")
+        self._logger.info(f"Booted, response is: {all_bytes}")
+        if all_bytes == b"":
+            return True
         #file.write_new_line(all_bytes)
         #self.log_device_output(all_bytes)
         #debug("All bytes seal: " + str(all_bytes))
-        if all_bytes[:4] == self.Opcodes['ResponseErr']:
+        elif all_bytes[:4] == self.Opcodes['ResponseErr']:
             return False
-        return True
+        self._logger.info(f"Unexpected response to boot command: {all_bytes}")
+        return False
         #file.write_new_line(write_buff)
 
         # Hopaatskeeeeee

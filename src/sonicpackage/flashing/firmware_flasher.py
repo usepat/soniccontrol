@@ -144,8 +144,11 @@ class NewFirmwareFlasher(FirmwareFlasher):
         for port in ports:
             try:
                 # Create a connection to the current port with the given baudrate
-                reader, writer = await open_serial_connection(url=port, baudrate=self.baudrate)
-
+                try:
+                    reader, writer = await open_serial_connection(url=port, baudrate=self.baudrate)
+                except Exception as e:
+                    self._logger.info(f"{e}")
+                    pass
                 # Flush the read buffer (read until there is nothing left, or timeout)
                 try:
                     await asyncio.wait_for(reader.read(1024), timeout=2)
@@ -157,10 +160,12 @@ class NewFirmwareFlasher(FirmwareFlasher):
                     writer.write(b'SYNC')
                     await writer.drain()
 
+                    await asyncio.sleep(0.5)
+
                     try:
                         response = await asyncio.wait_for(reader.read(4), timeout=2)
                     except asyncio.TimeoutError:
-                        break  # If we timeout, go to the next port
+                        continue  # If we timeout, go to the next port
 
                     if response == b'PICO':
                         # Success: Return the StreamWriter and StreamReader
@@ -184,11 +189,14 @@ class NewFirmwareFlasher(FirmwareFlasher):
         # If no valid device was found, return None
         return None, None, None
     
-    async def flash_firmware(self) -> None:
+    async def flash_firmware(self) -> bool:
         if self.file_path:
             extension = self.file_path.suffix
             if extension == ".elf" and self.file_path.exists():
                 self._logger.info(f"Found elf file: {self.file_path.name}")
+        else:
+            self._logger.info(f"No elf file found")
+            return False
         writer, reader, port = await self.find_flashable_device()
         if writer and reader:
             self._logger.info(f"Successfully found a flashable device on port {port}")
@@ -196,32 +204,37 @@ class NewFirmwareFlasher(FirmwareFlasher):
             self._logger.info(f"Image start address: {self.img.Addr}")
             if self.img.Data is None or self.img.Addr <= -1:
                 self._logger.info(f"Image empty or address incorrect")
-                return
+                return False
             self.protocol = Protocol_RP2040(self._logger, writer, reader)
             self._logger.info("Start erasing the flash")
             success = await self.erase_flash()
             if not success:
                 self._logger.info("Error occured stop flashing")
-                return
+                return False
             self._logger.info("Start flashing")
             success = await self.flash_program()
             if not success:
                 self._logger.info("Error occured stop flashing")
-                return
+                return False
             self._logger.info("Finish flashing by adding seal")
             success =  await self.seal_flash()
             if not success:
                 self._logger.info("Error occured stop flashing")
-                return
+                return False
             self._logger.info("Finished flashing, reboot device")
             success = await self.boot_into_program()
             if not success:
                 self._logger.info("Error occured stop flashing")
-                return
-            writer.close()
-            await writer.wait_closed()
+                return False
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except Exception as e:
+                self._logger.info(f"{e}")
         else:
             self._logger.info("No flashable device found")
+            return False
+        return True
 
     async def erase_flash(self) -> bool:
         retries = 0
@@ -333,7 +346,6 @@ class NewFirmwareFlasher(FirmwareFlasher):
         if not has_sync:
             self._logger.info("Sync command failed")
             return False
-        has_booted = await self.protocol.boot_cmd()
         retries = 0
         while retries < 3:
                 has_booted = await self.protocol.boot_cmd()

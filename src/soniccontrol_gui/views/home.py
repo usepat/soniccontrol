@@ -45,7 +45,7 @@ class Home(UIComponent):
         gain = self._view.gain
         signal = self._view.signal
 
-        if self._device.get_type() == 'descale':
+        if self._device.info.device_type == 'descale':
             await self._device.set_switching_frequency(freq)
         else:
             await self._device.set_frequency(freq)

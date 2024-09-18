@@ -65,8 +65,12 @@ class DeviceWindow(UIComponent):
         else:
             self.close()
 
-    def on_reconnect(self) -> None:
-        Messagebox.ok(ui_labels.DEVICE_FLASHED_TITLE, ui_labels.DEVICE_FLASHED_MSG)
+    def on_reconnect(self, success : bool) -> None:
+        if success:
+            message = ui_labels.DEVICE_FLASHED_SUCCESS_MSG
+        else:
+            message = ui_labels.DEVICE_FLASHED_FAILED_MSG
+        Messagebox.ok(message, ui_labels.DEVICE_FLASHED_TITLE)
         self.reconnect()
 
     @async_handler
@@ -102,7 +106,8 @@ class RescueWindow(DeviceWindow):
             super().__init__(self._logger, self._view, self._communicator)
 
             self._flashing = Flashing(self, self._logger, communicator=communicator)
-            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect())
+            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect(True))
+            self._flashing.subscribe(Flashing.FAILED_EVENT, lambda _e: self.on_reconnect(False))
 
             self._logger.debug("Create logStorage for storing logs")
             self._logStorage = LogStorage()
@@ -166,7 +171,8 @@ class KnownDeviceWindow(DeviceWindow):
             self._info = Info(self)
             self._configuration = Configuration(self, self._device)
             self._flashing = Flashing(self, self._logger, self._device, self._app_state, self._updater)
-            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect())
+            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect(True))
+            self._flashing.subscribe(Flashing.FAILED_EVENT, lambda _e: self.on_reconnect(False))
             self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
             self._sonicmeasure = Measuring(self, self._capture_targets, self._spectrum_measure_model)
 

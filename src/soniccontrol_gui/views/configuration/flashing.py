@@ -26,6 +26,7 @@ from sonicpackage.system import PLATFORM
 
 class Flashing(UIComponent):
     RECONNECT_EVENT = "Reconnect"
+    FAILED_EVENT = "Flashing failed"
     def __init__(self, parent: UIComponent, logger: logging.Logger, device: SonicAmp | None = None, app_state: AppState | None = None, updater: Updater | None = None, communicator: Communicator | None = None):
         if device:
             if isinstance(device._serial, LegacySerialCommunicator):
@@ -81,12 +82,14 @@ class Flashing(UIComponent):
             
             await self._device.execute_command(command)
             self._logger.info(f"Executed command {command}")
+            await self._device.serial.close_communication(True)
             self._logger.info("Sleep for 10s")
             await asyncio.sleep(10)
             # Read the response (4 bytes)
-            response = await self._reader.read(4)
-            await self._device.serial.close_communication(True)
+            # response = await self._reader.read(4)
+            
         elif self._reader and self._writer and isinstance(flasher, NewFirmwareFlasher):
+            command = command + '\n'
             command = command.encode(PLATFORM.encoding)
             total_length = len(command)  # TODO Quick fix for sending messages in small chunks
             offset = 0
@@ -117,23 +120,28 @@ class Flashing(UIComponent):
 
             self._logger.info("[DEBUG] Finished sending all chunks.")
             self._logger.info(f"Executed command {command}")
-            self._logger.info("Sleep for 10s")
-            await asyncio.sleep(10)
+            
             # Read the response (4 bytes)
             try:
                 response = await asyncio.wait_for(self._reader.read(100), timeout=1)
-            except asyncio.TimeoutError:
+            except Exception as e:
+                self._logger.info(f"{e}")
                 pass
             await self._communicator.close_communication(True)
+            self._logger.info("Sleep for 10s")
+            await asyncio.sleep(10)
 
-        await flasher.flash_firmware()
+        success = await flasher.flash_firmware()
         # boot_command = b'BOOT'  # "BOOT" as bytes
         # zero_value = (0).to_bytes(4, byteorder='big')  # 0 as 4-byte big-endian integer  
         # Combine the two parts
         # command = boot_command + zero_value
         # self._writer.write(command)
         # await self._writer.drain()  
-        self.emit(Event(Flashing.RECONNECT_EVENT))
+        if success:
+            self.emit(Event(Flashing.RECONNECT_EVENT))
+        else:
+            self.emit(Event(Flashing.FAILED_EVENT))
 
     def _on_execution_state_changed(self, e: PropertyChangeEvent) -> None:
         pass
