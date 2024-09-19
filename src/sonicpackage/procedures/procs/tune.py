@@ -11,12 +11,12 @@ from sonicpackage.procedures.procedure import Procedure
 
 @attrs.define(auto_attribs=True)
 class TuneArgs:
-    step: int = attrs.field(validator=[
+    Tuning_f_step_Hz: int = attrs.field(validator=[
         validators.instance_of(int),
-        validators.ge(10),
-        validators.le(100000)
+        validators.ge(0),
+        validators.le(5000000)
     ])
-    time: HolderArgs = attrs.field(
+    Tuning_time_ms: HolderArgs = attrs.field(
         default=HolderArgs(100, "ms"), 
         converter=convert_to_holder_args
     )
@@ -28,8 +28,8 @@ class TuneProc(Procedure):
 
     async def execute(self, device: Scriptable, args: TuneArgs) -> None:
         try:
-            await device.execute_command(f"!tune_step={args.step}")
-            await device.execute_command(f"!tune_time={args.time.duration_in_ms}")
+            await device.execute_command(f"!tune_step={args.Tuning_f_step_Hz}")
+            await device.execute_command(f"!tune_time={args.Tuning_time_ms.duration_in_ms}")
             await device.execute_command("!tune")
         except asyncio.CancelledError:
             await device.execute_command("!stop")

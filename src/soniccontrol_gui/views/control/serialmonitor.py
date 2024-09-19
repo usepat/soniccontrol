@@ -12,11 +12,14 @@ from sonicpackage.communication.communicator import Communicator
 from soniccontrol_gui.state_fetching.message_fetcher import MessageFetcher
 from soniccontrol_gui.utils.animator import Animator, DotAnimationSequence, load_animation
 from soniccontrol_gui.constants import sizes, style, ui_labels
+from sonicpackage.communication.serial_communicator import LegacySerialCommunicator
 from sonicpackage.events import PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import ExecutionState
 from soniccontrol_gui.resources import images
 from soniccontrol_gui.constants import files
+
+from serial_asyncio import open_serial_connection
 
 
 class SerialMonitor(UIComponent):
@@ -50,6 +53,7 @@ class SerialMonitor(UIComponent):
         self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
         self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
         self._message_fetcher.subscribe(MessageFetcher.MESSAGE_RECEIVED_EVENT, lambda e: self._view.add_text_line(e.data["message"]))
+        self._view.set_baudrate_selection_command(self._on_baudrate_selected)
 
     @async_handler
     async def _send_command(self): 
@@ -128,6 +132,24 @@ class SerialMonitor(UIComponent):
         self._view.set_send_command_button_enabled(enabled)
         self._view.set_command_line_input_enabled(enabled)
 
+    @async_handler
+    async def _on_baudrate_selected(self):
+        selected_option = self._view._baudrate_selection.get()  # Get the selected option
+        self._logger.info(f"Selected option: {selected_option}")
+
+        # Add your logic here to handle different selections
+        if isinstance(self._communicator, LegacySerialCommunicator) and self._communicator._writer:
+            if selected_option == "9600":
+                self._communicator._writer.close()
+                await self._communicator._writer.wait_closed()
+                self._communicator._reader, self._communicator._writer  = await open_serial_connection(url=self._communicator._url, baudrate=9600)
+                self._communicator._writer.write(b"!ON\n")
+                await self._communicator._writer.drain()
+            elif selected_option == "115200":
+                self._communicator._writer.close()
+                await self._communicator._writer.wait_closed()
+                self._communicator._reader, self._communicator._writer  = await open_serial_connection(url=self._communicator._url, baudrate=115200)
+
 
 
 class SerialMonitorView(TabView):
@@ -159,6 +181,16 @@ class SerialMonitorView(TabView):
             text="",
             font=("Consolas", 10)
         )
+
+        # Create the Combobox
+        self._baudrate_selection = ttk.StringVar()
+        self._baudrate = ttk.Combobox(
+            self._main_frame, 
+            textvariable=self._baudrate_selection, 
+            values=["9600", "115200"],  # Define your options here
+            state='readonly'
+        )
+        self._baudrate.current(0)  # Set the default option
 
         INPUT_FRAME_PADDING = (3, 1, 3, 4)
         self._input_frame: ttk.Labelframe = ttk.Labelframe(
@@ -245,6 +277,14 @@ class SerialMonitorView(TabView):
             pady=sizes.MEDIUM_PADDING,
         )
 
+        self._baudrate.grid(
+            row=2,
+            column=0,
+            pady=sizes.MEDIUM_PADDING,
+            padx=sizes.LARGE_PADDING,
+            sticky=ttk.EW
+        )
+
     def set_send_command_button_command(self, command: Callable[[], None]):
         self._send_button.configure(command=command)
 
@@ -288,3 +328,6 @@ class SerialMonitorView(TabView):
         for child in self._scrolled_frame.winfo_children():
             child.destroy()
 
+    # Method to bind combobox selection to a callback
+    def set_baudrate_selection_command(self, callback: Callable[[], None]):
+        self._baudrate.bind("<<ComboboxSelected>>", lambda _: callback())

@@ -318,14 +318,14 @@ class CommandSet:
     def __init__(self, serial: Communicator):
         # TODO: Ask about ?error, how do we validate errors, if there is not a known number of errors
         type_validator: CommandValidator = CommandValidator(
-            pattern=r"sonic(catch|wipe|descale)", type_=str
+            pattern=r"sonic(catch|wipe|descale)", device_type=str
         )
         firmware_version_validator: CommandValidator = CommandValidator(
             pattern=r".*([\d]\.[\d]\.[\d]).*", firmware_version=str
         )
         update_date_validator: CommandValidator = CommandValidator(
             pattern=r".*(\d{2}.\d{2}.\d{4}).*",
-            date=lambda date: (datetime.datetime.strptime(date, "%d.%m.%Y").date()),
+            date=lambda date: (datetime.datetime.strptime(date, "%d.%m.%Y").date()), 
         )
         protocol_version_validator: CommandValidator = CommandValidator(
             pattern=r".*([\d]\.[\d]\.[\d]).*", protocol_version=str
@@ -534,7 +534,7 @@ class CommandSet:
             serial_communication=serial,
         )
 
-        self.ramp: Command = Command( #Quick fix, for scripting using remote ramp
+        self.ramp: Command = Command( # TODO Quick fix, for scripting using remote ramp
             message="!ramp",
             serial_communication=serial,
         )
@@ -709,4 +709,25 @@ class CommandSet:
             serial_communication=serial,
         )
 
-        #add tune scan wipe with empty validators
+        # TODO add tune scan wipe with empty validators
+
+        self.tune: Command = Command(
+            message="!tune",
+            serial_communication=serial,
+        )
+
+        self.wipe: Command = Command(
+            message="!wipe",
+            serial_communication=serial,
+        )
+
+        self.scan: Command = Command(
+            message="!scan",
+            serial_communication=serial,
+        )
+
+        self.auto: Command = Command(
+            message="!auto",
+            serial_communication=serial,
+        )
+

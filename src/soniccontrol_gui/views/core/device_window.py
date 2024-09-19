@@ -13,6 +13,7 @@ from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
 from sonicpackage.communication.communicator import Communicator
+from sonicpackage.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
 from sonicpackage.procedures.procedure_controller import ProcedureController
 from sonicpackage.scripting.interpreter_engine import InterpreterEngine
 from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
@@ -39,6 +40,7 @@ from soniccontrol_gui.resources import images
 
 class DeviceWindow(UIComponent):
     CLOSE_EVENT = "Close"
+    RECONNECT_EVENT = "Reconnect"
 
     def __init__(self, logger: logging.Logger, deviceWindowView: "DeviceWindowView", communicator: Communicator):
         self._logger = logger
@@ -65,6 +67,14 @@ class DeviceWindow(UIComponent):
         else:
             self.close()
 
+    def on_reconnect(self, success : bool) -> None:
+        if success:
+            message = ui_labels.DEVICE_FLASHED_SUCCESS_MSG
+        else:
+            message = ui_labels.DEVICE_FLASHED_FAILED_MSG
+        Messagebox.ok(message, ui_labels.DEVICE_FLASHED_TITLE)
+        self.reconnect()
+
     @async_handler
     async def close(self) -> None:
         self._logger.info("Close window")
@@ -72,6 +82,22 @@ class DeviceWindow(UIComponent):
         self._view.close()
         await self._communicator.close_communication()
 
+    @async_handler
+    async def reconnect(self) -> None:
+        self._logger.info("Close window")
+        # if (isinstance(self._communicator, LegacySerialCommunicator) or isinstance(self._communicator, SerialCommunicator)) and self._communicator._reader:
+        #     try:
+        #         while not self._communicator._reader.at_eof():
+        #             # Read all available data in chunks and discard it
+        #             data = await  self._communicator._reader.read(1024)  # Adjust chunk size as needed
+        #             if not data:
+        #                 break
+        #     except Exception as e:
+        #         print(f"Error while flushing reader: {e}")
+        await self._communicator.close_communication(True)
+        self.emit(Event(DeviceWindow.RECONNECT_EVENT))
+        self._view.close()
+        
 
 class RescueWindow(DeviceWindow):
     def __init__(self, device: SonicAmp, root, connection_name: str):
@@ -80,6 +106,11 @@ class RescueWindow(DeviceWindow):
             self._device = device
             self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
             super().__init__(self._logger, self._view, self._device.serial)
+
+            self._flashing = Flashing(self, self._logger, communicator=self._device.serial)
+            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect(True))
+            self._flashing.subscribe(Flashing.FAILED_EVENT, lambda _e: self.on_reconnect(False))
+
 
             self._logger.debug("Create logStorage for storing logs")
             self._logStorage = LogStorage()
@@ -109,6 +140,7 @@ class RescueWindow(DeviceWindow):
                 self._home.view,
                 self._scripting.view,
                 self._serialmonitor.view, 
+                self._flashing.view,
             ], right_one=False)
             self._view.add_tab_views([
                 self._logging.view, 
@@ -156,7 +188,9 @@ class KnownDeviceWindow(DeviceWindow):
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
             self._info = Info(self)
             self._configuration = Configuration(self, self._device)
-            self._flashing = Flashing(self, self._device, self._app_state)
+            self._flashing = Flashing(self, self._logger, self._device, self._app_state, self._updater)
+            self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect(True))
+            self._flashing.subscribe(Flashing.FAILED_EVENT, lambda _e: self.on_reconnect(False))
             self._proc_controlling = ProcControlling(self, self._proc_controller, self._proc_controlling_model, self._app_state)
             self._sonicmeasure = Measuring(self, self._capture_targets, self._spectrum_measure_model)
             self._home = Home(self, self._device)

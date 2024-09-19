@@ -11,22 +11,27 @@ from sonicpackage.procedures.procedure import Procedure
 
 @attrs.define(auto_attribs=True)
 class ScanArgs:
-    gext: int = attrs.field(validator=[
+    Scanning_f_center_Hz: int = attrs.field(validator=[
+        validators.instance_of(int),
+        validators.ge(100000),
+        validators.le(10000000)
+    ])
+    Scanning_gain: int = attrs.field(validator=[
         validators.instance_of(int),
         validators.ge(0),
-        validators.le(1000000)
+        validators.le(150)
     ])
-    rang: int = attrs.field(validator=[
+    Scanning_f_range_Hz: int = attrs.field(validator=[
         validators.instance_of(int),
         validators.ge(0),
-        validators.le(1000000)
+        validators.le(5000000)
     ])
-    step: int = attrs.field(validator=[
+    Scanning_f_step_Hz: int = attrs.field(validator=[
         validators.instance_of(int),
-        validators.ge(10),
-        validators.le(100000)
+        validators.ge(0),
+        validators.le(5000000)
     ])
-    sing: HolderArgs = attrs.field(
+    Scanning_t_step_ms: HolderArgs = attrs.field(
         default=HolderArgs(100, "ms"), 
         converter=convert_to_holder_args
     )
@@ -38,10 +43,11 @@ class ScanProc(Procedure):
 
     async def execute(self, device: Scriptable, args: ScanArgs) -> None:
         try:
-            await device.execute_command(f"!scan_gext={args.gext}")
-            await device.execute_command(f"!scan_rang={args.rang}")
-            await device.execute_command(f"!scan_step={args.step}")
-            await device.execute_command(f"!scan_sing={args.sing.duration_in_ms}")
+            await device.execute_command(f"!f={args.Scanning_f_center_Hz}")
+            await device.execute_command(f"!scan_gain={args.Scanning_gain}")
+            await device.execute_command(f"!scan_rang={args.Scanning_f_range_Hz}")
+            await device.execute_command(f"!scan_step={args.Scanning_f_step_Hz}")
+            await device.execute_command(f"!scan_sing={args.Scanning_t_step_ms.duration_in_ms}")
             await device.execute_command("!scan")
         except asyncio.CancelledError:
             await device.execute_command("!stop")

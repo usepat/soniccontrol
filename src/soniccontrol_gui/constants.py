@@ -157,6 +157,7 @@ class _UIStringsEN:
     ATT: Final[str] = "ATT"
     COEFFICIENT: Final[str] = "Coefficient"
     FREQUENCY: Final[str] = "Frequency"
+    SWITCHING_FREQUENCY: Final[str] = "Switching Frequency"
     GAIN: Final[str] = "Gain"
     TEMPERATURE: Final[str] = "Temperature"
     ATF1: Final[str] = f"{ATF}1 {FREQUENCY}"
@@ -225,6 +226,14 @@ class _UIStringsEN:
     FIRMWARE_VERSION_LABEL: Final[str] = "Firmware Version: {}"
     PROTOCOL_VERSION_LABEL: Final[str] = "Protocol Version: {}"
     DEVICE_TYPE_LABEL: Final[str] = "Device Type: {}"
+    DEVICE_FLASHED_TITLE: Final[str] = "Device flashing"
+    DEVICE_FLASHED_SUCCESS_MSG: Final[str] = "Device was successfully flashed, restart device and soniccontrol"
+    DEVICE_FLASHED_FAILED_MSG: Final[str] = "Flashing the device failed, restart soniccontrol"
+    FLASH_LEGACY: Final[str] = "FLASH_LEGACY"
+    FLASH_UART_SLOW: Final[str] = "FLASH_UART_SLOW"
+    FLASH_UART_FAST: Final[str] = "FLASH_UART_FAST"
+    FLASH_USB: Final[str] = "FLASH_USB"
+
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 

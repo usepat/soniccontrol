@@ -15,6 +15,14 @@ class Communicator(abc.ABC, EventManager):
     def __init__(self) -> None:
         super().__init__()
 
+    @property 
+    @abc.abstractmethod
+    def writer(self) -> asyncio.StreamWriter: ...
+
+    @property 
+    @abc.abstractmethod
+    def reader(self) -> asyncio.StreamReader: ...
+
     @property
     @abc.abstractmethod
     def protocol(self) -> CommunicationProtocol: ...
@@ -29,7 +37,7 @@ class Communicator(abc.ABC, EventManager):
     ): ...
 
     @abc.abstractmethod
-    async def close_communication(self) -> None: ...
+    async def close_communication(self, restart: bool = False) -> None: ...
 
     @property
     @abc.abstractmethod
