@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, cast
 from async_tkinter_loop import async_handler
@@ -55,9 +56,9 @@ class DeviceWindowManager:
             DeviceWindow.CLOSE_EVENT, lambda _: self._opened_device_windows.pop(device_window_id) #type: ignore
         )
         device_window.subscribe(
-            DeviceWindow.RECONNECT_EVENT, lambda _: async_handler(self._attempt_connection(connection_factory)) #type: ignore
-        )
-
+            DeviceWindow.RECONNECT_EVENT, lambda _: asyncio.create_task(self._attempt_connection(connection_factory)) #type: ignore
+        )    
+        
     async def _attempt_connection(self, connection_factory: ConnectionFactory):
         logger = create_logger_for_connection(connection_factory.connection_name, files.LOG_DIR)
         logger.debug("Established serial connection")
@@ -80,7 +81,7 @@ class DeviceWindowManager:
             serial: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
             commands = CommandSetLegacy(serial)
             await serial.open_communication(connection_factory)
-            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
+            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger, try_connection=False)
             self.open_rescue_window(sonicamp, connection_factory)
         except Exception as e:
             logger.error(e)

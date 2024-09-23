@@ -107,7 +107,7 @@ class RescueWindow(DeviceWindow):
             self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
             super().__init__(self._logger, self._view, self._device.serial)
 
-            self._flashing = Flashing(self, self._logger, communicator=self._device.serial)
+            self._flashing = Flashing(self, self._logger, self._device, self._app_state)
             self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect(True))
             self._flashing.subscribe(Flashing.FAILED_EVENT, lambda _e: self.on_reconnect(False))
 

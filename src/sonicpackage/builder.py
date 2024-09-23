@@ -29,28 +29,31 @@ class AmpBuilder:
             if command:
                 sonicAmp.add_command(command)
 
-    async def build_amp(self, ser: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger = logging.getLogger()) -> SonicAmp:
+    async def build_amp(self, ser: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger = logging.getLogger(), try_connection: bool = True) -> SonicAmp:
         builder_logger = logging.getLogger(logger.name + "." + AmpBuilder.__name__)
         
         await ser.connection_opened.wait()
         builder_logger.debug("Serial connection is open, start building device")
 
         result_dict: Dict[str, Any] = ser.handshake_result
+        
+        if try_connection:
+            builder_logger.debug("Try to figure out which device it is with ?info, ?type, ?")
+            if isinstance(commands, CommandSetLegacy):
+                await commands.get_type.execute(should_log=False)
+                if commands.get_type.answer.valid:
+                    result_dict.update(commands.get_type.status_result)
 
-        builder_logger.debug("Try to figure out which device it is with ?info, ?type, ?")
-        if isinstance(commands, CommandSetLegacy):
-            await commands.get_type.execute(should_log=False)
-            if commands.get_type.answer.valid:
-                result_dict.update(commands.get_type.status_result)
+            await commands.get_info.execute(should_log=False)
+            if commands.get_info.answer.valid:
+                result_dict.update(commands.get_info.status_result)
 
-        await commands.get_info.execute(should_log=False)
-        if commands.get_info.answer.valid:
-            result_dict.update(commands.get_info.status_result)
-
-        if isinstance(commands, CommandSetLegacy):
-            await commands.get_overview.execute(should_log=False)
-            if commands.get_overview.answer.valid:
-                result_dict.update(commands.get_overview.status_result)
+            if isinstance(commands, CommandSetLegacy):
+                await commands.get_overview.execute(should_log=False)
+                if commands.get_overview.answer.valid:
+                    result_dict.update(commands.get_overview.status_result)
+        else:
+            builder_logger.debug("Skip ?info and ?type")
 
         status = Status()
         info = Info()
