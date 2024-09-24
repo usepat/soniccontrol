@@ -37,6 +37,7 @@ class SerialCommunicator(Communicator):
     def __attrs_post_init__(self) -> None:
         self._task = None
         self._logger = logging.getLogger(self._logger.name + "." + SerialCommunicator.__name__)
+        #self._logger.setLevel("INFO") # FIXME is there a better way to set the log level?
         self._protocol: CommunicationProtocol = SonicProtocol(self._logger)
 
         super().__init__()
@@ -66,11 +67,13 @@ class SerialCommunicator(Communicator):
 
     async def open_communication(
         self, connection_factory: ConnectionFactory,
+        baudrate = BAUDRATE,
         loop = asyncio.get_event_loop()
     ) -> None:
+        self._connection_factory = connection_factory
         self._logger.debug("try open communication")
         if isinstance(connection_factory, SerialConnectionFactory):
-            connection_factory.baudrate = SerialCommunicator.BAUDRATE 
+            connection_factory.baudrate = baudrate
 
         self._restart = False 
         self._reader, self._writer = await connection_factory.open_connection()
@@ -132,13 +135,14 @@ class SerialCommunicator(Communicator):
                 # Sleep for the given delay between chunks skip the last pause
                 if offset < total_length:
                     # Debugging output
-                    self._logger.debug(f"[DEBUG] Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
+                    #self._logger.debug(f"Wrote chunk: {chunk}. Waiting for {delay} seconds before sending the next chunk.")
                     await asyncio.sleep(delay)
                 else:
-                    self._logger.debug(f"[DEBUG] Wrote last chunk: {chunk}.")
+                    pass
+                    #self._logger.debug(f"Wrote last chunk: {chunk}.")
                 
 
-            self._logger.debug("[DEBUG] Finished sending all chunks.")
+            #self._logger.debug("Finished sending all chunks.")
 
             answer =  await self._package_fetcher.get_answer_of_package(
                 message_counter
@@ -208,6 +212,10 @@ class SerialCommunicator(Communicator):
         self._logger.info("Disconnected from device")
         if not(self._restart):
             self.emit(Event(Communicator.DISCONNECTED_EVENT))
+
+    async def change_baudrate(self, baudrate: int) -> None:
+        await self.close_communication(restart=True)
+        await self.open_communication(self._connection_factory, baudrate)
 
 
 @attrs.define
@@ -286,8 +294,9 @@ class LegacySerialCommunicator(Communicator):
         return self._init_command.status_result
 
     async def open_communication(
-        self, connection_factory: ConnectionFactory
+        self, connection_factory: ConnectionFactory, baudrate: int = BAUDRATE
     ) -> None:
+        self._connection_factory = connection_factory
         async def get_first_message() -> None:
             self._init_command.answer.receive_answer(
                 await self.read_long_message(reading_time=6)
@@ -296,8 +305,9 @@ class LegacySerialCommunicator(Communicator):
             self._logger.info(self._init_command.answer)
 
         if isinstance(connection_factory, SerialConnectionFactory):
-            connection_factory.baudrate = LegacySerialCommunicator.BAUDRATE 
+            connection_factory.baudrate = baudrate
             self._url = connection_factory.url
+
 
         self._restart = False
         self._reader, self._writer = await connection_factory.open_connection()
@@ -314,8 +324,12 @@ class LegacySerialCommunicator(Communicator):
 
             self._writer.write(command.byte_message)
             await self._writer.drain()
+            if command.message == "?info":
+                reading_time = 1  # FIXME Quick fix, newer device take longer to respond, so only part of the message gets recieved and then the package parser fails
+            else:
+                reading_time = 0.2
             response = await (
-                self.read_long_message(response_time=command.estimated_response_time)
+                self.read_long_message(response_time=command.estimated_response_time, reading_time=reading_time)
                 if command.expects_long_answer
                 else self._read_message()
             )
@@ -417,3 +431,7 @@ class LegacySerialCommunicator(Communicator):
         self._writer = None
         if not(self._restart):
             self.emit(Event(Communicator.DISCONNECTED_EVENT))
+
+    async def change_baudrate(self, baudrate: int) -> None:
+        await self.close_communication(restart=True)
+        await self.open_communication(self._connection_factory, baudrate)

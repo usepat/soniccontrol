@@ -189,6 +189,7 @@ class Editor(UIComponent):
         self._script.text = self._view.editor_text
         try:
             self._parsed_script = self._scripting.parse_script(self._script.text)  
+            pass
         except Exception as e:
             self._show_err_msg(e)
 

@@ -226,28 +226,28 @@ class LegacySequencer(Script):
 
     async def _execute_command_alias(self, command: Dict[str, Any]) -> None:
         match str(command["command"]):
-            case BuiltInFunctions.FREQUENCY:
+            case BuiltInFunctions.FREQUENCY.value:
                 await self._sonicamp.set_frequency(command["argument"])
-            case BuiltInFunctions.GAIN:
+            case BuiltInFunctions.GAIN.value:
                 await self._sonicamp.set_gain(command["argument"])
-            case BuiltInFunctions.RAMP_FREQ:
+            case BuiltInFunctions.RAMP_FREQ.value:
                 self._current_command = "ramp_freq"
                 await self._proc_controller.ramp_freq(*command["argument"])
-            case BuiltInFunctions.RAMP_FREQ_RANGE:
+            case BuiltInFunctions.RAMP_FREQ_RANGE.value:
                 self._current_command = "ramp_freq"
                 await self._proc_controller.ramp_freq_range(*command["argument"])
             case "!AUTO" | "AUTO" | BuiltInFunctions.AUTO:
                 await self._sonicamp.set_signal_auto()
-            case BuiltInFunctions.HOLD:
+            case BuiltInFunctions.HOLD.value:
                 self._current_command = "Hold"
                 holder_args = convert_to_holder_args(command["argument"])
                 await Holder.execute(holder_args)
-            case BuiltInFunctions.ON:
+            case BuiltInFunctions.ON.value:
                 await self._sonicamp.set_signal_on()
-            case BuiltInFunctions.OFF:
+            case BuiltInFunctions.OFF.value:
                 await self._sonicamp.set_signal_off()
             case _:
-                raise ValueError(f"{command} is not valid.")
+                raise ValueError(f"{command} is not valid.") # FIXME program halts when this error gets raised
 
 
     async def execute_command(self, line: int) -> None:
@@ -257,7 +257,7 @@ class LegacySequencer(Script):
 
         if command["command"].startswith(("?", "!")):
             await self._sonicamp.execute_command(command["command"])
-        elif command["command"] in self._commands_aliases:
+        elif command["command"] in [alias.value for alias in self._commands_aliases]:
             await self._execute_command_alias(command)
 
 

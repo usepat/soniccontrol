@@ -85,15 +85,6 @@ class DeviceWindow(UIComponent):
     @async_handler
     async def reconnect(self) -> None:
         self._logger.info("Close window")
-        # if (isinstance(self._communicator, LegacySerialCommunicator) or isinstance(self._communicator, SerialCommunicator)) and self._communicator._reader:
-        #     try:
-        #         while not self._communicator._reader.at_eof():
-        #             # Read all available data in chunks and discard it
-        #             data = await  self._communicator._reader.read(1024)  # Adjust chunk size as needed
-        #             if not data:
-        #                 break
-        #     except Exception as e:
-        #         print(f"Error while flushing reader: {e}")
         await self._communicator.close_communication(True)
         self.emit(Event(DeviceWindow.RECONNECT_EVENT))
         self._view.close()
@@ -130,7 +121,7 @@ class RescueWindow(DeviceWindow):
             self._app_state = AppState(self._logger)
 
             self._logger.debug("Create views")
-            self._serialmonitor = SerialMonitor(self, self._device.serial)
+            self._serialmonitor = SerialMonitor(self, self._device.serial, rescue_window = True)
             self._scripting = Editor(self, self._scripting, self._script_file, self._interpreter, self._app_state)
             self._logging = LoggingTab(self, self._logStorage.logs)
             self._home = Home(self, self._device)

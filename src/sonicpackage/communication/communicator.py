@@ -33,7 +33,7 @@ class Communicator(abc.ABC, EventManager):
 
     @abc.abstractmethod
     async def open_communication(
-        self, connection_factory: ConnectionFactory
+        self, connection_factory: ConnectionFactory, baudrate: int
     ): ...
 
     @abc.abstractmethod
@@ -48,3 +48,6 @@ class Communicator(abc.ABC, EventManager):
 
     @abc.abstractmethod
     async def read_message(self) -> str: ...
+
+    @abc.abstractmethod
+    async def change_baudrate(self) -> None: ...
