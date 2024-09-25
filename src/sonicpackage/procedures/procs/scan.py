@@ -45,11 +45,11 @@ class ScanProc(Procedure):
         try:
             await device.execute_command(f"!f={args.Scanning_f_center_Hz}")
             await device.execute_command(f"!scan_gain={args.Scanning_gain}")
-            await device.execute_command(f"!scan_rang={args.Scanning_f_range_Hz}")
-            await device.execute_command(f"!scan_step={args.Scanning_f_step_Hz}")
-            await device.execute_command(f"!scan_sing={args.Scanning_t_step_ms.duration_in_ms}")
+            await device.execute_command(f"!scan_f_rang={args.Scanning_f_range_Hz}")
+            await device.execute_command(f"!scan_f_step={args.Scanning_f_step_Hz}")
+            await device.execute_command(f"!scan_t_step={args.Scanning_t_step_ms.duration_in_ms}")
             await device.execute_command("!scan")
         except asyncio.CancelledError:
-            await device.execute_command("!stop")
+            await device.execute_command("!OFF")
         finally:
             await device.get_remote_proc_finished_event().wait()

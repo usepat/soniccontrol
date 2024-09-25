@@ -41,13 +41,13 @@ class WipeProc(Procedure):
 
     async def execute(self, device: Scriptable, args: WipeArgs) -> None:
         try:
-            await device.execute_command(f"!wipe_rang={args.Wipe_f_range_Hz}")
-            await device.execute_command(f"!wipe_step={args.Wipe_f_step_Hz}")
-            await device.execute_command(f"!wipe_sing={args.Wipe_t_on_ms.duration_in_ms}")
-            await device.execute_command(f"!wipe_pause={args.Wipe_t_off_ms.duration_in_ms}")
-            await device.execute_command(f"!wipe_break={args.Wipe_t_pause_ms.duration_in_ms}")
+            await device.execute_command(f"!wipe_f_rang={args.Wipe_f_range_Hz}")
+            await device.execute_command(f"!wipe_f_step={args.Wipe_f_step_Hz}")
+            await device.execute_command(f"!wipe_t_on={args.Wipe_t_on_ms.duration_in_ms}")
+            await device.execute_command(f"!wipe_t_off={args.Wipe_t_off_ms.duration_in_ms}")
+            await device.execute_command(f"!wipe_t_pause={args.Wipe_t_pause_ms.duration_in_ms}")
             await device.execute_command("!wipe")
         except asyncio.CancelledError:
-            await device.execute_command("!stop")
+            await device.execute_command("!OFF")
         finally:
             await device.get_remote_proc_finished_event().wait()

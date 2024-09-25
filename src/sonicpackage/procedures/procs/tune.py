@@ -21,6 +21,11 @@ class TuneArgs:
         converter=convert_to_holder_args
     )
 
+    Tuning_t_step_ms: HolderArgs = attrs.field(
+        default=HolderArgs(100, "ms"), 
+        converter=convert_to_holder_args
+    )
+
 class TuneProc(Procedure):
     @classmethod
     def get_args_class(cls) -> Type: 
@@ -28,10 +33,11 @@ class TuneProc(Procedure):
 
     async def execute(self, device: Scriptable, args: TuneArgs) -> None:
         try:
-            await device.execute_command(f"!tune_step={args.Tuning_f_step_Hz}")
-            await device.execute_command(f"!tune_time={args.Tuning_time_ms.duration_in_ms}")
+            await device.execute_command(f"!tune_f_step={args.Tuning_f_step_Hz}")
+            await device.execute_command(f"!tune_t_time={args.Tuning_time_ms.duration_in_ms}")
+            await device.execute_command(f"!tune_t_step={args.Tuning_t_step_ms.duration_in_ms}")
             await device.execute_command("!tune")
         except asyncio.CancelledError:
-            await device.execute_command("!stop")
+            await device.execute_command("!OFF")
         finally:
             await device.get_remote_proc_finished_event().wait()

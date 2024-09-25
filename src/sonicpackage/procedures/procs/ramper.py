@@ -103,11 +103,11 @@ class RamperRemote(Ramper):
             start = args.freq_center - args.half_range
             stop = args.freq_center + args.half_range + args.step
 
-            await device.execute_command(f"!ramp_start_freq={start}")
-            await device.execute_command(f"!ramp_stop_freq={stop}")
-            await device.execute_command(f"!ramp_step={args.step}")
-            await device.execute_command(f"!ramp_ton={args.hold_on.duration_in_ms}")
-            await device.execute_command(f"!ramp_toff={args.hold_off.duration_in_ms}")
+            await device.execute_command(f"!ramp_f_start={int(start)}")
+            await device.execute_command(f"!ramp_f_stop={int(stop)}")
+            await device.execute_command(f"!ramp_f_step={int(args.step)}")
+            await device.execute_command(f"!ramp_t_on={int(args.hold_on.duration_in_ms)}")
+            await device.execute_command(f"!ramp_t_off={int(args.hold_off.duration_in_ms)}")
             await device.execute_command(f"!ramp")
         except asyncio.CancelledError:
             await device.execute_command("!OFF")  # TODO Maybe make a !stop command
