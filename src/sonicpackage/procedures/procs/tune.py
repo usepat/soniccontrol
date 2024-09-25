@@ -34,8 +34,8 @@ class TuneProc(Procedure):
     async def execute(self, device: Scriptable, args: TuneArgs) -> None:
         try:
             await device.execute_command(f"!tune_f_step={args.Tuning_f_step_Hz}")
-            await device.execute_command(f"!tune_t_time={args.Tuning_time_ms.duration_in_ms}")
-            await device.execute_command(f"!tune_t_step={args.Tuning_t_step_ms.duration_in_ms}")
+            await device.execute_command(f"!tune_t_time={int(args.Tuning_time_ms.duration_in_ms)}")
+            await device.execute_command(f"!tune_t_step={int(args.Tuning_t_step_ms.duration_in_ms)}")
             await device.execute_command("!tune")
         except asyncio.CancelledError:
             await device.execute_command("!OFF")
