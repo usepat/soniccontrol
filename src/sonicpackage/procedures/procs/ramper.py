@@ -103,9 +103,9 @@ class RamperRemote(Ramper):
             start = args.freq_center - args.half_range
             stop = args.freq_center + args.half_range + args.step
 
-            await device.execute_command(f"!ramp_f_start={int(start)}")
-            await device.execute_command(f"!ramp_f_stop={int(stop)}")
-            await device.execute_command(f"!ramp_f_step={int(args.step)}")
+            await device.execute_command(f"!ramp_f_start={start}")
+            await device.execute_command(f"!ramp_f_stop={stop}")
+            await device.execute_command(f"!ramp_f_step={args.step}")
             await device.execute_command(f"!ramp_t_on={int(args.hold_on.duration_in_ms)}")
             await device.execute_command(f"!ramp_t_off={int(args.hold_off.duration_in_ms)}")
             await device.execute_command(f"!ramp")
