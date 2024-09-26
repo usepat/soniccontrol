@@ -225,26 +225,27 @@ class LegacySequencer(Script):
         self._current_line = loop["begin"]
 
     async def _execute_command_alias(self, command: Dict[str, Any]) -> None:
-        match str(command["command"]):
-            case BuiltInFunctions.FREQUENCY.value:
+        enum_type = next((elem for elem in BuiltInFunctions if elem.value == command["command"]), None)
+        match enum_type:
+            case BuiltInFunctions.FREQUENCY:
                 await self._sonicamp.set_frequency(command["argument"])
-            case BuiltInFunctions.GAIN.value:
+            case BuiltInFunctions.GAIN:
                 await self._sonicamp.set_gain(command["argument"])
-            case BuiltInFunctions.RAMP_FREQ.value:
+            case BuiltInFunctions.RAMP_FREQ:
                 self._current_command = "ramp_freq"
                 await self._proc_controller.ramp_freq(*command["argument"])
-            case BuiltInFunctions.RAMP_FREQ_RANGE.value:
+            case BuiltInFunctions.RAMP_FREQ_RANGE:
                 self._current_command = "ramp_freq"
                 await self._proc_controller.ramp_freq_range(*command["argument"])
             case "!AUTO" | "AUTO" | BuiltInFunctions.AUTO:
                 await self._sonicamp.set_signal_auto()
-            case BuiltInFunctions.HOLD.value:
+            case BuiltInFunctions.HOLD:
                 self._current_command = "Hold"
                 holder_args = convert_to_holder_args(command["argument"])
                 await Holder.execute(holder_args)
-            case BuiltInFunctions.ON.value:
+            case BuiltInFunctions.ON:
                 await self._sonicamp.set_signal_on()
-            case BuiltInFunctions.OFF.value:
+            case BuiltInFunctions.OFF:
                 await self._sonicamp.set_signal_off()
             case _:
                 raise ValueError(f"{command} is not valid.") # FIXME program halts when this error gets raised
@@ -257,7 +258,7 @@ class LegacySequencer(Script):
 
         if command["command"].startswith(("?", "!")):
             await self._sonicamp.execute_command(command["command"])
-        elif command["command"] in [alias.value for alias in self._commands_aliases]:
+        else:
             await self._execute_command_alias(command)
 
 

@@ -35,12 +35,12 @@ class RobotSonicControlGui:
         self._loop.run_until_complete(WidgetRegistry.clean_up()) # Maybe we can do this better. But Idk
         self._root.destroy()
 
-    @keyword('Let the app run free for "${time_s}" s')
-    def run_free(self, time_s: int):
+    @keyword('Let the app run free for "${time_ms}" ms')
+    def run_free(self, time_ms: int):
         """
         This shit is needed, because the sleep function of the robot framework pauses the whole application
         """
-        self._loop.run_until_complete(asyncio.sleep(time_s))
+        self._loop.run_until_complete(asyncio.sleep(time_ms / 1000))
 
     @keyword('Does the widget "${name_widget}" exist')
     def does_widget_exist(self, name_widget: str) -> bool:
