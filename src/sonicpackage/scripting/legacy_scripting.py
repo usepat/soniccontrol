@@ -225,7 +225,8 @@ class LegacySequencer(Script):
         self._current_line = loop["begin"]
 
     async def _execute_command_alias(self, command: Dict[str, Any]) -> None:
-        match str(command["command"]):
+        enum_type = next((elem for elem in BuiltInFunctions if elem.value == command["command"]), None)
+        match enum_type:
             case BuiltInFunctions.FREQUENCY:
                 await self._sonicamp.set_frequency(command["argument"])
             case BuiltInFunctions.GAIN:
@@ -257,7 +258,7 @@ class LegacySequencer(Script):
 
         if command["command"].startswith(("?", "!")):
             await self._sonicamp.execute_command(command["command"])
-        elif command["command"] in self._commands_aliases:
+        else:
             await self._execute_command_alias(command)
 
 
