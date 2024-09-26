@@ -121,7 +121,7 @@ class RescueWindow(DeviceWindow):
             self._app_state = AppState(self._logger)
 
             self._logger.debug("Create views")
-            self._serialmonitor = SerialMonitor(self, self._device.serial, rescue_window = True)
+            self._serialmonitor = SerialMonitor(self, self._device.serial)
             self._scripting = Editor(self, self._scripting, self._script_file, self._interpreter, self._app_state)
             self._logging = LoggingTab(self, self._logStorage.logs)
             self._home = Home(self, self._device)

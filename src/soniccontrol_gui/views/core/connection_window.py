@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, cast
+from typing import Awaitable, Callable, Dict, List, Optional, cast
 from async_tkinter_loop import async_handler
 import serial.tools.list_ports as list_ports
 import ttkbootstrap as ttk
@@ -31,11 +31,11 @@ class DeviceConnectionClasses:
 
 
 class DeviceWindowManager:
-    def __init__(self, root, set_is_connecting: Callable[[bool], None]):
+    def __init__(self, root):
         self._root = root
         self._id_device_window_counter = 0
-        self._set_is_connecting = set_is_connecting
         self._opened_device_windows: Dict[int, DeviceConnectionClasses] = {}
+        self._attempt_connection_callback: Optional[Callable[[ConnectionFactory], Awaitable[None]]] = None
 
     def open_rescue_window(self, sonicamp: SonicAmp, connection_factory : ConnectionFactory) -> DeviceWindow:
         device_window = RescueWindow(sonicamp, self._root, connection_factory.connection_name)
@@ -57,11 +57,10 @@ class DeviceWindowManager:
             DeviceWindow.CLOSE_EVENT, lambda _: self._opened_device_windows.pop(device_window_id) #type: ignore
         )
         device_window.subscribe(
-            DeviceWindow.RECONNECT_EVENT, lambda _: asyncio.create_task(self.attempt_connection(connection_factory)) #type: ignore
+            DeviceWindow.RECONNECT_EVENT, lambda _: asyncio.create_task(self._attempt_connection_callback(connection_factory)) #type: ignore
         )    
         
     async def attempt_connection(self, connection_factory: ConnectionFactory):
-        self._set_is_connecting(True)
         logger = create_logger_for_connection(connection_factory.connection_name, files.LOG_DIR)
         logger.debug("Established serial connection")
 
@@ -74,7 +73,6 @@ class DeviceWindowManager:
             sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
-            self._set_is_connecting(False)
             logger.error(e)
             message = ui_labels.COULD_NOT_CONNECT_MESSAGE.format(str(e))
             user_answer: Optional[str] = cast(Optional[str], Messagebox.yesno(message))
@@ -87,13 +85,14 @@ class DeviceWindowManager:
             sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger, try_connection=False)
             self.open_rescue_window(sonicamp, connection_factory)
         except Exception as e:
-            self._set_is_connecting(False)
             logger.error(e)
             Messagebox.show_error(str(e))
         else:
-            self._set_is_connecting(False)
             logger.info("Created device successfully, open device window")
             self.open_known_device_window(sonicamp, connection_factory)
+
+    def set_attempt_connection_callback(self, callback: Callable[[ConnectionFactory], Awaitable[None]]):
+        self._attempt_connection_callback = callback
 
 
 class ConnectionWindow(UIComponent):
@@ -110,13 +109,14 @@ class ConnectionWindow(UIComponent):
             self._view.loading_text = ""
         animation = Animator(DotAnimationSequence("Connecting"), set_loading_animation_frame, 2., done_callback=on_animation_end)
         decorator = load_animation(animation)
-        self._device_window_manager = DeviceWindowManager(self._view, self.set_is_connecting)
+        self._device_window_manager = DeviceWindowManager(self._view)
         
         async def _attempt_connection(connection_factory: ConnectionFactory):
             await self._device_window_manager.attempt_connection(connection_factory)
 
         self._is_connecting = False # Make this to asyncio Event if needed
         self._attempt_connection = decorator(_attempt_connection)
+        self._device_window_manager.set_attempt_connection_callback(self._attempt_connection)
         
         self._view.set_connect_via_url_button_command(self._on_connect_via_url)
         self._view.set_connect_to_simulation_button_command(self._on_connect_to_simulation)
@@ -133,9 +133,6 @@ class ConnectionWindow(UIComponent):
         self._view.enable_connect_via_url_button(not value)
         self._view.enable_connect_to_simulation_button(not value)
 
-    def set_is_connecting(self, connecting: bool) -> None:
-        self._is_connecting = connecting
-
     def _refresh_ports(self):
         ports = [port.device for port in list_ports.comports()]
         self._view.set_ports(ports)
@@ -143,24 +140,28 @@ class ConnectionWindow(UIComponent):
     @async_handler
     async def _on_connect_via_url(self):
         assert (not self.is_connecting)
+        self._is_connecting = True
 
         url = self._view.get_url()
         baudrate = 9600
 
         connection_factory = SerialConnectionFactory(url=url, baudrate=baudrate, connection_name=Path(url).name)
         await self._attempt_connection(connection_factory)
+        self._is_connecting = False
 
     @async_handler 
     async def _on_connect_to_simulation(self):
         assert (not self.is_connecting)
         assert self._simulation_exe_path is not None
 
+        self._is_connecting = True
 
         bin_file = self._simulation_exe_path 
 
         connection_factory = CLIConnectionFactory(bin_file=bin_file, connection_name = "simulation")
 
         await self._attempt_connection(connection_factory)
+        self._is_connecting = False
 
 
 class ConnectionWindowView(ttk.Window, View):

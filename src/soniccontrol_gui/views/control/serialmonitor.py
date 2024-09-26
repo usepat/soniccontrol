@@ -23,9 +23,9 @@ from serial_asyncio import open_serial_connection
 
 
 class SerialMonitor(UIComponent):
-    def __init__(self, parent: UIComponent, communicator: Communicator, rescue_window: bool = False):
+    def __init__(self, parent: UIComponent, communicator: Communicator):
         self._logger = logging.getLogger(parent.logger.name + "." + SerialMonitor.__name__)
-        self._view = SerialMonitorView(parent.view, rescue_window = rescue_window)
+        self._view = SerialMonitorView(parent.view)
         super().__init__(parent, self._view, self._logger)
 
         # decorate send and receive with loading animation
@@ -53,9 +53,6 @@ class SerialMonitor(UIComponent):
         self._view.bind_command_line_input_on_down_pressed(lambda: self._scroll_command_history(False))
         self._view.bind_command_line_input_on_up_pressed(lambda: self._scroll_command_history(True))
         self._message_fetcher.subscribe(MessageFetcher.MESSAGE_RECEIVED_EVENT, lambda e: self._view.add_text_line(e.data["message"]))
-        if rescue_window:
-            self._view.set_baudrate_selection_command(self._on_baudrate_selected)
-        self._rescue_window = rescue_window
 
     @async_handler
     async def _send_command(self): 
@@ -79,8 +76,6 @@ class SerialMonitor(UIComponent):
             return answer.string
         except Exception as e:
             self._logger.error(str(e))
-            if not self._rescue_window:
-                await self._communicator.close_communication()
             return str(e)        
 
     def _print_answer(self, answer_str: str):
@@ -135,24 +130,10 @@ class SerialMonitor(UIComponent):
         self._view.set_send_command_button_enabled(enabled)
         self._view.set_command_line_input_enabled(enabled)
 
-    @async_handler
-    async def _on_baudrate_selected(self):
-        selected_option = self._view._baudrate_selection.get()  # Get the selected option
-        self._logger.info(f"Selected option: {selected_option}")
-
-        # Add your logic here to handle different selections
-        if isinstance(self._communicator, LegacySerialCommunicator) and self._communicator._writer:
-            if selected_option == "9600":
-                await self._communicator.change_baudrate(9600)
-            elif selected_option == "115200":
-                await self._communicator.change_baudrate(115200)
-
 
 
 class SerialMonitorView(TabView):
     def __init__(self, master: ttk.Window, *args, **kwargs) -> None:
-        if 'rescue_window' in kwargs:
-            self._baudrate_enabled = kwargs.pop('rescue_window')
         super().__init__(master, *args, **kwargs)
 
     @property
@@ -180,17 +161,6 @@ class SerialMonitorView(TabView):
             text="",
             font=("Consolas", 10)
         )
-
-        # Create the Combobox
-        if self._baudrate_enabled:
-            self._baudrate_selection = ttk.StringVar()
-            self._baudrate = ttk.Combobox(
-                self._main_frame, 
-                textvariable=self._baudrate_selection, 
-                values=["115200", "9600"],  # Define your options here
-                state='readonly'
-            )
-            self._baudrate.current(0)  # Set the default option
 
         INPUT_FRAME_PADDING = (3, 1, 3, 4)
         self._input_frame: ttk.Labelframe = ttk.Labelframe(
@@ -276,14 +246,6 @@ class SerialMonitorView(TabView):
             padx=sizes.MEDIUM_PADDING,
             pady=sizes.MEDIUM_PADDING,
         )
-        if self._baudrate_enabled:
-            self._baudrate.grid(
-                row=2,
-                column=0,
-                pady=sizes.MEDIUM_PADDING,
-                padx=sizes.LARGE_PADDING,
-                sticky=ttk.EW
-            )
 
     def set_send_command_button_command(self, command: Callable[[], None]):
         self._send_button.configure(command=command)
@@ -327,7 +289,3 @@ class SerialMonitorView(TabView):
     def clear(self):
         for child in self._scrolled_frame.winfo_children():
             child.destroy()
-
-    # Method to bind combobox selection to a callback
-    def set_baudrate_selection_command(self, callback: Callable[[], None]):
-        self._baudrate.bind("<<ComboboxSelected>>", lambda _: callback())
