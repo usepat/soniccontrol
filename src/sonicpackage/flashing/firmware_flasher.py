@@ -297,12 +297,13 @@ class NewFirmwareFlasher(FirmwareFlasher):
                 wr_data = data[start:end]
                 crc_valid = await self.protocol.write_cmd(wr_addr, wr_len, wr_data)
                 if not crc_valid:
-                    if retries > 2:
+                    if retries > 5:
                         self._logger.info(f"Flashing failed")
                         return False
                     retries += 1
                     self._logger.info(f"Error when flashing, at addr: {wr_addr}, try again")
                     start -= device_info.max_data_len # Redo the step
+                    await asyncio.sleep(1)
                     has_sync = await self.protocol.sync_cmd()
                     if not has_sync:
                         self._logger.info("Sync command failed")
