@@ -10,7 +10,7 @@ def setup_parrot_feeder() -> None:
         config = json.loads(file_content)
     dictConfig(config)
 
-async def simulate_soniccontrol_user_interaction(sonicamp: SonicAmp):
+async def simulate_soniccontrol_user_interaction(sonicamp: SonicDevice):
     await sonicamp.set_frequency(100)
     await sonicamp.execute_command("?uipt")
     await sonicamp.set_signal_on()

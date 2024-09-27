@@ -4,12 +4,12 @@ from ttkbootstrap.scrolled import ScrolledFrame
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView, View
-from sonicpackage.amp_data import Version
-from sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.device_data import Version
+from soniccontrol.sonic_device import SonicDevice
 
 import ttkbootstrap as ttk
 
-from sonicpackage.events import PropertyChangeEvent
+from soniccontrol.events import PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import ExecutionState
 from soniccontrol_gui.resources import images
@@ -17,7 +17,7 @@ from soniccontrol_gui.constants import ui_labels, sizes
 
 
 class Home(UIComponent):
-    def __init__(self, parent: UIComponent, device: SonicAmp):
+    def __init__(self, parent: UIComponent, device: SonicDevice):
         self._device = device
         self._view = HomeView(parent.view, type=device.info.device_type)
         super().__init__(parent, self._view)

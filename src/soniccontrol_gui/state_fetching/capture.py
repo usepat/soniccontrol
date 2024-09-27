@@ -5,10 +5,10 @@ from async_tkinter_loop import async_handler
 
 from soniccontrol_gui.constants import files
 from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureTarget
-from sonicpackage.amp_data import Status
+from soniccontrol.device_data import Status
 from soniccontrol_gui.state_fetching.csv_writer import CsvWriter
 from soniccontrol_gui.state_fetching.data_provider import DataProvider
-from sonicpackage.events import Event, EventManager
+from soniccontrol.events import Event, EventManager
 
 
 class Capture(EventManager):

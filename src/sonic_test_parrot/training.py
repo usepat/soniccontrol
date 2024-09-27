@@ -5,20 +5,20 @@ import typing
 import shutil
 from serial_asyncio import open_serial_connection
 
-from sonicpackage.sonicamp_ import SonicAmp
-from sonicpackage.builder import AmpBuilder
-from sonicpackage.communication.serial_communicator import SerialCommunicator
+from soniccontrol.sonic_device import SonicDevice
+from soniccontrol.builder import DeviceBuilder
+from soniccontrol.communication.serial_communicator import SerialCommunicator
 from sonic_test_parrot.parrot import Parrot
 
 
 
 CommandList = List[List[str]]
-CommandCaller = Callable[[SonicAmp], typing.Coroutine]
+CommandCaller = Callable[[SonicDevice], typing.Coroutine]
 async def teach_parrot(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, commands: Union[CommandList, CommandCaller], parrot_food_file: Optional[str] = None):
     communicator = SerialCommunicator()
     await communicator.open_communication(reader, writer)
 
-    builder = AmpBuilder()
+    builder = DeviceBuilder()
     sonicamp = await builder.build_amp(communicator)
     
     if isinstance(commands, list):

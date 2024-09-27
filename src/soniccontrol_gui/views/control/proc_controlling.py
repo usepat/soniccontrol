@@ -7,12 +7,12 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView, View
-from sonicpackage.procedures.procedure_controller import ProcedureController, ProcedureType
+from soniccontrol.procedures.procedure_controller import ProcedureController, ProcedureType
 
 import ttkbootstrap as ttk
 
 from soniccontrol_gui.constants import sizes, ui_labels
-from sonicpackage.events import Event, PropertyChangeEvent
+from soniccontrol.events import Event, PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import AppState, ExecutionState
 from soniccontrol_gui.widgets.procedure_widget import ProcedureWidget

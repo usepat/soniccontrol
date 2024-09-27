@@ -104,7 +104,7 @@ class "DeviceWindow" as soniccontrol_gui.views.core.device_window.DeviceWindow {
   on_disconnect() -> None
 }
 class "DeviceWindowManager" as soniccontrol_gui.views.core.connection_window.DeviceWindowManager {
-  open_known_device_window(sonicamp: SonicAmp, connection_name: str) -> DeviceWindow
+  open_known_device_window(sonicamp: SonicDevice, connection_name: str) -> DeviceWindow
   open_rescue_window(communicator: Communicator, connection_name: str) -> DeviceWindow
 }
 class "DeviceWindowView" as soniccontrol_gui.views.core.device_window.DeviceWindowView {

@@ -1,7 +1,7 @@
 
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView
-from sonicpackage.events import PropertyChangeEvent
+from soniccontrol.events import PropertyChangeEvent
 import ttkbootstrap as ttk
 from ttkbootstrap.tableview import Tableview
 import pandas as pd

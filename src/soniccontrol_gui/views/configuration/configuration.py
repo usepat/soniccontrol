@@ -10,12 +10,12 @@ import json
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
-from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
-from sonicpackage.scripting.scripting_facade import ScriptingFacade
-from sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.scripting.legacy_scripting import LegacyScriptingFacade
+from soniccontrol.scripting.scripting_facade import ScriptingFacade
+from soniccontrol.sonic_device import SonicDevice
 from soniccontrol_gui.utils.animator import Animator, DotAnimationSequence
 from soniccontrol_gui.constants import sizes, ui_labels
-from sonicpackage.events import PropertyChangeEvent
+from soniccontrol.events import PropertyChangeEvent
 from soniccontrol_gui.views.configuration.transducer_configs import ATConfig, ATConfigFrame, Config, ConfigSchema, TransducerConfig
 from soniccontrol_gui.views.core.app_state import ExecutionState
 from soniccontrol_gui.resources import images
@@ -26,7 +26,7 @@ from async_tkinter_loop import async_handler
     
 
 class Configuration(UIComponent):
-    def __init__(self, parent: UIComponent, device: SonicAmp):
+    def __init__(self, parent: UIComponent, device: SonicDevice):
         self._logger = logging.getLogger(parent.logger.name + "." + Configuration.__name__)
         
         self._logger.debug("Create Configuration Component")

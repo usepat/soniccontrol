@@ -8,7 +8,7 @@ from soniccontrol_gui.view import View
 import ttkbootstrap as ttk
 from ttkbootstrap.scrolled import ScrolledFrame
 
-from sonicpackage.procedures.holder import HoldTuple, HolderArgs
+from soniccontrol.procedures.holder import HoldTuple, HolderArgs
 
 class IntFieldView(View):
     def __init__(self, master: ttk.Frame | View, field_name: str, *args, default_value: int = 0, **kwargs):

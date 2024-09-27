@@ -77,7 +77,7 @@ class DataProvider {
 }
 
 class Updater {
-    -_device : SonicAmp
+    -_device : SonicDevice
     -_running : asyncio.Event
     -_task : Optional[asyncio.Task]
     +start() : None
@@ -152,7 +152,7 @@ Measuring --> ProcedureWidget
 Plotting --> Plot
 Plotting --> PlottingView
 
-Updater --> SonicAmp
+Updater --> SonicDevice
 
 Plot --> Figure
 

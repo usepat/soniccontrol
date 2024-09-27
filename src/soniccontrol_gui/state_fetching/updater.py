@@ -1,12 +1,12 @@
 
 import asyncio
 from typing import Optional
-from sonicpackage.sonicamp_ import SonicAmp
-from sonicpackage.events import Event, EventManager
+from soniccontrol.sonic_device import SonicDevice
+from soniccontrol.events import Event, EventManager
 
 
 class Updater(EventManager):
-    def __init__(self, device: SonicAmp) -> None:
+    def __init__(self, device: SonicDevice) -> None:
         super().__init__()
         self._device = device
         self._running: asyncio.Event = asyncio.Event()

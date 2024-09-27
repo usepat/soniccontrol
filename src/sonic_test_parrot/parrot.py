@@ -4,8 +4,8 @@ import logging
 from dataclasses import dataclass
 from typing import List, Literal, Optional, Union, ClassVar
 
-from sonicpackage.builder import AmpBuilder
-from sonicpackage.communication.serial_communicator import SerialCommunicator
+from soniccontrol.builder import DeviceBuilder
+from soniccontrol.communication.serial_communicator import SerialCommunicator
 
 
 @dataclass
@@ -119,7 +119,7 @@ class Parrot:
         logger.addHandler(parrot_log_handler)
 
     async def setup_amp(self):
-        builder = AmpBuilder()
+        builder = DeviceBuilder()
         self.sonic_amp = await builder.build_amp(self.communication.serial_communicator)
 
         self._validate_imitation()

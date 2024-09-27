@@ -12,17 +12,17 @@ from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
-from sonicpackage.communication.communicator import Communicator
-from sonicpackage.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
-from sonicpackage.procedures.procedure_controller import ProcedureController
-from sonicpackage.scripting.interpreter_engine import InterpreterEngine
-from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
-from sonicpackage.scripting.scripting_facade import BuiltInFunctions
-from sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.communication.communicator import Communicator
+from soniccontrol.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
+from soniccontrol.procedures.procedure_controller import ProcedureController
+from soniccontrol.scripting.interpreter_engine import InterpreterEngine
+from soniccontrol.scripting.legacy_scripting import LegacyScriptingFacade
+from soniccontrol.scripting.scripting_facade import BuiltInFunctions
+from soniccontrol.sonic_device import SonicDevice
 from soniccontrol_gui.state_fetching.logger import LogStorage, NotDeviceLogFilter
 from soniccontrol_gui.state_fetching.updater import Updater
 from soniccontrol_gui.constants import sizes, ui_labels
-from sonicpackage.events import Event
+from soniccontrol.events import Event
 from soniccontrol_gui.views.configuration.configuration import Configuration
 from soniccontrol_gui.views.configuration.flashing import Flashing
 from soniccontrol_gui.views.core.app_state import AppState, ExecutionState
@@ -91,7 +91,7 @@ class DeviceWindow(UIComponent):
         
 
 class RescueWindow(DeviceWindow):
-    def __init__(self, device: SonicAmp, root, connection_name: str):
+    def __init__(self, device: SonicDevice, root, connection_name: str):
         self._logger: logging.Logger = logging.getLogger(connection_name + ".ui")
         try:
             self._device = device
@@ -148,7 +148,7 @@ class RescueWindow(DeviceWindow):
 
 
 class KnownDeviceWindow(DeviceWindow):
-    def __init__(self, device: SonicAmp, root, connection_name: str):
+    def __init__(self, device: SonicDevice, root, connection_name: str):
         self._logger: logging.Logger = logging.getLogger(connection_name + ".ui")
         try:
             self._device = device

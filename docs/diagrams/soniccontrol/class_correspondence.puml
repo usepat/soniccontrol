@@ -1,0 +1,76 @@
+@startuml class_correspondence
+
+set separator . 
+top to bottom direction
+
+class "Answer" as soniccontrol.command.Answer {
+  lines
+  measured_response
+  received
+  received_timestamp
+  string
+  valid
+  receive_answer(answer: Iterable[str] | str) -> None
+  reset() -> None
+}
+class "Command" as soniccontrol.command.Command {
+  byte_message
+  full_message
+  status_result
+  validators
+  add_validators(validators: Union[CommandValidator, Iterable[CommandValidator]]) -> None
+  execute(argument: Any, connection: Optional[Communicator]) -> tuple[Answer, dict[str, Any]]
+  get_dict() -> dict
+  set_argument(argument: Any) -> None
+  validate() -> bool
+}
+class "CommandValidator" as soniccontrol.command.CommandValidator {
+  result
+  accepts(data: str) -> bool
+  generate_named_pattern(pattern: str, keywords: List[str]) -> str
+}
+
+class "CommandSet" as soniccontrol.commands.CommandSet {
+}
+class "CommandSetLegacy" as soniccontrol.commands.CommandSetLegacy {
+}
+
+class "Communicator" as soniccontrol.communication.communicator.Communicator {
+  DISCONNECTED_EVENT : str
+  connection_opened
+  handshake_result
+  protocol
+  {abstract}close_communication() -> None
+  {abstract}open_communication(connection_factory: ConnectionFactory)
+  {abstract}read_message() -> str
+  {abstract}send_and_wait_for_answer(message: Sendable) -> None
+}
+
+class "SonicDevice" as soniccontrol.sonic_device.SonicDevice {
+  commands
+  info
+  serial
+  status
+  add_command(message: Union[str, Command], validators: Optional[CommandValitors]) -> None
+  add_commands(commands: Iterable[Command]) -> None
+  disconnect() -> None
+  execute_command(message: Union[str, Command], argument: Any) -> str
+  get_remote_proc_finished_event() -> asyncio.Event
+  has_command(command: Union[str, Command]) -> bool
+  send_message(message: str, argument: Any) -> str
+}
+
+soniccontrol.command.Command -u-* soniccontrol.commands.CommandSet
+soniccontrol.command.Command -u-* soniccontrol.commands.CommandSetLegacy 
+soniccontrol.command.Command o-d- soniccontrol.command.Answer
+soniccontrol.command.Command o-d- soniccontrol.command.CommandValidator
+
+soniccontrol.sonic_device.SonicDevice *-u- soniccontrol.command.Command : _commands
+soniccontrol.sonic_device.SonicDevice .u.> soniccontrol.command.Answer
+
+
+soniccontrol.command.Command -u- soniccontrol.communication.communicator.Communicator
+
+
+
+@enduml

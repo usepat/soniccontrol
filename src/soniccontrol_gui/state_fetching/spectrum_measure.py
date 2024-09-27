@@ -5,10 +5,10 @@ from attrs import validators
 import attrs
 
 from soniccontrol_gui.state_fetching.updater import Updater
-from sonicpackage.interfaces import Scriptable
-from sonicpackage.procedures.holder import Holder, HolderArgs, convert_to_holder_args
-from sonicpackage.procedures.procedure import Procedure
-from sonicpackage.procedures.procs.ramper import RamperArgs
+from soniccontrol.interfaces import Scriptable
+from soniccontrol.procedures.holder import Holder, HolderArgs, convert_to_holder_args
+from soniccontrol.procedures.procedure import Procedure
+from soniccontrol.procedures.procs.ramper import RamperArgs
 
 @attrs.define()
 class SpectrumMeasureModel:

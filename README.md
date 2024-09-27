@@ -27,7 +27,7 @@ The project contains multiple folders and files with each having a specific resp
 - *requirements.txt*: Contains the dependencies of this project 
 
 The project is divided into single python packages in the *src* folder:
-- *sonicpackage*: Is the core package, that contains the logic for the communication with the device, executing scripts and flashing.
+- *soniccontrol*: Is the core package, that contains the logic for the communication with the device, executing scripts and flashing.
 - *soniccontrol_gui*: This package contains the main application. It is a user friendly GUI.
 - *soniccontrol_cli* **Work in progress**: This is a cli version of soniccontrol.
 - *sonicprotocol* **Work in progress**: This package contains preprocessor scripts to generate html, c++ and python code for the custom protocol used by the software and the devices to communicate with each other.

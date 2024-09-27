@@ -8,7 +8,7 @@ from robot.api.deco import keyword, library
 import robot.api.logger as logger
 from ttkbootstrap.utility import enable_high_dpi_awareness
 from soniccontrol_gui.views.core.connection_window import ConnectionWindow
-from sonicpackage.system import PLATFORM, System
+from soniccontrol.system import PLATFORM, System
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry, get_text_of_widget, set_text_of_widget
 
 

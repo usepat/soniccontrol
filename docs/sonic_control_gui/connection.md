@@ -19,9 +19,9 @@ It should be possible to connect to new devices and also to the old ones.
 
 ## Implementation
 
-The [ConnectionFactory](@ref sonicpackage.connection.connection_factory.ConnectionFactory) together with the [CommunicatorBuilder](@ref sonicpackage.connection.communicator_builder.CommunicatorBuilder) are used to establish a connection and then with [AmpBuilder](@ref sonicpackage.builder.AmpBuilder) a [Device](@ref sonicpackage.sonicamp_.SonicAmp) is build.  
-There is a [LegacySerialCommunicator](@ref sonicpackage.connection.serial_communicator.LegacySerialCommunicator) for the old devices and a [SerialCommunicator](@ref sonicpackage.connection.serial_communicator.SerialCommunicator) for the new ones.  
-All this code lies inside [sonicpackage](#SonicPackage).
+The [ConnectionFactory](@ref soniccontrol.connection.connection_factory.ConnectionFactory) together with the [CommunicatorBuilder](@ref soniccontrol.connection.communicator_builder.CommunicatorBuilder) are used to establish a connection and then with [DeviceBuilder](@ref soniccontrol.builder.DeviceBuilder) a [Device](@ref soniccontrol.sonic_device.SonicDevice) is build.  
+There is a [LegacySerialCommunicator](@ref soniccontrol.connection.serial_communicator.LegacySerialCommunicator) for the old devices and a [SerialCommunicator](@ref soniccontrol.connection.serial_communicator.SerialCommunicator) for the new ones.  
+All this code lies inside [soniccontrol](#SonicControl).
 
 The code for choosing a connection and handling different connections through a GUI lies in [soniccontrol_gui](#SonicControlGui).
 
@@ -60,6 +60,6 @@ It contains basically all the interesting tabs.
 
 @see sonic_control_gui.views.core.device_window.RescueWindow
 
-The RescueWindow has only the tabs [SerialMonitor](@ref sonic_control_gui.views.control.serialmonitor.SerialMonitor) and [Logging](@ref sonic_control_gui.views.control.logging.Logging). The ConnectionWindow initializes it with a [LegacyCommunicator](@ref sonicpackage.connection.serial_communicator.LegacySerialCommunicator). It is used for very old devices, with that we cannot connect in other ways, but also for debugging, if a connection is not possible.
+The RescueWindow has only the tabs [SerialMonitor](@ref sonic_control_gui.views.control.serialmonitor.SerialMonitor) and [Logging](@ref sonic_control_gui.views.control.logging.Logging). The ConnectionWindow initializes it with a [LegacyCommunicator](@ref soniccontrol.connection.serial_communicator.LegacySerialCommunicator). It is used for very old devices, with that we cannot connect in other ways, but also for debugging, if a connection is not possible.
 
 @}

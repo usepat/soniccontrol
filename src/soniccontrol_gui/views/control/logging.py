@@ -8,7 +8,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 
 from soniccontrol_gui.state_fetching.logger import DeviceLogFilter, LogStorage, NotDeviceLogFilter
 from soniccontrol_gui.constants import sizes, ui_labels
-from sonicpackage.events import Event
+from soniccontrol.events import Event
 from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.utils.observable_list import ObservableList

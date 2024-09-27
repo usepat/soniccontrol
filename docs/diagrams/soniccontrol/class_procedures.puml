@@ -1,0 +1,81 @@
+@startuml class_procedures
+
+set separator . 
+top to bottom direction
+
+class "RemoteController" as soniccontrol.remote_controller.RemoteController {
+  NOT_CONNECTED : str
+  connect_via_process(process_file: Path) -> None
+  connect_via_serial(url: Path) -> None
+  disconnect() -> None
+  execute_procedure(procedure: ProcedureType, args: dict) -> None
+  execute_ramp(ramp_args: RamperArgs) -> None
+  execute_script(text: str) -> None
+  get_attr(attr: str) -> str
+  send_command(command_str: str) -> str
+  set_attr(attr: str, val: str) -> str
+  stop_procedure() -> None
+}
+
+class "ProcedureType" as soniccontrol.procedures.procedure_controller.ProcedureType {
+  name
+}
+
+class "Procedure" as soniccontrol.procedures.procedure.Procedure {
+  {abstract}execute(device: Scriptable, args: Any) -> None
+  {abstract}get_args_class() -> Type
+}
+
+class "ProcedureController" as soniccontrol.procedures.procedure_controller.ProcedureController {
+  PROCEDURE_STOPPED : Literal['<<ProcedureStopped>>']
+  is_proc_running
+  proc_args_list
+  running_proc_type
+  execute_proc(proc_type: ProcedureType, args: Any) -> None
+  stop_proc() -> None
+}
+
+class "Ramper" as soniccontrol.procedures.procs.ramper.Ramper {
+  get_args_class() -> Type
+}
+
+class "RamperArgs" as soniccontrol.procedures.procs.ramper.RamperArgs {
+}
+
+class "RamperLocal" as soniccontrol.procedures.procs.ramper.RamperLocal {
+  execute(device: Scriptable, args: RamperArgs) -> None
+}
+
+class "RamperRemote" as soniccontrol.procedures.procs.ramper.RamperRemote {
+  execute(device: Scriptable, args: RamperArgs) -> None
+}
+
+class "LegacyScripting" as soniccontrol.scripting.legacy_scripting.LegacyScriptingFacade {
+}
+
+class "SonicDevice" as soniccontrol.sonic_device.SonicDevice {
+  commands
+  info
+  serial
+  status
+  add_command(message: Union[str, Command], validators: Optional[CommandValitors]) -> None
+  add_commands(commands: Iterable[Command]) -> None
+  disconnect() -> None
+  execute_command(message: Union[str, Command], argument: Any) -> str
+  get_remote_proc_finished_event() -> asyncio.Event
+  has_command(command: Union[str, Command]) -> bool
+  send_message(message: str, argument: Any) -> str
+}
+
+soniccontrol.procedures.procedure_controller.ProcedureController -d-|> soniccontrol.events.EventManager
+soniccontrol.procedures.procs.ramper.Ramper -d-|> soniccontrol.procedures.procedure.Procedure
+soniccontrol.procedures.procs.ramper.RamperLocal -d-|> soniccontrol.procedures.procs.ramper.Ramper
+soniccontrol.procedures.procs.ramper.RamperRemote -d-|> soniccontrol.procedures.procs.ramper.Ramper
+
+soniccontrol.procedures.procedure_controller.ProcedureController -r-* soniccontrol.remote_controller.RemoteController : _proc_controller
+soniccontrol.procedures.procedure_controller.ProcedureController -d-* soniccontrol.scripting.legacy_scripting.LegacyScriptingFacade : _proc_controller
+soniccontrol.procedures.procedure_controller.ProcedureController o-u- soniccontrol.procedures.procedure.Procedure : _procedures
+soniccontrol.sonic_device.SonicDevice -u-o soniccontrol.procedures.procedure_controller.ProcedureController : _device
+soniccontrol.sonic_device.SonicDevice <.u. soniccontrol.procedures.procedure.Procedure
+
+@enduml

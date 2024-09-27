@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 
 from soniccontrol_gui.view import View
-from sonicpackage.events import EventManager
+from soniccontrol.events import EventManager
 
 
 class UIComponent(EventManager):

@@ -28,15 +28,15 @@ So the serial monitor should provide similar functionalities to the terminal.
 
 ## Implementation
 
-@see sonicpackage.views.control.serialmonitor.SerialMonitor
+@see soniccontrol.views.control.serialmonitor.SerialMonitor
 
-The SerialMonitor uses the [Communicator](@ref  sonicpackage.communication.communicator.Communicator) in the background. It provides the GUI interface. 
-Commands are sent via [send_and_wait_for_answer](@ref  sonicpackage.communication.communicator.Communicator.send_and_wait_for_answer) and the received answer gets displayed.
+The SerialMonitor uses the [Communicator](@ref  soniccontrol.communication.communicator.Communicator) in the background. It provides the GUI interface. 
+Commands are sent via [send_and_wait_for_answer](@ref  soniccontrol.communication.communicator.Communicator.send_and_wait_for_answer) and the received answer gets displayed.
 
 ### Read button
 
 @see Communication
 
-If the read button is switched to on, that it starts the [MessageFetcher](@ref soniccontrol_gui.state_fetching.message_fetcher.MessageFetcher) and displays the messages received. It uses the [read_message](@ref sonicpackage.communication.communicator.Communicator.read_message) function of Communicator.
+If the read button is switched to on, that it starts the [MessageFetcher](@ref soniccontrol_gui.state_fetching.message_fetcher.MessageFetcher) and displays the messages received. It uses the [read_message](@ref soniccontrol.communication.communicator.Communicator.read_message) function of Communicator.
 
 @}

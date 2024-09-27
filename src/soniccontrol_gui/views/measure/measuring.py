@@ -13,7 +13,7 @@ import ttkbootstrap as ttk
 import matplotlib
 
 from soniccontrol_gui.widgets.procedure_widget import ProcedureWidget
-from sonicpackage.amp_data import Status
+from soniccontrol.device_data import Status
 from soniccontrol_gui.state_fetching.capture import Capture
 from soniccontrol_gui.views.measure.csv_table import CsvTable
 matplotlib.use("TkAgg")

@@ -1,12 +1,12 @@
-# Welcome to the Help Page for SonicAmp Systems!
+# Welcome to the Help Page for SonicDevice Systems!
 
-There are a variety of commands to control your SonicAmp under your liking. Typically, a command that sets up the SonicAmp System starts with an `<!>`, whereas commands that start with a `<?>` ask the System about something and outputs this data.
+There are a variety of commands to control your SonicDevice under your liking. Typically, a command that sets up the SonicDevice System starts with an `<!>`, whereas commands that start with a `<?>` ask the System about something and outputs this data.
 
 ## Command List
 
 | Command          | Description                                                                      |
 |------------------|----------------------------------------------------------------------------------|
-| `!SERIAL`        | Set your SonicAmp to the serial mode                                             |
+| `!SERIAL`        | Set your SonicDevice to the serial mode                                             |
 | `!f=<Frequency>` | Sets the frequency you want to operate on                                        |
 | `!g=<Gain>`      | Sets the Gain to your liking                                                     |
 | `!cur1=<mAmpere>`| Sets the current of the 1st Interface                                            |
@@ -34,7 +34,7 @@ There are a variety of commands to control your SonicAmp under your liking. Typi
 |------------------|----------------------------------------------------------------------------------|
 | `?`     | Prints information on the progress State |
 | `?info` | Prints information on the software |
-| `?type` | Prints the type of the SonicAmp System |
+| `?type` | Prints the type of the SonicDevice System |
 | `?freq` | Prints the current frequency |
 | `?gain` | Prints the current gain |
 | `?temp` | Prints the current temperature of the PT100 element |

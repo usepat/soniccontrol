@@ -1,10 +1,10 @@
-@mainpage SonicControl
+@mainpage Sonic Control
 
 ## Index
 
 - [README](../README.md)
 - @subpage ProjectSetup
-- @subpage SonicPackage
+- @subpage SonicControl
 - @subpage SonicControlGui
 - @subpage SonicControlCli
 - @subpage SonicProtocol

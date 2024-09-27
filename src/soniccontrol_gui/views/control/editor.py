@@ -14,13 +14,13 @@ from async_tkinter_loop import async_handler
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
-from sonicpackage.scripting.interpreter_engine import CurrentTarget, InterpreterEngine, InterpreterState
-from sonicpackage.scripting.legacy_scripting import LegacyScriptingFacade
-from sonicpackage.scripting.scripting_facade import Script, ScriptingFacade
-from sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.scripting.interpreter_engine import CurrentTarget, InterpreterEngine, InterpreterState
+from soniccontrol.scripting.legacy_scripting import LegacyScriptingFacade
+from soniccontrol.scripting.scripting_facade import Script, ScriptingFacade
+from soniccontrol.sonic_device import SonicDevice
 from soniccontrol_gui.constants import (sizes, scripting_cards_data,
                                                      ui_labels)
-from sonicpackage.events import PropertyChangeEvent
+from soniccontrol.events import PropertyChangeEvent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.views.core.app_state import AppState, ExecutionState
 from soniccontrol_gui.widgets.pushbutton import PushButtonView

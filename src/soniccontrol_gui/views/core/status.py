@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 import ttkbootstrap as ttk
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import View
-from sonicpackage.amp_data import Status
+from soniccontrol.device_data import Status
 from soniccontrol_gui.constants import (color, events, fonts, sizes,
                                                      style, ui_labels)
 from soniccontrol_gui.utils.image_loader import ImageLoader

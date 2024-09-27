@@ -2,10 +2,10 @@ from typing import Final, List, Literal
 
 import attrs
 
-from sonicpackage.system import PLATFORM, create_appdata_directory
+from soniccontrol.system import PLATFORM, create_appdata_directory
 from soniccontrol_gui.utils.types import ScriptingGuideCardDataDict
-from sonicpackage.events import PropertyChangeEvent
-from sonicpackage.procedures.procedure_controller import ProcedureController
+from soniccontrol.events import PropertyChangeEvent
+from soniccontrol.procedures.procedure_controller import ProcedureController
 
 
 @attrs.frozen
@@ -146,7 +146,7 @@ class _UIStringsEN:
     AUTO_READ_LABEL: Final[str] = "Auto Read"
     BACK_LABEL: Final[str] = "Back"
     FLASH_SETTINGS_LABEL: Final[str] = "Flash Firmware Settings"
-    SONICAMP_SETTINGS_LABEL: Final[str] = "SonicAmp Settings"
+    SONICAMP_SETTINGS_LABEL: Final[str] = "SonicDevice Settings"
     SONICCONTROL_SETTINGS_LABEL: Final[str] = "SonicControl Settings"
     SUBMIT_LABEL: Final[str] = "Submit"
     CONTROL_LABEL: Final[str] = "control"

@@ -66,7 +66,7 @@ testpaths = ["tests"]
 
 [tool.pytest.ini_options]
 addopts = [
-    "--cov=sonicpackage",
+    "--cov=soniccontrol",
     "--import-mode=importlib"
 ]
 ```

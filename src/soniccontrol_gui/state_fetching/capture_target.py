@@ -6,11 +6,11 @@ from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasure, Sp
 from soniccontrol_gui.state_fetching.updater import Updater
 from soniccontrol_gui.views.control.editor import ScriptFile
 from soniccontrol_gui.views.control.proc_controlling import ProcControllingModel
-from sonicpackage.events import Event, EventManager, PropertyChangeEvent
-from sonicpackage.procedures.procedure import ProcedureType
-from sonicpackage.procedures.procedure_controller import ProcedureController
-from sonicpackage.scripting.interpreter_engine import InterpreterEngine, InterpreterState
-from sonicpackage.scripting.scripting_facade import ScriptingFacade
+from soniccontrol.events import Event, EventManager, PropertyChangeEvent
+from soniccontrol.procedures.procedure import ProcedureType
+from soniccontrol.procedures.procedure_controller import ProcedureController
+from soniccontrol.scripting.interpreter_engine import InterpreterEngine, InterpreterState
+from soniccontrol.scripting.scripting_facade import ScriptingFacade
 
 
 class CaptureTargets(Enum):

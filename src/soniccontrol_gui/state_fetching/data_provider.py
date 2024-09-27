@@ -1,5 +1,5 @@
 import pandas as pd
-from sonicpackage.events import EventManager, PropertyChangeEvent
+from soniccontrol.events import EventManager, PropertyChangeEvent
 from collections import deque
 
 

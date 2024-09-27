@@ -10,14 +10,14 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import View
-from sonicpackage.builder import AmpBuilder
-from sonicpackage.commands import CommandSetLegacy
-from sonicpackage.communication.communicator_builder import CommunicatorBuilder
-from sonicpackage.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
-from sonicpackage.communication.communicator import Communicator
-from sonicpackage.communication.serial_communicator import LegacySerialCommunicator
-from sonicpackage.sonicamp_ import SonicAmp
-from sonicpackage.logging import create_logger_for_connection
+from soniccontrol.builder import DeviceBuilder
+from soniccontrol.commands import CommandSetLegacy
+from soniccontrol.communication.communicator_builder import CommunicatorBuilder
+from soniccontrol.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
+from soniccontrol.communication.communicator import Communicator
+from soniccontrol.communication.serial_communicator import LegacySerialCommunicator
+from soniccontrol.sonic_device import SonicDevice
+from soniccontrol.logging import create_logger_for_connection
 from soniccontrol_gui.utils.animator import Animator, DotAnimationSequence, load_animation
 from soniccontrol_gui.constants import sizes, style, ui_labels, files
 from soniccontrol_gui.utils.image_loader import ImageLoader
@@ -37,13 +37,13 @@ class DeviceWindowManager:
         self._opened_device_windows: Dict[int, DeviceConnectionClasses] = {}
         self._attempt_connection_callback: Optional[Callable[[ConnectionFactory], Awaitable[None]]] = None
 
-    def open_rescue_window(self, sonicamp: SonicAmp, connection_factory : ConnectionFactory) -> DeviceWindow:
+    def open_rescue_window(self, sonicamp: SonicDevice, connection_factory : ConnectionFactory) -> DeviceWindow:
         device_window = RescueWindow(sonicamp, self._root, connection_factory.connection_name)
         self._open_device_window(device_window, connection_factory)
         
         return device_window
 
-    def open_known_device_window(self, sonicamp: SonicAmp, connection_factory : ConnectionFactory) -> DeviceWindow:
+    def open_known_device_window(self, sonicamp: SonicDevice, connection_factory : ConnectionFactory) -> DeviceWindow:
         device_window = KnownDeviceWindow(sonicamp, self._root, connection_factory.connection_name)
         self._open_device_window(device_window, connection_factory)
         return device_window
@@ -69,8 +69,8 @@ class DeviceWindowManager:
                 connection_factory,
                 logger=logger
             )
-            logger.debug("Build SonicAmp for device")
-            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger)
+            logger.debug("Build SonicDevice for device")
+            sonicamp = await DeviceBuilder().build_amp(ser=serial, commands=commands, logger=logger)
             await sonicamp.serial.connection_opened.wait()
         except ConnectionError as e:
             logger.error(e)
@@ -82,7 +82,7 @@ class DeviceWindowManager:
             serial: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
             commands = CommandSetLegacy(serial)
             await serial.open_communication(connection_factory)
-            sonicamp = await AmpBuilder().build_amp(ser=serial, commands=commands, logger=logger, try_connection=False)
+            sonicamp = await DeviceBuilder().build_amp(ser=serial, commands=commands, logger=logger, try_connection=False)
             self.open_rescue_window(sonicamp, connection_factory)
         except Exception as e:
             logger.error(e)

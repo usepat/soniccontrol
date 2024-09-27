@@ -6,7 +6,7 @@
 # Deployment {#Deployment}
 
 Python projects can be packaged so that they can be later uploaded to [PyPI](https://pypi.org/).
-This is useful for distributing the python project as a library and exactly that is what we want with [SonicPackage](@ref sonic_package).
+This is useful for distributing the python project as a library and exactly that is what we want with [SonicControl](@ref sonic_control).
 Also the packaging is needed for distributing it via an installer.
 Another use case for packaging is to install the software in editable mode via `pip install -e .`. 
 This is needed for [unit testing](@ref UnitTests) and [system testing](@ref SystemTests).

@@ -7,22 +7,22 @@ from typing import Final, Callable
 from soniccontrol_gui.state_fetching.updater import Updater
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import TabView
-from sonicpackage.communication.communicator import Communicator
-from sonicpackage.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
-from sonicpackage.flashing.firmware_flasher import NewFirmwareFlasher
-from sonicpackage.sonicamp_ import SonicAmp
+from soniccontrol.communication.communicator import Communicator
+from soniccontrol.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
+from soniccontrol.flashing.firmware_flasher import NewFirmwareFlasher
+from soniccontrol.sonic_device import SonicDevice
 
 from async_tkinter_loop import async_handler
 
 import ttkbootstrap as ttk
 
 from soniccontrol_gui.constants import sizes, ui_labels
-from sonicpackage.events import Event, PropertyChangeEvent
+from soniccontrol.events import Event, PropertyChangeEvent
 from soniccontrol_gui.views.core.app_state import AppState
 from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.file_browse_button import FileBrowseButtonView
-from sonicpackage.system import PLATFORM
+from soniccontrol.system import PLATFORM
 
 
 # List of all flash mode options
@@ -36,7 +36,7 @@ class FLASH_OPTIONS(Enum):
 class Flashing(UIComponent):
     RECONNECT_EVENT = "Reconnect"
     FAILED_EVENT = "Flashing failed"
-    def __init__(self, parent: UIComponent, logger: logging.Logger, device: SonicAmp, app_state: AppState, updater: Updater | None = None):
+    def __init__(self, parent: UIComponent, logger: logging.Logger, device: SonicDevice, app_state: AppState, updater: Updater | None = None):
         self._writer = device._serial.writer
         self._reader = device._serial.reader
         self._communicator = device._serial

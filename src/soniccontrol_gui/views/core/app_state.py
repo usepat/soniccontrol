@@ -1,7 +1,7 @@
 from enum import Enum
 import logging
 
-from sonicpackage.events import EventManager, PropertyChangeEvent
+from soniccontrol.events import EventManager, PropertyChangeEvent
 
 class ExecutionState(Enum):
     NOT_RESPONSIVE = 0

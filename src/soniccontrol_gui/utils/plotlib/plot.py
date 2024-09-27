@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Dict, Optional
 import datetime
 
-from sonicpackage.events import Event, EventManager, PropertyChangeEvent
+from soniccontrol.events import Event, EventManager, PropertyChangeEvent
 
 
 class Plot(EventManager):

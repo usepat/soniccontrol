@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Optional
 from robot.api.deco import keyword, library
 import robot.api.logger as logger
-from sonicpackage.procedures.procedure_controller import ProcedureType
-from sonicpackage.procedures.procs.ramper import RamperArgs
-from sonicpackage.remote_controller import RemoteController
+from soniccontrol.procedures.procedure_controller import ProcedureType
+from soniccontrol.procedures.procs.ramper import RamperArgs
+from soniccontrol.remote_controller import RemoteController
 
 
 @library(auto_keywords=False, scope="SUITE")

@@ -14,10 +14,10 @@ SonicController -> CommunicationBuilder: generate_connection(endpoint: str): Com
 CommunicationBuilder -> Communicator: builds
 Communicator --> CommunicationBuilder
 CommunicationBuilder --> SonicController: communicator: Communicator
-SonicController -> SonicAmpBuilder: build_amp(communicator: Communicator)
-SonicAmpBuilder -> Communicator: get SonicAmp data
-Communicator --> SonicAmpBuilder: SonicAmp data
-SonicAmpBuilder --> SonicController: returns SonicAmp
+SonicController -> SonicDeviceBuilder: build_amp(communicator: Communicator)
+SonicDeviceBuilder -> Communicator: get SonicDevice data
+Communicator --> SonicDeviceBuilder: SonicDevice data
+SonicDeviceBuilder --> SonicController: returns SonicDevice
 SonicController -> ConnectionModel: updates
 ConnectionModel --> MainView 
 

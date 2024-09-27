@@ -1,7 +1,7 @@
 from importlib.resources import files
-import sonicpackage.bin
+import soniccontrol.bin
 
-SIMULATION_MVP_EXE: str = str(files(sonicpackage.bin).joinpath("cli_simulation_mvp"))
+SIMULATION_MVP_EXE: str = str(files(soniccontrol.bin).joinpath("cli_simulation_mvp"))
 
 # Connection constants
 CONNECTION_PORTS_COMBOBOX = 'connection.ports_combobox'

@@ -10,7 +10,7 @@ There is also integration testing, that focus on testing if a collection of unit
 
 For the system testing we use a binary of our [firmware](https://github.com/usepat/sonic-firmware/tree/stable) that simulates it locally on the pc (but only for Linux). 
 We can start this binary as a process in the command line and can communicate with it over `stdout` and `stdin`.
-In the code we do this over [CLIConnectionFactory](@ref sonicpackage.ConnectionFactory.CLIConnectionFactory).
+In the code we do this over [CLIConnectionFactory](@ref soniccontrol.ConnectionFactory.CLIConnectionFactory).
 
 For writing the system tests we use the robot framework.
 

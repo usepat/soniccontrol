@@ -6,7 +6,7 @@
 
 ## Brief Description
 
-SonicControlGui is a GUI Application that uses internally [SonicPackage](#SonicPackage) to control ultra sonic devices from usePAT.
+SonicControlGui is a GUI Application that uses internally [SonicControl](#SonicControl) to control ultra sonic devices from usePAT.
 
 ## Project Structure
 
@@ -18,10 +18,10 @@ The project has following directories:
   - **icons**
   - **fonts**
   - **texts**
-- **state_fetching**: Those are helper classes that function as a glue between SonicPackage and SonicControl. Most of them are models for the [MVP architecture](#MVPPattern).
+- **state_fetching**: Those are helper classes that function as a glue between SonicControl and SonicControlGui. Most of them are models for the [MVP architecture](#MVPPattern).
 - **utils**: helper classes, miscellaneous code.
 - **widgets**: Widgets that can be used and reused across the applications. Do not contain business logic. Mostly only for presentation.
-- **views**: Windows, Tabs and Views. Do not get reused normally. And their presenters directly execute business logic in SonicPackage.
+- **views**: Windows, Tabs and Views. Do not get reused normally. And their presenters directly execute business logic in SonicControl.
   - **core**: Views for managing devices.
   - **configuration**: Views and classes for configuring the device.
   - **control**: Views for controlling the device (and logging, because I did not know where to put it)

@@ -12,7 +12,7 @@ enum ProcedureType {
 
 ' Define the Procedure class
 class Procedure {
-    +execute(device: SonicAmp, args: Any) : asyncio.Future
+    +execute(device: SonicDevice, args: Any) : asyncio.Future
     +get_args_class() : Type
 }
 
@@ -25,8 +25,8 @@ class RamperArgs {
     +HolderArgs: hold_off_args
 }
 
-' Define the SonicAmp class
-class SonicAmp {
+' Define the SonicDevice class
+class SonicDevice {
     +_logger: logging.Logger
 }
 
@@ -34,7 +34,7 @@ class SonicAmp {
 class ProcedureController {
     +PROCEDURE_STOPPED: str
     +PROCEDURE_RUNNING: str
-    +__init__(device: SonicAmp) : None
+    +__init__(device: SonicDevice) : None
     +proc_args_list : Dict[ProcedureType, Type]
     +is_proc_running : bool
     +running_proc_type : Optional[ProcedureType]
@@ -128,7 +128,7 @@ class ProcControllingView {
 }
 
 ' Relationships
-ProcedureController -- "1" SonicAmp : uses >
+ProcedureController -- "1" SonicDevice : uses >
 ProcedureController "1" *-- "*" Procedure : contains >
 ProcedureController "1" *-- "*" ProcedureType : uses >
 Procedure "1" *-- "1" RamperArgs : uses >

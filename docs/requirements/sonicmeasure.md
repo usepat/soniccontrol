@@ -1,10 +1,10 @@
 ## SonicMeasure
 
-SonicMeasure in the context of SonicControl is a software tool process to collect spectrum data from a SonicAmp and plotting the data contentiously in an animating plot. The concrete data that is being plotted is U_rms [mV], I_rms [mA], Phase [degree] on the y-axis depending on the frequency [Hz] on the x-axis. @SonicSTS could maybe comment some pictures of some older versions of SonicMeasure.
+SonicMeasure in the context of SonicControl is a software tool process to collect spectrum data from a SonicDevice and plotting the data contentiously in an animating plot. The concrete data that is being plotted is U_rms [mV], I_rms [mA], Phase [degree] on the y-axis depending on the frequency [Hz] on the x-axis. @SonicSTS could maybe comment some pictures of some older versions of SonicMeasure.
 
 ### Requirements 
 
-- [ ] The user can set up the conditions for the SonicAmp behaviour during the SonicMeasure data collection and plotting 
+- [ ] The user can set up the conditions for the SonicDevice behaviour during the SonicMeasure data collection and plotting 
   - [ ] The user can set up a ramping condition for the SonicMeasure
     - [ ] Start frequency, Stop frequency, Step (resolution) frequency
     - [ ] Holding time during that the signal is turned on

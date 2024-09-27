@@ -19,11 +19,11 @@ The editor lets the user execute scripts to control the device.
 ## Implementation
 
 @see soniccontrol_gui.views.control.editor
-@see sonicpackage.scripting.interpreter_engine.InterpreterEngine
+@see soniccontrol.scripting.interpreter_engine.InterpreterEngine
 
 ### Running the Interpreter
 
-To parse the script the [ScriptingFacade.parse_script](@ref sonicpackage.scripting.ScriptingFacade.parse_script) method is used, that returns an [Interpreter](ref sonicpackage.scripting.ScriptingFacade.Script). The Interpreter can be step through because it is an async iterator.
+To parse the script the [ScriptingFacade.parse_script](@ref soniccontrol.scripting.ScriptingFacade.parse_script) method is used, that returns an [Interpreter](ref soniccontrol.scripting.ScriptingFacade.Script). The Interpreter can be step through because it is an async iterator.
 
 The Editor saves an instance of the Interpreter and runs the [interpreter_engine](@ref soniccontrol_gui.views.control.editor.Editor._interpreter_engine) to execute it. Separating the interpreter state from the interpreter execution has the advantage, that we can pause the execution without having to explicitly save the interpreter state and the same goes for continuing the execution.
 
