@@ -1,6 +1,6 @@
 from sonic_protocol.defs import (
-    CommandListExport, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
-    AnswerFieldDef, Command, DeviceType, SIUnit, SIPrefix
+    CommandCode, CommandListExport, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
+    AnswerFieldDef, CommandContract, DeviceType, SIUnit, SIPrefix
 )
 
 # Version instance
@@ -14,7 +14,6 @@ param_frequency = CommandParamDef(
     si_prefix=SIPrefix.KILO,
     min_value=0,
     max_value=1000000,
-    allowed_values=None,
     description="Frequency of the transducer"
 )
 
@@ -25,12 +24,11 @@ answer_frequency = AnswerFieldDef(
     converter_ref=None,
     si_unit=SIUnit.HERTZ,
     si_prefix=SIPrefix.KILO,
-    format_str="freq: {value}{si}",
     description=None
 )
 
-frequency_command = Command(
-    code=1000,
+frequency_command = CommandContract(
+    code=CommandCode.SET_FREQUENCY,
     command_defs=[
         CommandDef(
             string_identifier="!freq",
@@ -45,8 +43,8 @@ frequency_command = Command(
         )
     ],
     description="Command to set the frequency of the transducer on the device.",
+    is_release=True,
     tags=["frequency", "transducer", "control"]
-
 )
 
 
@@ -61,7 +59,6 @@ protocol = Protocol(
             descriptor = MetaExportDescriptor(
                 min_protocol_version=Version(major=1, minor=0, patch=0),
                 deprecated_protocol_version=None,
-                included_device_types=None,
                 excluded_device_types=[DeviceType.DESCALE]
             )
         )

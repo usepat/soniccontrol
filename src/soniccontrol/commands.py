@@ -2,7 +2,7 @@ from __future__ import annotations
 import datetime
 import attrs
 from soniccontrol.communication.communicator import Communicator
-from soniccontrol.command import Command, CommandValidator
+from soniccontrol.command import Command, AnswerValidator
 
 
 
@@ -13,12 +13,12 @@ class CommandSetLegacy:
             estimated_response_time=0.5,
             expects_long_answer=True,
             validators=(
-                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
-                CommandValidator(
+                AnswerValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
+                AnswerValidator(
                     pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
                 ),
-                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
-                CommandValidator(
+                AnswerValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+                AnswerValidator(
                     pattern=r".*signal.*(on|off).*",
                     signal=lambda b: bool(b.lower() == "on"),
                 ),
@@ -29,7 +29,7 @@ class CommandSetLegacy:
         self.get_type: Command = Command(
             message="?type",
             estimated_response_time=0.5,
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r"sonic(catch|wipe|descale)", device_type=str
             ),
             serial_communication=serial,
@@ -40,17 +40,17 @@ class CommandSetLegacy:
             estimated_response_time=2.5,
             expects_long_answer=True,
             validators=(
-                CommandValidator(
+                AnswerValidator(
                     pattern=r".*ver.*([\d]+[.][\d]+).*", 
                     firmware_version=attrs.converters.pipe(str, lambda v: v + ".0") # add a third version number, so that it is in line with the newer firmware version format
                 ),
-                CommandValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
+                AnswerValidator(pattern=r"sonic(catch|wipe|descale)", type_=str),
             ),
             serial_communication=serial,
         )
         self.set_frequency: Command = Command(
             message="!f=",
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
             ),
             serial_communication=serial,
@@ -58,13 +58,13 @@ class CommandSetLegacy:
 
         self.set_gain: Command = Command(
             message="!g=",
-            validators=CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+            validators=AnswerValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
             serial_communication=serial,
         )
 
         self.set_switching_frequency: Command = Command(
             message="!swf=",
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", switching_frequency=int
             ),
             serial_communication=serial,
@@ -73,7 +73,7 @@ class CommandSetLegacy:
         self.get_status: Command = Command(
             message="-",
             estimated_response_time=0.35,
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r"([\d])(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d]+)(?:[-#])([\d])(?:[-#])(?:[']?)([-]?[\d]+[.][\d]+)?(?:[']?)",
                 error=int,
                 frequency=int,
@@ -95,14 +95,14 @@ class CommandSetLegacy:
             message="?sens",
             estimated_response_time=0.35,
             validators=(
-                CommandValidator(
+                AnswerValidator(
                     pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
                     frequency=int,
                     urms=float,
                     irms=float,
                     phase=float,
                 ),
-                CommandValidator(
+                AnswerValidator(
                     pattern=r".*(error).*",
                     signal=lambda error: False,
                     frequency=lambda error: 0,
@@ -118,14 +118,14 @@ class CommandSetLegacy:
             message="?sens",
             estimated_response_time=0.35,
             validators=(
-                CommandValidator(
+                AnswerValidator(
                     pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
                     frequency=int,
                     urms=attrs.converters.pipe(float, lambda urms: urms / 1000),
                     irms=attrs.converters.pipe(float, lambda irms: irms / 1000),
                     phase=attrs.converters.pipe(float, lambda phase: phase / 1_000_000),
                 ),
-                CommandValidator(
+                AnswerValidator(
                     pattern=r".*(error).*",
                     signal=lambda error: False,
                     frequency=lambda error: 0,
@@ -141,7 +141,7 @@ class CommandSetLegacy:
             message="?sens",
             estimated_response_time=0.35,
             validators=(
-                CommandValidator(
+                AnswerValidator(
                     pattern=r"([\d]+)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)(?:[\s]+)([-]?[\d]+[.]?[\d]?)",
                     frequency=int,
                     urms=attrs.converters.pipe(
@@ -159,7 +159,7 @@ class CommandSetLegacy:
                         float, lambda phase: phase * 0.125 * 100
                     ),
                 ),
-                CommandValidator(
+                AnswerValidator(
                     pattern=r".*(error).*",
                     signal=lambda error: False,
                     frequency=lambda error: 0,
@@ -174,10 +174,10 @@ class CommandSetLegacy:
         self.signal_on: Command = Command(
             message="!ON",
             validators=(
-                CommandValidator(
+                AnswerValidator(
                     pattern=r"signal.*(on)", signal=lambda b: b.lower() == "on"
                 ),
-                CommandValidator(
+                AnswerValidator(
                     pattern=r"\d+#(.+)", signal=lambda b: b.lower() == "on"
                 ),
             ),
@@ -188,10 +188,10 @@ class CommandSetLegacy:
             message="!OFF",
             estimated_response_time=0.4,
             validators=(
-                CommandValidator(
+                AnswerValidator(
                     pattern=r"signal.*(off)", signal=lambda b: not b.lower() == "off"
                 ),
-                CommandValidator(
+                AnswerValidator(
                     pattern=r"\d+#(.+)", signal=lambda b: not b.lower() == "off"
                 ),
             ),
@@ -201,13 +201,13 @@ class CommandSetLegacy:
         self.signal_auto: Command = Command(
             message="!AUTO",
             estimated_response_time=0.5,
-            validators=CommandValidator(pattern=r".*(auto).*", protocol=str),
+            validators=AnswerValidator(pattern=r".*(auto).*", protocol=str),
             serial_communication=serial,
         )
 
         self.set_serial_mode: Command = Command(
             message="!SERIAL",
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r".*mode.*(serial).*", communication_mode=str
             ),
             serial_communication=serial,
@@ -215,7 +215,7 @@ class CommandSetLegacy:
 
         self.set_analog_mode: Command = Command(
             message="!ANALOG",
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r".*mode.*(analog).*", communication_mode=str
             ),
             serial_communication=serial,
@@ -223,19 +223,19 @@ class CommandSetLegacy:
 
         self.set_khz_mode: Command = Command(
             message="!KHZ",
-            validators=CommandValidator(pattern=r".*(khz).*", relay_mode=str),
+            validators=AnswerValidator(pattern=r".*(khz).*", relay_mode=str),
             serial_communication=serial,
         )
 
         self.set_mhz_mode: Command = Command(
             message="!MHZ",
-            validators=CommandValidator(pattern=r".*(mhz).*", relay_mode=str),
+            validators=AnswerValidator(pattern=r".*(mhz).*", relay_mode=str),
             serial_communication=serial,
         )
 
         self.set_atf1: Command = Command(
             message="!atf1=",
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r".*freq[quency]*.*1.*=.*([\d]+)", atf1=int
             ),
             serial_communication=serial,
@@ -244,7 +244,7 @@ class CommandSetLegacy:
         self.get_atf1: Command = Command(
             message="?atf1",
             expects_long_answer=True,
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r"([\d]+)\n([-]?[\d]+[\.]?[\d]*)", atf1=int, atk1=float
             ),
             serial_communication=serial,
@@ -252,13 +252,13 @@ class CommandSetLegacy:
 
         self.set_atk1: Command = Command(
             message="!atk1=",
-            validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk1=float),
+            validators=AnswerValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk1=float),
             serial_communication=serial,
         )
 
         self.set_atf2: Command = Command(
             message="!atf2=",
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r".*freq[quency]*.*2.*=.*([\d]+)", atf2=int
             ),
             serial_communication=serial,
@@ -267,7 +267,7 @@ class CommandSetLegacy:
         self.get_atf2: Command = Command(
             message="?atf2",
             expects_long_answer=True,
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r"([\d]+)\n([-]?[\d]+[\.]?[\d]*)", atf2=int, atk2=float
             ),
             serial_communication=serial,
@@ -275,13 +275,13 @@ class CommandSetLegacy:
 
         self.set_atk2: Command = Command(
             message="!atk2=",
-            validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk2=float),
+            validators=AnswerValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk2=float),
             serial_communication=serial,
         )
 
         self.set_atf3: Command = Command(
             message="!atf3=",
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r".*freq[quency]*.*3.*=.*([\d]+)", atf3=int
             ),
             serial_communication=serial,
@@ -290,7 +290,7 @@ class CommandSetLegacy:
         self.get_atf3: Command = Command(
             message="?atf3",
             expects_long_answer=True,
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=r"([\d]+)\n([-]?[\d]+[\.]?[\d]*)", atf3=int, atk3=float
             ),
             serial_communication=serial,
@@ -298,138 +298,138 @@ class CommandSetLegacy:
 
         self.set_atk3: Command = Command(
             message="!atk3=",
-            validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk3=float),
+            validators=AnswerValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", atk3=float),
             serial_communication=serial,
         )
 
         self.set_att1: Command = Command(
             message="!att1=",
-            validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", att1=float),
+            validators=AnswerValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", att1=float),
             serial_communication=serial,
         )
 
         self.get_att1: Command = Command(
             message="?att1",
-            validators=CommandValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", att1=float),
+            validators=AnswerValidator(pattern=r"([-]?[\d]*[\.]?[\d]*)", att1=float),
             serial_communication=serial,
         )
 
 class CommandSet:
     def __init__(self, serial: Communicator):
         # TODO: Ask about ?error, how do we validate errors, if there is not a known number of errors
-        type_validator: CommandValidator = CommandValidator(
+        type_validator: AnswerValidator = AnswerValidator(
             pattern=r"sonic(catch|wipe|descale)", device_type=str
         )
-        firmware_version_validator: CommandValidator = CommandValidator(
+        firmware_version_validator: AnswerValidator = AnswerValidator(
             pattern=r".*([\d]\.[\d]\.[\d]).*", firmware_version=str
         )
-        update_date_validator: CommandValidator = CommandValidator(
+        update_date_validator: AnswerValidator = AnswerValidator(
             pattern=r".*(\d{2}.\d{2}.\d{4}).*",
             date=lambda date: (datetime.datetime.strptime(date, "%d.%m.%Y").date()), 
         )
-        protocol_version_validator: CommandValidator = CommandValidator(
+        protocol_version_validator: AnswerValidator = AnswerValidator(
             pattern=r".*([\d]\.[\d]\.[\d]).*", protocol_version=str
         )
-        pzt_validator: CommandValidator = CommandValidator(
+        pzt_validator: AnswerValidator = AnswerValidator(
             pattern=r"(.*)[#](\d+)", id=str, frequency=int
         )
-        frequency_validator: CommandValidator = CommandValidator(
+        frequency_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\d+)\s*Hz", frequency=int
         )
-        gain_validator: CommandValidator = CommandValidator(
+        gain_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\d+)\s*%", gain=int
         )
-        temp_validator: CommandValidator = CommandValidator(
+        temp_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\d+)\s*°C", temp=float
         )
 
         # TODO: What should be the units in soniccontrol?
-        uipt_validator: CommandValidator = CommandValidator(
+        uipt_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\d+)\s*uV[#](\d+)\s*uA[#](\d+)\s*mDeg[#](\d+)\s*mDegC",
             urms=int,
             irms=int,
             phase=int,
             temperature=int,
         )
-        adc_validator: CommandValidator = CommandValidator(
+        adc_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\d+)\s*uV", adc_voltage=int
         )
 
         # TODO: Ask about the diffirence between !EXTERN and !RELAY
-        control_mode_validator: CommandValidator = CommandValidator(
+        control_mode_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\w+)\s*mode", control_mode=str
         )
-        relay_mode_validator: CommandValidator = CommandValidator(
+        relay_mode_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\w+)\s*mode", relay_mode=str
         )
 
         # ATF validators
-        atf1_validator: CommandValidator = CommandValidator(
+        atf1_validator: AnswerValidator = AnswerValidator(
             pattern=r"atf1=(\d+)\s*Hz", atf1=int
         )
-        atf2_validator: CommandValidator = CommandValidator(
+        atf2_validator: AnswerValidator = AnswerValidator(
             pattern=r"atf2=(\d+)\s*Hz", atf2=int
         )
-        atf3_validator: CommandValidator = CommandValidator(
+        atf3_validator: AnswerValidator = AnswerValidator(
             pattern=r"atf3=(\d+)\s*Hz", atf3=int
         )
-        atf4_validator: CommandValidator = CommandValidator(
+        atf4_validator: AnswerValidator = AnswerValidator(
             pattern=r"atf4=(\d+)\s*Hz", atf4=int
         )
 
         # ATK validators
-        atk1_validator: CommandValidator = CommandValidator(
+        atk1_validator: AnswerValidator = AnswerValidator(
             pattern=r"atk1=(\d+\.\d+)", atk1=float
         )
-        atk2_validator: CommandValidator = CommandValidator(
+        atk2_validator: AnswerValidator = AnswerValidator(
             pattern=r"atk2=(\d+\.\d+)", atk2=float
         )
-        atk3_validator: CommandValidator = CommandValidator(
+        atk3_validator: AnswerValidator = AnswerValidator(
             pattern=r"atk3=(\d+\.\d+)", atk3=float
         )
-        atk4_validator: CommandValidator = CommandValidator(
+        atk4_validator: AnswerValidator = AnswerValidator(
             pattern=r"atk4=(\d+\.\d+)", atk4=float
         )
 
         # ATON validators
-        aton1_validator: CommandValidator = CommandValidator(
+        aton1_validator: AnswerValidator = AnswerValidator(
             pattern=r"aton1=(\d+)\s*ms", aton1=int
         )
-        aton2_validator: CommandValidator = CommandValidator(
+        aton2_validator: AnswerValidator = AnswerValidator(
             pattern=r"aton2=(\d+)\s*ms", aton2=int
         )
-        aton3_validator: CommandValidator = CommandValidator(
+        aton3_validator: AnswerValidator = AnswerValidator(
             pattern=r"aton3=(\d+)\s*ms", aton3=int
         )
-        aton4_validator: CommandValidator = CommandValidator(
+        aton4_validator: AnswerValidator = AnswerValidator(
             pattern=r"aton4=(\d+)\s*ms", aton4=int
         )
 
         # ATT validators
-        att1_validator: CommandValidator = CommandValidator(
+        att1_validator: AnswerValidator = AnswerValidator(
             pattern=r"att1=(\d+\.\d+)\s*°C", att1=float
         )
-        att2_validator: CommandValidator = CommandValidator(
+        att2_validator: AnswerValidator = AnswerValidator(
             pattern=r"att2=(\d+\.\d+)\s*°C", att2=float
         )
-        att3_validator: CommandValidator = CommandValidator(
+        att3_validator: AnswerValidator = AnswerValidator(
             pattern=r"att3=(\d+\.\d+)\s*°C", att3=float
         )
-        att4_validator: CommandValidator = CommandValidator(
+        att4_validator: AnswerValidator = AnswerValidator(
             pattern=r"att4=(\d+\.\d+)\s*°C", att4=float
         )
 
-        signal_off_validator: CommandValidator = CommandValidator(
+        signal_off_validator: AnswerValidator = AnswerValidator(
             pattern=r".*(off).*", signal=lambda b: not b.lower() == "off"
         )
-        signal_on_validator: CommandValidator = CommandValidator(
+        signal_on_validator: AnswerValidator = AnswerValidator(
             pattern=r".*(on).*", signal=lambda b: b.lower() == "on"
         )
 
-        ms_value_validator: CommandValidator = CommandValidator(
+        ms_value_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\d+)\s*ms", time_value=int
         )
-        float_value_validator: CommandValidator = CommandValidator(
+        float_value_validator: AnswerValidator = AnswerValidator(
             pattern=r"(\d+\.\d+)", value=float
         )
 
@@ -494,7 +494,7 @@ class CommandSet:
             message="?list_commands",
             estimated_response_time=0.5,
             expects_long_answer=True,
-            validators=CommandValidator(pattern=r"(.+)(#(.+))+"),
+            validators=AnswerValidator(pattern=r"(.+)(#(.+))+"),
             serial_communication=serial,
         )
 
@@ -505,7 +505,7 @@ class CommandSet:
         self.get_status: Command = Command(
             message="-",
             estimated_response_time=0.35,
-            validators=CommandValidator(
+            validators=AnswerValidator(
                 pattern=f"{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rInt}#{rAlpha}",
                 error=int,
                 frequency=int,

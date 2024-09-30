@@ -6,12 +6,12 @@ from typing import Any, Literal, Optional, Union, Iterable, Dict
 import attrs
 from icecream import ic
 from soniccontrol.device_data import Info, Status
-from soniccontrol.commands import Command, CommandValidator
+from soniccontrol.commands import Command, AnswerValidator
 from soniccontrol.interfaces import Scriptable
 from soniccontrol.procedures.procs.ramper import Ramper
 from soniccontrol.communication.serial_communicator import Communicator
 
-CommandValitors = Union[CommandValidator, Iterable[CommandValidator]]
+CommandValitors = Union[AnswerValidator, Iterable[AnswerValidator]]
 
 parrot_feeder = logging.getLogger("parrot_feeder")
 

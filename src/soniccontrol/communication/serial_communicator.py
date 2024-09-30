@@ -7,7 +7,7 @@ import attrs
 import serial
 from soniccontrol.communication.connection_factory import ConnectionFactory, SerialConnectionFactory
 from soniccontrol.communication.package_fetcher import PackageFetcher
-from soniccontrol.command import Command, CommandValidator
+from soniccontrol.command import Command, AnswerValidator
 from soniccontrol.communication.communicator import Communicator
 from soniccontrol.communication.sonicprotocol import CommunicationProtocol, LegacySonicProtocol, SonicProtocol
 from soniccontrol.events import Event
@@ -247,16 +247,16 @@ class LegacySerialCommunicator(Communicator):
         self._init_command = Command(
             estimated_response_time=0.5,
             validators=(
-                CommandValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
-                CommandValidator(
+                AnswerValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
+                AnswerValidator(
                     pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
                 ),
-                CommandValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
-                CommandValidator(
+                AnswerValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+                AnswerValidator(
                     pattern=r".*signal.*(on|off).*",
                     signal=lambda b: b.lower() == "on",
                 ),
-                CommandValidator(
+                AnswerValidator(
                     pattern=r".*(serial|manual).*",
                     communication_mode=str,
                 ),

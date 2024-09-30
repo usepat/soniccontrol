@@ -50,7 +50,7 @@ class Converter:
 
 
 @attrs.define
-class CommandValidator:
+class AnswerValidator:
     pattern: str = attrs.field()
     _converters: Dict[str, Converter] = attrs.field(converter=dict, repr=False)
     _after_converters: Dict[
@@ -320,7 +320,7 @@ class Command(Sendable):
     message: str = attrs.field(default="")
     estimated_response_time: float = attrs.field(default=5)
     expects_long_answer: bool = attrs.field(default=False, repr=False)
-    _validators: List[CommandValidator] = attrs.field(factory=list)
+    _validators: List[AnswerValidator] = attrs.field(factory=list)
     answer: Answer = attrs.field(init=False, factory=Answer)
     _byte_message: bytes = attrs.field(init=False)
     _status_result: Dict[str, Any] = attrs.field(init=False, factory=dict)
@@ -342,15 +342,15 @@ class Command(Sendable):
         return self._byte_message
 
     @property
-    def validators(self) -> List[CommandValidator]:
+    def validators(self) -> List[AnswerValidator]:
         return self._validators
 
     @validators.setter
     def validators(
-        self, validators: Union[CommandValidator, Iterable[CommandValidator]]
+        self, validators: Union[AnswerValidator, Iterable[AnswerValidator]]
     ) -> None:
-        if isinstance(validators, CommandValidator):
-            self._validators = [CommandValidator]
+        if isinstance(validators, AnswerValidator):
+            self._validators = [AnswerValidator]
         elif isinstance(self, (list, tuple, set, Generator)):
             self._validators = list(validators)
         else:
@@ -368,9 +368,9 @@ class Command(Sendable):
         return self._status_result
 
     def add_validators(
-        self, validators: Union[CommandValidator, Iterable[CommandValidator]]
+        self, validators: Union[AnswerValidator, Iterable[AnswerValidator]]
     ) -> None:
-        if isinstance(validators, CommandValidator):
+        if isinstance(validators, AnswerValidator):
             self._validators.append(validators)
         elif isinstance(validators, (list, tuple, set, Generator)):
             self._validators.extend(validators)
