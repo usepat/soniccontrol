@@ -7,6 +7,8 @@ from typing import Any, Callable, Dict, Literal, Optional, Tuple
 import attrs
 from icecream import ic
 
+from sonic_protocol.defs import Version
+
 
 def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
     none_converter = attrs.converters.default_if_none(default)
@@ -211,25 +213,11 @@ class Modules:
     def from_string(cls, module_string: str) -> Modules:
         return cls(*map(bool, module_string.split("=")))
 
-Version = Tuple[int, int, int]
-
-def to_version(x: Any) -> Version:
-    if isinstance(x, str):
-        version = tuple(map(int, x.split(".")))
-        if len(version) != 3:
-            raise ValueError("The Version needs to have exactly two separators '.'")
-        return version
-    elif isinstance(x, tuple):
-        return x
-    else:
-        raise TypeError("The type cannot be converted into a version")
-    
-
 @attrs.define
 class Info:
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="") # TODO does not match with validators of info command
-    firmware_version: Version = attrs.field(default=(0, 0, 0), converter=to_version) # TODO: delete this. Is just there, so I can implement in the meantime the home tab
+    firmware_version: Version = attrs.field(default=Version(0, 0, 0), converter=Version.to_version) # TODO: delete this. Is just there, so I can implement in the meantime the home tab
     modules: Modules = attrs.field(factory=Modules)
 
     def update(self, **kwargs) -> Info:
