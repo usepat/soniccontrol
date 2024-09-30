@@ -58,7 +58,7 @@ class SpectrumMeasure(Procedure):
         for  i in range(len(values)):
             value = values[i]
 
-            await device.execute_command(f"!freq={value}")
+            await device.execute_command(f"!f={value}") # FIXME use internal freq command of device
             if hold_off.duration:
                 await device.set_signal_on()
             asyncio.get_running_loop().create_task(self._updater.update())
