@@ -20,7 +20,7 @@ class ProtocolBuilder:
     def __init__(self, protocol: Protocol):
         self._protocol = protocol
 
-    def build(self, device_type: DeviceType, version: Version) -> CommandLookUpTable:
+    def build(self, device_type: DeviceType, version: Version, release: bool) -> CommandLookUpTable:
         lookups: Dict[CommandCode, CommandLookUp] = {}
 
         if version > self._protocol.version:
@@ -34,7 +34,7 @@ class ProtocolBuilder:
 
             commands: List[CommandContract] = export.exports if isinstance(export.exports, list) else [export.exports]
             for command in commands:
-                if not command.is_release:
+                if release and not command.is_release:
                     continue
 
                 command_def = self._filter_defs(command.command_defs, version, device_type)
