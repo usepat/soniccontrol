@@ -9,11 +9,8 @@ version = Version(major=1, minor=0, patch=0)
 # CommandParamDef instances (for "param_frequency")
 param_frequency = CommandParamDef(
     param_type=int,
-    default_value=100000,
     si_unit=SIUnit.HERTZ,
     si_prefix=SIPrefix.KILO,
-    min_value=0,
-    max_value=1000000,
     description="Frequency of the transducer"
 )
 
@@ -28,11 +25,10 @@ answer_frequency = AnswerFieldDef(
 )
 
 frequency_command = CommandContract(
-    code=CommandCode.SET_FREQUENCY,
+    code=CommandCode.SET_FREQ,
     command_defs=[
         CommandDef(
-            string_identifier="!freq",
-            aliases=["!f", "!frequency", "set_frequency"],
+            string_identifier=["!f", "!freq", "!frequency", "set_frequency"],
             index_param=None,
             setter_param=param_frequency
         )

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Any, Dict, List, Tuple, Type, TypeVar, Generic
 import attrs
 
@@ -40,8 +40,95 @@ class DeviceType(Enum):
     MVP_WORKER = 2
 
 
-class CommandCode(Enum):
-    SET_FREQUENCY = 1000
+
+class CommandCode(IntEnum):
+    INVALID = 0
+    UNIMPLEMENTED = 1
+    SHUT_DOWN = 2
+    LIST_AVAILABLE_COMMANDS = 3
+    GET_HELP = 4
+    # NOTIFY = 5 (commented out in the original)
+    EQUALSIGN = 10
+    DASH = 20
+
+    QUESTIONMARK = 30
+    GET_INFO = 40
+    GET_FREQ = 50
+    GET_GAIN = 60
+    GET_TEMP = 70
+    GET_TMCU = 80
+    GET_UIPT = 90
+    GET_ADC = 100
+    GET_PROT = 110
+    GET_PROT_LIST = 120
+    GET_PVAL = 130
+    GET_ATF = 140
+    GET_TON = 150
+    GET_ATK = 160
+    GET_ATT = 171
+    GET_SWF = 180
+    GET_AUTO = 210
+    GET_SCAN = 300
+    GET_TUNE = 310
+    GET_WIPE = 320
+
+    SET_EXTERN = 1010
+    SET_ANALOG = 1020
+    SET_DAC0 = 1031
+    SET_DAC1 = 1032
+    SET_KHZ = 1040
+    SET_FREQ = 1050
+    SET_GAIN = 1060
+    SET_MHZ = 1070
+    SET_ON = 1080
+    SET_OFF = 1090
+    SET_WIPE = 1100
+    SET_PROC = 1110
+    SET_WIPE_X = 1120
+    SET_RAMP = 1130
+    SET_ATF = 1140
+    SET_TON = 1150
+    SET_TOFF = 1151
+    SET_ATK = 1160
+    SET_AUTO = 1210
+    SET_RAMPD = 1220
+    SET_SWF = 1260
+    SET_TERMINATION = 1270
+    SET_COM_PROT = 1280
+    SET_RS485 = 1290 
+    SET_SCAN = 1300
+    SET_TUNE = 1310
+    SET_GEXT = 1320
+    SET_ATT = 1330
+
+    SET_MANUAL = 5000
+    SET_DEFAULT = 6000
+    SET_FLASH_USB = 7001
+    SET_FLASH_9600 = 7002
+    SET_FLASH_115200 = 7003
+    SET_NOTIFY = 999
+    SET_DUTY_CYCLE = 8000
+    SET_LOG_DEBUG = 9000
+    SET_LOG_INFO = 10000
+    SET_LOG_WARN = 11000
+    SET_LOG_ERROR = 12000
+    SET_SCAN_F_RANGE = 13000 
+    SET_SCAN_F_STEP = 13001
+    SET_SCAN_T_STEP = 13002
+    SET_TUNE_F_STEP = 13003
+    SET_TUNE_T_TIME = 13004
+    SET_TUNE_T_STEP = 13005
+    SET_WIPE_F_RANGE = 13006
+    SET_WIPE_F_STEP = 13007
+    SET_WIPE_T_ON = 13008
+    SET_WIPE_T_OFF = 13009
+    SET_WIPE_T_PAUSE = 13010
+    SET_RAMP_F_START = 13011
+    SET_RAMP_F_STOP = 13012
+    SET_RAMP_F_STEP = 13013
+    SET_RAMP_T_ON = 13014
+    SET_RAMP_T_OFF = 13015
+
 
 
 class SIUnit(Enum):
@@ -70,9 +157,6 @@ class ConverterType(Enum):
 @attrs.define()
 class CommandParamDef(Generic[T]):
     param_type: type[T] = attrs.field()
-    default_value: T = attrs.field()
-    min_value: T | None = attrs.field(default=None)
-    max_value: T | None = attrs.field(default=None)
     allowed_values: List[T] | None = attrs.field(default=None) # can we do this better with enum support?
     si_unit: SIUnit | None = attrs.field(default=None)
     si_prefix: SIPrefix | None = attrs.field(default=None)
@@ -80,8 +164,7 @@ class CommandParamDef(Generic[T]):
 
 @attrs.define()
 class CommandDef:
-    string_identifier: str = attrs.field()
-    aliases: List[str] = attrs.field(default=[])
+    string_identifier: str | List[str] = attrs.field()
     index_param: CommandParamDef | None = attrs.field(default=None)
     setter_param: CommandParamDef | None = attrs.field(default=None)
 

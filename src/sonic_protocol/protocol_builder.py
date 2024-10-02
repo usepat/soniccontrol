@@ -14,11 +14,13 @@ class CommandLookUp:
 
 T = TypeVar("T", CommandDef, AnswerDef)
 
+CommandLookUpTable = Dict[CommandCode, CommandLookUp]
+
 class ProtocolBuilder:
     def __init__(self, protocol: Protocol):
         self._protocol = protocol
 
-    def build(self, device_type: DeviceType, version: Version) -> Dict[CommandCode, CommandLookUp]:
+    def build(self, device_type: DeviceType, version: Version) -> CommandLookUpTable:
         lookups: Dict[CommandCode, CommandLookUp] = {}
 
         if version > self._protocol.version:
