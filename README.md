@@ -64,6 +64,31 @@ SonicControl has many dependencies, and it's recommended to create a virtual env
 - asyncio (for asynchronous programming)
 - numpy (for numerical computations)
 
+### On Windows & Linux:
+
+You can create the virtual environment either by using `python` or specifying a specific version with `py` (on Windows) or `python3.10` (on Linux).
+
+1. **Using `python`:** If `python` points to a version 3.10 or newer, you can simply use:
+
+    ```bash
+    python -m venv venv
+    ```
+
+2. **On Windows (using `py`):** If you have multiple versions of Python installed on Windows, you can specify the version using `py`:
+
+    ```bash
+    py -3.10 -m venv venv
+    ```
+
+3. **On Linux (using `python3.10`):** If you're on Linux and want to specify Python 3.10, use:
+
+    ```bash
+    python3.10 -m venv venv
+    ```
+
+Once you create the virtual environment, you can activate it and use `python` within the virtual environment. This will automatically use the Python version you specified when creating the environment.
+
+
 
 ## Get Started 
 
