@@ -110,7 +110,27 @@ When you're done working in the virtual environment, you can deactivate it by si
 
 ```bash
 deactivate
+```
 
+### Installing SonicControl
+
+Once the virtual environment is activated, you can install the SonicControl package with the following command:
+
+```bash
+pip install git+https://github.com/{USERNAME}/{repo}@latest
+```
+
+### Running the Application
+To start the GUI, simply run the following command in the `activated` virtual environment:
+
+```bash
+soniccontrol
+```
+Alternatively, you can import `soniccontrol` in any Python program:
+```bash
+import soniccontrol
+```
+Altough this still needs to be tested and a guide for using soniccontrol in Python programs will be added later
 
 ## Get Started 
 
