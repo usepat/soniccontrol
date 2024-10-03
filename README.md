@@ -53,7 +53,7 @@ First, ensure you have **Python 3.10** or newer installed.
 
   ```bash
   sudo apt install python3.10
-- To manage multiple Python versions, you can use Linux alternatives or pyenv to switch between versions.
+To manage multiple Python versions, you can use [Linux alternatives](https://man7.org/linux/man-pages/man1/update-alternatives.1.html) or [pyenv](https://github.com/pyenv/pyenv) to switch between versions.
 
 ### Setting Up a Virtual Environment (Recommended)
 
@@ -117,7 +117,7 @@ deactivate
 Once the virtual environment is activated, you can install the SonicControl package with the following command:
 
 ```bash
-pip install git+https://github.com/{USERNAME}/{repo}@latest
+pip install git+https://github.com/usepat/soniccontrol@latest
 ```
 
 ### Running the Application
