@@ -53,6 +53,7 @@ First, ensure you have **Python 3.10** or newer installed.
 
   ```bash
   sudo apt install python3.10
+- To manage multiple Python versions, you can use Linux alternatives or pyenv to switch between versions.
 
 
 ## Get Started 
