@@ -55,6 +55,15 @@ First, ensure you have **Python 3.10** or newer installed.
   sudo apt install python3.10
 - To manage multiple Python versions, you can use Linux alternatives or pyenv to switch between versions.
 
+### Setting Up a Virtual Environment (Recommended)
+
+SonicControl has many dependencies, and it's recommended to create a virtual environment to avoid conflicts with existing Python packages. Some common packages that could cause conflicts include:
+- async-tkinter-loop (for handling async in GUI applications)
+- ttkbootstrap (for UI styling)
+- attrs (for data validation)
+- asyncio (for asynchronous programming)
+- numpy (for numerical computations)
+
 
 ## Get Started 
 
