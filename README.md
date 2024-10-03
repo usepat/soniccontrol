@@ -155,7 +155,7 @@ import soniccontrol
 ```
 Altough this still needs to be tested and a guide for using soniccontrol in Python programs will be added later
 
-## Get Started 
+## Get Started for Developers
 
 For the setup please look at [Get Started](@ref GetStarted).
 Or give you the full experience with [Project Setup](@ref ProjectSetup).  
