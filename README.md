@@ -88,6 +88,28 @@ You can create the virtual environment either by using `python` or specifying a 
 
 Once you create the virtual environment, you can activate it and use `python` within the virtual environment. This will automatically use the Python version you specified when creating the environment.
 
+### Activating the Virtual Environment:
+
+- **On Windows:**
+
+    ```bash
+    .\venv\Scripts\activate
+    ```
+
+- **On Linux:**
+
+    ```bash
+    source venv/bin/activate
+    ```
+
+Once activated, the command `python` will use the version that you used to create the virtual environment.
+
+### Deactivating the Virtual Environment:
+
+When you're done working in the virtual environment, you can deactivate it by simply running:
+
+```bash
+deactivate
 
 
 ## Get Started 
