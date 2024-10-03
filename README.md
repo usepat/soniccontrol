@@ -68,7 +68,7 @@ SonicControl has many dependencies, and it's recommended to create a virtual env
 
 You can create the virtual environment either by using `python` or specifying a specific version with `py` (on Windows) or `python3.10` (on Linux).
 
-1. **Using `python`:** If `python` points to a version 3.10 or newer, you can simply use:
+1. **Using `python`:** If `python` points to a version 3.10 or newer(run `python --version` to check this), you can simply use:
 
     ```bash
     python -m venv venv
