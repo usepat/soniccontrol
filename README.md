@@ -36,7 +36,26 @@ The project is divided into single python packages in the *src* folder:
 
 Please read the rest of the documentation for a better understanding on how everything works and fits together.
 
-## Get Started
+## Installation Instructions for SonicControl(with pip)
+
+### Prerequisites
+
+First, ensure you have **Python 3.10** or newer installed.
+
+#### On Windows:
+
+- You can download the latest Python installer from [python.org](https://www.python.org/downloads/).
+- If you don't want to override your current Python installation, make sure to **uncheck "Add to PATH"** during installation. After installation, you can create and manage virtual environments using `py`.
+
+#### On Linux:
+
+- You can install Python 3.10 using the apt package manager:
+
+  ```bash
+  sudo apt install python3.10
+
+
+## Get Started 
 
 For the setup please look at [Get Started](@ref GetStarted).
 Or give you the full experience with [Project Setup](@ref ProjectSetup).  
