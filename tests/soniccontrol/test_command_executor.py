@@ -3,7 +3,7 @@ from unittest.mock import Mock, AsyncMock
 
 import sonic_protocol.commands as cmds
 from sonic_protocol.defs import AnswerDef, AnswerFieldDef, CommandCode, CommandDef, CommandParamDef
-from soniccontrol.command import AnswerValidator
+from sonic_protocol.answer import AnswerValidator
 from soniccontrol.command_executor import CommandExecutor
 from soniccontrol.communication.communicator import Communicator
 from sonic_protocol.protocol_builder import CommandLookUp, CommandLookUpTable
@@ -42,7 +42,7 @@ def lookup_table() -> CommandLookUpTable:
 @pytest.fixture
 def communicator():
     communicator = Mock(Communicator) 
-    communicator.send_and_wait_for_answer = AsyncMock(return_value="")
+    communicator.send_and_wait_for_response = AsyncMock(return_value="")
     return communicator
 
 @pytest.fixture
@@ -51,7 +51,7 @@ def command_executor(communicator, lookup_table):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("command, answer", [
+@pytest.mark.parametrize("command, request_str", [
     (cmds.SetFrequency(1000), "!f=1000"),
     (cmds.SetFrequency(420), "!f=420"),
     (cmds.SetGain(1000), "!g=1000"),
@@ -62,7 +62,7 @@ def command_executor(communicator, lookup_table):
 async def test_send_command_creates_correct_request(command, request_str, communicator, command_executor):
     _ = await command_executor.send_command(command)
 
-    communicator.send_and_wait_for_answer.assert_called_once_with(request_str)    
+    communicator.send_and_wait_for_response.assert_called_once_with(request_str)    
 
 
 @pytest.mark.parametrize("message, command_code", [
@@ -80,7 +80,7 @@ def test_lookup_message_selects_right_command(message, command_code, command_exe
     assert returned_command_code == command_code  
 
 @pytest.mark.parametrize("message, command_code", [
-    ("!freg=1000", CommandCode.SET_FREQ),
+    ("!freq=1000", CommandCode.SET_FREQ),
     ("!frequency=420", CommandCode.SET_FREQ),
     ("!f=420", CommandCode.SET_FREQ),
     ("!gain=1000", CommandCode.SET_GAIN),
@@ -91,4 +91,6 @@ def test_lookup_message_selects_right_command_with_alias(message, command_code, 
     returned_command_code = command_executor._lookup_message(message)
 
     assert returned_command_code == command_code  
+
+
 

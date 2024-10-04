@@ -194,7 +194,7 @@ class MetaExportDescriptor:
     def is_valid(self, version: Version, device_type: DeviceType) -> bool:
         if self.min_protocol_version > version:
             return False
-        if self.deprecated_protocol_version and self.deprecated_protocol_version < version:
+        if self.deprecated_protocol_version and self.deprecated_protocol_version <= version:
             return False
         if self.included_device_types and device_type not in self.included_device_types:
             return False

@@ -47,6 +47,9 @@ class Communicator(abc.ABC, EventManager):
     async def send_and_wait_for_answer(self, message: Sendable) -> None: ...
 
     @abc.abstractmethod
+    async def send_and_wait_for_response(self, message: str) -> str: ...
+
+    @abc.abstractmethod
     async def read_message(self) -> str: ...
 
     @abc.abstractmethod

@@ -24,6 +24,8 @@ from soniccontrol.system import PLATFORM
 parrot_feeder = logging.getLogger("parrot_feeder")
 
 
+# TODO: delete this whole file
+
 @attrs.define
 class Converter:
     worker: Callable[[Any], Any] = attrs.field()

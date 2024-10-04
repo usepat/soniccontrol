@@ -17,6 +17,7 @@ adef_swf = AnswerDef(
     
 
 v_new = Version(1, 0, 0)
+v_mid = Version(0, 7, 0)
 v_old = Version(0, 0, 0)
 
 get_frequency_command = CommandContract(
@@ -39,7 +40,7 @@ set_frequency_command = CommandContract(
             exports=cdef_set_frequency_old,
             descriptor=MetaExportDescriptor(
                 min_protocol_version=v_old,
-                deprecated_protocol_version=v_new
+                deprecated_protocol_version=v_mid
             )
         ),
     ],
@@ -94,7 +95,7 @@ def test_build_protocol_chooses_the_right_definitions(device_type, version, rele
     protocol_builder = ProtocolBuilder(protocol)
 
     lookup_table = protocol_builder.build(device_type, version, release)
-    
+
     command_lookup = lookup_table.get(expected_command_code)
     if expected_command_def is None:
         assert command_lookup is None  
@@ -102,4 +103,11 @@ def test_build_protocol_chooses_the_right_definitions(device_type, version, rele
         assert command_lookup is not None
         assert command_lookup.command_def is expected_command_def
 
+# TODO: add test that check that an error is thrown. If a command is defined,
+#  where it is possible with a specific version and device type to have no valid command def or answer def
 
+def test_build_protocol_throws_error_if_no_def_for_version_of_exported_command():
+    protocol_builder = ProtocolBuilder(protocol)
+
+    with pytest.raises(LookupError):
+        protocol_builder.build(DeviceType.MVP_WORKER, v_mid, True)

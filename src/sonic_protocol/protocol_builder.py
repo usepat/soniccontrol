@@ -1,8 +1,8 @@
 
 import attrs
-from typing import Any, Callable, Dict, List, TypeVar
+from typing import Callable, Dict, List, TypeVar
 from sonic_protocol.defs import AnswerDef, AnswerFieldDef, CommandCode, CommandContract, CommandDef, ConverterType, DeviceType, MetaExport, Protocol, Version
-from soniccontrol.command import AnswerValidator
+from sonic_protocol.answer import AnswerValidator
 
 
 @attrs.define()
@@ -56,7 +56,7 @@ class ProtocolBuilder:
                     return def_entry.exports
             else:
                 return def_entry
-        raise RuntimeError(f"There was no definition exported for the combination of version {version} and type {device_type}")
+        raise LookupError(f"There was no definition exported for the combination of version {version} and type {device_type}")
 
     def _create_answer_validator(self, answer: AnswerDef) -> AnswerValidator:
         converters: Dict[ConverterType, Callable] = {
