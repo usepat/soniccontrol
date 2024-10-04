@@ -8,6 +8,7 @@ version = Version(major=1, minor=0, patch=0)
 
 # CommandParamDef instances (for "param_frequency")
 param_frequency = CommandParamDef(
+    name="frequency",
     param_type=int,
     si_unit=SIUnit.HERTZ,
     si_prefix=SIPrefix.KILO,

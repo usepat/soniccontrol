@@ -6,12 +6,12 @@ from typing import Any, Literal, Optional, Union, Iterable, Dict
 import attrs
 from icecream import ic
 from soniccontrol.device_data import Info, Status
-from soniccontrol.commands import Command, AnswerValidator
+from soniccontrol.commands import LegacyCommand, LegacyAnswerValidator
 from soniccontrol.interfaces import Scriptable
 from soniccontrol.procedures.procs.ramper import Ramper
 from soniccontrol.communication.serial_communicator import Communicator
 
-CommandValitors = Union[AnswerValidator, Iterable[AnswerValidator]]
+CommandValitors = Union[LegacyAnswerValidator, Iterable[LegacyAnswerValidator]]
 
 parrot_feeder = logging.getLogger("parrot_feeder")
 
@@ -19,7 +19,7 @@ parrot_feeder = logging.getLogger("parrot_feeder")
 @attrs.define(kw_only=True)
 class SonicDevice(Scriptable):
     _serial: Communicator = attrs.field()
-    _commands: Dict[str, Command] = attrs.field(factory=dict, converter=dict)
+    _commands: Dict[str, LegacyCommand] = attrs.field(factory=dict, converter=dict)
     _logger: logging.Logger = attrs.field(default=logging.getLogger())
 
     _status: Status = attrs.field()
@@ -38,7 +38,7 @@ class SonicDevice(Scriptable):
         self._serial = serial
 
     @property
-    def commands(self) -> Dict[str, Command]:
+    def commands(self) -> Dict[str, LegacyCommand]:
         return self._commands
 
     @property
@@ -60,7 +60,7 @@ class SonicDevice(Scriptable):
 
     def add_command(
         self,
-        message: Union[str, Command],
+        message: Union[str, LegacyCommand],
         validators: Optional[CommandValitors] = None,
         **kwargs,
     ) -> None:
@@ -78,31 +78,31 @@ class SonicDevice(Scriptable):
         Returns:
             None
         """
-        if isinstance(message, Command):
+        if isinstance(message, LegacyCommand):
             if validators is not None:
                 message.add_validators(validators)
             self._commands[message.message] = message
         elif isinstance(message, str):
-            self._commands[message] = Command(
+            self._commands[message] = LegacyCommand(
                 message=message, validators=validators, **kwargs
             )
         else:
             raise ValueError("Illegal Argument for message", {message})
 
-    def add_commands(self, commands: Iterable[Command]) -> None:
+    def add_commands(self, commands: Iterable[LegacyCommand]) -> None:
         for command in commands:
             self.add_command(command)
 
-    def has_command(self, command: Union[str, Command]) -> bool:
+    def has_command(self, command: Union[str, LegacyCommand]) -> bool:
         return (
             self.commands.get(
-                command.message if isinstance(command, Command) else command
+                command.message if isinstance(command, LegacyCommand) else command
             ) is not None
         )
 
     async def send_message(self, message: str = "", argument: Any = "", should_log: bool = True) -> str:
         return (
-            await Command(
+            await LegacyCommand(
                 message=message,  
                 argument=argument,  
                 estimated_response_time=0.4,
@@ -113,7 +113,7 @@ class SonicDevice(Scriptable):
 
     async def execute_command(
         self,
-        message: Union[str, Command],
+        message: Union[str, LegacyCommand],
         argument: Any = "",
         should_log: bool = True,
         **status_kwargs_if_valid_command,
@@ -151,7 +151,7 @@ class SonicDevice(Scriptable):
                 self._logger.debug("Executing message as a new Command...")
                 return await self.send_message(message=message, argument=argument, should_log=should_log)
             
-            command: Command = self._commands[message]
+            command: LegacyCommand = self._commands[message]
             await command.execute(argument=argument, connection=self._serial, should_log=should_log)
         except Exception as e:
             self._logger.error(e)

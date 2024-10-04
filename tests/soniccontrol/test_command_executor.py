@@ -18,12 +18,12 @@ def lookup_table() -> CommandLookUpTable:
             AnswerValidator("")
         ),
         CommandCode.SET_FREQ: CommandLookUp(
-            CommandDef(["!f", "!freq", "!frequency"], setter_param=CommandParamDef(int)), 
+            CommandDef(["!f", "!freq", "!frequency"], setter_param=CommandParamDef("frequency", int)), 
             AnswerDef([AnswerFieldDef("frequency", field_type=int)]),
             AnswerValidator("")
         ),
         CommandCode.SET_GAIN: CommandLookUp(
-            CommandDef(["!g", "!gain"], setter_param=CommandParamDef(int)), 
+            CommandDef(["!g", "!gain"], setter_param=CommandParamDef("gain", int)), 
             AnswerDef([AnswerFieldDef("gain", int)]),
             AnswerValidator(pattern="")
         ),
@@ -33,7 +33,7 @@ def lookup_table() -> CommandLookUpTable:
             AnswerValidator("")
         ),
         CommandCode.SET_ATF: CommandLookUp(
-            CommandDef("!atf", index_param=CommandParamDef(int), setter_param=CommandParamDef(int)), 
+            CommandDef("!atf", index_param=CommandParamDef("atf_index", int), setter_param=CommandParamDef("atf", int)), 
             AnswerDef([AnswerFieldDef("atf", int)]),
             AnswerValidator("")
         ),

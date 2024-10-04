@@ -12,17 +12,16 @@ class CommandExecutor:
         self._command_lookup_table = command_lookup_table
         self._communicator = communicator
 
-
     async def send_command(self, command: Command) -> Answer:
         lookup_command = self._command_lookup_table.get(command.code)
         assert lookup_command is not None # throw error?
 
         request_str = self._create_request_string(command, lookup_command.command_def)
         
-        return await self.send_message(request_str, answer_validator=lookup_command.answer_validator)
+        return await self.send_message(request_str, answer_validator=lookup_command.answer_validator,  **lookup_command.command_def.kwargs)
 
-    async def send_message(self, message: str, answer_validator: AnswerValidator | None = None) -> Answer:
-        response_str = await self._communicator.send_and_wait_for_response(message)
+    async def send_message(self, message: str, answer_validator: AnswerValidator | None = None, **kwargs) -> Answer:
+        response_str = await self._communicator.send_and_wait_for_response(message, **kwargs)
         
         if answer_validator is None:
             command_code = self._lookup_message(message)

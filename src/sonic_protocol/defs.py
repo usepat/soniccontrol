@@ -156,6 +156,7 @@ class ConverterType(Enum):
 
 @attrs.define()
 class CommandParamDef(Generic[T]):
+    name: str = attrs.field()
     param_type: type[T] = attrs.field()
     allowed_values: List[T] | None = attrs.field(default=None) # can we do this better with enum support?
     si_unit: SIUnit | None = attrs.field(default=None)
@@ -167,6 +168,8 @@ class CommandDef:
     string_identifier: str | List[str] = attrs.field()
     index_param: CommandParamDef | None = attrs.field(default=None)
     setter_param: CommandParamDef | None = attrs.field(default=None)
+    kwargs: Dict[str, Any] = attrs.field(default={})
+    example: str | None = attrs.field(default=None)
 
 @attrs.define()
 class AnswerFieldDef(Generic[T]):
@@ -183,6 +186,7 @@ class AnswerFieldDef(Generic[T]):
 @attrs.define()
 class AnswerDef:
     fields: List[AnswerFieldDef] = attrs.field()
+    example: str | None = attrs.field(default=None)
 
 @attrs.define()
 class MetaExportDescriptor:

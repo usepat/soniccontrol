@@ -64,7 +64,7 @@ class AnswerValidator:
     def __init__(
         self,
         pattern: str,
-        **kwargs: type[Any] | Callable[[Any], Any] | AfterConverter,
+        **kwargs: type[Any] | Callable[[Any], Any] | AfterConverter | Converter,
     ) -> None:
         """
         Initializes the CommandValidator instance with the specified pattern and converters.

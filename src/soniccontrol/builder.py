@@ -1,11 +1,13 @@
 import logging
 from typing import Any, Dict, Tuple, Union
 
-from soniccontrol.command import Answer
+from sonic_protocol.defs import Version
+from soniccontrol.command import LegacyAnswer, LegacyAnswerValidator
 from soniccontrol.commands import CommandSet, CommandSetLegacy
 from soniccontrol.communication.communicator import Communicator
+from soniccontrol.communication.serial_communicator import LegacySerialCommunicator
 from soniccontrol.sonic_device import (
-    Command,
+    LegacyCommand,
     Info,
     SonicDevice,
     Status,
@@ -14,7 +16,7 @@ from soniccontrol.sonic_device import (
 
 class DeviceBuilder:
     def _add_commands_from_list_command_answer(
-        self, commands: CommandSet, sonicAmp: SonicDevice, answer: Answer
+        self, commands: CommandSet, sonicAmp: SonicDevice, answer: LegacyAnswer
     ) -> None:
         command_names = answer.string.split("#")
         for command_name in command_names:
@@ -29,13 +31,41 @@ class DeviceBuilder:
             if command:
                 sonicAmp.add_command(command)
 
+    def _parse_legacy_handshake(self, ser: LegacySerialCommunicator) -> Dict[str, Any]:
+        init_command = LegacyCommand(
+            estimated_response_time=0.5,
+            _validators=[
+                LegacyAnswerValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
+                LegacyAnswerValidator(
+                    pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int
+                ),
+                LegacyAnswerValidator(pattern=r".*gain\s*=?\s*([\d]+).*", gain=int),
+                LegacyAnswerValidator(
+                    pattern=r".*signal.*(on|off).*",
+                    signal=lambda b: b.lower() == "on",
+                ),
+                LegacyAnswerValidator(
+                    pattern=r".*(serial|manual).*",
+                    communication_mode=str,
+                ),
+            ],
+            serial_communication=ser,
+        )
+        init_command.answer.receive_answer(
+            ser.handshake_result
+        )
+        init_command.validate()
+        
+        return init_command.status_result
+        
+
     async def build_amp(self, ser: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger = logging.getLogger(), try_connection: bool = True) -> SonicDevice:
         builder_logger = logging.getLogger(logger.name + "." + DeviceBuilder.__name__)
         
         await ser.connection_opened.wait()
         builder_logger.debug("Serial connection is open, start building device")
 
-        result_dict: Dict[str, Any] = ser.handshake_result
+        result_dict: Dict[str, Any] = self._parse_legacy_handshake(ser) if isinstance(ser, LegacySerialCommunicator) else {}
         
         if try_connection:
             builder_logger.debug("Try to figure out which device it is with ?info, ?type, ?")
@@ -65,7 +95,7 @@ class DeviceBuilder:
         builder_logger.info("Firmware info: %s", info.firmware_info)
 
         builder_logger.debug("Build device")
-        sonicamp: SonicDevice = SonicDevice(serial=ser, info=info, status=status, logger=logger)
+        sonicamp: SonicDevice = SonicDevice(_serial=ser, _info=info, _status=status, _logger=logger)
 
         if isinstance(commands, CommandSet):
             builder_logger.debug("Get list of available commands of device")
@@ -80,14 +110,14 @@ class DeviceBuilder:
                 raise Exception("Wtf, the new devices with Sonic Protocol v2 have to implement get_command_list")
         else:
 
-            basic_commands: Tuple[Command, ...] = (
+            basic_commands: Tuple[LegacyCommand, ...] = (
                 commands.signal_on,
                 commands.signal_off,
                 commands.get_overview,
                 commands.get_info,
             )
 
-            basic_catch_commands: Tuple[Command, ...] = (
+            basic_catch_commands: Tuple[LegacyCommand, ...] = (
                 commands.set_frequency,
                 commands.set_gain,
                 commands.set_serial_mode,
@@ -95,7 +125,7 @@ class DeviceBuilder:
                 commands.set_mhz_mode,
             )
 
-            atf_commands: Tuple[Command, ...] = (
+            atf_commands: Tuple[LegacyCommand, ...] = (
                 commands.set_atf1,
                 commands.get_atf1,
                 commands.set_atk1,
@@ -109,9 +139,9 @@ class DeviceBuilder:
                 commands.get_att1,
             )
 
-            basic_wipe_commands: Tuple[Command, ...] = (commands.set_frequency,)
+            basic_wipe_commands: Tuple[LegacyCommand, ...] = (commands.set_frequency,)
 
-            basic_descale_commands: Tuple[Command, ...] = (
+            basic_descale_commands: Tuple[LegacyCommand, ...] = (
                 commands.set_switching_frequency,
                 commands.set_analog_mode,
                 commands.set_serial_mode,
@@ -120,19 +150,19 @@ class DeviceBuilder:
 
             builder_logger.debug("Add commands depending on the version and type of the device")
             sonicamp.add_commands(basic_commands)
-            if sonicamp.info.firmware_version >= (0, 3, 0):
+            if sonicamp.info.firmware_version >= Version(0, 3, 0):
                 sonicamp.add_commands((commands.get_status, commands.get_type))
 
             if sonicamp.info.device_type == "catch":
                 sonicamp.add_commands(basic_catch_commands)
-                if sonicamp.info.firmware_version[:2] == (0, 3):
+                if sonicamp.info.firmware_version == Version(0, 3, 0):
                     sonicamp.add_command(commands.get_sens)
-                elif sonicamp.info.firmware_version[:2] == (0, 4):
+                elif sonicamp.info.firmware_version == Version(0, 4, 0):
                     sonicamp.add_command(commands.get_sens_factorised)
-                elif sonicamp.info.firmware_version[:2] == (0, 5):
+                elif sonicamp.info.firmware_version == Version(0, 5, 0):
                     sonicamp.add_command(commands.get_sens_fullscale_values)
 
-                if sonicamp.info.firmware_version >= (0, 4, 0):
+                if sonicamp.info.firmware_version >= Version(0, 4, 0):
                     sonicamp.add_commands(atf_commands)
                     for command in atf_commands:
                         await sonicamp.execute_command(command)
