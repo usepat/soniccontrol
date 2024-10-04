@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Literal, Optional, Tuple
 import attrs
 from icecream import ic
 
-from sonic_protocol.defs import Version
+from sonic_protocol.defs import DeviceType, Version
 
 
 def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
@@ -159,7 +159,7 @@ class Status:
         self._changed_data.clear()
         kwargs["timestamp"] = (
             datetime.datetime.now()
-            if not kwargs.get("timestamp")
+            if "timestamp" not in kwargs
             else datetime.datetime.fromtimestamp(kwargs.get("timestamp"))
         )
         procedure = self.procedure
@@ -215,6 +215,7 @@ class Modules:
 
 @attrs.define
 class Info:
+    # TODO refactor this
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="") # TODO does not match with validators of info command
     firmware_version: Version = attrs.field(default=Version(0, 0, 0), converter=Version.to_version) # TODO: delete this. Is just there, so I can implement in the meantime the home tab

@@ -28,7 +28,7 @@ class Home(UIComponent):
     def _initialize_info(self) -> None:
         device_type = self._device.info.device_type
         firmware_version = str(self._device.info.firmware_version)
-        protocol_version = "v" + str(self._device.serial.protocol.major_version)
+        protocol_version = "v" + str(self._device.communicator.protocol.major_version)
         self._view.set_device_type(device_type)
         self._view.set_firmware_version(firmware_version)
         self._view.set_protocol_version(protocol_version)

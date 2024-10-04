@@ -25,6 +25,13 @@ answer_frequency = AnswerFieldDef(
     description=None
 )
 
+# The ?protocol command is the most important command
+# Without ?protocol there is no way to determine which protocol is used.
+# So this command is needed.
+# There should also only exist one version of this command
+# If you want to extend the ?protocol command. consider adding other commands
+protocol_command = None
+
 frequency_command = CommandContract(
     code=CommandCode.SET_FREQ,
     command_defs=[

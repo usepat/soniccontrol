@@ -3,18 +3,18 @@ import logging
 from typing import Dict
 from asyncio import StreamReader
 
-from soniccontrol.communication.sonicprotocol import SonicProtocol
+from soniccontrol.communication.package_protocol import PackageProtocol
 from soniccontrol.system import PLATFORM
 
 
 class PackageFetcher:
-    def __init__(self, reader: StreamReader, protocol: SonicProtocol, logger: logging.Logger = logging.getLogger()) -> None:
+    def __init__(self, reader: StreamReader, protocol: PackageProtocol, logger: logging.Logger = logging.getLogger()) -> None:
         self._reader = reader
         self._answers: Dict[int, str] = {}
         self._answer_received: Dict[int, asyncio.Event] = {}
         self._messages = asyncio.Queue(maxsize=100)
         self._task = None
-        self._protocol: SonicProtocol = protocol
+        self._protocol: PackageProtocol = protocol
         self._logger: logging.Logger = logging.getLogger(logger.name + "." + PackageFetcher.__name__)
 
     async def get_answer_of_package(self, package_id: int) -> str:

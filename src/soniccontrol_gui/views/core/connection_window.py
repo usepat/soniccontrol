@@ -71,7 +71,7 @@ class DeviceWindowManager:
             )
             logger.debug("Build SonicDevice for device")
             sonicamp = await DeviceBuilder().build_amp(ser=serial, commands=commands, logger=logger)
-            await sonicamp.serial.connection_opened.wait()
+            await sonicamp.communicator.connection_opened.wait()
         except ConnectionError as e:
             logger.error(e)
             message = ui_labels.COULD_NOT_CONNECT_MESSAGE.format(str(e))

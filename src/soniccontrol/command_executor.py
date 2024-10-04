@@ -12,6 +12,11 @@ class CommandExecutor:
         self._command_lookup_table = command_lookup_table
         self._communicator = communicator
 
+    def has_command(self, command: CommandCode | Command) -> bool:
+        if isinstance(command, Command):
+            return command.code in self._command_lookup_table
+        return command in self._command_lookup_table
+
     async def send_command(self, command: Command) -> Answer:
         lookup_command = self._command_lookup_table.get(command.code)
         assert lookup_command is not None # throw error?

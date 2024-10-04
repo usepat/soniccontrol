@@ -95,7 +95,7 @@ class DeviceBuilder:
         builder_logger.info("Firmware info: %s", info.firmware_info)
 
         builder_logger.debug("Build device")
-        sonicamp: SonicDevice = SonicDevice(_serial=ser, _info=info, _status=status, _logger=logger)
+        sonicamp: SonicDevice = SonicDevice(_communicator=ser, _info=info, _status=status, _logger=logger)
 
         if isinstance(commands, CommandSet):
             builder_logger.debug("Get list of available commands of device")
