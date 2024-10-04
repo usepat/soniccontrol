@@ -46,21 +46,25 @@ class Converter:
             self._converted = True
             return self._result
 
+
+@attrs.define
+class AfterConverter:
+    converter: Converter = attrs.field()
+    keywords: List[str] = attrs.field(default=[])
+
 # TODO: fix linter errors. Improve type hints
 @attrs.define
 class AnswerValidator:
-    pattern: str = attrs.field()
-    _converters: Dict[str, Converter] = attrs.field(converter=dict, repr=False)
-    _after_converters: Dict[
-        str, Dict[Literal["worker", "keywords"], Union[Converter, str]]
-    ] = attrs.field(repr=False)
-    _result: Dict[str, Any] = attrs.field(init=False, factory=dict, repr=False)
+    pattern: str = attrs.field(on_setattr=None)
+    _named_pattern: str = attrs.field(init=False)
+    _converters: Dict[str, Converter] = attrs.field(init=False, repr=False)
+    _after_converters: Dict[str, AfterConverter] = attrs.field(init=False, repr=False)
     _compiled_pattern: re.Pattern[str] = attrs.field(init=False, repr=False)
 
     def __init__(
         self,
         pattern: str,
-        **kwargs: type[Any] | Callable[[Any], Any] | dict[str, Any],
+        **kwargs: type[Any] | Callable[[Any], Any] | AfterConverter,
     ) -> None:
         """
         Initializes the CommandValidator instance with the specified pattern and converters.
@@ -92,30 +96,27 @@ class AnswerValidator:
         Returns:
             None
         """
-        workers: dict[str, Callable[[Any], Any]] = dict()
-        after_workers: dict[str, Callable[[Any], Any]] = dict()
+        workers: dict[str, Converter] = dict()
+        after_workers: dict[str, AfterConverter] = dict()
 
         for keyword, worker in kwargs.items():
-            if isinstance(worker, dict):
-                worker["worker"] = Converter(worker["worker"])
+            if isinstance(worker, AfterConverter):
                 after_workers[keyword] = worker
                 continue
-            workers[keyword] = Converter(worker)
 
-        self.__attrs_init__(
-            pattern=pattern,
-            converters=workers,
-            after_converters=after_workers,
-        )
-
-    def __attrs_post_init__(self) -> None:
-        self.pattern = self.generate_named_pattern(
-            pattern=self.pattern, keywords=self._converters.keys()
+            workers[keyword] = worker if isinstance(worker, Converter) else Converter(worker)
+        
+        self.pattern = pattern
+        self._converters = workers
+        self._after_converters = after_workers
+        self._named_pattern = self.generate_named_pattern(
+            pattern=self.pattern, keywords=list(self._converters.keys())
         )
         self._compiled_pattern = re.compile(
-            pattern=self.pattern,
+            pattern=self._named_pattern,
             flags=re.IGNORECASE,
         )
+
 
     @staticmethod
     def generate_named_pattern(pattern: str, keywords: List[str]) -> str:
@@ -142,20 +143,18 @@ class AnswerValidator:
         """
         if not keywords:
             return pattern
-        keyword_iter = iter(keywords)
-        try:
-            segments = re.split(r"(\(.*?\))", pattern)
-            processed = "".join(
-                (
-                    f"(?P<{next(keyword_iter)}>{segment[1:-1]})"
-                    if not segment.startswith("(?:") and segment.startswith("(")
-                    else segment
-                )
-                for segment in segments
-                if segment
+        segments = re.split(r"(\(.*?\))", pattern)
+
+        assert len(segments) == len(keywords)
+        processed = "".join(
+            (
+                f"(?P<{keyword}>{segment[1:-1]})"
+                if not segment.startswith("(?:") and segment.startswith("(")
+                else segment
             )
-        except StopIteration:
-            pass
+            for keyword, segment in zip(keywords, segments)
+            if segment
+        )
         return processed
 
     def validate(self, data: str) -> Answer:
@@ -169,22 +168,21 @@ class AnswerValidator:
         Returns:
             bool: True if the data matches the pattern and conversions are successful, False otherwise.
         """
-        if not data:
-            return Answer(data, False, True)
+
         result: Optional[re.Match] = self._compiled_pattern.search(data)
         if result is None:
             return Answer(data, False, True)
 
         result_dict: Dict[str, Any] = {
-            keyword: self._converters[keyword].convert(result.groupdict().get(keyword))
-            for keyword in result.groupdict().keys()
+            keyword: self._converters[keyword].convert(value)
+            for keyword, value in result.groupdict().items()
         }
         result_dict.update(
             {
-                keyword: self._after_converters[keyword]["worker"].convert(
+                keyword: self._after_converters[keyword].converter.convert(
                     **{
-                        k: self._result.get(k)
-                        for k in worker["keywords"]
+                        k: result_dict.get(k)
+                        for k in worker.keywords
                         if k in result.groupdict()
                     }
                 )
