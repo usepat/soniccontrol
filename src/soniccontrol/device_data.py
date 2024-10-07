@@ -160,7 +160,7 @@ class Status:
         kwargs["timestamp"] = (
             datetime.datetime.now()
             if "timestamp" not in kwargs
-            else datetime.datetime.fromtimestamp(kwargs.get("timestamp"))
+            else datetime.datetime.fromtimestamp(kwargs["timestamp"])
         )
         procedure = self.procedure
         changed: bool = False

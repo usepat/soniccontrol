@@ -70,7 +70,7 @@ class DeviceWindowManager:
                 logger=logger
             )
             logger.debug("Build SonicDevice for device")
-            sonicamp = await DeviceBuilder().build_amp(ser=serial, commands=commands, logger=logger)
+            sonicamp = await DeviceBuilder().build_amp(comm=serial, commands=commands, logger=logger)
             await sonicamp.communicator.connection_opened.wait()
         except ConnectionError as e:
             logger.error(e)
@@ -82,7 +82,7 @@ class DeviceWindowManager:
             serial: Communicator = LegacySerialCommunicator(logger=logger) #type: ignore
             commands = CommandSetLegacy(serial)
             await serial.open_communication(connection_factory)
-            sonicamp = await DeviceBuilder().build_amp(ser=serial, commands=commands, logger=logger, try_connection=False)
+            sonicamp = await DeviceBuilder().build_amp(comm=serial, commands=commands, logger=logger, try_deduce_protocol=False)
             self.open_rescue_window(sonicamp, connection_factory)
         except Exception as e:
             logger.error(e)

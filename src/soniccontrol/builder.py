@@ -1,36 +1,24 @@
+import asyncio
 import logging
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
-from sonic_protocol.defs import Version
-from soniccontrol.command import LegacyAnswer, LegacyAnswerValidator
+from sonic_protocol import protocol
+from sonic_protocol.defs import CommandCode, DeviceType, Version
+from sonic_protocol.protocol_builder import ProtocolBuilder
+from soniccontrol.command import LegacyAnswerValidator, LegacyCommand
+from soniccontrol.command_executor import CommandExecutor
 from soniccontrol.commands import CommandSet, CommandSetLegacy
 from soniccontrol.communication.communicator import Communicator
 from soniccontrol.communication.serial_communicator import LegacySerialCommunicator
 from soniccontrol.sonic_device import (
-    LegacyCommand,
     Info,
     SonicDevice,
     Status,
 )
+import sonic_protocol.commands as cmds
 
 
 class DeviceBuilder:
-    def _add_commands_from_list_command_answer(
-        self, commands: CommandSet, sonicAmp: SonicDevice, answer: LegacyAnswer
-    ) -> None:
-        command_names = answer.string.split("#")
-        for command_name in command_names:
-            command_attrs = [
-                command
-                for name, command in commands.__dict__.items()
-                if not name.startswith("_") and not callable(command)
-            ]
-            command = next(
-                filter(lambda c: c.message == command_name, command_attrs), None
-            )
-            if command:
-                sonicAmp.add_command(command)
-
     def _parse_legacy_handshake(self, ser: LegacySerialCommunicator) -> Dict[str, Any]:
         init_command = LegacyCommand(
             estimated_response_time=0.5,
@@ -59,19 +47,125 @@ class DeviceBuilder:
         return init_command.status_result
         
 
-    async def build_amp(self, ser: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger = logging.getLogger(), try_connection: bool = True) -> SonicDevice:
+    async def _deduce_protocol_of_legacy_device(self, comm: Communicator) -> Dict[str, Any]:
+        """!
+            We basically try to send ?info, ?type and ?.
+            Then we try to iterate through all possible combinations of device types and protocol versions.
+            We look if we find a validator that can parse the response and then save it in result_dict
+
+            @return Returns a dict with all the information that were successfully parsed
+        """
+        
+        result_dict: Dict[str, Any] = {}
+
+        commands = ["?info", "?type", "?"]
+        command_codes = [CommandCode.GET_INFO, CommandCode.GET_TYPE, CommandCode.QUESTIONMARK]
+        requests = [comm.send_and_wait_for_response(req) for req in commands]
+        responses = await asyncio.gather(*requests)
+        responses = zip(command_codes, responses)
+
+        versions: List[Version] = [
+            Version(0, 3, 0),
+            Version(0, 4, 0),
+            Version(0, 5, 0),
+        ]
+        legacy_device_types = [
+            DeviceType.UNKNOWN,
+            DeviceType.CATCH,
+            DeviceType.DESCALE,
+            DeviceType.WIPE,
+        ]
+        for version in versions:
+            for device_type in legacy_device_types:
+                command_lookups = ProtocolBuilder(protocol.protocol).build(device_type, version, True)
+                for command_code, response in responses:
+                    if command_code not in command_lookups:
+                        continue
+                    validator = command_lookups[command_code].answer_validator
+                    answer = validator.validate(response)
+                    if answer.valid:
+                        result_dict.update(**answer.value_dict)
+
+        if "firmware_version" in result_dict:
+            result_dict.update(protocol_version=result_dict["firmware_version"])             
+        return result_dict
+
+
+    async def build_amp(self, comm: Communicator, commands: Union[CommandSet, CommandSetLegacy], logger: logging.Logger = logging.getLogger(), try_deduce_protocol: bool = True) -> SonicDevice:
+        """!
+        @param try_deduce_protocol This param can be set to False, so that it does not try to deduce which protocol to use. Used for the rescue window
+        """
+        
         builder_logger = logging.getLogger(logger.name + "." + DeviceBuilder.__name__)
         
-        await ser.connection_opened.wait()
+        # connect
+        await comm.connection_opened.wait()
         builder_logger.debug("Serial connection is open, start building device")
 
-        result_dict: Dict[str, Any] = self._parse_legacy_handshake(ser) if isinstance(ser, LegacySerialCommunicator) else {}
+        result_dict: Dict[str, Any] = self._parse_legacy_handshake(comm) if isinstance(comm, LegacySerialCommunicator) else {}
         
-        if try_connection:
+        device_type: DeviceType = DeviceType.UNKNOWN
+        protocol_version: Version = Version(1, 0, 0)
+        is_release: bool = True
+        protocol_builder = ProtocolBuilder(protocol.protocol)
+        base_command_lookups = protocol_builder.build(device_type, protocol_version, is_release)
+
+        executor: CommandExecutor = CommandExecutor(base_command_lookups, comm)
+
+        # deduce the right protocol version, device_type and build_type
+        if try_deduce_protocol:
+            builder_logger.debug("Try to figure out which protocol to use with ?protocol")
+            answer = await executor.send_command(cmds.GetProtocol())
+            if answer.valid:
+                assert("device_type" in answer.value_dict)
+                assert("protocol_version" in answer.value_dict)
+                assert("is_release" in answer.value_dict)
+                device_type = answer.value_dict["device_type"]
+                protocol_version = answer.value_dict["protocol_version"]
+                is_release = answer.value_dict["is_release"]
+                result_dict.update(**answer.value_dict)
+            else:
+                builder_logger.debug("Device does not understand ?protocol command. Try to figure out which device it is with ?info, ?type, ?")
+                parsed_values = await self._deduce_protocol_of_legacy_device(comm)
+                device_type = parsed_values.get("device_type", DeviceType.UNKNOWN)
+                protocol_version = parsed_values.get("protocol_version", Version(0, 0, 0))
+                is_release = True # old devices are not anymore in development. There exists only release versions of them
+                result_dict.update(**parsed_values)
+
+        # create device
+        builder_logger.info("The device is a %s with a %s build and understands the protocol %s", device_type.value, "release" if is_release else "build", str(protocol_version))
+        command_lookups = protocol_builder.build(device_type, protocol_version, is_release)
+
+        status = Status()
+        info = Info()
+        device = SonicDevice(comm, command_lookups, status, info, logger)
+
+        # update status
+        if device.command_executor.has_command(cmds.GetUpdate()):
+            await device.execute_command(cmds.GetUpdate())
+
+        # update info
+        if protocol_version >= Version(1, 0, 0):
+            answer = await device.execute_command(cmds.GetInfo(), should_log=False)
+            result_dict.update(**answer.value_dict)
+        info.update(**result_dict)
+
+        builder_logger.info("Device type: %s", info.device_type)
+        builder_logger.info("Firmware version: %s", info.firmware_version)
+        builder_logger.info("Firmware info: %s", info.firmware_info)
+
+        return device
+
+        # -----------------------------------------------
+        # TODO: refactor old code into protocol
+        # This is the old code used
+        # Before we remove it, we need to add the command contracts into the protocol
+
+        if try_deduce_protocol:
             builder_logger.debug("Try to figure out which device it is with ?info, ?type, ?")
             if isinstance(commands, CommandSetLegacy):
                 await commands.get_type.execute(should_log=False)
-                if commands.get_type.answer.valid:
+                if cuseommands.get_type.answer.valid:
                     result_dict.update(commands.get_type.status_result)
 
             await commands.get_info.execute(should_log=False)
@@ -95,7 +189,7 @@ class DeviceBuilder:
         builder_logger.info("Firmware info: %s", info.firmware_info)
 
         builder_logger.debug("Build device")
-        sonicamp: SonicDevice = SonicDevice(_communicator=ser, _info=info, _status=status, _logger=logger)
+        sonicamp: SonicDevice = SonicDevice(_communicator=comm, info=info, status=status, _logger=logger)
 
         if isinstance(commands, CommandSet):
             builder_logger.debug("Get list of available commands of device")

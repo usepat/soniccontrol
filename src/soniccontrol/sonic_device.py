@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import  Union, Iterable
 
 import attrs
 from sonic_protocol.answer import Answer
@@ -8,25 +7,23 @@ from sonic_protocol.commands import Command
 from sonic_protocol.protocol_builder import CommandLookUpTable
 from soniccontrol.command_executor import CommandExecutor
 from soniccontrol.device_data import Info, Status
-from soniccontrol.commands import  LegacyAnswerValidator
 from soniccontrol.interfaces import Scriptable
 from soniccontrol.communication.serial_communicator import Communicator
-
-CommandValitors = Union[LegacyAnswerValidator, Iterable[LegacyAnswerValidator]]
-
-parrot_feeder = logging.getLogger("parrot_feeder")
 
 
 @attrs.define(kw_only=True)
 class SonicDevice(Scriptable):
     _communicator: Communicator = attrs.field()
-    _logger: logging.Logger = attrs.field(default=logging.getLogger())
-    command_executor: CommandExecutor = attrs.field(init=False, on_setattr=None)
-    _status: Status = attrs.field()
-    _info: Info = attrs.field()
+    _logger: logging.Logger = attrs.field()
+    command_executor: CommandExecutor = attrs.field(on_setattr=None)
+    status: Status = attrs.field(on_setattr=None)
+    info: Info = attrs.field(on_setattr=None)
 
-    def __attrs_post_init__(self, lookup_table: CommandLookUpTable) -> None:
-        self._logger = logging.getLogger(self._logger.name + "." + SonicDevice.__name__)
+    def __init__(self, communicator: Communicator, lookup_table: CommandLookUpTable, status: Status, info: Info, logger: logging.Logger=logging.getLogger()) -> None:
+        self.status = status
+        self.info = info
+        self._logger = logging.getLogger(logger.name + "." + SonicDevice.__name__)
+        self._communicator = communicator
         self.command_executor = CommandExecutor(lookup_table, self._communicator)
 
     @property
@@ -38,16 +35,8 @@ class SonicDevice(Scriptable):
         self._communicator = communicator
         self.command_executor._communicator = communicator
 
-    @property
-    def status(self) -> Status:
-        return self._status
-
-    @property
-    def info(self) -> Info:
-        return self._info
-
     def get_remote_proc_finished_event(self) -> asyncio.Event:
-        return self._status.remote_proc_finished_running
+        return self.status.remote_proc_finished_running
 
     async def disconnect(self) -> None:
         if self.communicator.connection_opened.is_set():
@@ -85,27 +74,26 @@ class SonicDevice(Scriptable):
             >>> await sonicamp.execute_command("power_on")
             "Device powered on."
         """
+        if should_log:
+            command_str = command if isinstance(command, str) else str(command.__class__)
+            self._logger.info("Execute command %s", command_str)
+        
         try:
             if isinstance(command, str):
-                if should_log:
-                    self._logger.info("Execute command %s", str(command.__class__))
-
                 answer = await self.command_executor.send_message(
                     command, 
                     estimated_response_time=0.4,
                     expects_long_answer=True
                 )
             else:
-                if should_log:
-                    self._logger.info("Execute command %s", str(command.__class__))
-            
                 answer = await self.command_executor.send_command(command)
         except Exception as e:
             self._logger.error(e)
             await self.disconnect()
             return Answer(str(e), False, True)
 
-        await self._status.update(**answer.value_dict, **status_kwargs_if_valid_command)
+        kwargs = status_kwargs_if_valid_command if answer.valid else {}
+        await self.status.update(**answer.value_dict, **kwargs)
         return answer
 
 

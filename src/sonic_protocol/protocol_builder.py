@@ -36,19 +36,21 @@ class ProtocolBuilder:
             for command in commands:
                 if release and not command.is_release:
                     continue
-
-                command_def = self._filter_defs(command.command_defs, version, device_type)
-                answer_def = self._filter_defs(command.answer_defs, version, device_type)
-                validator = AnswerValidatorBuilder().create_answer_validator(answer_def)
-                lookups[command.code] = CommandLookUp(
-                    command_def,
-                    answer_def,
-                    validator,
-                    command.description
-                )
+                lookups[command.code] = self._extract_command_lookup(command, version, device_type)
 
         return lookups
 
+
+    def _extract_command_lookup(self, command: CommandContract, version: Version, device_type: DeviceType) -> CommandLookUp:
+        command_def = self._filter_defs(command.command_defs, version, device_type)
+        answer_def = self._filter_defs(command.answer_defs, version, device_type)
+        validator = AnswerValidatorBuilder().create_answer_validator(answer_def)
+        return CommandLookUp(
+            command_def,
+            answer_def,
+            validator,
+            command.description
+        )
 
     def _filter_defs(self, defs: List[T | MetaExport[T]], version: Version, device_type: DeviceType) -> T:
         for def_entry in defs:
@@ -58,5 +60,4 @@ class ProtocolBuilder:
             else:
                 return def_entry
         raise LookupError(f"There was no definition exported for the combination of version {version} and type {device_type}")
-
     

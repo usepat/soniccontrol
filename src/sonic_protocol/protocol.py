@@ -1,5 +1,6 @@
+from enum import Enum
 from sonic_protocol.defs import (
-    CommandCode, CommandListExport, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
+    CommandCode, CommandExport, CommandListExport, ConverterType, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
     AnswerFieldDef, CommandContract, DeviceType, SIUnit, SIPrefix
 )
 
@@ -16,7 +17,7 @@ param_frequency = CommandParamDef(
 )
 
 # AnswerFieldDef instances (for "answer_frequency")
-answer_frequency = AnswerFieldDef(
+answer_field_frequency = AnswerFieldDef(
     field_name="frequency",
     field_type=int,
     converter_ref=None,
@@ -24,13 +25,6 @@ answer_frequency = AnswerFieldDef(
     si_prefix=SIPrefix.KILO,
     description=None
 )
-
-# The ?protocol command is the most important command
-# Without ?protocol there is no way to determine which protocol is used.
-# So this command is needed.
-# There should also only exist one version of this command
-# If you want to extend the ?protocol command. consider adding other commands
-protocol_command = None
 
 frequency_command = CommandContract(
     code=CommandCode.SET_FREQ,
@@ -43,7 +37,7 @@ frequency_command = CommandContract(
     ],
     answer_defs=[
         AnswerDef(
-            fields=[answer_frequency]
+            fields=[answer_field_frequency]
         )
     ],
     description="Command to set the frequency of the transducer on the device.",
@@ -52,17 +46,46 @@ frequency_command = CommandContract(
 )
 
 
+# The ?protocol command is the most important command
+# Without ?protocol there is no way to determine which protocol is used.
+# So this command is needed.
+# There should also only exist one version of this command
+# If you want to extend the ?protocol command. consider adding other commands
+get_protocol_command = CommandContract(
+    code=CommandCode.GET_PROTOCOL,
+    command_defs=[
+        CommandDef(string_identifier="?protocol")
+    ],
+    answer_defs=[
+        AnswerDef(
+            fields=[
+                AnswerFieldDef(field_name="device_type", field_type=DeviceType, converter_ref=ConverterType.ENUM),
+                AnswerFieldDef(field_name="version", field_type=Version, converter_ref=ConverterType.VERSION),
+                AnswerFieldDef(field_name="is_release", field_type=bool, converter_ref=ConverterType.BUILD_TYPE, allowed_values_str=["release", "debug"])
+            ]
+        )
+    ],
+    is_release=True
+)
+
 # Protocol instance
 protocol = Protocol(
-    version=version,
+    version=Version(1, 0, 0),
     commands=[
+        CommandListExport(
+            exports=[
+                get_protocol_command 
+            ],
+            descriptor=MetaExportDescriptor(
+                min_protocol_version=Version(major=1, minor=0, patch=0)
+            )
+        ),
         CommandListExport(
             exports=[
                 frequency_command
             ],
             descriptor = MetaExportDescriptor(
                 min_protocol_version=Version(major=1, minor=0, patch=0),
-                deprecated_protocol_version=None,
                 excluded_device_types=[DeviceType.DESCALE]
             )
         )

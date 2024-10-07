@@ -3,9 +3,6 @@ from typing import Any, Dict, List, Tuple, Type, TypeVar, Generic
 import attrs
 
 
-T = TypeVar("T", int, float, str)
-
-
 @attrs.define(order=True) # order True, lets attrs define automatically comparision methods
 class Version:
     major: int = attrs.field()
@@ -35,19 +32,24 @@ class Version:
 
 
 class DeviceType(Enum):
-    DESCALE = 0
-    CATCH = 1
-    MVP_WORKER = 2
-
+    UNKNOWN = "unknown"
+    DESCALE = "descale"
+    CATCH = "catch"
+    WIPE = "wipe"
+    MVP_WORKER = "mvp_worker"
 
 
 class CommandCode(IntEnum):
+    # legacy commands, that are not supported anymore have negative numbers
+    GET_TYPE = -1
+
     INVALID = 0
     UNIMPLEMENTED = 1
     SHUT_DOWN = 2
     LIST_AVAILABLE_COMMANDS = 3
     GET_HELP = 4
     # NOTIFY = 5 (commented out in the original)
+    GET_PROTOCOL = 6
     EQUALSIGN = 10
     DASH = 20
 
@@ -152,7 +154,12 @@ class SIPrefix(Enum):
 
 class ConverterType(Enum):
     SIGNAL = 0
+    VERSION = 1
+    ENUM = 2
+    BUILD_TYPE = 3
 
+
+T = TypeVar("T", int, float, bool, str, Version, Enum)
 
 @attrs.define()
 class CommandParamDef(Generic[T]):
@@ -176,6 +183,7 @@ class AnswerFieldDef(Generic[T]):
     field_name: str = attrs.field()
     field_type: type[T] = attrs.field()
     allowed_values: List[T] | None = attrs.field(default=None)
+    allowed_values_str: List[str] | None = attrs.field(default=None)
     converter_ref: ConverterType | None = attrs.field(default=None) # converters are defined in the code and the json only references to them
     si_unit: SIUnit | None = attrs.field(default=None)
     si_prefix: SIPrefix | None = attrs.field(default=None)
