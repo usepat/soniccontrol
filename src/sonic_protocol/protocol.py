@@ -1,6 +1,5 @@
-from enum import Enum
 from sonic_protocol.defs import (
-    CommandCode, CommandExport, CommandListExport, ConverterType, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
+    CommandCode, CommandListExport, ConverterType, StatusAttr, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
     AnswerFieldDef, CommandContract, DeviceType, SIUnit, SIPrefix
 )
 
@@ -9,7 +8,7 @@ version = Version(major=1, minor=0, patch=0)
 
 # CommandParamDef instances (for "param_frequency")
 param_frequency = CommandParamDef(
-    name="frequency",
+    name=StatusAttr.FREQUENCY,
     param_type=int,
     si_unit=SIUnit.HERTZ,
     si_prefix=SIPrefix.KILO,
@@ -18,7 +17,7 @@ param_frequency = CommandParamDef(
 
 # AnswerFieldDef instances (for "answer_frequency")
 answer_field_frequency = AnswerFieldDef(
-    field_name="frequency",
+    field_name=StatusAttr.FREQUENCY,
     field_type=int,
     converter_ref=None,
     si_unit=SIUnit.HERTZ,

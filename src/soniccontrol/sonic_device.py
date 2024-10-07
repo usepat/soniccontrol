@@ -15,9 +15,9 @@ from soniccontrol.communication.serial_communicator import Communicator
 class SonicDevice(Scriptable):
     _communicator: Communicator = attrs.field()
     _logger: logging.Logger = attrs.field()
-    command_executor: CommandExecutor = attrs.field(on_setattr=None)
-    status: Status = attrs.field(on_setattr=None)
-    info: Info = attrs.field(on_setattr=None)
+    command_executor: CommandExecutor = attrs.field(on_setattr=attrs.setters.NO_OP)
+    status: Status = attrs.field(on_setattr=attrs.setters.NO_OP)
+    info: Info = attrs.field(on_setattr=attrs.setters.NO_OP)
 
     def __init__(self, communicator: Communicator, lookup_table: CommandLookUpTable, status: Status, info: Info, logger: logging.Logger=logging.getLogger()) -> None:
         self.status = status

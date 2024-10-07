@@ -3,22 +3,26 @@
 import logging
 import re
 import sys
-import time
-from typing import Any, Callable, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, List,  Optional
 
 import attrs
+
+from sonic_protocol.defs import CommandCode
 
 
 
 @attrs.define()    
 class Answer:
-    # on_setattr=None, prevents the generation of a setter for an attribute.
-    message: str = attrs.field(on_setattr=None) 
+    message: str = attrs.field(on_setattr=attrs.setters.NO_OP) 
     # TODO: probably better to make an enum ValidationStatus and merge valid and was_validated
-    valid: bool = attrs.field(on_setattr=None)
-    was_validated: bool = attrs.field(on_setattr=None)
-    value_dict: Dict[str, Any] = attrs.field(default={}, on_setattr=None)
-    # received_timestamp: float = attrs.field(factory=time.time, init=False, on_setattr=None)
+    valid: bool = attrs.field(on_setattr=attrs.setters.NO_OP)
+    was_validated: bool = attrs.field(on_setattr=attrs.setters.NO_OP)
+    command_code: CommandCode | None = attrs.field(default=None)
+    value_dict: Dict[str, Any] = attrs.field(default={}, on_setattr=attrs.setters.NO_OP)
+    # received_timestamp: float = attrs.field(factory=time.time, init=False, on_setattr=attrs.setters.NO_OP)
+
+    def is_error_msg(self) -> bool:
+        return self.command_code is not None and self.command_code.value >= 20000
 
 
 @attrs.define
@@ -55,7 +59,7 @@ class AfterConverter:
 # TODO: fix linter errors. Improve type hints
 @attrs.define
 class AnswerValidator:
-    pattern: str = attrs.field(on_setattr=None)
+    pattern: str = attrs.field(on_setattr=attrs.setters.NO_OP)
     _named_pattern: str = attrs.field(init=False)
     _converters: Dict[str, Converter] = attrs.field(init=False, repr=False)
     _after_converters: Dict[str, AfterConverter] = attrs.field(init=False, repr=False)
@@ -190,6 +194,6 @@ class AnswerValidator:
             }
         )
 
-        answer = Answer(data, True, True, result_dict)
+        answer = Answer(data, True, True, value_dict=result_dict)
 
         return answer

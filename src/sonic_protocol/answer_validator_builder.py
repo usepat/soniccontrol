@@ -7,6 +7,8 @@ class AnswerValidatorBuilder:
     def create_answer_validator(self, answer_def: AnswerDef) -> AnswerValidator:
         converters: Dict[ConverterType, Callable | Converter] = {
             ConverterType.SIGNAL: lambda x: x.lower() == "on"
+            # TODO: add other converters
+            # TODO: add converter for validation
         }
         
         value_dict: Dict[str, Callable | Converter] = {}
@@ -28,7 +30,7 @@ class AnswerValidatorBuilder:
         for answer_field in answer_def.fields:
             regex_patterns.append(self._create_regex_for_answer_field(answer_field)) 
 
-        return "#".join(regex_patterns)
+        return answer_def.separator.join(regex_patterns)
     
     def _create_regex_for_answer_field(self, answer_field: AnswerFieldDef) -> str:
         value_str = ""

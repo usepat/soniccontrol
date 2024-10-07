@@ -28,6 +28,12 @@ class CommandExecutor:
     async def send_message(self, message: str, answer_validator: AnswerValidator | None = None, **kwargs) -> Answer:
         response_str = await self._communicator.send_and_wait_for_response(message, **kwargs)
         
+        code: CommandCode | None = None
+        if "#" in response_str:
+            code_str, response_str  = response_str.split("#", maxsplit=1)
+            code = CommandCode(int(code_str))
+        
+
         if answer_validator is None:
             command_code = self._lookup_message(message)
             if command_code is not None:
@@ -38,6 +44,8 @@ class CommandExecutor:
                 answer = Answer(response_str, True, False)
         else:
             answer = answer_validator.validate(response_str)
+        
+        answer.command_code = code
         return answer
 
 

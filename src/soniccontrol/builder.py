@@ -3,22 +3,31 @@ import logging
 from typing import Any, Dict, List, Tuple, Union
 
 from sonic_protocol import protocol
-from sonic_protocol.defs import CommandCode, DeviceType, Version
-from sonic_protocol.protocol_builder import ProtocolBuilder
+from sonic_protocol.defs import CommandCode, DeviceType, StatusAttr, Version
+from sonic_protocol.protocol_builder import CommandLookUp, CommandLookUpTable, ProtocolBuilder
 from soniccontrol.command import LegacyAnswerValidator, LegacyCommand
 from soniccontrol.command_executor import CommandExecutor
 from soniccontrol.commands import CommandSet, CommandSetLegacy
 from soniccontrol.communication.communicator import Communicator
 from soniccontrol.communication.serial_communicator import LegacySerialCommunicator
+from soniccontrol.device_data import StatusBuilder
 from soniccontrol.sonic_device import (
     Info,
     SonicDevice,
-    Status,
 )
 import sonic_protocol.commands as cmds
 
 
 class DeviceBuilder:
+    def _extract_status_fields(self, command_lookups: CommandLookUpTable) -> Dict[StatusAttr, type[Any]]:
+        status_fields: Dict[StatusAttr, type[Any]] = {}
+        for lookup in command_lookups.values():
+            for answer_field in lookup.answer_def.fields:
+                if isinstance(answer_field.field_name, StatusAttr):
+                    status_fields[answer_field.field_name] = answer_field.field_type
+        return status_fields
+
+
     def _parse_legacy_handshake(self, ser: LegacySerialCommunicator) -> Dict[str, Any]:
         init_command = LegacyCommand(
             estimated_response_time=0.5,
@@ -60,8 +69,8 @@ class DeviceBuilder:
 
         commands = ["?info", "?type", "?"]
         command_codes = [CommandCode.GET_INFO, CommandCode.GET_TYPE, CommandCode.QUESTIONMARK]
-        requests = [comm.send_and_wait_for_response(req) for req in commands]
-        responses = await asyncio.gather(*requests)
+        coroutines_requests = [comm.send_and_wait_for_response(req) for req in commands]
+        responses = await asyncio.gather(*coroutines_requests)
         responses = zip(command_codes, responses)
 
         versions: List[Version] = [
@@ -136,11 +145,13 @@ class DeviceBuilder:
         builder_logger.info("The device is a %s with a %s build and understands the protocol %s", device_type.value, "release" if is_release else "build", str(protocol_version))
         command_lookups = protocol_builder.build(device_type, protocol_version, is_release)
 
-        status = Status()
+        status_fields = self._extract_status_fields(command_lookups)
+        status = StatusBuilder().create_status(status_fields)
         info = Info()
         device = SonicDevice(comm, command_lookups, status, info, logger)
-
+    
         # update status
+        await status.update(**result_dict)
         if device.command_executor.has_command(cmds.GetUpdate()):
             await device.execute_command(cmds.GetUpdate())
 
@@ -165,7 +176,7 @@ class DeviceBuilder:
             builder_logger.debug("Try to figure out which device it is with ?info, ?type, ?")
             if isinstance(commands, CommandSetLegacy):
                 await commands.get_type.execute(should_log=False)
-                if cuseommands.get_type.answer.valid:
+                if commands.get_type.answer.valid:
                     result_dict.update(commands.get_type.status_result)
 
             await commands.get_info.execute(should_log=False)
@@ -179,7 +190,6 @@ class DeviceBuilder:
         else:
             builder_logger.debug("Skip ?info and ?type")
 
-        status = Status()
         info = Info()
         await status.update(**result_dict)
         info.update(**result_dict)

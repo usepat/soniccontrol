@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Tuple, Type, TypeVar, Generic
+from typing import Any, Dict, List, TypeVar, Generic
 import attrs
 
 
@@ -131,6 +131,14 @@ class CommandCode(IntEnum):
     SET_RAMP_T_ON = 13014
     SET_RAMP_T_OFF = 13015
 
+    E_INTERNAL_DEVICE_ERROR = 20000
+    E_COMMAND_NOT_KNOWN = 20001
+    E_COMMAND_NOT_IMPLEMENTED = 20002
+    E_COMMAND_NOT_PERMITTED = 20003
+    E_SYNTAX_ERROR = 20004
+    E_INVALID_VALUE = 20005
+    E_PARSING_ERROR = 20006
+
 
 
 class SIUnit(Enum):
@@ -144,7 +152,6 @@ class SIUnit(Enum):
 
 class SIPrefix(Enum):
     NANO  = 'n'   # 10⁻⁹
-    MICRO = 'µ'   # 10⁻⁶
     MILLI = 'm'   # 10⁻³
     NONE  = ''    # 10⁰ (base unit, no prefix)
     KILO  = 'k'   # 10³
@@ -159,11 +166,24 @@ class ConverterType(Enum):
     BUILD_TYPE = 3
 
 
+class StatusAttr(Enum):
+    FREQUENCY = "freq"
+    SWF = "swf"
+    GAIN = "gain"
+    SIGNAL = "signal"
+    URMS = "urms"
+    IRMS = "irms"
+
+    PROCEDURE = "procedure"
+
+    TIME_STAMP = "time_stamp"
+
+
 T = TypeVar("T", int, float, bool, str, Version, Enum)
 
 @attrs.define()
 class CommandParamDef(Generic[T]):
-    name: str = attrs.field()
+    name: StatusAttr = attrs.field()
     param_type: type[T] = attrs.field()
     allowed_values: List[T] | None = attrs.field(default=None) # can we do this better with enum support?
     si_unit: SIUnit | None = attrs.field(default=None)
@@ -180,7 +200,7 @@ class CommandDef:
 
 @attrs.define()
 class AnswerFieldDef(Generic[T]):
-    field_name: str = attrs.field()
+    field_name: StatusAttr | str = attrs.field()
     field_type: type[T] = attrs.field()
     allowed_values: List[T] | None = attrs.field(default=None)
     allowed_values_str: List[str] | None = attrs.field(default=None)
@@ -194,6 +214,7 @@ class AnswerFieldDef(Generic[T]):
 @attrs.define()
 class AnswerDef:
     fields: List[AnswerFieldDef] = attrs.field()
+    separator: str = attrs.field(default="#")
     example: str | None = attrs.field(default=None)
 
 @attrs.define()

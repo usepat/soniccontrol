@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 import ttkbootstrap as ttk
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import View
-from soniccontrol.device_data import Status
+from soniccontrol.device_data import LegacyStatus
 from soniccontrol_gui.constants import (color, events, fonts, sizes,
                                                      style, ui_labels)
 from soniccontrol_gui.utils.image_loader import ImageLoader
@@ -31,7 +31,7 @@ class StatusBar(UIComponent):
         self._status_panel_expanded = not self._status_panel_expanded
         self._view.expand_panel_frame(self._status_panel_expanded)
 
-    def on_update_status(self, status: Status):
+    def on_update_status(self, status: LegacyStatus):
         temperature = status.temperature if status.temperature is not None else 0
         self._view.update_labels(
             f"{status.communication_mode}",
@@ -52,7 +52,7 @@ class StatusPanel(UIComponent):
         self._view = StatusPanelView(parent_slot)
         super().__init__(parent, self._view)
 
-    def on_update_status(self, status: Status):
+    def on_update_status(self, status: LegacyStatus):
         temperature = status.temperature if status.temperature else 0
         self._view.update_stats(
             status.frequency / 1000,
