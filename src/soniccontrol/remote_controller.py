@@ -30,36 +30,39 @@ class RemoteController:
             connection_factory,
             logger=logger
         )
-        self._device = await DeviceBuilder().build_amp(ser=serial, commands=commands, logger=logger)
-        await self._device.serial.connection_opened.wait()
+        self._device = await DeviceBuilder().build_amp(comm=serial, commands=commands, logger=logger)
+        await self._device.communicator.connection_opened.wait()
         self._scripting = LegacyScriptingFacade(self._device)
         self._proc_controller = ProcedureController(self._device)
 
     async def connect_via_serial(self, url: Path) -> None:
         assert self._device is None
-        connection_factory = SerialConnectionFactory(url=url)
         connection_name = url.name
+        connection_factory = SerialConnectionFactory(connection_name=connection_name, url=url)
         await self._connect(connection_factory, connection_name)
         assert self._device is not None
 
     async def connect_via_process(self, process_file: Path) -> None:
         assert self._device is None
-        connection_factory = CLIConnectionFactory(bin_file=process_file)
         connection_name = process_file.name
+        connection_factory = CLIConnectionFactory(connection_name=connection_name, bin_file=process_file)
         await self._connect(connection_factory, connection_name)
         assert self._device is not None
 
     async def set_attr(self, attr: str, val: str) -> str:
         assert self._device is not None,    RemoteController.NOT_CONNECTED
-        return await self._device.execute_command("!" + attr + "=" + val)
+        answer = await self._device.execute_command("!" + attr + "=" + val)
+        return answer.message
 
     async def get_attr(self, attr: str) -> str:
         assert self._device is not None,    RemoteController.NOT_CONNECTED
-        return await self._device.execute_command("?" + attr)
+        answer = await self._device.execute_command("?" + attr)
+        return answer.message
     
     async def send_command(self, command_str: str) -> str:
         assert self._device is not None,    RemoteController.NOT_CONNECTED
-        return await self._device.execute_command(command_str)
+        answer = await self._device.execute_command(command_str)
+        return answer.message
 
     async def execute_script(self, text: str) -> None:
         assert self._device is not None,    RemoteController.NOT_CONNECTED

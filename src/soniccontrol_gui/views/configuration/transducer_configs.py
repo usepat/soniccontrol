@@ -50,7 +50,7 @@ class TransducerConfigSchema(AttrsSchema):
         return Path(value) if value else None
     
 class ConfigSchema(AttrsSchema):
-    class Meta:
+    class Meta: 
         target = Config
         register_as_scheme = True
 

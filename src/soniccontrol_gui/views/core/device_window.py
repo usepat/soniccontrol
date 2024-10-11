@@ -11,9 +11,8 @@ from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasureMode
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
-from soniccontrol_gui.view import TabView
+from soniccontrol_gui.view import TabView, View
 from soniccontrol.communication.communicator import Communicator
-from soniccontrol.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
 from soniccontrol.procedures.procedure_controller import ProcedureController
 from soniccontrol.scripting.interpreter_engine import InterpreterEngine
 from soniccontrol.scripting.legacy_scripting import LegacyScriptingFacade
@@ -96,7 +95,7 @@ class RescueWindow(DeviceWindow):
         try:
             self._device = device
             self._view = DeviceWindowView(root, title=f"Rescue Window - {connection_name}")
-            super().__init__(self._logger, self._view, self._device.serial)
+            super().__init__(self._logger, self._view, self._device.communicator)
 
             self._flashing = Flashing(self, self._logger, self._device, self._app_state)
             self._flashing.subscribe(Flashing.RECONNECT_EVENT, lambda _e: self.on_reconnect(True))
@@ -121,7 +120,7 @@ class RescueWindow(DeviceWindow):
             self._app_state = AppState(self._logger)
 
             self._logger.debug("Create views")
-            self._serialmonitor = SerialMonitor(self, self._device.serial)
+            self._serialmonitor = SerialMonitor(self, self._device.communicator)
             self._scripting = Editor(self, self._scripting, self._script_file, self._interpreter, self._app_state)
             self._logging = LoggingTab(self, self._logStorage.logs)
             self._home = Home(self, self._device)
@@ -153,7 +152,7 @@ class KnownDeviceWindow(DeviceWindow):
         try:
             self._device = device
             self._view = DeviceWindowView(root, title=f"Device Window - {connection_name}")
-            super().__init__(self._logger, self._view, self._device.serial)
+            super().__init__(self._logger, self._view, self._device.communicator)
 
             # Models
             self._updater = Updater(self._device)
@@ -173,7 +172,7 @@ class KnownDeviceWindow(DeviceWindow):
 
             # Components
             self._logger.debug("Create views")
-            self._serialmonitor = SerialMonitor(self, self._device.serial)
+            self._serialmonitor = SerialMonitor(self, self._device.communicator)
             self._logging = Logging(self, connection_name)
             self._editor = Editor(self, self._scripting, self._script_file, self._interpreter, self._app_state)
             self._status_bar = StatusBar(self, self._view.status_bar_slot)
@@ -216,7 +215,7 @@ class KnownDeviceWindow(DeviceWindow):
             raise
 
 
-class DeviceWindowView(tk.Toplevel):
+class DeviceWindowView(tk.Toplevel, View):
     def __init__(self, root, *args, **kwargs) -> None:
         title = kwargs.pop("title", "Device Window")
         super().__init__(root, *args, **kwargs)

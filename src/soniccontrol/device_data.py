@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import Any, Callable, Dict, Literal, Optional, Tuple
+from enum import Enum
+from typing import Any, Callable, Dict, Literal
 
 import attrs
 from icecream import ic
+
+from sonic_protocol.defs import DerivedFromParam, FieldPath, Version
+from sonic_protocol.field_names import StatusAttr
 
 
 def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
@@ -22,152 +26,109 @@ def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
     return converter
 
 
-@attrs.define(slots=True)
+# We could maybe make this to a meta class. Or build it with a meta class
+@attrs.define()
 class Status:
-    error: int = attrs.field(
-        default=0,
-        repr=False,
-        converter=default_if_none(0, int),
-        validator=attrs.validators.instance_of(int),
-    )
-    frequency: int = attrs.field(
-        default=0,
-        converter=default_if_none(0, int),
-        validator=attrs.validators.instance_of(int),
-    )
-    gain: int = attrs.field(
-        default=0,
-        converter=default_if_none(0, int),
-        validator=attrs.validators.instance_of(int),
-    )
-    procedure: int = attrs.field(
-        default=0,
-        converter=default_if_none(0, int),
-        validator=attrs.validators.instance_of(int),
-    )
-    wipe_mode: bool = attrs.field(
-        default=False,
-        converter=default_if_none(False, attrs.converters.to_bool),
-        validator=attrs.validators.instance_of(bool),
-    )
-    temperature: Optional[float] = attrs.field(default=None)
-    signal: bool = attrs.field(
-        default=False,
-        converter=default_if_none(False, bool),
-        validator=attrs.validators.instance_of(bool),
-    )
-    urms: float = attrs.field(
-        default=0.0,
-        converter=default_if_none(0.0, float),
-        validator=attrs.validators.instance_of(float),
-    )
-    irms: float = attrs.field(
-        default=0.0,
-        converter=default_if_none(0.0, float),
-        validator=attrs.validators.instance_of(float),
-    )
-    phase: float = attrs.field(
-        default=0.0,
-        converter=default_if_none(0.0, float),
-        validator=attrs.validators.instance_of(float),
-    )
-    atf1: int = attrs.field(
-        default=0,
-        converter=default_if_none(0, int),
-        validator=attrs.validators.instance_of(int),
-    )
-    atk1: float = attrs.field(
-        default=0.0,
-        converter=default_if_none(0.0, float),
-        validator=attrs.validators.instance_of(float),
-    )
-    atf2: int = attrs.field(
-        default=0,
-        converter=default_if_none(0, int),
-        validator=attrs.validators.instance_of(int),
-    )
-    atk2: float = attrs.field(
-        default=0.0,
-        converter=default_if_none(0.0, float),
-        validator=attrs.validators.instance_of(float),
-    )
-    atf3: int = attrs.field(
-        default=0,
-        converter=default_if_none(0, int),
-        validator=attrs.validators.instance_of(int),
-    )
-    atk3: float = attrs.field(
-        default=0.0,
-        converter=default_if_none(0.0, float),
-        validator=attrs.validators.instance_of(float),
-    )
-    att1: float = attrs.field(
-        default=0.0,
-        converter=default_if_none(0.0, float),
-        validator=attrs.validators.instance_of(float),
-    )
-    relay_mode: Optional[Literal["KHz", "MHz"]] = attrs.field(
-        default=None,
-        converter=attrs.converters.optional(str),
-        kw_only=True,
-    )
-    communication_mode: Optional[Literal["Serial", "Manual", "Analog"]] = attrs.field(
-        default="Manual"
-    )
-    timestamp: datetime.datetime = attrs.field(
+    time_stamp: datetime.datetime = attrs.field(
         factory=datetime.datetime.now,
         eq=False,
         converter=lambda b: (
             datetime.datetime.fromtimestamp(b) if isinstance(b, float) else b
         ),
     )
+    procedure: int = attrs.field(
+        default=0,
+        converter=default_if_none(0, int),
+        validator=attrs.validators.instance_of(int),
+    )
 
-    _changed: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
-    _changed_data: Dict[str, Any] = attrs.field(init=False, factory=dict)
-    _version: int = attrs.field(init=False, default=0)
-    _remote_proc_finished_running: asyncio.Event = attrs.field(init=False, factory=asyncio.Event)
-    
+    def __attrs_post_init__(self):
+        self._changed: asyncio.Event = asyncio.Event()
+        self._changed_data: Dict[FieldPath, Any] = {}
+        self._remote_proc_finished_running: asyncio.Event = asyncio.Event()
+        
+    def __getitem__(self, key: FieldPath | StatusAttr) -> Any:
+        if isinstance(key, StatusAttr):
+            return getattr(self, key.value)
+        
+        field_name = key[0]
+        assert (isinstance(field_name, str))
+        field = getattr(self, field_name)
+        
+        if len(key) == 1:
+            return field
+        elif len(key) == 2:
+            if isinstance(field, Dict):
+                assert (not isinstance(key[1], DerivedFromParam))
+                return field[key[1]]
+        
+        raise NotImplementedError()
+        # TODO: we could extend this to handle a path that is of arbitrary length
+        # YAGNI: only do this at the point where it is really needed
+        # Until then it will stay like this
+        
 
-    @property
-    def changed(self) -> asyncio.Event:
-        return self._changed
+    def __setitem__(self, key: FieldPath | StatusAttr, value: Any):
+        if isinstance(key, StatusAttr):
+            setattr(self, key.value, value)
+            return
 
-    @property
-    def changed_data(self) -> Dict[str, Any]:
-        return self._changed_data
+        field_name = key[0]
+        assert (isinstance(field_name, str))
+        
+        if len(key) == 1:
+            setattr(self, field_name, value)
+            return
+        elif len(key) == 2:
+            field = getattr(self, field_name)
 
-    @property
-    def version(self) -> int:
-        return self._version
-    
+            if isinstance(field, Dict):
+                assert (not isinstance(key[1], DerivedFromParam))
+                field[key[1]] = value
+                return 
+
+        raise NotImplementedError()
+
+
+    def has_attr(self, key: FieldPath | StatusAttr) -> bool:
+        if isinstance(key, StatusAttr):
+            return hasattr(self, key.value)
+
+        field_name = key[0]
+        assert (isinstance(field_name, str))
+        
+        if len(key) == 1:
+            return hasattr(self, field_name)
+        elif len(key) == 2:
+            field = getattr(self, field_name)
+            
+            if isinstance(field, Dict):
+                assert (not isinstance(key[1], DerivedFromParam))
+                return key[1] in field
+        # Yeah, it is already 18:24. You can read the time and my tiredness by the quality of this shitty code
+        raise NotImplementedError()
+
     @property 
     def remote_proc_finished_running(self) -> asyncio.Event:
         return self._remote_proc_finished_running
-    
-    def get_dict(self) -> dict:
-        result = {}
-        for field in attrs.fields(Status):
-            if field.name in ["timestamp", "_changed", "_changed_data", "_remote_proc_finished_running"]: # skip not json serializable fields like datetime
-                continue
-            result[field.name] = getattr(self, field.name)
-        return result
 
-    async def update(self, **kwargs) -> Status:
+    async def update(self, fields: Dict[FieldPath, Any]) -> Status:
         self._changed.clear()
         self._changed_data.clear()
-        kwargs["timestamp"] = (
+        timestamp_key: FieldPath = (StatusAttr.TIME_STAMP.value, )
+        fields[timestamp_key] = (
             datetime.datetime.now()
-            if not kwargs.get("timestamp")
-            else datetime.datetime.fromtimestamp(kwargs.get("timestamp"))
+            if timestamp_key not in fields
+            else datetime.datetime.fromtimestamp(fields[timestamp_key])
         )
         procedure = self.procedure
         changed: bool = False
-        for key, value in kwargs.items():
-            if hasattr(self, key) and getattr(self, key) != value:
+        for field_path, value in fields.items():
+            if self.has_attr(field_path) and self[field_path] != value:
                 try:
-                    setattr(self, key, value)
-                    self._changed_data[key] = value
-                    changed = key != "timestamp" or changed
+                    self[field_path] = value
+                    self._changed_data[field_path] = value
+                    changed = field_path != timestamp_key or changed
                 except AttributeError:
                     continue
         if changed:
@@ -181,6 +142,51 @@ class Status:
             await asyncio.sleep(0.1)
             self._changed.clear()
         return self
+
+
+class StatusBuilder:
+    counter: int = 0
+
+    def create_status(self, field_dict: Dict[StatusAttr, type[Any]]) -> Status:
+        name = "status" + str(StatusBuilder.counter)
+        StatusBuilder.counter += 1
+        attrs_dict =  { k.value: self._create_attr_field(v) for k, v in field_dict.items() }
+        status_class = attrs.make_class(name, attrs_dict, (Status,))
+        return status_class()
+
+    def _create_attr_field(self, field_type: type[Any]) :
+        if field_type is float:
+            return attrs.field(
+                default=0.0,
+                converter=default_if_none(0.0, float),
+                validator=attrs.validators.instance_of(float),
+            )
+        if field_type is int:
+            return attrs.field(
+                default=0, 
+                converter=default_if_none(0, int),
+                validator=attrs.validators.instance_of(int)
+            )
+        if field_type is bool:  
+            return attrs.field(
+                default=False,
+                converter=default_if_none(False, bool),
+                validator=attrs.validators.instance_of(bool),
+            )
+        if field_type is str:
+            return attrs.field(
+                default="",
+                validator=attrs.validators.instance_of(str),
+            )
+        if issubclass(field_type, Enum):
+            assert len(list(field_type)) > 0,  "The enum provided has no members"
+            first_enum_member = next(iter(field_type))
+            return attrs.field(
+                default=first_enum_member,
+                converter=default_if_none(first_enum_member, field_type),
+                validator=attrs.validators.instance_of(field_type),
+            )
+        assert False, "An unsupported type was added to the status field"
 
 
 @attrs.define
@@ -207,33 +213,11 @@ class Modules:
     switch: bool = attrs.field(default=False, converter=attrs.converters.to_bool)
     switch2: bool = attrs.field(default=False, converter=attrs.converters.to_bool)
 
-    @classmethod
-    def from_string(cls, module_string: str) -> Modules:
-        return cls(*map(bool, module_string.split("=")))
 
-Version = Tuple[int, int, int]
-
-def to_version(x: Any) -> Version:
-    if isinstance(x, str):
-        version = tuple(map(int, x.split(".")))
-        if len(version) != 3:
-            raise ValueError("The Version needs to have exactly two separators '.'")
-        return version
-    elif isinstance(x, tuple):
-        return x
-    else:
-        raise TypeError("The type cannot be converted into a version")
-    
 
 @attrs.define
 class Info:
+    # TODO refactor this
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="") # TODO does not match with validators of info command
-    firmware_version: Version = attrs.field(default=(0, 0, 0), converter=to_version) # TODO: delete this. Is just there, so I can implement in the meantime the home tab
-    modules: Modules = attrs.field(factory=Modules)
-
-    def update(self, **kwargs) -> Info:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-        return self
+    firmware_version: Version = attrs.field(default=Version(0, 0, 0), converter=Version.to_version) 

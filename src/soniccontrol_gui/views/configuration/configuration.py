@@ -7,6 +7,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from ttkbootstrap.scrolled import ScrolledFrame
 import json
+from sonic_protocol import commands
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView
@@ -154,11 +155,11 @@ class Configuration(UIComponent):
         animation.run(num_repeats=-1)
         
         # Send data
-        for i, atconfig in enumerate(self.view.atconfigs):
-            await self._device.set_atf(i, atconfig.atf)
-            await self._device.set_atk(i, atconfig.atk)
-            await self._device.set_att(i, atconfig.att)
-            await self._device.set_aton(i, atconfig.aton)
+        for i, atconfig in enumerate(self._view.atconfigs):
+            await self._device.execute_command(commands.SetAtf(i, atconfig.atf))
+            await self._device.execute_command(commands.SetAtk(i, atconfig.atk))
+            await self._device.execute_command(commands.SetAtt(i, atconfig.att))
+            await self._device.execute_command(commands.SetAton(i, atconfig.aton))
 
         task = asyncio.create_task(self._interpreter_engine())
 

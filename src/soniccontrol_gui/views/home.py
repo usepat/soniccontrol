@@ -1,6 +1,7 @@
 from typing import Callable
 from async_tkinter_loop import async_handler
 from ttkbootstrap.scrolled import ScrolledFrame
+from sonic_protocol import commands
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView, View
@@ -26,12 +27,9 @@ class Home(UIComponent):
         self._initialize_info()
 
     def _initialize_info(self) -> None:
-        def version_to_str(version: Version) -> str:
-            return "v" + ".".join(map(str, version))
-
         device_type = self._device.info.device_type
-        firmware_version = version_to_str(self._device.info.firmware_version)
-        protocol_version = "v" + str(self._device.serial.protocol.major_version)
+        firmware_version = str(self._device.info.firmware_version)
+        protocol_version = "v" + str(self._device.communicator.protocol.major_version)
         self._view.set_device_type(device_type)
         self._view.set_firmware_version(firmware_version)
         self._view.set_protocol_version(protocol_version)
@@ -47,10 +45,10 @@ class Home(UIComponent):
         signal = self._view.signal
 
         if self._device.info.device_type == 'descale':
-            await self._device.set_switching_frequency(freq)
+            await self._device.execute_command(commands.SetSwf(freq))
         else:
-            await self._device.set_frequency(freq)
-        await self._device.set_gain(gain)
+            await self._device.execute_command(commands.SetFrequency(freq))
+        await self._device.execute_command(commands.SetGain(gain))
         if signal:
             await self._device.set_signal_on()
         else:
