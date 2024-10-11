@@ -5,7 +5,7 @@ from async_tkinter_loop import async_handler
 
 from soniccontrol_gui.constants import files
 from soniccontrol_gui.state_fetching.capture_target import CaptureFree, CaptureTarget
-from soniccontrol.device_data import LegacyStatus
+from soniccontrol.device_data import Status
 from soniccontrol_gui.state_fetching.csv_writer import CsvWriter
 from soniccontrol_gui.state_fetching.data_provider import DataProvider
 from soniccontrol.events import Event, EventManager
@@ -67,7 +67,7 @@ class Capture(EventManager):
         await self._target.after_end_capture()
 
 
-    def on_update(self, status: LegacyStatus):
+    def on_update(self, status: Status):
         if self._is_capturing:
             attrs = {}
             for attr_name in self._data_attrs:

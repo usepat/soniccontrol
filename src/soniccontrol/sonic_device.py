@@ -52,6 +52,7 @@ class SonicDevice(Scriptable):
         command: Command | str,
         should_log: bool = True,
         status_kwargs_if_valid_command: Dict[FieldPath, Any] = {},
+        **kwargs
     ) -> Answer:
         """
         Executes a command by sending a message to the SonicDevice device and updating the status accordingly.
@@ -98,7 +99,7 @@ class SonicDevice(Scriptable):
         field_updates = status_kwargs_if_valid_command if answer.valid else {}
         field_updates.update(answer.field_value_dict)
         await self.status.update(field_updates)
-        
+
         return answer
 
 

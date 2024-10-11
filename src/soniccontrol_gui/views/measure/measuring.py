@@ -13,7 +13,7 @@ import ttkbootstrap as ttk
 import matplotlib
 
 from soniccontrol_gui.widgets.procedure_widget import ProcedureWidget
-from soniccontrol.device_data import LegacyStatus
+from soniccontrol.device_data import Status
 from soniccontrol_gui.state_fetching.capture import Capture
 from soniccontrol_gui.views.measure.csv_table import CsvTable
 matplotlib.use("TkAgg")
@@ -78,7 +78,7 @@ class Measuring(UIComponent):
         self._capture.subscribe(Capture.START_CAPTURE_EVENT, lambda _e: self._view.set_capture_button_label(ui_labels.END_CAPTURE))
         self._capture.subscribe(Capture.END_CAPTURE_EVENT, lambda _e: self._view.set_capture_button_label(ui_labels.START_CAPTURE))
 
-    def on_status_update(self, status: LegacyStatus):
+    def on_status_update(self, status: Status):
         self._capture.on_update(status)
 
     @async_handler

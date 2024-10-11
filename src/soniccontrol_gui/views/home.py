@@ -1,6 +1,7 @@
 from typing import Callable
 from async_tkinter_loop import async_handler
 from ttkbootstrap.scrolled import ScrolledFrame
+from sonic_protocol import commands
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView, View
@@ -44,10 +45,10 @@ class Home(UIComponent):
         signal = self._view.signal
 
         if self._device.info.device_type == 'descale':
-            await self._device.set_switching_frequency(freq)
+            await self._device.execute_command(commands.SetSwf(freq))
         else:
-            await self._device.set_frequency(freq)
-        await self._device.set_gain(gain)
+            await self._device.execute_command(commands.SetFrequency(freq))
+        await self._device.execute_command(commands.SetGain(gain))
         if signal:
             await self._device.set_signal_on()
         else:

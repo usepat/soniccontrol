@@ -101,6 +101,7 @@ class CommandCode(IntEnum):
     SET_TUNE = 1310
     SET_GEXT = 1320
     SET_ATT = 1330
+    SET_ATON = 1340
 
     SET_MANUAL = 5000
     SET_DEFAULT = 6000

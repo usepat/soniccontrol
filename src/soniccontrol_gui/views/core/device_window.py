@@ -11,9 +11,8 @@ from soniccontrol_gui.state_fetching.spectrum_measure import SpectrumMeasureMode
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
-from soniccontrol_gui.view import TabView
+from soniccontrol_gui.view import TabView, View
 from soniccontrol.communication.communicator import Communicator
-from soniccontrol.communication.serial_communicator import LegacySerialCommunicator, SerialCommunicator
 from soniccontrol.procedures.procedure_controller import ProcedureController
 from soniccontrol.scripting.interpreter_engine import InterpreterEngine
 from soniccontrol.scripting.legacy_scripting import LegacyScriptingFacade
@@ -216,7 +215,7 @@ class KnownDeviceWindow(DeviceWindow):
             raise
 
 
-class DeviceWindowView(tk.Toplevel):
+class DeviceWindowView(tk.Toplevel, View):
     def __init__(self, root, *args, **kwargs) -> None:
         title = kwargs.pop("title", "Device Window")
         super().__init__(root, *args, **kwargs)

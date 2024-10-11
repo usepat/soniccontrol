@@ -37,7 +37,7 @@ class DeviceBuilder:
     def _parse_legacy_handshake(self, ser: LegacySerialCommunicator) -> Dict[str, Any]:
         init_command = LegacyCommand(
             estimated_response_time=0.5,
-            _validators=[
+            validators=[
                 LegacyAnswerValidator(pattern=r".*(khz|mhz).*", relay_mode=str),
                 LegacyAnswerValidator(
                     pattern=r".*freq[uency]*\s*=?\s*([\d]+).*", frequency=int

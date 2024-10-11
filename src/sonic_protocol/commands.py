@@ -55,6 +55,13 @@ class SetFrequency(Command):
     value: int = attrs.field(alias=StatusAttr.FREQUENCY.value)   
 
 @attrs.define()
+class SetSwf(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_SWF)
+
+    value: int = attrs.field(alias=StatusAttr.SWF.value)
+
+@attrs.define()
 class SetGain(Command):
     def __attrs_post_init__(self):
         super().__init__(code=CommandCode.SET_GAIN)
@@ -75,6 +82,30 @@ class SetOff(Command):
 class SetAtf(Command):
     def __attrs_post_init__(self):
         super().__init__(code=CommandCode.SET_ATF)
+
+    index: int = attrs.field()
+    value: int = attrs.field(alias=StatusAttr.ATF.value)
+
+@attrs.define()
+class SetAtk(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_ATK)
+
+    index: int = attrs.field()
+    value: int = attrs.field(alias=StatusAttr.ATK.value)
+
+@attrs.define()
+class SetAtt(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_ATT)
+
+    index: int = attrs.field()
+    value: int = attrs.field(alias=StatusAttr.ATT.value)
+
+@attrs.define()
+class SetAton(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_ATON)
 
     index: int = attrs.field()
     value: int = attrs.field(alias=StatusAttr.ATF.value)

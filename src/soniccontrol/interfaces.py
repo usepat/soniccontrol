@@ -2,15 +2,7 @@ import abc
 import asyncio
 
 from sonic_protocol.answer import Answer
-
-
-class Sendable(abc.ABC):
-    def __init__(self) -> None:
-        super().__init__()
-
-    @property
-    @abc.abstractmethod
-    def byte_message(self) -> None: ...
+from sonic_protocol.commands import Command
 
 
 class Scriptable(abc.ABC):
@@ -18,7 +10,7 @@ class Scriptable(abc.ABC):
         super().__init__()
 
     @abc.abstractmethod
-    async def execute_command(self, *args, **kwargs) -> Answer: ...
+    async def execute_command(self, command: Command | str, **kwargs) -> Answer: ...
 
     @abc.abstractmethod
     async def get_overview(self) -> Answer: ...

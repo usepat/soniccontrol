@@ -1,25 +1,31 @@
 import logging
 from pathlib import Path
-from typing import Callable, Tuple
+from typing import Callable, Dict, Iterable, Tuple
 import ttkbootstrap as ttk
+from sonic_protocol.answer_field_converter import AnswerFieldToStringConverter
+from sonic_protocol.field_names import StatusAttr
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import View
-from soniccontrol.device_data import LegacyStatus
+from soniccontrol.device_data import Status
 from soniccontrol_gui.constants import (color, events, fonts, sizes,
                                                      style, ui_labels)
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.horizontal_scrolled_frame import HorizontalScrolledFrame
 from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
-
-
+from sonic_protocol.protocol import answer_field_frequency
 
 class StatusBar(UIComponent):
     def __init__(self, parent: UIComponent, parent_slot: View):
         self._logger = logging.getLogger(parent.logger.name + "." + StatusBar.__name__)
         
+        self._field_converters = {
+            StatusAttr.FREQUENCY: AnswerFieldToStringConverter(answer_field_frequency),
+            # TODO: ...
+        }
+
         self._logger.debug("Create Statusbar")
-        self._view = StatusBarView(parent_slot)
+        self._view = StatusBarView(parent_slot, self._field_converters.keys())
         self._status_panel = StatusPanel(self, self._view.panel_frame)
         self._status_panel_expanded = False
         super().__init__(parent, self._view, self._logger)
@@ -31,33 +37,29 @@ class StatusBar(UIComponent):
         self._status_panel_expanded = not self._status_panel_expanded
         self._view.expand_panel_frame(self._status_panel_expanded)
 
-    def on_update_status(self, status: LegacyStatus):
-        temperature = status.temperature if status.temperature is not None else 0
-        self._view.update_labels(
-            f"{status.communication_mode}",
-            f"Freq.: {status.frequency / 1000} kHz",
-            f"Gain: {status.gain} %",
-            f"Temp.: {temperature} °C",
-            f"Urms: {status.urms} mV",
-            f"Irms: {status.irms} mA",
-            f"Phase: {status.phase} °",
-            f"Signal: {'ON'if status.signal else 'OFF'}"
-        )
+    def on_update_status(self, status: Status):
+        available_status_fields = filter(status.has_attr, self._field_converters.keys())
+        status_field_text_representations = {
+            field: self._field_converters[field].convert(status[field])
+            for field in  available_status_fields
+        }
+
+        self._view.update_labels(status_field_text_representations)
         if self._status_panel_expanded:
             self._status_panel.on_update_status(status)
 
 
 class StatusPanel(UIComponent):
-    def __init__(self, parent: UIComponent, parent_slot: View):
+    def __init__(self, parent: UIComponent, parent_slot: View):         
         self._view = StatusPanelView(parent_slot)
         super().__init__(parent, self._view)
 
-    def on_update_status(self, status: LegacyStatus):
-        temperature = status.temperature if status.temperature else 0
+    def on_update_status(self, status: Status):
+        # TODO: this needs to be refactored
         self._view.update_stats(
-            status.frequency / 1000,
+            status.frequency / 1000 if hasattr(status, "frequency") else 0,
             status.gain,
-            temperature,
+            status.temperature if hasattr(status, "temperature") else 0.,
             f"Urms: {status.urms} mV",
             f"Irms: {status.irms} mA",
             f"Phase: {status.phase} °",
@@ -72,9 +74,12 @@ class StatusBarView(View):
     def __init__(
         self,
         master: ttk.Frame,
+        status_fields: Iterable[StatusAttr],
         *args,
         **kwargs
     ) -> None:
+        self._status_field_names = status_fields
+        self._status_field_labels: Dict[StatusAttr, ttk.Label] = {}
         super().__init__(master, *args, **kwargs)
 
     def _initialize_children(self) -> None:
@@ -82,57 +87,27 @@ class StatusBarView(View):
 
         self._panel_frame: ttk.Frame = ttk.Frame(self)
         self._status_bar_frame: ttk.Frame = ttk.Frame(self)
-        self._mode_frame: ttk.Frame = ttk.Frame(self._status_bar_frame)
-        self._mode_label: ttk.Label = ttk.Label(
-            self._mode_frame,
-            bootstyle=style.INVERSE_SECONDARY
-        )
-        WidgetRegistry.register_widget(self._mode_label, "mode_label", tab_name)
 
         self._scrolled_info: HorizontalScrolledFrame = HorizontalScrolledFrame(
             self._status_bar_frame, bootstyle=ttk.SECONDARY, autohide=False
         )
         self._scrolled_info.hide_scrollbars()
 
-        self._freq_label: ttk.Label = ttk.Label(
-            self._scrolled_info,
-            bootstyle=style.INVERSE_SECONDARY,
-        )
-        WidgetRegistry.register_widget(self._freq_label, "freq_label", tab_name)
+        for status_field in self._status_field_names:
+            if status_field == StatusAttr.SIGNAL:
+                continue # Skip signal, because that will have an own special label
 
-        self._gain_label: ttk.Label = ttk.Label(
-            self._scrolled_info,
-            bootstyle=style.INVERSE_SECONDARY,
-        )
-        WidgetRegistry.register_widget(self._gain_label, "gain_label", tab_name)
-
-        self._temperature_label: ttk.Label = ttk.Label(
-            self._scrolled_info,
-            bootstyle=style.INVERSE_SECONDARY,
-        )
-        WidgetRegistry.register_widget(self._temperature_label, "temperature_label", tab_name)
-
-        self._urms_label: ttk.Label = ttk.Label(
-            self._scrolled_info,
-            bootstyle=style.INVERSE_SECONDARY,
-        )
-        WidgetRegistry.register_widget(self._urms_label, "urms_label", tab_name)
-
-        self._irms_label: ttk.Label = ttk.Label(
-            self._scrolled_info,
-            bootstyle=style.INVERSE_SECONDARY,
-        )
-        WidgetRegistry.register_widget(self._irms_label, "irms_label", tab_name)
-
-        self._phase_label: ttk.Label = ttk.Label(
-            self._scrolled_info,
-            bootstyle=style.INVERSE_SECONDARY,
-        )
-        WidgetRegistry.register_widget(self._phase_label, "phase_label", tab_name)
+            label = ttk.Label(
+                self._scrolled_info,
+                bootstyle=style.INVERSE_SECONDARY
+            )
+            label.pack(side=ttk.LEFT, padx=5)
+            self._status_field_labels[status_field] = label
+            WidgetRegistry.register_widget(label, status_field.name + "_label", tab_name)
 
         self._signal_frame: ttk.Frame = ttk.Frame(self._status_bar_frame)
         ICON_LABEL_PADDING: tuple[int, int, int, int] = (8, 0, 0, 0)
-        self._signal_label: ttk.Label = ttk.Label(
+        signal_label: ttk.Label = ttk.Label(
             self._signal_frame,
             bootstyle=style.INVERSE_SECONDARY, # I just read bootystyle instead of bootstyle. lol
             padding=ICON_LABEL_PADDING,
@@ -141,7 +116,9 @@ class StatusBarView(View):
             ),
             compound=ttk.LEFT,
         )
-        WidgetRegistry.register_widget(self._signal_label, "signal_label", tab_name)
+        signal_label.pack(side=ttk.RIGHT, ipadx=3)
+        self._status_field_labels[StatusAttr.SIGNAL] = signal_label
+        WidgetRegistry.register_widget(signal_label, "signal_label", tab_name)
 
         self.configure(bootstyle=ttk.SECONDARY)
 
@@ -152,16 +129,6 @@ class StatusBarView(View):
         self._status_bar_frame.pack(side=ttk.BOTTOM, fill=ttk.X)
         self._signal_frame.pack(side=ttk.RIGHT)
         self._scrolled_info.pack(expand=True, fill=ttk.BOTH, side=ttk.RIGHT)
-        self._mode_frame.pack(side=ttk.RIGHT)
-
-        self._mode_label.pack(side=ttk.LEFT, ipadx=5)
-        self._freq_label.pack(side=ttk.LEFT, padx=5)
-        self._gain_label.pack(side=ttk.LEFT, padx=5)
-        self._temperature_label.pack(side=ttk.LEFT, padx=5)
-        self._urms_label.pack(side=ttk.LEFT, padx=5)
-        self._irms_label.pack(side=ttk.LEFT, padx=5)
-        self._phase_label.pack(side=ttk.LEFT, padx=5)
-        self._signal_label.pack(side=ttk.RIGHT, ipadx=3)
 
     @property 
     def panel_frame(self) -> ttk.Frame:
@@ -174,28 +141,13 @@ class StatusBarView(View):
             self._panel_frame.pack_forget()
 
     def set_status_clicked_command(self, command: Callable[[], None]) -> None:
-        for child in self._scrolled_info.winfo_children():
-            child.bind(events.CLICKED_EVENT, lambda _e: command())
-        self._mode_label.bind(events.CLICKED_EVENT, lambda _e: command())
-        self._signal_label.bind(events.CLICKED_EVENT, lambda _e: command())
+        for label in self._status_field_labels.values():
+            label.bind(events.CLICKED_EVENT, lambda _e: command())
 
-    def on_script_start(self) -> None:
-        self._mode_frame.configure(bootstyle=ttk.SUCCESS)
-        self._mode_label.configure(bootstyle=style.INVERSE_SUCCESS)
-
-    def on_script_stop(self) -> None:
-        self._mode_frame.configure(bootstyle=ttk.SECONDARY)
-        self._mode_label.configure(bootstyle=style.INVERSE_SECONDARY)
-
-    def update_labels(self, mode: str, freq: str, gain: str, temp: str, urms: str, irms: str, phase: str, signal: str):
-        self._mode_label.configure(text=mode)
-        self._freq_label.configure(text=freq)
-        self._gain_label.configure(text=gain)
-        self._temperature_label.configure(text=temp)
-        self._urms_label.configure(text=urms)
-        self._irms_label.configure(text=irms)
-        self._phase_label.configure(text=phase)
-        self._signal_label.configure(text=signal)
+    def update_labels(self, field_texts: Dict[StatusAttr, str]):
+        for status_field, text in field_texts.items():
+            label = self._status_field_labels[status_field]
+            label.configure(text=text)
 
 
 class StatusPanelView(View):

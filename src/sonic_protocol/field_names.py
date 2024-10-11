@@ -10,6 +10,11 @@ class StatusAttr(Enum):
     IRMS = "irms"
 
     ATF = "atf"
+    ATK = "atk"
+    ATT = "att"
+    ATON = "aton"
+
+    COMM_MODE = "communication_mode"
 
     PROCEDURE = "procedure"
 
