@@ -55,9 +55,9 @@ class Status:
         assert (isinstance(field_name, str))
         field = getattr(self, field_name)
         
-        if len(key) == 0:
+        if len(key) == 1:
             return field
-        elif len(key) == 1:
+        elif len(key) == 2:
             if isinstance(field, Dict):
                 assert (not isinstance(key[1], DerivedFromParam))
                 return field[key[1]]
@@ -76,10 +76,10 @@ class Status:
         field_name = key[0]
         assert (isinstance(field_name, str))
         
-        if len(key) == 0:
+        if len(key) == 1:
             setattr(self, field_name, value)
             return
-        elif len(key) == 1:
+        elif len(key) == 2:
             field = getattr(self, field_name)
 
             if isinstance(field, Dict):
@@ -97,9 +97,9 @@ class Status:
         field_name = key[0]
         assert (isinstance(field_name, str))
         
-        if len(key) == 0:
+        if len(key) == 1:
             return hasattr(self, field_name)
-        elif len(key) == 1:
+        elif len(key) == 2:
             field = getattr(self, field_name)
             
             if isinstance(field, Dict):
@@ -115,7 +115,7 @@ class Status:
     async def update(self, fields: Dict[FieldPath, Any]) -> Status:
         self._changed.clear()
         self._changed_data.clear()
-        timestamp_key: FieldPath = [StatusAttr.TIME_STAMP.value]
+        timestamp_key: FieldPath = (StatusAttr.TIME_STAMP.value, )
         fields[timestamp_key] = (
             datetime.datetime.now()
             if timestamp_key not in fields
@@ -221,9 +221,3 @@ class Info:
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="") # TODO does not match with validators of info command
     firmware_version: Version = attrs.field(default=Version(0, 0, 0), converter=Version.to_version) 
-
-    def update(self, **kwargs) -> Info:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-        return self

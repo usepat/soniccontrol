@@ -35,11 +35,16 @@ class Answer:
         return { make_field_path_alias(k): v for k, v in self.field_value_dict.items() }
 
     def update_field_paths(self, params: Dict[str, Any]):
-        for field_path in self.field_value_dict.keys():
-            for i, field_name in enumerate(field_path):
-                if isinstance(field_name, DerivedFromParam) and field_name.param in params:
-                    field_path[i] = str(params[field_name.param])
+        def update_field_name(field_name: FieldName) -> FieldName:
+            if isinstance(field_name, DerivedFromParam) and field_name.param in params:
+                return params[field_name.param]
+            return field_name
 
+        updated_dict: Dict[FieldPath, Any] = {}
+        for field_path, value in self.field_value_dict.items():
+            updated_field_path = tuple(map(update_field_name, field_path))
+            updated_dict[updated_field_path] = value
+        self.field_value_dict = updated_dict
 
 # TODO: refactor this converter, so that it works together with the other converter defs
 @attrs.define

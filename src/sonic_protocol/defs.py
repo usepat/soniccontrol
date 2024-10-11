@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, TypeVar, Generic
+from typing import Any, Dict, List, Tuple, TypeVar, Generic
 import attrs
 
 
@@ -196,11 +196,13 @@ class DerivedFromParam:
     param: str = attrs.field()
 
 FieldName = Any | DerivedFromParam
-FieldPath = List[FieldName]
+FieldPath = Tuple[FieldName, ...]
 
 def to_field_path(value: Any) -> FieldPath:
-    if not isinstance(value, list):
-        return [value]
+    if isinstance(value, list):
+        return tuple(value)
+    if not isinstance(value, tuple):
+        return (value, )
     return value
 
 @attrs.define()

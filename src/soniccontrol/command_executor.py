@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 from sonic_protocol.commands import Command
-from sonic_protocol.defs import CommandCode, CommandDef, FieldPath
+from sonic_protocol.defs import CommandCode, CommandDef
 from sonic_protocol.protocol_builder import CommandLookUpTable
 from sonic_protocol.answer import Answer, AnswerValidator
 from soniccontrol.communication.communicator import Communicator
