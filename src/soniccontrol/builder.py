@@ -28,7 +28,7 @@ class DeviceBuilder:
             for answer_field in lookup.answer_def.fields:
                 field_name = answer_field.field_path[0]
                 assert (isinstance(field_name, str))
-                if field_name in StatusAttr:
+                if field_name in [status_attr.value for status_attr in StatusAttr]:
                     status_attr = StatusAttr(field_name)
                     status_fields[status_attr] = answer_field.field_type.field_type
         return status_fields
@@ -168,7 +168,7 @@ class DeviceBuilder:
             result_dict.update(answer.field_value_dict)
         
         for info_attr in attrs.fields(Info):
-            key = [info_attr.name]
+            key = (info_attr.name, )
             if key in result_dict:
                 value = result_dict[key]
                 setattr(info, info_attr.name, value)

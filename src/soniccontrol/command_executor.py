@@ -20,7 +20,7 @@ class CommandExecutor:
 
     async def send_command(self, command: Command) -> Answer:
         lookup_command = self._command_lookup_table.get(command.code)
-        assert lookup_command is not None # throw error?
+        assert lookup_command is not None, f"The command {command} is not known for the protocol" # throw error?
 
         request_str = self._create_request_string(command, lookup_command.command_def)
         

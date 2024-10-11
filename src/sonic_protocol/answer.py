@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List,  Optional
 
 import attrs
 
+from sonic_protocol.converters import Converter
 from sonic_protocol.defs import CommandCode, DerivedFromParam, FieldName, FieldPath
 
 
@@ -46,51 +47,28 @@ class Answer:
             updated_dict[updated_field_path] = value
         self.field_value_dict = updated_dict
 
-# TODO: refactor this converter, so that it works together with the other converter defs
-@attrs.define
-class Converter:
-    worker: Callable[[Any], Any] = attrs.field()
-    logger: logging.Logger = attrs.field(default=logging.getLogger())
-    _converted: bool = attrs.field(default=False, init=False, repr=False)
-    _result: Any = attrs.field(init=False)
-
-    @property
-    def result(self) -> Any:
-        if self._converted:
-            return self._result
-        else:
-            self.logger.error("ERROR: Converter did not convert yet.")
-            return False
-
-    def convert(self, *args, **kwargs) -> Any:
-        try:
-            self._result = self.worker(*args, **kwargs)
-        except Exception:
-            self.logger.error("ERROR", sys.exc_info())
-            return False
-        else:
-            self._converted = True
-            return self._result
 
 
-@attrs.define
+@attrs.define()
 class AfterConverter:
-    converter: Converter = attrs.field()
+    convert_func: Callable = attrs.field()
     keywords: List[str] = attrs.field(default=[])
 
 
-@attrs.define
+@attrs.define()
 class AnswerValidator:
     pattern: str = attrs.field(on_setattr=attrs.setters.NO_OP)
     _named_pattern: str = attrs.field(init=False)
     _converters: Dict[FieldPath, Converter] = attrs.field(init=False, repr=False)
     _after_converters: Dict[FieldPath, AfterConverter] = attrs.field(init=False, repr=False)
     _compiled_pattern: re.Pattern[str] = attrs.field(init=False, repr=False)
+    _field_path_aliases: Dict[str, FieldPath] = attrs.field(init=False, default={})
+
 
     def __init__(
         self,
         pattern: str,
-        field_converters: Dict[FieldPath, Callable | Converter | AfterConverter] = {},
+        field_converters: Dict[FieldPath, Converter | AfterConverter] = {},
     ) -> None:
         """
         Initializes the CommandValidator instance with the specified pattern and converters.
@@ -130,14 +108,16 @@ class AnswerValidator:
                 after_workers[keyword] = worker
                 continue
 
-            workers[keyword] = worker if isinstance(worker, Converter) else Converter(worker)
+            workers[keyword] = worker
         
         self.pattern = pattern
         self._converters = workers
         self._after_converters = after_workers
-        self._field_path_aliases = { 
-            make_field_path_alias(field_path): field_path for field_path in self._converters.keys() 
-        }
+        self._field_path_aliases = {}
+        for field_path in self._converters.keys():
+            alias = make_field_path_alias(field_path)
+            self._field_path_aliases[alias] = field_path
+            
         self._named_pattern = self.generate_named_pattern(
             pattern=self.pattern, keywords=list(self._field_path_aliases.keys())
         )
@@ -155,6 +135,9 @@ class AnswerValidator:
             pattern (str): The pattern to generate the named pattern from.
             keywords (List[str]): The list of keywords to use for naming the capture groups.
 
+        Throws:
+            throws an exception, if you do not pass the same number of keyword arguments as captured regex groups
+
         Returns:
             str: The generated named pattern.
 
@@ -171,18 +154,20 @@ class AnswerValidator:
         """
         if not keywords:
             return pattern
+        
+        keyword_iter = iter(keywords)
         segments = re.split(r"(\(.*?\))", pattern)
-
-        assert len(segments) == len(keywords)
         processed = "".join(
             (
-                f"(?P<{keyword}>{segment[1:-1]})"
+                f"(?P<{next(keyword_iter)}>{segment[1:-1]})"
                 if not segment.startswith("(?:") and segment.startswith("(")
                 else segment
             )
-            for keyword, segment in zip(keywords, segments)
+            for segment in segments
             if segment
         )
+        assert (next(keyword_iter, None) is None)
+
         return processed
 
     def validate(self, data: str) -> Answer:
@@ -204,7 +189,11 @@ class AnswerValidator:
         result_dict: Dict[FieldPath, Any] = {}
         for keyword, value in result.groupdict().items():
             field_path = self._field_path_aliases[keyword]
-            result_dict[field_path] = self._converters[field_path].convert(value)
+            converter = self._converters[field_path]
+
+            if not converter.validate_val(value):
+                return Answer(data, False, True) 
+            result_dict[field_path] = converter.convert_val(value)
 
         for field_path, worker in self._after_converters.items():
             kwargs = {
@@ -212,7 +201,7 @@ class AnswerValidator:
                 for k in worker.keywords
                 if k in result.groupdict()
             }
-            result_dict[field_path] = worker.converter.convert(kwargs)
+            result_dict[field_path] = worker.convert_func(kwargs)
 
         answer = Answer(data, True, True, field_value_dict=result_dict)
 

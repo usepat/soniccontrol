@@ -1,4 +1,4 @@
-from enum import Enum, IntEnum
+from enum import Enum, IntEnum, auto
 from typing import Any, Dict, List, Tuple, TypeVar, Generic
 import attrs
 
@@ -18,6 +18,8 @@ class Version:
     
     @staticmethod
     def to_version(x: Any) -> "Version":
+        if isinstance(x, Version):
+            return x
         if isinstance(x, str):
             if x[0] == "v":
                 x = x[1:]
@@ -159,10 +161,11 @@ class SIPrefix(Enum):
     GIGA  = 'G'   # 10⁹
 
 class ConverterType(Enum):
-    SIGNAL = 0
-    VERSION = 1
-    ENUM = 2
-    BUILD_TYPE = 3
+    SIGNAL = auto()
+    VERSION = auto()
+    ENUM = auto()
+    BUILD_TYPE = auto()
+    PRIMITIVE = auto()
 
 T = TypeVar("T", int, float, bool, str, Version, Enum)
 
@@ -211,7 +214,7 @@ class AnswerFieldDef(Generic[T]):
     field_path: FieldPath = attrs.field(converter=to_field_path)
     field_type: FieldType[T] = attrs.field(converter=to_field_type)
     allowed_values_str: List[str] | None = attrs.field(default=None)
-    converter_ref: ConverterType | None = attrs.field(default=None) # converters are defined in the code and the protocol only references to them
+    converter_ref: ConverterType = attrs.field(default=ConverterType.PRIMITIVE) # converters are defined in the code and the protocol only references to them
     prefix: str = attrs.field(default="")
     postfix: str = attrs.field(default="")
     description: str | None = attrs.field(default=None)

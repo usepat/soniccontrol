@@ -26,8 +26,8 @@ class AnswerFieldToStringConverter:
     def convert(self, value: Any) -> str:
         if self._converter_ref is not None:
             converter = get_converter(self._converter_ref)
-            assert (converter.validate(value))
-            converted_value = converter.convert(value)
+            assert (converter.validate_val(value))
+            converted_value = converter.convert_val(value)
             string_repr_value = converted_value
         else:
             string_repr_value = str(value)
