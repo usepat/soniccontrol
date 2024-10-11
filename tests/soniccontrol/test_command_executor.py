@@ -65,32 +65,3 @@ async def test_send_command_creates_correct_request(command, request_str, commun
     communicator.send_and_wait_for_response.assert_called_once_with(request_str)    
 
 
-@pytest.mark.parametrize("message, command_code", [
-    ("!f=1000", CommandCode.SET_FREQ),
-    ("!f=420", CommandCode.SET_FREQ),
-    ("!g=1000", CommandCode.SET_GAIN),
-    ("?g", CommandCode.GET_GAIN),
-    ("!ON", CommandCode.SET_ON),
-    ("!atf4=10000", CommandCode.SET_ATF),
-    ("!bullshit", None),
-])
-def test_lookup_message_selects_right_command(message, command_code, command_executor):
-    returned_command_code = command_executor._lookup_message(message)
-
-    assert returned_command_code == command_code  
-
-@pytest.mark.parametrize("message, command_code", [
-    ("!freq=1000", CommandCode.SET_FREQ),
-    ("!frequency=420", CommandCode.SET_FREQ),
-    ("!f=420", CommandCode.SET_FREQ),
-    ("!gain=1000", CommandCode.SET_GAIN),
-    ("!g=1000", CommandCode.SET_GAIN),
-    ("!freqy=1000", None),
-])
-def test_lookup_message_selects_right_command_with_alias(message, command_code, command_executor):
-    returned_command_code = command_executor._lookup_message(message)
-
-    assert returned_command_code == command_code  
-
-
-

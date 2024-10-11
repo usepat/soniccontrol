@@ -24,7 +24,6 @@ param_frequency = CommandParamDef(
 answer_field_frequency = AnswerFieldDef(
     field_path=[StatusAttr.FREQUENCY.value],
     field_type=frequency_field_type,
-    converter_ref=None,
     description=None
 )
 
