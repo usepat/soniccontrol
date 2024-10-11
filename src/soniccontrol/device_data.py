@@ -8,7 +8,8 @@ from typing import Any, Callable, Dict, Literal
 import attrs
 from icecream import ic
 
-from sonic_protocol.defs import StatusAttr, Version
+from sonic_protocol.defs import DerivedFromParam, FieldPath, Version
+from sonic_protocol.field_names import StatusAttr
 
 
 def default_if_none(default: Any, type_: type = int) -> Callable[[Any], Any]:
@@ -43,50 +44,91 @@ class Status:
 
     def __attrs_post_init__(self):
         self._changed: asyncio.Event = asyncio.Event()
-        self._changed_data: Dict[str, Any] = {}
+        self._changed_data: Dict[FieldPath, Any] = {}
         self._remote_proc_finished_running: asyncio.Event = asyncio.Event()
         
-    def __getitem__(self, key: StatusAttr) -> Any:
-        return getattr(self, key.value)
+    def __getitem__(self, key: FieldPath | StatusAttr) -> Any:
+        if isinstance(key, StatusAttr):
+            return getattr(self, key.value)
+        
+        field_name = key[0]
+        assert (isinstance(field_name, str))
+        field = getattr(self, field_name)
+        
+        if len(key) == 0:
+            return field
+        elif len(key) == 1:
+            if isinstance(field, Dict):
+                assert (not isinstance(key[1], DerivedFromParam))
+                return field[key[1]]
+        
+        raise NotImplementedError()
+        # TODO: we could extend this to handle a path that is of arbitrary length
+        # YAGNI: only do this at the point where it is really needed
+        # Until then it will stay like this
+        
 
-    def __setitem__(self, key: StatusAttr, value: Any):
-        setattr(self, key.value, value)
+    def __setitem__(self, key: FieldPath | StatusAttr, value: Any):
+        if isinstance(key, StatusAttr):
+            setattr(self, key.value, value)
+            return
 
-    def has_attr(self, key: StatusAttr) -> bool:
-        return hasattr(self, key.value)
+        field_name = key[0]
+        assert (isinstance(field_name, str))
+        
+        if len(key) == 0:
+            setattr(self, field_name, value)
+            return
+        elif len(key) == 1:
+            field = getattr(self, field_name)
 
-    @property
-    def changed(self) -> asyncio.Event:
-        return self._changed
+            if isinstance(field, Dict):
+                assert (not isinstance(key[1], DerivedFromParam))
+                field[key[1]] = value
+                return 
 
-    @property
-    def changed_data(self) -> Dict[str, Any]:
-        return self._changed_data
+        raise NotImplementedError()
+
+
+    def has_attr(self, key: FieldPath | StatusAttr) -> bool:
+        if isinstance(key, StatusAttr):
+            return hasattr(self, key.value)
+
+        field_name = key[0]
+        assert (isinstance(field_name, str))
+        
+        if len(key) == 0:
+            return hasattr(self, field_name)
+        elif len(key) == 1:
+            field = getattr(self, field_name)
+            
+            if isinstance(field, Dict):
+                assert (not isinstance(key[1], DerivedFromParam))
+                return key[1] in field
+        # Yeah, it is already 18:24. You can read the time and my tiredness by the quality of this shitty code
+        raise NotImplementedError()
 
     @property 
     def remote_proc_finished_running(self) -> asyncio.Event:
         return self._remote_proc_finished_running
-    
-    def get_dict(self) -> Dict[str, Any]:
-        return attrs.asdict(self)
 
-    async def update(self, **kwargs) -> Status:
+    async def update(self, fields: Dict[FieldPath, Any]) -> Status:
         self._changed.clear()
         self._changed_data.clear()
-        timestamp_key = StatusAttr.TIME_STAMP.value
-        kwargs[timestamp_key] = (
+        timestamp_key: FieldPath = [StatusAttr.TIME_STAMP.value]
+        fields[timestamp_key] = (
             datetime.datetime.now()
-            if timestamp_key not in kwargs
-            else datetime.datetime.fromtimestamp(kwargs[timestamp_key])
+            if timestamp_key not in fields
+            else datetime.datetime.fromtimestamp(fields[timestamp_key])
         )
         procedure = self.procedure
         changed: bool = False
-        for key, value in kwargs.items():
-            if hasattr(self, key) and getattr(self, key) != value:
+        for field_path, value in fields.items():
+            if self.has_attr(field_path) and self[field_path] != value:
                 try:
-                    setattr(self, key, value)
-                    self._changed_data[key] = value
-                    changed = key != timestamp_key or changed
+                    self[field_path] = value
+                    self._changed_data[field_path] = value
+                    changed = field_path != timestamp_key or changed
                 except AttributeError:
                     continue
         if changed:

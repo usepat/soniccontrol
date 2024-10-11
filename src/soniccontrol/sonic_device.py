@@ -1,9 +1,11 @@
 import asyncio
 import logging
+from typing import Any, Dict
 
 import attrs
 from sonic_protocol.answer import Answer
 from sonic_protocol.commands import Command
+from sonic_protocol.defs import FieldPath
 from sonic_protocol.protocol_builder import CommandLookUpTable
 from soniccontrol.command_executor import CommandExecutor
 from soniccontrol.device_data import Info, Status
@@ -32,6 +34,7 @@ class SonicDevice(Scriptable):
 
     @communicator.setter
     def communicator(self, communicator: Communicator) -> None:
+        # TODO: Where the fuck do I set the communicator on the device, like this? Delete this!
         self._communicator = communicator
         self.command_executor._communicator = communicator
 
@@ -48,7 +51,7 @@ class SonicDevice(Scriptable):
         self,
         command: Command | str,
         should_log: bool = True,
-        **status_kwargs_if_valid_command,
+        status_kwargs_if_valid_command: Dict[FieldPath, Any] = {},
     ) -> Answer:
         """
         Executes a command by sending a message to the SonicDevice device and updating the status accordingly.
@@ -92,8 +95,10 @@ class SonicDevice(Scriptable):
             await self.disconnect()
             return Answer(str(e), False, True)
 
-        kwargs = status_kwargs_if_valid_command if answer.valid else {}
-        await self.status.update(**answer.value_dict, **kwargs)
+        field_updates = status_kwargs_if_valid_command if answer.valid else {}
+        field_updates.update(answer.field_value_dict)
+        await self.status.update(field_updates)
+        
         return answer
 
 

@@ -1,9 +1,9 @@
 
 import attrs
 from typing import Dict, List, TypeVar
+from sonic_protocol.answer import AnswerValidator
 from sonic_protocol.answer_validator_builder import AnswerValidatorBuilder
 from sonic_protocol.defs import AnswerDef, CommandCode, CommandContract, CommandDef, DeviceType, MetaExport, Protocol, Version
-from sonic_protocol.answer import AnswerValidator
 
 
 @attrs.define()

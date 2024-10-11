@@ -1,7 +1,8 @@
 
 
-from sonic_protocol.commands import Command, CommandValidator
-from sonic_protocol.defs import CommandCode, CommandDef
+from typing import Any, Dict
+from sonic_protocol.commands import Command
+from sonic_protocol.defs import CommandCode, CommandDef, FieldPath
 from sonic_protocol.protocol_builder import CommandLookUpTable
 from sonic_protocol.answer import Answer, AnswerValidator
 from soniccontrol.communication.communicator import Communicator
@@ -23,38 +24,31 @@ class CommandExecutor:
 
         request_str = self._create_request_string(command, lookup_command.command_def)
         
-        return await self.send_message(request_str, answer_validator=lookup_command.answer_validator,  **lookup_command.command_def.kwargs)
+        answer = await self.send_message(
+            request_str, 
+            lookup_command.answer_validator,
+            command.args,  
+            **lookup_command.command_def.kwargs
+        )
 
-    async def send_message(self, message: str, answer_validator: AnswerValidator | None = None, **kwargs) -> Answer:
+        return answer
+
+    async def send_message(self, message: str, answer_validator: AnswerValidator | None = None, derived_params: Dict[str, Any] = {}, **kwargs) -> Answer:
         response_str = await self._communicator.send_and_wait_for_response(message, **kwargs)
         
         code: CommandCode | None = None
         if "#" in response_str:
-            code_str, response_str  = response_str.split("#", maxsplit=1)
+            code_str, response_str  = response_str.split(sep="#", maxsplit=1)
             code = CommandCode(int(code_str))
         
-
         if answer_validator is None:
-            command_code = self._lookup_message(message)
-            if command_code is not None:
-                lookup_command = self._command_lookup_table[command_code]
-                answer_validator = lookup_command.answer_validator
-                answer = answer_validator.validate(response_str)
-            else:
-                answer = Answer(response_str, True, False)
+            answer = Answer(response_str, True, was_validated=False)
         else:
             answer = answer_validator.validate(response_str)
         
+        answer.update_field_paths(derived_params)
         answer.command_code = code
         return answer
-
-
-    def _lookup_message(self, message: str) -> CommandCode | None: 
-        # We give back CommandCode instead of CommandLookUp directly, because like this it is easier to test.
-        for command_code, command_lookup in self._command_lookup_table.items():
-            if CommandValidator().validate(message, command_lookup.command_def):
-                return command_code    
-        return None
 
     def _create_request_string(self, command: Command, command_def: CommandDef) -> str:
         identifier = command_def.string_identifier

@@ -1,27 +1,30 @@
 from sonic_protocol.defs import (
-    CommandCode, CommandListExport, ConverterType, StatusAttr, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
+    CommandCode, CommandListExport, ConverterType, FieldType, MetaExportDescriptor, Protocol, Version, CommandDef, AnswerDef, CommandParamDef, 
     AnswerFieldDef, CommandContract, DeviceType, SIUnit, SIPrefix
 )
+from sonic_protocol.field_names import StatusAttr
 
 # Version instance
 version = Version(major=1, minor=0, patch=0)
 
-# CommandParamDef instances (for "param_frequency")
-param_frequency = CommandParamDef(
-    name=StatusAttr.FREQUENCY,
-    param_type=int,
+frequency_field_type = FieldType(
+    field_type=int,
     si_unit=SIUnit.HERTZ,
     si_prefix=SIPrefix.KILO,
+)
+
+# CommandParamDef instances (for "param_frequency")
+param_frequency = CommandParamDef(
+    name=StatusAttr.FREQUENCY.value,
+    param_type=frequency_field_type,
     description="Frequency of the transducer"
 )
 
 # AnswerFieldDef instances (for "answer_frequency")
 answer_field_frequency = AnswerFieldDef(
-    field_name=StatusAttr.FREQUENCY,
-    field_type=int,
+    field_path=[StatusAttr.FREQUENCY.value],
+    field_type=frequency_field_type,
     converter_ref=None,
-    si_unit=SIUnit.HERTZ,
-    si_prefix=SIPrefix.KILO,
     description=None
 )
 
@@ -58,9 +61,21 @@ get_protocol_command = CommandContract(
     answer_defs=[
         AnswerDef(
             fields=[
-                AnswerFieldDef(field_name="device_type", field_type=DeviceType, converter_ref=ConverterType.ENUM),
-                AnswerFieldDef(field_name="version", field_type=Version, converter_ref=ConverterType.VERSION),
-                AnswerFieldDef(field_name="is_release", field_type=bool, converter_ref=ConverterType.BUILD_TYPE, allowed_values_str=["release", "debug"])
+                AnswerFieldDef(
+                    field_path=["device_type"], 
+                    field_type=FieldType(DeviceType), 
+                    converter_ref=ConverterType.ENUM
+                ),
+                AnswerFieldDef(
+                    field_path=["version"], 
+                    field_type=FieldType(Version), 
+                    converter_ref=ConverterType.VERSION
+                ),
+                AnswerFieldDef(
+                    field_path=["is_release"], 
+                    field_type=FieldType(bool), 
+                    converter_ref=ConverterType.BUILD_TYPE
+                )
             ]
         )
     ],

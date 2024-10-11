@@ -7,8 +7,14 @@ from typing import Any, Callable, Dict, List,  Optional
 
 import attrs
 
-from sonic_protocol.defs import CommandCode
+from sonic_protocol.defs import CommandCode, DerivedFromParam, FieldName, FieldPath
 
+
+def convert_field_name_to_str(field_name: FieldName):
+    return "__" + field_name.param if isinstance(field_name, DerivedFromParam) else field_name
+
+def make_field_path_alias(field_path: FieldPath):
+    return "-".join(map(convert_field_name_to_str, field_path))
 
 
 @attrs.define()    
@@ -18,13 +24,24 @@ class Answer:
     valid: bool = attrs.field(on_setattr=attrs.setters.NO_OP)
     was_validated: bool = attrs.field(on_setattr=attrs.setters.NO_OP)
     command_code: CommandCode | None = attrs.field(default=None)
-    value_dict: Dict[str, Any] = attrs.field(default={}, on_setattr=attrs.setters.NO_OP)
+    field_value_dict: Dict[FieldPath, Any] = attrs.field(default={})
     # received_timestamp: float = attrs.field(factory=time.time, init=False, on_setattr=attrs.setters.NO_OP)
 
     def is_error_msg(self) -> bool:
         return self.command_code is not None and self.command_code.value >= 20000
 
+    @property
+    def value_dict(self) -> Dict[str, Any]:
+        return { make_field_path_alias(k): v for k, v in self.field_value_dict.items() }
 
+    def update_field_paths(self, params: Dict[str, Any]):
+        for field_path in self.field_value_dict.keys():
+            for i, field_name in enumerate(field_path):
+                if isinstance(field_name, DerivedFromParam) and field_name.param in params:
+                    field_path[i] = str(params[field_name.param])
+
+
+# TODO: refactor this converter, so that it works together with the other converter defs
 @attrs.define
 class Converter:
     worker: Callable[[Any], Any] = attrs.field()
@@ -56,19 +73,19 @@ class AfterConverter:
     converter: Converter = attrs.field()
     keywords: List[str] = attrs.field(default=[])
 
-# TODO: fix linter errors. Improve type hints
+
 @attrs.define
 class AnswerValidator:
     pattern: str = attrs.field(on_setattr=attrs.setters.NO_OP)
     _named_pattern: str = attrs.field(init=False)
-    _converters: Dict[str, Converter] = attrs.field(init=False, repr=False)
-    _after_converters: Dict[str, AfterConverter] = attrs.field(init=False, repr=False)
+    _converters: Dict[FieldPath, Converter] = attrs.field(init=False, repr=False)
+    _after_converters: Dict[FieldPath, AfterConverter] = attrs.field(init=False, repr=False)
     _compiled_pattern: re.Pattern[str] = attrs.field(init=False, repr=False)
 
     def __init__(
         self,
         pattern: str,
-        **kwargs: type[Any] | Callable[[Any], Any] | AfterConverter | Converter,
+        field_converters: Dict[FieldPath, Callable | Converter | AfterConverter] = {},
     ) -> None:
         """
         Initializes the CommandValidator instance with the specified pattern and converters.
@@ -100,10 +117,10 @@ class AnswerValidator:
         Returns:
             None
         """
-        workers: dict[str, Converter] = dict()
-        after_workers: dict[str, AfterConverter] = dict()
+        workers: dict[FieldPath, Converter] = dict()
+        after_workers: dict[FieldPath, AfterConverter] = dict()
 
-        for keyword, worker in kwargs.items():
+        for keyword, worker in field_converters.items():
             if isinstance(worker, AfterConverter):
                 after_workers[keyword] = worker
                 continue
@@ -113,14 +130,16 @@ class AnswerValidator:
         self.pattern = pattern
         self._converters = workers
         self._after_converters = after_workers
+        self._field_path_aliases = { 
+            make_field_path_alias(field_path): field_path for field_path in self._converters.keys() 
+        }
         self._named_pattern = self.generate_named_pattern(
-            pattern=self.pattern, keywords=list(self._converters.keys())
+            pattern=self.pattern, keywords=list(self._field_path_aliases.keys())
         )
         self._compiled_pattern = re.compile(
             pattern=self._named_pattern,
             flags=re.IGNORECASE,
         )
-
 
     @staticmethod
     def generate_named_pattern(pattern: str, keywords: List[str]) -> str:
@@ -177,23 +196,19 @@ class AnswerValidator:
         if result is None:
             return Answer(data, False, True)
 
-        result_dict: Dict[str, Any] = {
-            keyword: self._converters[keyword].convert(value)
-            for keyword, value in result.groupdict().items()
-        }
-        result_dict.update(
-            {
-                keyword: self._after_converters[keyword].converter.convert(
-                    **{
-                        k: result_dict.get(k)
-                        for k in worker.keywords
-                        if k in result.groupdict()
-                    }
-                )
-                for keyword, worker in self._after_converters.items()
-            }
-        )
+        result_dict: Dict[FieldPath, Any] = {}
+        for keyword, value in result.groupdict().items():
+            field_path = self._field_path_aliases[keyword]
+            result_dict[field_path] = self._converters[field_path].convert(value)
 
-        answer = Answer(data, True, True, value_dict=result_dict)
+        for field_path, worker in self._after_converters.items():
+            kwargs = {
+                k: result_dict.get(self._field_path_aliases[k])
+                for k in worker.keywords
+                if k in result.groupdict()
+            }
+            result_dict[field_path] = worker.converter.convert(kwargs)
+
+        answer = Answer(data, True, True, field_value_dict=result_dict)
 
         return answer

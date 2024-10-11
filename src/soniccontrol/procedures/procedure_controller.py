@@ -1,4 +1,3 @@
-from enum import Enum
 import logging
 from typing import Any, Dict, Literal, Optional, Type
 import asyncio

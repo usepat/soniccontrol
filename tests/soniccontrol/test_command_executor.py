@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock, AsyncMock
 
 import sonic_protocol.commands as cmds
-from sonic_protocol.defs import AnswerDef, AnswerFieldDef, CommandCode, CommandDef, CommandParamDef
+from sonic_protocol.defs import AnswerDef, AnswerFieldDef, CommandCode, CommandDef, CommandParamDef, FieldType
 from sonic_protocol.answer import AnswerValidator
 from soniccontrol.command_executor import CommandExecutor
 from soniccontrol.communication.communicator import Communicator
@@ -14,27 +14,27 @@ def lookup_table() -> CommandLookUpTable:
     return {
         CommandCode.GET_GAIN: CommandLookUp(
             CommandDef(["?g", "?gain"]), 
-            AnswerDef([AnswerFieldDef("gain", int)]),
+            AnswerDef([AnswerFieldDef(["gain"], FieldType(int))]),
             AnswerValidator("")
         ),
         CommandCode.SET_FREQ: CommandLookUp(
-            CommandDef(["!f", "!freq", "!frequency"], setter_param=CommandParamDef("frequency", int)), 
-            AnswerDef([AnswerFieldDef("frequency", field_type=int)]),
+            CommandDef(["!f", "!freq", "!frequency"], setter_param=CommandParamDef("frequency", FieldType(int))), 
+            AnswerDef([AnswerFieldDef(["frequency"], FieldType(int))]),
             AnswerValidator("")
         ),
         CommandCode.SET_GAIN: CommandLookUp(
-            CommandDef(["!g", "!gain"], setter_param=CommandParamDef("gain", int)), 
-            AnswerDef([AnswerFieldDef("gain", int)]),
+            CommandDef(["!g", "!gain"], setter_param=CommandParamDef("gain", FieldType(int))), 
+            AnswerDef([AnswerFieldDef(["gain"], FieldType(int))]),
             AnswerValidator(pattern="")
         ),
         CommandCode.SET_ON: CommandLookUp(
             CommandDef("!ON"), 
-            AnswerDef([AnswerFieldDef("signal", bool)]),
+            AnswerDef([AnswerFieldDef(["signal"], FieldType(bool))]),
             AnswerValidator("")
         ),
         CommandCode.SET_ATF: CommandLookUp(
-            CommandDef("!atf", index_param=CommandParamDef("atf_index", int), setter_param=CommandParamDef("atf", int)), 
-            AnswerDef([AnswerFieldDef("atf", int)]),
+            CommandDef("!atf", index_param=CommandParamDef("atf_index", FieldType(int)), setter_param=CommandParamDef("atf", FieldType(int))), 
+            AnswerDef([AnswerFieldDef(["atf"], FieldType(int))]),
             AnswerValidator("")
         ),
     }

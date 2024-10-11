@@ -1,51 +1,7 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 import attrs
-from sonic_protocol.defs import CommandCode, CommandDef, CommandParamDef
-
-
-class CommandValidator:
-    def validate(self, message: str, command_def: CommandDef) -> bool:
-        identifiers: List[str] = command_def.string_identifier if isinstance(command_def.string_identifier, list) else [command_def.string_identifier]
-
-        for identifier in identifiers:
-            if not message.startswith(identifier):
-                continue
-            
-            args: List[str] = message[len(identifier):].split("=", maxsplit=1)
-            args = list(filter(lambda arg: len(arg) > 0, args))
-
-            if command_def.index_param is not None:
-                index = args.pop(0)
-                if not self._validate_param(index, command_def.index_param):
-                    continue
-                
-            if command_def.setter_param is not None:
-                setter = args.pop(0)
-                if not self._validate_param(setter, command_def.setter_param):
-                    continue
-                
-            if len(args) > 0:
-                continue
-            else:
-                return True
-                
-        return False
-    
-    def _validate_param(self, arg: Any | None, command_param_def: CommandParamDef) -> bool:
-        if arg is None:
-            return False
-        
-        type_constructor = command_param_def.param_type
-        
-        try:
-            value = type_constructor(arg)
-        except Exception:
-            return False
-        
-        if command_param_def.allowed_values:
-            return value in command_param_def.allowed_values
-        
-        return True
+from sonic_protocol.defs import CommandCode
+from sonic_protocol.field_names import StatusAttr
 
 
 class Command:
@@ -87,18 +43,23 @@ class GetGain(Command):
         super().__init__(code=CommandCode.GET_GAIN)
 
 @attrs.define()
+class GetSwf(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.GET_SWF)
+
+@attrs.define()
 class SetFrequency(Command):
     def __attrs_post_init__(self):
         super().__init__(code=CommandCode.SET_FREQ)
 
-    value: int = attrs.field(alias="frequency")    
+    value: int = attrs.field(alias=StatusAttr.FREQUENCY.value)   
 
 @attrs.define()
 class SetGain(Command):
     def __attrs_post_init__(self):
         super().__init__(code=CommandCode.SET_GAIN)
 
-    value: int = attrs.field(alias="gain")
+    value: int = attrs.field(alias=StatusAttr.GAIN.value)
 
 @attrs.define()
 class SetOn(Command):
@@ -116,4 +77,29 @@ class SetAtf(Command):
         super().__init__(code=CommandCode.SET_ATF)
 
     index: int = attrs.field()
-    value: int = attrs.field(alias="atf")
+    value: int = attrs.field(alias=StatusAttr.ATF.value)
+
+@attrs.define()
+class SetRamp(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_RAMP)
+
+@attrs.define()
+class SetTune(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_TUNE)
+
+@attrs.define()
+class SetAuto(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_AUTO)
+
+@attrs.define()
+class SetWipe(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_WIPE)
+
+@attrs.define()
+class SetScan(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_SCAN)

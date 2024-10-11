@@ -38,7 +38,6 @@ class DeviceType(Enum):
     WIPE = "wipe"
     MVP_WORKER = "mvp_worker"
 
-
 class CommandCode(IntEnum):
     # legacy commands, that are not supported anymore have negative numbers
     GET_TYPE = -1
@@ -158,36 +157,30 @@ class SIPrefix(Enum):
     MEGA  = 'M'   # 10⁶
     GIGA  = 'G'   # 10⁹
 
-
 class ConverterType(Enum):
     SIGNAL = 0
     VERSION = 1
     ENUM = 2
     BUILD_TYPE = 3
 
-
-class StatusAttr(Enum):
-    FREQUENCY = "freq"
-    SWF = "swf"
-    GAIN = "gain"
-    SIGNAL = "signal"
-    URMS = "urms"
-    IRMS = "irms"
-
-    PROCEDURE = "procedure"
-
-    TIME_STAMP = "time_stamp"
-
-
 T = TypeVar("T", int, float, bool, str, Version, Enum)
 
 @attrs.define()
-class CommandParamDef(Generic[T]):
-    name: StatusAttr = attrs.field()
-    param_type: type[T] = attrs.field()
-    allowed_values: List[T] | None = attrs.field(default=None) # can we do this better with enum support?
+class FieldType(Generic[T]):
+    field_type: type[T] = attrs.field()
+    allowed_values: List[T] | None = attrs.field(default=None)
     si_unit: SIUnit | None = attrs.field(default=None)
     si_prefix: SIPrefix | None = attrs.field(default=None)
+
+def to_field_type(value: Any) -> FieldType:
+    if isinstance(value, FieldType):
+        return value
+    return FieldType(value)
+
+@attrs.define()
+class CommandParamDef(Generic[T]):
+    name: str = attrs.field()
+    param_type: FieldType[T] = attrs.field(converter=to_field_type)
     description: str | None = attrs.field(default=None)
 
 @attrs.define()
@@ -199,14 +192,23 @@ class CommandDef:
     example: str | None = attrs.field(default=None)
 
 @attrs.define()
+class DerivedFromParam:
+    param: str = attrs.field()
+
+FieldName = Any | DerivedFromParam
+FieldPath = List[FieldName]
+
+def to_field_path(value: Any) -> FieldPath:
+    if not isinstance(value, list):
+        return [value]
+    return value
+
+@attrs.define()
 class AnswerFieldDef(Generic[T]):
-    field_name: StatusAttr | str = attrs.field()
-    field_type: type[T] = attrs.field()
-    allowed_values: List[T] | None = attrs.field(default=None)
+    field_path: FieldPath = attrs.field(converter=to_field_path)
+    field_type: FieldType[T] = attrs.field(converter=to_field_type)
     allowed_values_str: List[str] | None = attrs.field(default=None)
-    converter_ref: ConverterType | None = attrs.field(default=None) # converters are defined in the code and the json only references to them
-    si_unit: SIUnit | None = attrs.field(default=None)
-    si_prefix: SIPrefix | None = attrs.field(default=None)
+    converter_ref: ConverterType | None = attrs.field(default=None) # converters are defined in the code and the protocol only references to them
     prefix: str = attrs.field(default="")
     postfix: str = attrs.field(default="")
     description: str | None = attrs.field(default=None)

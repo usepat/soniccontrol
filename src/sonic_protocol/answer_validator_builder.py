@@ -1,6 +1,6 @@
 from typing import Callable, Dict, List
-from sonic_protocol.answer import AnswerValidator, Converter
-from sonic_protocol.defs import AnswerDef, AnswerFieldDef, ConverterType
+from sonic_protocol.answer import AfterConverter, AnswerValidator, Converter
+from sonic_protocol.defs import AnswerDef, AnswerFieldDef, ConverterType, FieldPath
 
 
 class AnswerValidatorBuilder:
@@ -11,16 +11,16 @@ class AnswerValidatorBuilder:
             # TODO: add converter for validation
         }
         
-        value_dict: Dict[str, Callable | Converter] = {}
+        value_dict: Dict[FieldPath, Callable | Converter | AfterConverter] = {}
         for field in answer_def.fields:
             if field.converter_ref:
-                value_dict[field.field_name] = converters[field.converter_ref]
+                value_dict[field.field_path] = converters[field.converter_ref]
             else:
-                value_dict[field.field_name] = field.field_type
+                value_dict[field.field_path] = field.field_type.field_type
 
         regex = self._create_regex_for_answer(answer_def)
         
-        return AnswerValidator(regex, **value_dict)
+        return AnswerValidator(regex, value_dict)
 
     def _create_regex_for_answer(self, answer_def: AnswerDef) -> str:
         regex_patterns: List[str] = []
@@ -47,7 +47,10 @@ class AnswerValidatorBuilder:
         else:
             value_str = r".*"
 
-        if answer_field.si_prefix and answer_field.si_unit:
-            value_str += " " + answer_field.si_prefix.value + answer_field.si_unit.value
+        si_prefix = answer_field.field_type.si_prefix
+        si_unit = answer_field.field_type.si_unit
+        if si_prefix and si_unit:
+            value_str += " " + si_prefix.value + si_unit.value
+     
         
         return answer_field.prefix + value_str + answer_field.postfix
