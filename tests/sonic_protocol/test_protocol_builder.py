@@ -1,13 +1,13 @@
-from sonic_protocol.defs import AnswerDef, AnswerFieldDef, CommandCode, CommandContract, CommandDef, CommandExport, CommandListExport, DeviceType, MetaExport, MetaExportDescriptor, Protocol, Version
+from sonic_protocol.defs import AnswerDef, AnswerFieldDef, CommandCode, CommandContract, CommandDef, CommandExport, CommandListExport, DeviceType, MetaExport, MetaExportDescriptor, Protocol, SonicTextCommandAttrs, Version
 import pytest
 
 from sonic_protocol.protocol_builder import ProtocolBuilder
 
 
-cdef_get_frequency = CommandDef(string_identifier="?f")
-cdef_set_frequency_new = CommandDef(string_identifier=["!f", "!freq", "!frequency"])
-cdef_set_frequency_old = CommandDef(string_identifier="!f")
-cdef_set_swf = CommandDef(string_identifier="!swf")
+cdef_get_frequency = CommandDef(SonicTextCommandAttrs(string_identifier="?f"))
+cdef_set_frequency_new = CommandDef(SonicTextCommandAttrs(string_identifier=["!f", "!freq", "!frequency"]))
+cdef_set_frequency_old = CommandDef(SonicTextCommandAttrs(string_identifier="!f"))
+cdef_set_swf = CommandDef(SonicTextCommandAttrs(string_identifier="!swf"))
 adef_frequency = AnswerDef(
     fields=[AnswerFieldDef("f", int)]
 )
@@ -22,8 +22,8 @@ v_old = Version(0, 0, 0)
 
 get_frequency_command = CommandContract(
     code=CommandCode.GET_FREQ,
-    command_defs=[cdef_get_frequency],
-    answer_defs=[adef_frequency],
+    command_defs=cdef_get_frequency,
+    answer_defs=adef_frequency,
     is_release=True
 )
 
@@ -44,14 +44,14 @@ set_frequency_command = CommandContract(
             )
         ),
     ],
-    answer_defs=[adef_frequency],
+    answer_defs=adef_frequency,
     is_release=True
 )
 
 set_switching_frequency_command = CommandContract(
     code=CommandCode.SET_SWF,
-    command_defs=[cdef_set_swf],
-    answer_defs=[adef_swf],
+    command_defs=cdef_set_swf,
+    answer_defs=adef_swf,
     is_release=False
 )
 

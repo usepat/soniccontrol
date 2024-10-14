@@ -4,7 +4,7 @@ from typing import Type
 import attrs
 from attrs import validators
 
-from sonic_protocol import commands
+from sonic_protocol.python_parser import commands
 from soniccontrol.interfaces import Scriptable
 from soniccontrol.procedures.holder import HolderArgs, convert_to_holder_args
 from soniccontrol.procedures.procedure import Procedure

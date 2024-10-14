@@ -3,8 +3,8 @@ import logging
 from typing import Any, Dict
 
 import attrs
-from sonic_protocol.answer import Answer
-from sonic_protocol.commands import Command
+from sonic_protocol.python_parser.answer import Answer
+from sonic_protocol.python_parser.commands import Command
 from sonic_protocol.defs import FieldPath
 from sonic_protocol.protocol_builder import CommandLookUpTable
 from soniccontrol.command_executor import CommandExecutor

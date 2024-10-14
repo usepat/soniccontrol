@@ -1,7 +1,7 @@
 
 import asyncio
 from typing import Optional
-from sonic_protocol import commands
+from sonic_protocol.python_parser import commands
 from soniccontrol.sonic_device import SonicDevice
 from soniccontrol.events import Event, EventManager
 

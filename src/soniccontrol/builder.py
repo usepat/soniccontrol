@@ -18,7 +18,7 @@ from soniccontrol.sonic_device import (
     Info,
     SonicDevice,
 )
-import sonic_protocol.commands as cmds
+import sonic_protocol.python_parser.commands as cmds
 
 
 class DeviceBuilder:

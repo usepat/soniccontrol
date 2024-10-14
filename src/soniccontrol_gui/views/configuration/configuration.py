@@ -7,7 +7,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 from ttkbootstrap.scrolled import ScrolledFrame
 import json
-from sonic_protocol import commands
+from sonic_protocol.python_parser import commands
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView

@@ -1,8 +1,8 @@
 import abc
 import asyncio
 
-from sonic_protocol.answer import Answer
-from sonic_protocol.commands import Command
+from sonic_protocol.python_parser.answer import Answer
+from sonic_protocol.python_parser.commands import Command
 
 
 class Scriptable(abc.ABC):

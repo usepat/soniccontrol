@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from sonic_protocol import commands
+from sonic_protocol.python_parser import commands
 from soniccontrol.procedures.procedure import Procedure, ProcedureType
 from soniccontrol.procedures.procs.auto import AutoProc
 from soniccontrol.procedures.procs.ramper import Ramper, RamperLocal, RamperRemote

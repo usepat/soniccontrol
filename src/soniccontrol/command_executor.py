@@ -1,10 +1,10 @@
 
 
 from typing import Any, Dict
-from sonic_protocol.commands import Command
+from sonic_protocol.python_parser.commands import Command
 from sonic_protocol.defs import CommandCode, CommandDef
 from sonic_protocol.protocol_builder import CommandLookUpTable
-from sonic_protocol.answer import Answer, AnswerValidator
+from sonic_protocol.python_parser.answer import Answer, AnswerValidator
 from soniccontrol.communication.communicator import Communicator
 
 
@@ -21,6 +21,7 @@ class CommandExecutor:
     async def send_command(self, command: Command) -> Answer:
         lookup_command = self._command_lookup_table.get(command.code)
         assert lookup_command is not None, f"The command {command} is not known for the protocol" # throw error?
+        assert not isinstance(lookup_command.command_def.sonic_text_attrs, list)
 
         request_str = self._create_request_string(command, lookup_command.command_def)
         
@@ -28,7 +29,7 @@ class CommandExecutor:
             request_str, 
             lookup_command.answer_validator,
             command.args,  
-            **lookup_command.command_def.kwargs
+            **lookup_command.command_def.sonic_text_attrs.kwargs
         )
 
         return answer
@@ -51,7 +52,9 @@ class CommandExecutor:
         return answer
 
     def _create_request_string(self, command: Command, command_def: CommandDef) -> str:
-        identifier = command_def.string_identifier
+        assert not isinstance(command_def.sonic_text_attrs, list)
+        
+        identifier = command_def.sonic_text_attrs.string_identifier
         request_msg: str = identifier[0] if isinstance(identifier, list) else identifier
         if command_def.index_param:
             assert "index"in command.args

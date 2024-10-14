@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
-from sonic_protocol.commands import Command
+from sonic_protocol.python_parser.commands import Command
 from soniccontrol.builder import DeviceBuilder
 from soniccontrol.communication.communicator_builder import CommunicatorBuilder
 from soniccontrol.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory

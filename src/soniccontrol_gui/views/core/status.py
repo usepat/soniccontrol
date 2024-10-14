@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Callable, Dict, Iterable, Tuple
 import ttkbootstrap as ttk
-from sonic_protocol.answer_field_converter import AnswerFieldToStringConverter
+from sonic_protocol.python_parser.answer_field_converter import AnswerFieldToStringConverter
 from sonic_protocol.field_names import StatusAttr
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.view import View
@@ -13,14 +13,14 @@ from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.widgets.horizontal_scrolled_frame import HorizontalScrolledFrame
 from soniccontrol_gui.resources import images
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
-from sonic_protocol.protocol import answer_field_frequency
+from sonic_protocol.protocol import field_frequency
 
 class StatusBar(UIComponent):
     def __init__(self, parent: UIComponent, parent_slot: View):
         self._logger = logging.getLogger(parent.logger.name + "." + StatusBar.__name__)
         
         self._field_converters = {
-            StatusAttr.FREQUENCY: AnswerFieldToStringConverter(answer_field_frequency),
+            StatusAttr.FREQUENCY: AnswerFieldToStringConverter(field_frequency),
             # TODO: ...
         }
 

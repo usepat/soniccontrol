@@ -5,9 +5,11 @@ class StatusAttr(Enum):
     FREQUENCY = "freq"
     SWF = "swf"
     GAIN = "gain"
+    TEMPERATURE = "temp"
     SIGNAL = "signal"
     URMS = "urms"
     IRMS = "irms"
+    PHASE = "phase"
 
     ATF = "atf"
     ATK = "atk"
