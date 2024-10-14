@@ -424,8 +424,9 @@ class LegacyCommand:
         if should_log:
             parrot_feeder.debug("COMMAND_CALL(%s)", json.dumps(self.get_dict()))
         
-        await connection.send_and_wait_for_answer(self)
+        response = await connection.send_and_wait_for_response(self.full_message)
 
+        self.answer.receive_answer(response.splitlines())
         self.answer.valid = self.validate()
         self.status_result.update({"timestamp": self.answer.received_timestamp})
 

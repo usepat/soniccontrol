@@ -50,6 +50,6 @@ class ScanProc(Procedure):
             await device.execute_command(f"!scan_t_step={int(args.Scanning_t_step_ms.duration_in_ms)}")
             await device.execute_command("!scan")
         except asyncio.CancelledError:
-            await device.execute_command("!OFF")
+            await device.set_signal_off()
         finally:
             await device.get_remote_proc_finished_event().wait()

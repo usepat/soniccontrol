@@ -48,6 +48,6 @@ class WipeProc(Procedure):
             await device.execute_command(f"!wipe_t_pause={int(args.Wipe_t_pause_ms.duration_in_ms)}")
             await device.execute_command("!wipe")
         except asyncio.CancelledError:
-            await device.execute_command("!OFF")
+            await device.set_signal_off()
         finally:
             await device.get_remote_proc_finished_event().wait()

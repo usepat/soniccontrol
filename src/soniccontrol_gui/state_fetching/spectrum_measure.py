@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Type, Union
 from attrs import validators
 import attrs
 
+from sonic_protocol import commands
 from soniccontrol_gui.state_fetching.updater import Updater
 from soniccontrol.interfaces import Scriptable
 from soniccontrol.procedures.holder import Holder, HolderArgs, convert_to_holder_args
@@ -56,9 +57,9 @@ class SpectrumMeasure(Procedure):
         hold_off: HolderArgs,
     ) -> None:
         for  i in range(len(values)):
-            value = values[i]
+            value = int(values[i])
 
-            await device.execute_command(f"!freq={value}")
+            await device.execute_command(commands.SetFrequency(value))
             if hold_off.duration:
                 await device.set_signal_on()
             asyncio.get_running_loop().create_task(self._updater.update())

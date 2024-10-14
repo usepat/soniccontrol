@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
+from sonic_protocol.commands import Command
 from soniccontrol.builder import DeviceBuilder
 from soniccontrol.communication.communicator_builder import CommunicatorBuilder
 from soniccontrol.communication.connection_factory import CLIConnectionFactory, ConnectionFactory, SerialConnectionFactory
@@ -59,9 +60,9 @@ class RemoteController:
         answer = await self._device.execute_command("?" + attr)
         return answer.message
     
-    async def send_command(self, command_str: str) -> str:
+    async def send_command(self, command: str | Command) -> str:
         assert self._device is not None,    RemoteController.NOT_CONNECTED
-        answer = await self._device.execute_command(command_str)
+        answer = await self._device.execute_command(command)
         return answer.message
 
     async def execute_script(self, text: str) -> None:

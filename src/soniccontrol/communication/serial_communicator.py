@@ -123,7 +123,7 @@ class SerialCommunicator(Communicator):
         if request_str != "-":
             self._logger.info("Send command: %s", request_str)
 
-        self._message_counter = (self._message_counter + 1) % SerialCommunicator.MESSAGE_ID_MAX_CLIENT
+        self._message_counter = (self._message_counter + 1) % self.MESSAGE_ID_MAX_CLIENT
         message_counter = self._message_counter
 
         message = self._protocol.parse_request(
