@@ -221,3 +221,4 @@ class Info:
     device_type: Literal["catch", "wipe", "descale"] = attrs.field(default="descale")
     firmware_info: str = attrs.field(default="") # TODO does not match with validators of info command
     firmware_version: Version = attrs.field(default=Version(0, 0, 0), converter=Version.to_version) 
+    protocol_version: Version = attrs.field(default=Version(0, 0, 0), converter=Version.to_version)

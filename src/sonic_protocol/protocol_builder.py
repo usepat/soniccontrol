@@ -13,6 +13,7 @@ class CommandLookUp:
     answer_def: AnswerDef = attrs.field() # probably not needed, we leave it anyway here
     answer_validator: AnswerValidator = attrs.field()
     user_manual_attrs: UserManualAttrs = attrs.field(default=UserManualAttrs())
+    tags: List[str] = attrs.field(default=[])
 
 T = TypeVar("T")
 CommandLookUpTable = Dict[CommandCode, CommandLookUp]
@@ -56,7 +57,8 @@ class ProtocolBuilder:
             command_def,
             answer_def,
             validator,
-            user_manual_attrs
+            user_manual_attrs,
+            command.tags
         )
 
     def _extract_prot_specific_attrs(self, obj: T, version: Version, device_type: DeviceType) -> T:

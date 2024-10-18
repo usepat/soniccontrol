@@ -1,10 +1,11 @@
+from sonic_protocol.command_contracts.contract_generators import create_list_with_unknown_answer_alternative
 from sonic_protocol.defs import (
-	CommandCode, DerivedFromParam, FieldType, SonicTextCommandAttrs, UserManualAttrs, CommandDef, AnswerDef, CommandParamDef, 
-	AnswerFieldDef, CommandContract
+	CommandCode, DerivedFromParam, FieldType, MetaExport, MetaExportDescriptor, SonicTextCommandAttrs, UserManualAttrs, CommandDef, AnswerDef, CommandParamDef, 
+	AnswerFieldDef, CommandContract, Version
 )
 from sonic_protocol.field_names import StatusAttr
 from sonic_protocol.command_contracts.fields import (
-    field_type_frequency, field_type_temperature,
+    field_unknown_answer, field_type_frequency, field_type_temperature,
     field_frequency, field_gain, field_signal, field_swf,
     gain_type, swf_field_type, field_temperature,
     field_urms, field_irms, field_phase, field_ts_flag
@@ -28,8 +29,8 @@ set_frequency = CommandContract(
             string_identifier=["!f", "!freq", "!frequency", "set_frequency"]
         )
     ),
-    answer_defs=AnswerDef(
-        fields=[field_frequency]
+    answer_defs=create_list_with_unknown_answer_alternative(
+        AnswerDef(fields=[field_frequency])
     ),
     user_manual_attrs=UserManualAttrs(
         description="Command to set the frequency of the transducer on the device."
@@ -45,8 +46,8 @@ get_frequency = CommandContract(
             string_identifier=["?f", "?freq", "?frequency", "get_frequency"]
         )
     ),
-    answer_defs=AnswerDef(
-        fields=[field_frequency]
+    answer_defs=create_list_with_unknown_answer_alternative(
+        AnswerDef(fields=[field_frequency])
     ),
     user_manual_attrs=UserManualAttrs(
         description="Command to get the frequency of the transducer on the device."
@@ -72,8 +73,8 @@ set_gain = CommandContract(
             string_identifier=["!g", "!gain", "set_gain"]
         )
     ),
-    answer_defs=AnswerDef(
-        fields=[field_gain]
+    answer_defs=create_list_with_unknown_answer_alternative(
+        AnswerDef(fields=[field_gain])
     ),
     user_manual_attrs=UserManualAttrs(
         description="Command to set the gain of the transducer on the device."
@@ -89,8 +90,8 @@ get_gain = CommandContract(
             string_identifier=["?g", "?gain", "get_gain"]
         )
     ),
-    answer_defs=AnswerDef(
-        fields=[field_gain]
+    answer_defs=create_list_with_unknown_answer_alternative(
+        AnswerDef(fields=[field_gain])
     ),
     user_manual_attrs=UserManualAttrs(
         description="Command to get the gain of the transducer on the device."
@@ -106,8 +107,8 @@ set_on = CommandContract(
             string_identifier=["!ON", "set_on"]
         )
     ),
-    answer_defs=AnswerDef(
-        fields=[field_signal]
+    answer_defs=create_list_with_unknown_answer_alternative(
+        AnswerDef(fields=[field_signal])
     ),
     user_manual_attrs=UserManualAttrs(
         description="Command to turn the transducer on."
@@ -123,8 +124,8 @@ set_off = CommandContract(
             string_identifier=["!OFF", "set_off"]
         )
     ),
-    answer_defs=AnswerDef(
-        fields=[field_signal]
+    answer_defs=create_list_with_unknown_answer_alternative(
+        AnswerDef(fields=[field_signal])
     ),
     user_manual_attrs=UserManualAttrs(
         description="Command to turn the transducer off."

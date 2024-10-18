@@ -1,10 +1,12 @@
+from sonic_protocol.command_contracts.contract_generators import create_version_field
 from sonic_protocol.defs import (
     CommandCode, CommandListExport, ConverterType, FieldType, MetaExportDescriptor, 
     Protocol, SonicTextCommandAttrs, UserManualAttrs, Version, CommandDef, AnswerDef,
     AnswerFieldDef, CommandContract, DeviceType,
 )
 from sonic_protocol.command_contracts.fields import (
-    field_frequency, field_gain, field_temperature, field_urms, field_irms, field_phase, field_signal, field_ts_flag,
+    field_frequency, field_gain, field_temperature, field_urms, field_irms, 
+    field_phase, field_signal, field_ts_flag,
 )
 from sonic_protocol.command_contracts.transducer_commands import (
     set_frequency, get_frequency, set_swf, get_swf, get_atf, set_atf, get_att, set_att, get_atk, set_atk,
@@ -29,12 +31,6 @@ field_device_type = AnswerFieldDef(
     field_path=["device_type"],
     field_type=FieldType(DeviceType, converter_ref=ConverterType.ENUM),
 )
-
-def create_version_field(name: str) -> AnswerFieldDef:
-    return AnswerFieldDef(
-        field_path=[name], 
-        field_type=FieldType(Version, converter_ref=ConverterType.VERSION), 
-    )
 
 get_protocol = CommandContract(
     code=CommandCode.GET_PROTOCOL,
@@ -171,17 +167,27 @@ get_update = CommandContract(
 protocol = Protocol(
     version=Version(1, 0, 0),
     commands=[
+        # Basic Commands needed, because they are directly used in the GUI
         CommandListExport(
             exports=[
-                get_protocol,
-                get_info,
-                list_available_commands,
-                get_help,
-                get_update,
                 set_gain,
                 get_gain,
                 set_on,
                 set_off,
+                set_frequency,
+                get_frequency,
+            ],
+            descriptor=MetaExportDescriptor(
+                min_protocol_version=Version(major=0, minor=0, patch=0),
+            )
+        ),
+        CommandListExport(
+            exports=[
+                get_protocol,
+                get_info,
+                get_update,
+                list_available_commands,
+                get_help,
                 get_temp,
                 get_uipt,
                 set_termination,
@@ -195,8 +201,6 @@ protocol = Protocol(
         ),
         CommandListExport(
             exports=[
-                set_frequency,
-                get_frequency,
                 get_atf,
                 set_atf,
                 get_att,

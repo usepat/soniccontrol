@@ -7,6 +7,7 @@ import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.dialogs.dialogs import Messagebox
 
+from sonic_protocol.defs import Version
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import View
@@ -89,7 +90,10 @@ class DeviceWindowManager:
             Messagebox.show_error(str(e))
         else:
             logger.info("Created device successfully, open device window")
-            self.open_known_device_window(sonicamp, connection_factory)
+            if sonicamp.info.protocol_version >= Version(1, 0, 0):
+                self.open_known_device_window(sonicamp, connection_factory)
+            else:
+                self.open_rescue_window(sonicamp, connection_factory)
 
     def set_attempt_connection_callback(self, callback: Callable[[ConnectionFactory], Awaitable[None]]):
         self._attempt_connection_callback = callback

@@ -176,6 +176,7 @@ class DeviceBuilder:
         builder_logger.info("Device type: %s", info.device_type)
         builder_logger.info("Firmware version: %s", info.firmware_version)
         builder_logger.info("Firmware info: %s", info.firmware_info)
+        builder_logger.info("Protocol version: %s", info.protocol_version)
 
         return device
 

@@ -115,4 +115,7 @@ field_ts_flag = AnswerFieldDef(
     field_type=ts_flag_field_type
 )
 
-
+field_unknown_answer = AnswerFieldDef(
+	field_path=["unknown_answer"],
+	field_type=FieldType(str)
+)

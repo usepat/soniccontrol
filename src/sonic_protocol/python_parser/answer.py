@@ -16,8 +16,8 @@ def convert_field_name_to_str(field_name: FieldName):
     if isinstance(field_name, DerivedFromParam):
         return "x_" + field_name.param
     if isinstance(field_name, StatusAttr):
-        return "x_" + field_name.value
-    return "x_" + str(field_name)
+        return field_name.value
+    return str(field_name)
 
 def make_field_path_alias(field_path: FieldPath):
     return "__".join(map(convert_field_name_to_str, field_path))

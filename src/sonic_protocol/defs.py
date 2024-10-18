@@ -2,6 +2,7 @@ from enum import Enum, IntEnum, auto
 from typing import Any, Dict, List, Tuple, TypeVar, Generic
 import attrs
 
+VersionTuple = Tuple[int, int, int]
 
 @attrs.define(order=True) # order True, lets attrs define automatically comparision methods
 class Version:
@@ -198,8 +199,11 @@ class MetaExportDescriptor:
     """
     The MetaExportDescriptor is used to define the conditions under which the export is valid.
     """
-    min_protocol_version: Version = attrs.field() #! The minimum protocol version that is required for this export  
-    deprecated_protocol_version: Version | None = attrs.field(default=None) #! The protocol version after which this export is deprecated, so it is the maximum version
+    min_protocol_version: Version = attrs.field(converter=Version.to_version) #! The minimum protocol version that is required for this export  
+    deprecated_protocol_version: Version | None = attrs.field(
+        converter=attrs.converters.optional(Version.to_version), # this is needed to support none values
+        default=None
+    ) #! The protocol version after which this export is deprecated, so it is the maximum version
     included_device_types: List[DeviceType] | None = attrs.field(default=None) #! The device types that are included in this export
     excluded_device_types: List[DeviceType] | None = attrs.field(default=None) #! The device types that are excluded from this export
 
