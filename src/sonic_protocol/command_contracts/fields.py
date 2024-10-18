@@ -1,4 +1,4 @@
-from sonic_protocol.defs import DeviceType, FieldType, AnswerFieldDef, CommunicationChannel, ConverterType, SIPrefix, SIUnit, Version
+from sonic_protocol.defs import DeviceParamConstantType, DeviceType, FieldType, AnswerFieldDef, CommunicationChannel, ConverterType, SIPrefix, SIUnit, Version
 from sonic_protocol.field_names import StatusAttr
 
 field_termination = AnswerFieldDef(
@@ -26,6 +26,8 @@ field_type_frequency = FieldType(
     field_type=int,
     si_unit=SIUnit.HERTZ,
     si_prefix=SIPrefix.KILO,
+	max_value=DeviceParamConstantType.MAX_FREQUENCY,
+	min_value=DeviceParamConstantType.MIN_FREQUENCY,
 )
 
 field_frequency = AnswerFieldDef(
@@ -33,15 +35,17 @@ field_frequency = AnswerFieldDef(
     field_type=field_type_frequency,
 )
 
-gain_type = FieldType(
+field_type_gain = FieldType(
     field_type=int,
     si_unit=SIUnit.PERCENT,
     si_prefix=SIPrefix.NONE,
+	max_value=DeviceParamConstantType.MAX_GAIN,
+	min_value=DeviceParamConstantType.MIN_GAIN,
 )
 
 field_gain = AnswerFieldDef(
     field_path=[StatusAttr.GAIN],
-    field_type=gain_type
+    field_type=field_type_gain
 )
 
 field_signal = AnswerFieldDef(
@@ -53,6 +57,8 @@ swf_field_type = FieldType(
     field_type=int,
     si_unit=SIUnit.HERTZ,
     si_prefix=SIPrefix.KILO,
+	max_value=DeviceParamConstantType.MAX_SWF,
+	min_value=DeviceParamConstantType.MIN_SWF,
 )
 
 field_swf = AnswerFieldDef(

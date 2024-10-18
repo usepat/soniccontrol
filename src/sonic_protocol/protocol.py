@@ -1,6 +1,6 @@
 from sonic_protocol.command_contracts.contract_generators import create_version_field
 from sonic_protocol.defs import (
-    CommandCode, CommandListExport, ConverterType, FieldType, MetaExportDescriptor, 
+    CommandCode, CommandListExport, ConverterType, DeviceParamConstants, FieldType, MetaExportDescriptor, 
     Protocol, SonicTextCommandAttrs, UserManualAttrs, Version, CommandDef, AnswerDef,
     AnswerFieldDef, CommandContract, DeviceType,
 )
@@ -166,6 +166,7 @@ get_update = CommandContract(
 
 protocol = Protocol(
     version=Version(1, 0, 0),
+    consts=DeviceParamConstants(),
     commands=[
         # Basic Commands needed, because they are directly used in the GUI
         CommandListExport(

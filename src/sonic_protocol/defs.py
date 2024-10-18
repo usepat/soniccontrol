@@ -195,6 +195,23 @@ class CommunicationProtocol(Enum):
     MODBUS = "modbus"
 
 @attrs.define()
+class DeviceParamConstants:
+    max_frequency: int = attrs.field(default=10000001)
+    min_frequency: int = attrs.field(default=100000)
+    max_gain: int = attrs.field(default=150)
+    min_gain: int = attrs.field(default=0)
+    max_swf: int = attrs.field(default=15)
+    min_swf: int = attrs.field(default=0)
+
+class DeviceParamConstantType(Enum):
+    MAX_FREQUENCY = "max_frequency"
+    MIN_FREQUENCY = "min_frequency"
+    MAX_GAIN = "max_gain"
+    MIN_GAIN = "min_gain"
+    MAX_SWF = "max_swf"
+    MIN_SWF = "min_swf"
+
+@attrs.define()
 class MetaExportDescriptor:
     """
     The MetaExportDescriptor is used to define the conditions under which the export is valid.
@@ -263,6 +280,8 @@ class FieldType(Generic[T]):
     """
     field_type: type[T] = attrs.field()
     allowed_values: List[T] | None = attrs.field(default=None)
+    max_value: T | None | DeviceParamConstantType = attrs.field(default=None)
+    min_value: T | None | DeviceParamConstantType = attrs.field(default=None)
     si_unit: SIUnit | None = attrs.field(default=None)
     si_prefix: SIPrefix | None = attrs.field(default=None)
     converter_ref: ConverterType = attrs.field(default=ConverterType.PRIMITIVE) #! converters are defined in the code and the protocol only references to them
@@ -358,5 +377,6 @@ class Protocol:
     for which version and device type the command is valid.
     """
     version: Version = attrs.field()
+    consts: DeviceParamConstants | List[MetaExport[DeviceParamConstants]] = attrs.field()
     commands: List[CommandExport | CommandListExport] = attrs.field()
 

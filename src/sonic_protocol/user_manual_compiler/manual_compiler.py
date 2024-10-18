@@ -1,19 +1,22 @@
 import abc
 from enum import Enum
-from sonic_protocol.defs import AnswerFieldDef, CommandCode, CommandParamDef, ConverterType, DeviceType, FieldType, SonicTextCommandAttrs, UserManualAttrs, Version, Protocol
+from sonic_protocol.defs import AnswerFieldDef, CommandCode, CommandParamDef, ConverterType, DeviceParamConstantType, DeviceParamConstants, DeviceType, FieldType, SonicTextCommandAttrs, UserManualAttrs, Version, Protocol
 from sonic_protocol.protocol_builder import CommandLookUp, ProtocolBuilder
 from sonic_protocol.python_parser.answer import make_field_path_alias
 
 
 class ManualCompiler(abc.ABC):
     @abc.abstractmethod
-    def compile_manual_for_specific_device(self, protocol: Protocol, device_type: DeviceType, protocol_version: Version, is_release: bool = True) -> str: ...
+    def compile_manual_for_specific_device(self, device_type: DeviceType, protocol_version: Version, is_release: bool = True) -> str: ...
 
 
 class MarkdownManualCompiler(ManualCompiler):
-    def compile_manual_for_specific_device(self, protocol: Protocol, device_type: DeviceType, protocol_version: Version, is_release: bool = True) -> str:
-        protocol_builder = ProtocolBuilder(protocol)
-        command_list = protocol_builder.build(device_type, protocol_version, is_release)
+    def __init__(self, protocol: Protocol):
+        self._protocol_builder = ProtocolBuilder(protocol)
+        
+
+    def compile_manual_for_specific_device(self, device_type: DeviceType, protocol_version: Version, is_release: bool = True) -> str:
+        command_list = self._protocol_builder.build(device_type, protocol_version, is_release)
         
         manual = ""
         manual += self.create_title(device_type, protocol_version, is_release)
@@ -108,6 +111,13 @@ class MarkdownManualCompiler(ManualCompiler):
             for value in possible_values:
                 type_header += f"\t- {value}  \n"
 
+        if field_type.min_value is not None:
+            assert not isinstance(field_type.min_value, DeviceParamConstantType)
+            type_header += f"\tMinimum value: {field_type.min_value}  \n"
+        if field_type.max_value is not None:
+            assert not isinstance(field_type.max_value, DeviceParamConstantType)
+            type_header += f"\tMaximum value: {field_type.max_value}  \n"
+
         if description is not None:
             type_header += f"\t{description}  \n"
 
@@ -120,8 +130,8 @@ if __name__ == "__main__":
     protocol_version = Version(1, 0, 0)
     is_release = True
 
-    manual_compiler = MarkdownManualCompiler()
-    manual = manual_compiler.compile_manual_for_specific_device(protocol, device_type, protocol_version, is_release)
+    manual_compiler = MarkdownManualCompiler(protocol)
+    manual = manual_compiler.compile_manual_for_specific_device(device_type, protocol_version, is_release)
 
     with open("manual.md", "w") as file:
         file.write(manual)

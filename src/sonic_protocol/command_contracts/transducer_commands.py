@@ -7,7 +7,7 @@ from sonic_protocol.field_names import StatusAttr
 from sonic_protocol.command_contracts.fields import (
     field_unknown_answer, field_type_frequency, field_type_temperature,
     field_frequency, field_gain, field_signal, field_swf,
-    gain_type, swf_field_type, field_temperature,
+    field_type_gain, swf_field_type, field_temperature,
     field_urms, field_irms, field_phase, field_ts_flag
 )
 
@@ -58,7 +58,7 @@ get_frequency = CommandContract(
 
 param_gain = CommandParamDef(
     name="gain",
-    param_type=gain_type,
+    param_type=field_type_gain,
     user_manual_attrs=UserManualAttrs(
         description="Gain of the transducer"
     )
